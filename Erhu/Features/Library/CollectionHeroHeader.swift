@@ -38,6 +38,7 @@ struct CollectionHeroHeader<Cover: View>: View {
                 .foregroundStyle(palette.onSurface)
                 .padding(.horizontal, Spacing.heroGutter)
                 .padding(.bottom, Spacing.lg)
+                .frame(maxWidth: .infinity)
                 // Anchor the fade to the measured title, rather than a percentage of the
                 // image: long names and large text must still sit on a readable background.
                 .background(palette.background)
