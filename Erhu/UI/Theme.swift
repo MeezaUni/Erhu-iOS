@@ -39,6 +39,11 @@ struct AppPalette: Equatable {
     let onSurface: Color
     let onSurfaceVariant: Color
     let outline: Color
+    var buttonFill: Color? = nil
+    var onButtonFill: Color? = nil
+
+    var filledButton: Color { buttonFill ?? primary }
+    var onFilledButton: Color { onButtonFill ?? onPrimary }
 
     static let dark = AppPalette(
         primary: Color(argb: 0xFFF8F9FA), onPrimary: Color(argb: 0xFF101216), background: Color(argb: 0xFF101216),
@@ -53,13 +58,14 @@ struct AppPalette: Equatable {
 }
 
 extension AppPalette {
-    /// Use the same sampled surface, gradient and contrast-checked colours as the player card.
+    /// Share the player card's dark artwork tones, with deeper fills for prominent controls.
     static func artwork(_ sampled: LyricsPalette) -> AppPalette {
         let colors = LyricsColors(sampled)
         return AppPalette(primary: colors.accent, onPrimary: colors.surface,
                           background: colors.gradient.last ?? colors.surface,
                           surface: colors.surface, surfaceVariant: colors.surface,
-                          onSurface: colors.content, onSurfaceVariant: colors.secondary, outline: colors.rim)
+                          onSurface: colors.content, onSurfaceVariant: colors.secondary, outline: colors.rim,
+                          buttonFill: Color(argb: sampled.buttonFill), onButtonFill: Color(argb: sampled.onButtonFill))
     }
 }
 

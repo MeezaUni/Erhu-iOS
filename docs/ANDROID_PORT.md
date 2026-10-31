@@ -50,7 +50,7 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 |---|---|---|
 | Embedded lyrics, LRC / enhanced LRC (word timing) | ✅ | |
 | Synced-first LRCLIB lookup, cache, and manual alternatives | ✅ | Auto-selects real synced matches; provider failures switch immediately with a reason and accurate fallback timing. Search online lists alternatives. |
-| Lyrics colour palette from artwork | ✅ | Artwork-derived hues with tonal gradients and contrast checks; no synthetic hue rotations. The player backdrop and app theme share these colours |
+| Lyrics colour palette from artwork | ✅ | Dark, muted artwork-derived hues with deeper control fills, tonal gradients and contrast checks; no synthetic hue rotations. The player backdrop and app theme share these colours |
 
 ## Tools
 

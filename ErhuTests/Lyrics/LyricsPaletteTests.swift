@@ -93,11 +93,25 @@ final class LyricsPaletteTests: XCTestCase {
         assertReadable(palette)
     }
 
-    func testGenuinelyLightArtworkGetsDarkText() {
+    func testBrightArtworkStillGetsADarkNeutralUI() {
         let palette = LyricsPalette.fromPixels(artwork(0xFFFF_FFFF, 0xFFF2_F2F0, 0xFFE6_E6E6))
-        XCTAssertGreaterThan(relativeLuminance(palette.surface), 0.5)
-        XCTAssertLessThan(relativeLuminance(palette.content), 0.1)
+        XCTAssertLessThan(relativeLuminance(palette.surface), 0.04)
+        XCTAssertGreaterThan(relativeLuminance(palette.content), 0.8)
         assertReadable(palette)
+    }
+
+    func testArtworkTonesAndControlFillsStayDarkWithoutChangingHueOrLegibility() {
+        for hue in stride(from: 0, to: 360, by: 15) {
+            for lightness: Float in [0.15, 0.5, 0.9] {
+                let palette = LyricsPalette.fromPixels(artwork(hslToArgb(Float(hue), 0.8, lightness)))
+                XCTAssertLessThan(relativeLuminance(palette.surface), 0.05)
+                XCTAssertLessThan(relativeLuminance(palette.buttonFill), 0.15)
+                XCTAssertLessThan(hueDistance(hueOf(palette.buttonFill), hueOf(palette.surface)), 5)
+                XCTAssertGreaterThanOrEqual(contrast(palette.onButtonFill, palette.buttonFill), 4.5)
+                XCTAssertLessThan(relativeLuminance(palette.buttonFill), relativeLuminance(palette.accent))
+                assertReadable(palette)
+            }
+        }
     }
 
     func testEveryHueAndLightnessStaysReadable() {

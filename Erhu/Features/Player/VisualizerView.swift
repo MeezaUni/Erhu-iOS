@@ -67,9 +67,9 @@ struct VisualizerView: View {
                 Button { player.togglePlayPause() } label: {
                     Image(systemName: player.state.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(palette.onPrimary)
+                        .foregroundStyle(palette.onFilledButton)
                         .frame(width: 64, height: 64)
-                        .background(Circle().fill(palette.primary))
+                        .background(Circle().fill(palette.filledButton))
                 }
                 .accessibilityLabel(player.state.isPlaying ? "Pause" : "Play")
                 Button { player.skipNext() } label: { Image(systemName: "forward.fill").font(.title) }

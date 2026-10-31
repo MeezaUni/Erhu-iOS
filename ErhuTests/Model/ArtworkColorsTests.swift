@@ -44,6 +44,8 @@ final class ArtworkColorsTests: XCTestCase {
             XCTAssertEqual(page.onSurface, card.content)
             XCTAssertEqual(page.onSurfaceVariant, card.secondary)
             XCTAssertEqual(page.background, card.gradient.last ?? card.surface)
+            XCTAssertEqual(page.filledButton, Color(argb: sampled.buttonFill))
+            XCTAssertEqual(page.onFilledButton, Color(argb: sampled.onButtonFill))
         }
     }
 

@@ -18,8 +18,8 @@ enum ArtworkPaletteSource: Equatable, Sendable {
 /// Now Playing's lyrics colours, taken from the album artwork: a calm [surface] in the artwork's
 /// own hue (muted, so text reads well), a [gradient] around it (a lighter tone, the
 /// surface and a deeper tone in the same hue),
-/// and text colours chosen for contrast against every stop of it — light text on dark surfaces,
-/// dark text on genuinely light ones. ARGB values; a port of Android's LyricsPalette.
+/// and text colours chosen for contrast against every stop. Even bright artwork supplies dark,
+/// muted UI tones; the image itself stays unchanged. ARGB values.
 struct LyricsPalette: Equatable, Sendable {
     let surface: UInt32
     /// Top to bottom; [surface] in the middle.
@@ -43,8 +43,6 @@ struct LyricsPalette: Equatable, Sendable {
 
     /// Below this weighted saturation the artwork reads as black and white: a neutral surface.
     private static let neutralSaturation: Float = 0.08
-    /// Above this average lightness (and neutral) the artwork is genuinely light: a light surface.
-    private static let lightArtwork: Float = 0.8
     private static let hueBins = 24
     private static let neutralColourfulness = 0.05
     /// The second colour's band starts this many bins (15° each) from the first...
@@ -55,10 +53,10 @@ struct LyricsPalette: Equatable, Sendable {
 
     private static let cardUpperSaturation: Float = 0.95
     private static let cardLowerSaturation: Float = 0.8
-    private static let cardLighter: Float = 0.08
+    private static let cardLighter: Float = 0.06
     private static let cardDeeper: Float = 0.1
     private static let rimSaturationBoost: Float = 0.1
-    private static let rimLight: Float = 0.74
+    private static let rimLight: Float = 0.52
     private static let rimDeep: Float = 0.38
     private static let upperSaturation: Float = 0.85
     private static let lowerSaturation: Float = 0.75
@@ -67,25 +65,24 @@ struct LyricsPalette: Equatable, Sendable {
     private static let maxStop: Float = 0.94
     private static let minStop: Float = 0.07
     private static let half = 0.18
-    private static let lightSurface: Float = 0.86
-    private static let neutralSurface: Float = 0.16
-    private static let neutralLift: Float = 0.08
-    private static let darkSurface: Float = 0.2
-    private static let darkLift: Float = 0.12
-    private static let maxDarkSurface: Float = 0.32
-    private static let saturationGain: Float = 1.6
-    private static let minSurfaceSaturation: Float = 0.3
-    private static let maxSurfaceSaturation: Float = 0.55
+    private static let neutralSurface: Float = 0.12
+    private static let neutralLift: Float = 0.04
+    private static let darkSurface: Float = 0.12
+    private static let darkLift: Float = 0.06
+    private static let maxDarkSurface: Float = 0.18
+    private static let saturationGain: Float = 1.2
+    private static let minSurfaceSaturation: Float = 0.18
+    private static let maxSurfaceSaturation: Float = 0.4
     private static let secondaryAlpha: Float = 0.66
     private static let secondaryContrast = 3.0
     private static let lightText: UInt32 = 0xFFF7_F3F2
     private static let darkText: UInt32 = 0xFF17_141A
     private static let stopStep: Float = 0.02
-    private static let accentLightStart: Float = 0.74
+    private static let accentLightStart: Float = 0.62
     private static let accentDarkStart: Float = 0.32
     private static let accentStep: Float = 0.04
     private static let accentSteps = 6
-    private static let accentSaturation: Float = 0.7
+    private static let accentSaturation: Float = 0.45
     private static let blendStep: Float = 0.05
 
     /// The palette of artwork with these [pixels] (ARGB, a small sample is plenty).
@@ -159,9 +156,7 @@ struct LyricsPalette: Equatable, Sendable {
         let neutral = saturation < neutralSaturation
         let surfaceSaturation = neutral ? 0 : (saturation * saturationGain).clamped(minSurfaceSaturation, maxSurfaceSaturation)
         let surfaceLightness: Float
-        if neutral && artworkLightness > lightArtwork {
-            surfaceLightness = lightSurface
-        } else if neutral {
+        if neutral {
             surfaceLightness = neutralSurface + neutralLift * artworkLightness
         } else {
             surfaceLightness = min(darkSurface + darkLift * artworkLightness, maxDarkSurface)
@@ -195,6 +190,15 @@ struct LyricsPalette: Equatable, Sendable {
     static func readableOn(_ surface: UInt32) -> UInt32 {
         contrast(lightText, surface) >= contrast(darkText, surface) ? lightText : darkText
     }
+
+    /// Filled controls can be a deeper shade than foreground links and icons, which still
+    /// need to contrast against the page. Both keep the same sampled hue.
+    var buttonFill: UInt32 {
+        let tone = hslOf(surface)
+        return hslToArgb(tone.h, tone.s, tone.s < Self.neutralSaturation ? 0.26 : 0.28)
+    }
+
+    var onButtonFill: UInt32 { Self.readableOn(buttonFill) }
 
     /// The colour (h, s, l), darkened under light text / lightened under dark text until [content] reads on it.
     private static func readableStop(_ hue: Float, _ saturation: Float, _ lightness: Float, _ content: UInt32, _ isLightText: Bool) -> UInt32 {
