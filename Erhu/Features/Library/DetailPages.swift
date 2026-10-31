@@ -87,6 +87,7 @@ struct AlbumDetailView: View {
         .tracksLibraryScrolling()
         .ignoresSafeArea(.container, edges: .top)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .modifier(CollectionTopEdgeEffect())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             Menu {
@@ -152,6 +153,7 @@ struct ArtistDetailView: View {
         .tracksLibraryScrolling()
         .ignoresSafeArea(.container, edges: .top)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .modifier(CollectionTopEdgeEffect())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             Menu {
