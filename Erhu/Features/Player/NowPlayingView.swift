@@ -287,10 +287,10 @@ struct NowPlayingView: View {
                     Button { player.togglePlayPause() } label: {
                         Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 32, weight: .bold))
-                            .foregroundStyle(palette.onPrimary)
+                            .foregroundStyle(palette.onFilledButton)
                             .contentTransition(.symbolEffect(.replace))
                             .frame(width: 80, height: 80)
-                            .background(Circle().fill(palette.primary))
+                            .background(Circle().fill(palette.filledButton))
                     }
                     .buttonStyle(PressScaleStyle(scale: 0.92))
                     .accessibilityLabel(state.isPlaying ? "Pause" : "Play")

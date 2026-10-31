@@ -31,9 +31,10 @@ struct CollectionHeader<Cover: View>: View {
             Text(facts).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
             HStack(spacing: Spacing.sm) {
                 Button(action: onPlay) {
-                    Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity).foregroundStyle(palette.onPrimary)
+                    Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity).foregroundStyle(palette.onFilledButton)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(palette.filledButton)
                 Button(action: onShuffle) {
                     Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity)
                 }
