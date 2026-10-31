@@ -11,23 +11,11 @@ struct CollectionHeroHeader<Cover: View>: View {
     let onShuffle: () -> Void
     @ViewBuilder let cover: () -> Cover
     @Environment(\.palette) private var palette
-    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         VStack(spacing: 0) {
             CollectionHeroLayout() {
                 cover()
-                    .overlay(alignment: .top) {
-                        // The photo extends under the status bar. Match its text appearance
-                        // without changing the artist/album colours used by the page controls.
-                        let shade: Color = scheme == .dark ? .black : .white
-                        LinearGradient(stops: [
-                            .init(color: shade.opacity(0.65), location: 0),
-                            .init(color: shade.opacity(0.65), location: 0.4),
-                            .init(color: .clear, location: 1),
-                        ], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 140)
-                    }
                     .accessibilityHidden(true)
                 VStack(spacing: Spacing.sm) {
                     Text(title).font(.largeTitle.weight(.bold)).lineLimit(3)
@@ -36,16 +24,23 @@ struct CollectionHeroHeader<Cover: View>: View {
                 }
                 .multilineTextAlignment(.center)
                 .foregroundStyle(palette.onSurface)
+                .shadow(color: .black.opacity(0.45), radius: 2, y: 1)
                 .padding(.horizontal, Spacing.heroGutter)
                 .padding(.bottom, Spacing.lg)
                 .frame(maxWidth: .infinity)
-                // Anchor the fade to the measured title, rather than a percentage of the
-                // image: long names and large text must still sit on a readable background.
-                .background(palette.background)
-                .background(alignment: .top) {
-                    LinearGradient(colors: [.clear, palette.background], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 140)
-                        .offset(y: -140)
+                // Keep the image visible behind the title. The fade starts just above it
+                // and only reaches the page colour at the bottom of the metadata.
+                .background {
+                    GeometryReader { geometry in
+                        LinearGradient(stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: palette.background.opacity(0.18), location: 0.3),
+                            .init(color: palette.background.opacity(0.75), location: 0.75),
+                            .init(color: palette.background, location: 1),
+                        ], startPoint: .top, endPoint: .bottom)
+                        .frame(height: geometry.size.height + 48)
+                        .offset(y: -48)
+                    }
                 }
             }
             .clipped()
@@ -95,4 +90,16 @@ struct CollectionHeroLayout: Layout {
 struct CollectionPageBackground: View {
     @Environment(\.palette) private var palette
     var body: some View { palette.background.ignoresSafeArea() }
+}
+
+/// Preserve crisp artwork behind the navigation controls rather than the system's top haze.
+struct CollectionTopEdgeEffect: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.scrollEdgeEffectHidden(true, for: .top)
+        } else {
+            content
+        }
+    }
 }
