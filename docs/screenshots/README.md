@@ -1,9 +1,11 @@
 # README screenshots
 
-The main [README](../../README.md#screenshots) displays eight screenshots in two rows of four under **Screenshots**, with six
-more in two rows of three inside an expandable **More screens** gallery. All images live in this folder and are
-referenced using relative paths. These documentation files are outside the app target and do
-not add to the IPA size.
+The main [README](../../README.md#screenshots) displays eight screenshots in two rows of four
+under **Screenshots**, with six more in two rows of three inside **More screens**. Every
+screenshot uses the same relative width, so it scales consistently on desktop and mobile.
+Captions sit beneath each image row; table-column widths do not affect the images. All files
+use relative paths. These documentation files are outside the app target and do not add to
+the IPA size.
 
 ## Current images
 
@@ -42,18 +44,20 @@ If you use a different filename or file extension, also edit the image's `src` i
 `README.md` under **Screenshots**. Paths and filenames are case-sensitive. For example:
 
 ```html
-<img src="docs/screenshots/vybe1.png" alt="VYBE results for a search using two reference songs" width="180" loading="lazy">
+<img src="docs/screenshots/vybe1.png" alt="VYBE results for a search using two reference songs" width="22%" loading="lazy">
 ```
 
 Use **Preview** before committing a README edit. The path above is relative to the main README,
-not this guide. Keep the table pipes (`|`) around each image cell when editing a gallery row.
+not this guide. Keep each image inside its existing `<p align="center">` row when editing the gallery.
 
 ## Add another screenshot
 
-Upload the image to this folder, then add a cell or row to the main README's gallery with an
-image tag and a descriptive caption/alt text. Use `width="180"` for the four-column main gallery and
-`width="240"` for the three-column **More screens** gallery. Extra screens can go inside the existing `<details>` block so the main gallery
-stays compact. Resize/compress large screenshots before uploading if you want smaller downloads.
+Upload the image to this folder, then add an image tag to the appropriate gallery row and
+update its caption/alt text. Use `width="22%"` for every screenshot, including **More screens**,
+and keep the same portrait aspect ratio to preserve consistent dimensions. Main rows contain
+four images; **More screens** rows contain three. Extra rows can go inside the existing
+`<details>` block so the main gallery stays compact. Resize/compress large screenshots before
+uploading if you want smaller downloads.
 
 ## Optional support link
 
