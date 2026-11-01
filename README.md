@@ -1,12 +1,6 @@
-# Erhu for iOS
+# Erhu for iOS <a href="#install"><img src="https://img.shields.io/badge/Install_Erhu-2ea44f?style=for-the-badge&logo=apple&logoColor=white" alt="Install Erhu" width="110"></a>
 
-A native iPhone music player for your own files, with offline discovery and custom transitions.
-
-**iOS 17+ · Free to sideload · In active development**
-
-[![Install Erhu](https://img.shields.io/badge/Install_Erhu-2ea44f?style=for-the-badge&logo=apple&logoColor=white)](#install)
-
-**Why Erhu?** Your music, offline playback, and discovery without an Erhu account or music subscription.
+**Why Erhu?** A native iPhone music player for your own files, with offline discovery, custom transitions, and artwork-based themes. No Erhu account or music subscription required. Free to sideload on iOS 17+.
 
 <table>
   <tr>
