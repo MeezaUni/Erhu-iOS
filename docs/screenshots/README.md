@@ -1,6 +1,6 @@
 # README screenshots
 
-The main [README](../../README.md#screenshots) displays six screenshots near the top, with nine
+The main [README](../../README.md#screenshots) displays six screenshots under **Screenshots**, with nine
 more inside an expandable **More screens** gallery. All images live in this folder and are
 referenced using relative paths. These documentation files are outside the app target and do
 not add to the IPA size.
@@ -13,7 +13,7 @@ The uploaded images were renamed for readability. Their image contents are uncha
 | --- | --- | --- | --- |
 | Home | `home.png` | `IMG_6158.png` | Main gallery |
 | Now Playing | `now-playing.png` | `IMG_6159.png` | Main gallery |
-| VYBE search results | `vybe.png` | `IMG_6176.png` | Main gallery |
+| VYBE search results | `vybe1.png` | `IMG_6176.png` | Main gallery |
 | Full-screen lyrics | `lyrics.png` | `IMG_6162.png` | Main gallery |
 | Themes and settings | `themes.png` | `IMG_6163.png` | Main gallery |
 | Transition Studio | `transitions.png` | `IMG_6165.png` | Main gallery |
@@ -42,7 +42,7 @@ If you use a different filename or file extension, also edit the image's `src` i
 `README.md` under **Screenshots**. Paths and filenames are case-sensitive. For example:
 
 ```html
-<img src="docs/screenshots/vybe.png" alt="VYBE results for a search using two reference songs" width="240" loading="lazy">
+<img src="docs/screenshots/vybe1.png" alt="VYBE results for a search using two reference songs" width="240" loading="lazy">
 ```
 
 Use **Preview** before committing a README edit. The path above is relative to the main README,
