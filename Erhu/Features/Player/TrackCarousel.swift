@@ -230,6 +230,7 @@ private struct CarouselCard: View, Equatable {
     @Environment(LibraryActions.self) private var actions
     @Environment(\.playerArtworkInFlight) private var artworkInFlight
     @Environment(\.palette) private var palette
+    @Environment(\.colorScheme) private var scheme
     @State private var artworkPalette = ArtworkPaletteState()
     @State private var artworkRevision = 0
 
@@ -240,7 +241,7 @@ private struct CarouselCard: View, Equatable {
     }
 
     var body: some View {
-        let colors = LyricsColors(artworkPalette.palette(for: song.url))
+        let colors = LyricsColors(artworkPalette.palette(for: song.url), scheme: scheme)
         let shape = RoundedRectangle(cornerRadius: Radius.large + CardMetrics.padding, style: .continuous)
         VStack(spacing: 0) {
             Color.clear
@@ -248,7 +249,7 @@ private struct CarouselCard: View, Equatable {
                 .background { if reportsArtworkFrame { Color.clear.playerArtworkFrame(expanded: true) } }
                 .overlay {
                     MotionCoverView(song: song, playing: animatesMotion, rendersVideo: videoSession != nil && !artworkInFlight,
-                                    maxPixels: isCurrent ? 1200 : 600, animateStill: false,
+                                    maxPixels: isCurrent ? 1200 : 600,
                                     videoSession: videoSession, tracksScrollVisibility: false)
                         .frame(width: metrics.artSide, height: metrics.artSide)
                         .modifier(PlayerArtworkClip(isCurrent: isCurrent, side: metrics.artSide))

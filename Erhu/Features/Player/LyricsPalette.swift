@@ -18,8 +18,8 @@ enum ArtworkPaletteSource: Equatable, Sendable {
 /// Now Playing's lyrics colours, taken from the album artwork: a calm [surface] in the artwork's
 /// own hue (muted, so text reads well), a [gradient] around it (a lighter tone, the
 /// surface and a deeper tone in the same hue),
-/// and text colours chosen for contrast against every stop. Even bright artwork supplies dark,
-/// muted UI tones; the image itself stays unchanged. ARGB values.
+/// and text colours chosen for contrast against every stop. Dark and light appearances share
+/// the sampled hues; the image itself stays unchanged. ARGB values.
 struct LyricsPalette: Equatable, Sendable {
     let surface: UInt32
     /// Top to bottom; [surface] in the middle.
@@ -35,6 +35,14 @@ struct LyricsPalette: Equatable, Sendable {
     let cardGradient: [UInt32]
     /// A light (or, under dark text, deep) tint of the hue for a card's rim.
     let rim: UInt32
+    private struct Seed: Equatable, Sendable {
+        let hue: Float
+        let saturation: Float
+        let lightness: Float
+        let secondHue: Float?
+    }
+    private let seed: Seed
+    private let lightAppearance: Bool
 
     /// No artwork (or still loading): neutral, so another hue never flashes over a real cover.
     static let fallback = from(hue: 210, saturation: 0, artworkLightness: 0.16)
@@ -152,11 +160,13 @@ struct LyricsPalette: Equatable, Sendable {
         return Double(max(n, 1))
     }
 
-    static func from(hue: Float, saturation: Float, artworkLightness: Float, secondHue: Float? = nil) -> LyricsPalette {
+    static func from(hue: Float, saturation: Float, artworkLightness: Float, secondHue: Float? = nil, light: Bool = false) -> LyricsPalette {
         let neutral = saturation < neutralSaturation
-        let surfaceSaturation = neutral ? 0 : (saturation * saturationGain).clamped(minSurfaceSaturation, maxSurfaceSaturation)
+        let surfaceSaturation = neutral ? 0 : (saturation * saturationGain).clamped(minSurfaceSaturation, maxSurfaceSaturation) * (light ? 0.5 : 1)
         let surfaceLightness: Float
-        if neutral {
+        if light {
+            surfaceLightness = 0.90 + 0.03 * artworkLightness
+        } else if neutral {
             surfaceLightness = neutralSurface + neutralLift * artworkLightness
         } else {
             surfaceLightness = min(darkSurface + darkLift * artworkLightness, maxDarkSurface)
@@ -181,9 +191,18 @@ struct LyricsPalette: Equatable, Sendable {
         let dark = relativeLuminance(weakest) < half
         let secondary = blendUntil(content, weakest, alpha: secondaryAlpha, minimumContrast: secondaryContrast)
         let accent = neutral ? content : accentOn(weakest, hue: hue, dark: dark)
-        let rim = hslToArgb(hue, min(surfaceSaturation + rimSaturationBoost, maxSurfaceSaturation), isLightText ? rimLight : rimDeep)
+        let rim = hslToArgb(hue, neutral ? 0 : min(surfaceSaturation + rimSaturationBoost, maxSurfaceSaturation), isLightText ? rimLight : rimDeep)
         return LyricsPalette(surface: surface, gradient: gradient, content: content, secondary: secondary,
-                             accent: accent, cardGradient: cardGradient, rim: rim)
+                             accent: accent, cardGradient: cardGradient, rim: rim,
+                             seed: Seed(hue: hue, saturation: saturation, lightness: artworkLightness, secondHue: secondHue), lightAppearance: light)
+    }
+
+    /// Preserve the original sampled hue rather than extracting it again from rounded UI tones.
+    func forScheme(_ scheme: ColorScheme) -> LyricsPalette {
+        let light = scheme == .light
+        guard light != lightAppearance else { return self }
+        return Self.from(hue: seed.hue, saturation: seed.saturation, artworkLightness: seed.lightness,
+                         secondHue: seed.secondHue, light: light)
     }
 
     /// Light or dark text, whichever contrasts more with [surface].
@@ -195,7 +214,8 @@ struct LyricsPalette: Equatable, Sendable {
     /// need to contrast against the page. Both keep the same sampled hue.
     var buttonFill: UInt32 {
         let tone = hslOf(surface)
-        return hslToArgb(tone.h, tone.s, tone.s < Self.neutralSaturation ? 0.26 : 0.28)
+        return hslToArgb(lightAppearance ? seed.hue : tone.h, tone.s,
+                         lightAppearance ? 0.82 : (tone.s < Self.neutralSaturation ? 0.26 : 0.28))
     }
 
     var onButtonFill: UInt32 { Self.readableOn(buttonFill) }
@@ -293,7 +313,8 @@ struct LyricsColors: Equatable {
     let cardGradient: [Color]
     let rim: Color
 
-    init(_ palette: LyricsPalette) {
+    init(_ palette: LyricsPalette, scheme: ColorScheme? = nil) {
+        let palette = scheme.map { palette.forScheme($0) } ?? palette
         cardGradient = palette.cardGradient.map { Color(argb: $0) }
         rim = Color(argb: palette.rim)
         surface = Color(argb: palette.surface)

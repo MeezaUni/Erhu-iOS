@@ -20,7 +20,6 @@ struct MotionCoverView: View {
     var playing = false
     var rendersVideo = true
     var maxPixels = 1200
-    var animateStill = false
     var suspended = false
     var videoSession: MotionVideoSession? = nil
     var tracksScrollVisibility = true
@@ -36,8 +35,6 @@ struct MotionCoverView: View {
         let url = videoURL ?? song.flatMap { store.url(for: $0) }
         ZStack {
             MotionCoverPoster(song: song, maxPixels: maxPixels)
-                .modifier(MovingArtwork(isPlaying: animateStill && playing && !suspended && url == nil,
-                                        enabled: animateStill && url == nil))
             if rendersVideo, !reduceMotion, budget.allowsDecorativeMotion, let url, (!playerInMotion || videoSession?.url == url) {
                 // Reuse a prepared decoder during flight. A cold video waits until the cover
                 // has arrived, keeping AVPlayer construction off the opening animation.

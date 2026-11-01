@@ -20,7 +20,7 @@ enum LibrarySection: String, CaseIterable, Identifiable {
         case .home: "house"
         case .albums: "square.stack"
         case .library: "music.note.house"
-        case .vybe: "sparkles"
+        case .vybe: "recordingtape"
         }
     }
 
@@ -29,7 +29,7 @@ enum LibrarySection: String, CaseIterable, Identifiable {
         case .home: "house.fill"
         case .albums: "square.stack.fill"
         case .library: "music.note.house.fill"
-        case .vybe: "sparkles"
+        case .vybe: "recordingtape"
         }
     }
 }
@@ -106,15 +106,6 @@ final class AppRouter {
     /// The song whose tags are being edited by hand.
     var songForTagEdit: Song?
     var showsNewPlaylist = false
-    /// The artwork of the album or artist page in front, which the artwork theme follows (with the section it
-    /// is in: every section's stack stays alive behind the one shown).
-    var artworkFocus: (section: LibrarySection, source: ArtworkPaletteSource)?
-    var focusedArtworkSource: ArtworkPaletteSource? { artworkFocus.flatMap { $0.section == section ? $0.source : nil } }
-    var focusedArtwork: URL? { focusedArtworkSource?.url }
-
-    func paletteSource(playingSongURL: URL?) -> ArtworkPaletteSource {
-        showsNowPlaying ? .track(playingSongURL) : focusedArtworkSource ?? .track(playingSongURL)
-    }
 
     func open(_ route: Route) {
         paths[section, default: NavigationPath()].append(route)
@@ -130,7 +121,6 @@ final class AppRouter {
         let reselecting = target == section
         paths[target] = NavigationPath()
         section = target
-        artworkFocus = nil
         showsDrawer = false
         if reselecting { scrollToTopRequests[target, default: 0] += 1 }
     }

@@ -58,8 +58,9 @@ struct AppPalette: Equatable {
 }
 
 extension AppPalette {
-    /// Share the player card's dark artwork tones, with deeper fills for prominent controls.
-    static func artwork(_ sampled: LyricsPalette) -> AppPalette {
+    /// Share the player card's appearance-aware artwork tones and filled controls.
+    static func artwork(_ sampled: LyricsPalette, scheme: ColorScheme = .dark) -> AppPalette {
+        let sampled = sampled.forScheme(scheme)
         let colors = LyricsColors(sampled)
         return AppPalette(primary: colors.accent, onPrimary: colors.surface,
                           background: colors.gradient.last ?? colors.surface,
@@ -67,13 +68,21 @@ extension AppPalette {
                           onSurface: colors.content, onSurfaceVariant: colors.secondary, outline: colors.rim,
                           buttonFill: Color(argb: sampled.buttonFill), onButtonFill: Color(argb: sampled.onButtonFill))
     }
+
+    static func settings(_ scheme: ColorScheme) -> AppPalette {
+        let base: AppPalette = scheme == .dark ? .dark : .light
+        return AppPalette(primary: base.primary, onPrimary: base.onPrimary,
+                          background: scheme == .dark ? .black : .white,
+                          surface: scheme == .dark ? Color(argb: 0xFF1C1C1E) : Color(argb: 0xFFF2F2F7),
+                          surfaceVariant: base.surfaceVariant, onSurface: base.onSurface,
+                          onSurfaceVariant: base.onSurfaceVariant, outline: base.outline)
+    }
 }
 
 /// The theme the listener picked (Settings › Appearance).
 enum ThemeChoice: String, CaseIterable, Codable, Identifiable {
     case system, light, dark
-    /// Android's "Dominant Color": a dark theme tinted by the playing song's cover, or the cover of
-    /// the album or playlist page in front.
+    /// Artwork colours follow the device's light/dark appearance.
     case artwork
     var id: String { rawValue }
 
@@ -88,9 +97,9 @@ enum ThemeChoice: String, CaseIterable, Codable, Identifiable {
 
     var colorScheme: ColorScheme? {
         switch self {
-        case .system: nil
+        case .system, .artwork: nil
         case .light: .light
-        case .dark, .artwork: .dark
+        case .dark: .dark
         }
     }
 }
@@ -99,10 +108,17 @@ private struct PaletteKey: EnvironmentKey {
     static let defaultValue = AppPalette.dark
 }
 
+private struct PlaybackPaletteKey: EnvironmentKey { static let defaultValue = AppPalette.dark }
+
 extension EnvironmentValues {
     var palette: AppPalette {
         get { self[PaletteKey.self] }
         set { self[PaletteKey.self] = newValue }
+    }
+    /// The song's theme remains available to playback sheets opened from neutral settings.
+    var playbackPalette: AppPalette {
+        get { self[PlaybackPaletteKey.self] }
+        set { self[PlaybackPaletteKey.self] = newValue }
     }
 }
 
@@ -111,19 +127,19 @@ struct ThemedRoot<Content: View>: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(AppSettings.self) private var settings
     @Environment(PlayerController.self) private var player
-    @Environment(AppRouter.self) private var router
     @ViewBuilder let content: Content
     @State private var artworkPalette = ArtworkPaletteState()
     @State private var artworkRevision = 0
 
     var body: some View {
         let followsArtwork = settings.customTheme == nil && settings.theme == .artwork
-        let source = followsArtwork ? router.paletteSource(playingSongURL: player.state.currentSong?.url) : .track(nil)
+        let source = ArtworkPaletteSource.track(followsArtwork ? player.state.currentSong?.url : nil)
         let artworkURL = source.url
         let palette = settings.customTheme?.palette
-            ?? (followsArtwork ? .artwork(artworkPalette.palette(for: source)) : (scheme == .dark ? .dark : .light))
+            ?? (followsArtwork ? .artwork(artworkPalette.palette(for: source), scheme: scheme) : (scheme == .dark ? .dark : .light))
         content
             .environment(\.palette, palette)
+            .environment(\.playbackPalette, palette)
             .tint(palette.primary)
             .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
                 if note.object as? String == artworkURL?.path { artworkRevision += 1 }
@@ -139,10 +155,8 @@ struct ThemedRoot<Content: View>: View {
 }
 
 extension View {
-    /// While this page is in front, the artwork theme follows [url] instead of the playing song.
-    func artworkFocus(_ url: URL?) -> some View { modifier(ArtworkFocus(source: .track(url))) }
-
-    func artworkPhotoFocus(_ url: URL?) -> some View { modifier(ArtworkFocus(source: .image(url))) }
+    /// An album/artist theme belongs only to that page's subtree, never to its parent or chrome.
+    func collectionArtworkTheme(_ source: ArtworkPaletteSource) -> some View { modifier(CollectionArtworkTheme(source: source)) }
 
     /// A floating glass surface: Liquid Glass on iOS 26, a material elsewhere.
     @ViewBuilder
@@ -191,25 +205,27 @@ extension EnvironmentValues {
     }
 }
 
-private struct ArtworkFocus: ViewModifier {
+struct CollectionArtworkTheme: ViewModifier {
     let source: ArtworkPaletteSource
-    @Environment(AppRouter.self) private var router
-    @Environment(\.artworkSection) private var section
-    @State private var visible = false
+    @Environment(AppSettings.self) private var settings
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.palette) private var inheritedPalette
+    @State private var artworkPalette = ArtworkPaletteState()
+    @State private var artworkRevision = 0
 
     func body(content: Content) -> some View {
-        content
-            .onAppear { visible = true; focus(source) }
-            .onChange(of: source) { _, new in focus(new) }
-            .onChange(of: router.section) { _, _ in focus(source) }
-            .onDisappear {
-                visible = false
-                if router.artworkFocus?.section == section, router.artworkFocus?.source == source { router.artworkFocus = nil }
+        let followsArtwork = settings.customTheme == nil && settings.theme == .artwork
+        let palette = followsArtwork ? AppPalette.artwork(artworkPalette.palette(for: source), scheme: scheme) : inheritedPalette
+        content.environment(\.palette, palette).tint(palette.primary)
+            .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
+                if note.object as? String == source.url?.path { artworkRevision += 1 }
             }
-    }
-
-    private func focus(_ source: ArtworkPaletteSource) {
-        guard visible, let section, section == router.section else { return }
-        router.artworkFocus = (section, source)
+            .task(id: "\(followsArtwork)|\(source.isImage)|\(source.url?.path ?? "")|\(artworkRevision)") {
+                guard followsArtwork, let url = source.url else { return }
+                let revision = ArtworkLoader.shared.revision(for: url.path)
+                let sampled = await LyricsPaletteCache.shared.palette(for: source)
+                guard !Task.isCancelled else { return }
+                artworkPalette.set(sampled, for: source, revision: revision)
+            }
     }
 }

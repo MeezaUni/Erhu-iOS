@@ -3,7 +3,8 @@
 Open **Menu → Animated covers**, find an album, and tap **Find & download**. Matching uses the
 library's album and artist, searches the local/US catalog, and checks Apple motion artwork across
 several storefronts. Explicit editions are preferred among matching results. An album with no
-motion artwork keeps its embedded still image. No Apple Music account or subscription is used.
+motion artwork keeps its embedded still image. Still images never drift or zoom; only downloaded
+video artwork animates. No Apple Music account or subscription is used.
 
 Downloads are local videos in Application Support, with a persisted index. They do not alter
 music files or tags. Use **Remove** to delete a clip, or turn off **Play downloaded motion covers**
