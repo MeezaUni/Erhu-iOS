@@ -1,55 +1,63 @@
-# Adding screenshots to the main README
+# README screenshots
 
-The repository's main [README](../../README.md#screenshots) has six intentionally empty screenshot
-slots under **Screenshots**, near the top. The cells contain HTML comments, so they do not show
-broken images while you are preparing screenshots.
+The main [README](../../README.md#screenshots) displays six screenshots near the top, with nine
+more inside an expandable **More screens** gallery. All images live in this folder and are
+referenced using relative paths. These documentation files are outside the app target and do
+not add to the IPA size.
 
-## Files and slots
+## Current images
 
-Upload your screenshots to this folder with these filenames, or change the image paths to match
-your chosen names:
+The uploaded images were renamed for readability. Their image contents are unchanged.
 
-| Screenshot | File | Comment to replace in the main README |
-| --- | --- | --- |
-| Home or library | `home.png` | `<!-- screenshot:home -->` |
-| Now Playing | `now-playing.png` | `<!-- screenshot:now-playing -->` |
-| VYBE results | `vybe.png` | `<!-- screenshot:vybe -->` |
-| Lyrics | `lyrics.png` | `<!-- screenshot:lyrics -->` |
-| Themes or settings | `themes.png` | `<!-- screenshot:themes -->` |
-| Transition Studio | `transitions.png` | `<!-- screenshot:transitions -->` |
+| Screenshot | Current filename | Original upload | Placement |
+| --- | --- | --- | --- |
+| Home | `home.png` | `IMG_6158.png` | Main gallery |
+| Now Playing | `now-playing.png` | `IMG_6159.png` | Main gallery |
+| VYBE | `vybe.png` | `IMG_6160.png` | Main gallery |
+| Full-screen lyrics | `lyrics.png` | `IMG_6162.png` | Main gallery |
+| Themes and settings | `themes.png` | `IMG_6163.png` | Main gallery |
+| Transition Studio | `transitions.png` | `IMG_6165.png` | Main gallery |
+| Library | `library.png` | `IMG_6157.png` | More screens |
+| Album | `album.png` | `IMG_6169.png` | More screens |
+| Artist | `artist.png` | `IMG_6170.png` | More screens |
+| Visualizer | `visualizer.png` | `IMG_6173.png` | More screens |
+| Equalizer curve | `equalizer.png` | `IMG_6174.png` | More screens |
+| Equalizer bands | `equalizer-bands.png` | `IMG_6175.png` | More screens |
+| Lyrics in the player | `player-lyrics.png` | `IMG_6161.png` | More screens |
+| Track menu | `track-menu.png` | `IMG_6171.png` | More screens |
+| Lock Screen | `lock-screen.png` | `IMG_6168.png` | More screens |
 
-## Add them through GitHub
+The current VYBE image shows the starting screen. A screenshot with a submitted query and
+successful results would be a useful optional replacement; no other screenshot is needed to
+fill the existing gallery.
 
-1. Select the **without-animated-art** branch on GitHub. It is currently the repository's default
-   branch, so this README is the one visitors see first.
-2. Open `docs/screenshots`, choose **Add file → Upload files**, upload the screenshots, and commit.
-3. Open the main `README.md` at the repository root and click the pencil button to edit it.
-4. Find `## Screenshots`. Replace each slot's HTML comment with its image tag, keeping the table
-   pipes (`|`) around the cell. For example, replace `<!-- screenshot:now-playing -->` with:
+## Replace an image through GitHub
 
-   ```html
-   <img src="docs/screenshots/now-playing.png" alt="Erhu Now Playing" width="240">
-   ```
+1. Select **without-animated-art**, currently the repository's default branch.
+2. Open `docs/screenshots`, then choose **Add file → Upload files**.
+3. Upload the replacement using the same filename as the existing screenshot and commit it.
+   The README already refers to that filename, so no Markdown edit is needed.
+4. Repeat on **with-animated-art** to keep both branch galleries up to date.
 
-5. Use **Preview** to check that the images render, then commit the README edit.
-6. Repeat the image upload and README edits on **with-animated-art** if you want screenshots on
-   both branch pages. Screenshot files live separately on each branch.
+If you use a different filename or file extension, also edit the image's `src` in the main
+`README.md` under **Screenshots**. Paths and filenames are case-sensitive. For example:
 
-Image paths and filenames are case-sensitive. If you upload JPG files instead, use `.jpg` in
-both the filename and the image tag. The paths above are relative to the main README; they are
-not paths relative to this guide.
+```html
+<img src="docs/screenshots/vybe.png" alt="VYBE results for a search using two reference songs" width="240" loading="lazy">
+```
 
-Use consistently cropped screenshots with readable text, and resize/compress large files before
-uploading. You can fill one slot at a time and leave the remaining comments unchanged.
+Use **Preview** before committing a README edit. The path above is relative to the main README,
+not this guide. Keep the table pipes (`|`) around each image cell when editing a gallery row.
+
+## Add another screenshot
+
+Upload the image to this folder, then add a cell or row to the main README's gallery with an
+image tag and a descriptive caption/alt text. Use `width="240"` to keep phone screenshots
+consistent. Extra screens can go inside the existing `<details>` block so the main gallery
+stays compact. Resize/compress large screenshots before uploading if you want smaller downloads.
 
 ## Optional support link
 
-The main README also has an `OPTIONAL_DONATION_LINK` comment under **Support**. Once you have a
-Buy Me a Coffee or Ko-fi page, replace that whole comment with a real Markdown link, such as:
-
-```markdown
-[Support Erhu](https://your-real-support-page)
-```
-
-Replace the example URL with your actual page before publishing it. No donation account or
-payment link has been created by this documentation change.
+The main README has an `OPTIONAL_DONATION_LINK` comment under **Support**. Once you have a
+Buy Me a Coffee or Ko-fi page, replace that whole comment with your real Markdown link.
+No donation account or payment link has been created by these documentation changes.
