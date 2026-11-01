@@ -53,6 +53,15 @@ Metadata adds explicit controls:
   before exact/partial priority, so another artist's undecorated title cannot override it.
   Artist-qualified albums and existing aliases work through the same path. Unmatched words are
   retained; ambiguity and explicit filters still apply.
+- Multiple references resolve independently: “like baby keems dramatic girl and bound 2 by
+  Kanye” identifies both songs, including their artist qualifiers and aliases. Lists accept
+  “and”, “plus”, “&”, commas or semicolons; quoted names and known titles/artists containing
+  those separators stay intact. The screen lists matched references, keeps missing/filtered
+  clauses visible, and offers choices for each ambiguous reference without losing other
+  selections. Similarity gives each reference equal weight, normalizes track vectors before
+  averaging an artist/album catalog, and rewards closeness to every reference. Referenced songs
+  are excluded from recommendations. Ranking waits for every resolved seed to be indexed;
+  it does not silently use only the first available reference or boost one named artist.
 - A small artist/album repetition penalty among close semantic matches; an explicitly named
   artist retains priority. Constraints never infer a missing BPM or year.
 

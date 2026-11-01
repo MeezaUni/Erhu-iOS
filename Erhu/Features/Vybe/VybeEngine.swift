@@ -80,10 +80,10 @@ actor VybeEngine {
     }
 
     /// Answers [query] from the indexed songs; nil when VYBE isn't ready.
-    func search(_ query: String, limit: Int) throws -> VybeAnswer? {
+    func search(_ query: String, limit: Int, selections: [String: VybeNameMatch] = [:]) throws -> VybeAnswer? {
         let start = Date()
         guard let discovery = discovery() else { return nil }
-        let answer = try discovery.search(query, songs: library, limit: limit)
+        let answer = try discovery.search(query, songs: library, limit: limit, selections: selections)
         timings.lastQueryMs = Int(Date().timeIntervalSince(start) * 1000)
         publish(status, timings)
         return answer
