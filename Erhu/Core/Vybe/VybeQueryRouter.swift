@@ -11,6 +11,7 @@ enum VybeRoute: Equatable, Sendable {
     /// A "like …" / "from …" query whose name matches nothing in the library.
     case unknownName(name: String, query: String)
     case ambiguous(name: String, matches: [VybeNameMatch], wantsSimilar: Bool)
+    case references([VybeReference], wantsSimilar: Bool)
     /// Not about a name: a mood / activity description for semantic search.
     case describe(query: String)
 }
@@ -56,6 +57,9 @@ enum VybeQueryRouter {
             return .named(kind: match.kind, name: match.name, songIds: match.songIds, wantsSimilar: wantsSimilar)
         }
         if !matches.isEmpty { return .ambiguous(name: name, matches: matches, wantsSimilar: wantsSimilar) }
+        if let references = VybeReferenceParser.parse(name, index: index, preferredKind: found?.2, allowMissing: found != nil) {
+            return .references(references, wantsSimilar: wantsSimilar)
+        }
         return found == nil ? .describe(query: original) : .unknownName(name: name, query: original)
     }
 }

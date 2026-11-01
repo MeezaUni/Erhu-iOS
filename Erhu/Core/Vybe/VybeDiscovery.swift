@@ -47,6 +47,7 @@ enum VybeAnswer: Equatable, Sendable {
     /// Songs nearest to [seedSongId] by their description.
     case similarTo(seedSongId: Int64, hits: [VybeHit])
     case ambiguous(query: String, matches: [VybeNameMatch], wantsSimilar: Bool)
+    case references(VybeReferenceAnswer)
 }
 
 /// VYBE's hybrid search over the listener's own songs:
@@ -82,7 +83,7 @@ struct VybeDiscovery {
         self.names = names
     }
 
-    func search(_ query: String, songs: [SongText], limit: Int) throws -> VybeAnswer {
+    func search(_ query: String, songs: [SongText], limit: Int, selections: [String: VybeNameMatch] = [:]) throws -> VybeAnswer {
         let text = query.trimmed
         let names = self.names ?? VybeNameIndex(songs: songs)
         let intent = MusicQueryIntent(text, songs: songs, artistNames: names.artistNames)
@@ -104,7 +105,58 @@ struct VybeDiscovery {
             }
             if choices.count == 1, let choice = choices.first { return select(choice, query: text, songs: songs, wantsSimilar: wantsSimilar, limit: limit) }
             return .ambiguous(query: text, matches: Array(choices.prefix(12)), wantsSimilar: wantsSimilar)
+        case .references(let references, let wantsSimilar):
+            let resolved = references.map { reference -> VybeReference in
+                var choices = reference.matches.compactMap { match -> VybeNameMatch? in
+                    let ids = match.songIds.filter(allowed.contains)
+                    return ids.isEmpty ? nil : VybeNameMatch(kind: match.kind, name: match.name, detail: match.detail, songIds: ids)
+                }
+                if let selected = selections[reference.id], let choice = choices.first(where: {
+                    $0.kind == selected.kind && $0.name == selected.name && $0.detail == selected.detail
+                        && Set($0.songIds) == Set(selected.songIds)
+                }) { choices = [choice] }
+                return VybeReference(id: reference.id, text: reference.text, matches: choices,
+                                     filteredOut: !reference.matches.isEmpty && choices.isEmpty)
+            }
+            let seeds = resolved.compactMap { $0.matches.count == 1 ? $0.matches.first?.songIds : nil }
+            let needsChoice = resolved.contains { $0.matches.count > 1 }
+            let ranked = wantsSimilar && !needsChoice ? similarToReferences(seeds, limit: limit, allowed: allowed) : ([], false)
+            return .references(VybeReferenceAnswer(query: text, references: resolved, wantsSimilar: wantsSimilar,
+                                                   similar: ranked.0, waitingForIndex: ranked.1))
         }
+    }
+
+    /// Every reference gets one vote, even when one names an artist's entire catalog. Normalize
+    /// individual vectors before averaging, and reward candidates close to every reference.
+    /// Never silently rank from just one seed while another is still being indexed.
+    private func similarToReferences(_ groups: [[Int64]], limit: Int, allowed: Set<Int64>) -> ([VybeHit], Bool) {
+        var seen = Set<Set<Int64>>()
+        let groups = groups.map(Set.init).filter { !$0.isEmpty && seen.insert($0).inserted }
+        guard !groups.isEmpty else { return ([], false) }
+        func unit(_ vector: [Float]) -> [Float]? {
+            let norm = vector.reduce(0.0) { $0 + Double($1) * Double($1) }.squareRoot()
+            guard !vector.isEmpty, norm.isFinite, norm > 0 else { return nil }
+            return vector.map { Float(Double($0) / norm) }
+        }
+        var centroids: [[Float]] = []
+        for group in groups {
+            let units = group.sorted().compactMap { vectors.vectorOf($0).flatMap(unit) }
+            guard units.count == group.count, let first = units.first,
+                  units.allSatisfy({ $0.count == first.count }) else { return ([], true) }
+            var sum = [Float](repeating: 0, count: first.count)
+            for vector in units { for i in sum.indices { sum[i] += vector[i] / Float(units.count) } }
+            guard let centroid = unit(sum) else { return ([], true) }
+            centroids.append(centroid)
+        }
+        let excluded = groups.reduce(into: Set<Int64>()) { $0.formUnion($1) }
+        let hits = vectors.rank(limit: limit) { id, vector in
+            guard allowed.contains(id), !excluded.contains(id) else { return nil }
+            let scores = centroids.compactMap { cosineSimilarity($0, vector) }
+            guard scores.count == centroids.count, let weakest = scores.min() else { return nil }
+            return 0.75 * scores.reduce(0, +) / Float(scores.count) + 0.25 * weakest
+        }.map { VybeHit(songId: $0.songId, score: $0.score,
+                        reasons: [centroids.count > 1 ? "Similar to your references" : Self.similarReason]) }
+        return (hits, false)
     }
 
     func select(_ match: VybeNameMatch, query: String, songs: [SongText], wantsSimilar: Bool, limit: Int) -> VybeAnswer {

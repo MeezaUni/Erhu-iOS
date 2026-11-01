@@ -59,7 +59,10 @@ struct MusicQueryIntent {
             end = max(end, range.location + range.length)
         }
         clean += ns.substring(from: end)
-        text = Regex16(#"[\s,]+"#).replacing(in: clean, with: " ").trimmed
+        // Internal commas can separate named references (or belong to an artist credit).
+        // Only trim separators left at the edges by removed constraint clauses.
+        text = Regex16(#"\s+"#).replacing(in: clean, with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: ",;")))
     }
 
     func allows(_ song: SongText) -> Bool {

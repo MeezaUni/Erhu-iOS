@@ -132,11 +132,21 @@ struct VybeView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(results.title).font(.headline)
             if let note = results.note { Text(note).font(.caption).foregroundStyle(palette.onSurfaceVariant) }
+            ForEach(results.matchedReferences) { match in
+                HStack(alignment: .top, spacing: Spacing.sm) {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.primary)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(match.name).font(.subheadline.weight(.semibold))
+                        Text(match.detail).font(.caption).foregroundStyle(palette.onSurfaceVariant)
+                    }
+                }.padding(.vertical, Spacing.xs)
+            }
             ForEach(results.choices) { choice in
                 Button { focused = false; vybe.choose(choice) } label: {
                     HStack(spacing: Spacing.md) {
                         Image(systemName: choice.match.symbol).frame(width: 24)
                         VStack(alignment: .leading, spacing: 3) {
+                            if let context = choice.context { Text("For \"\(context)\"").font(.caption).foregroundStyle(palette.onSurfaceVariant) }
                             Text(choice.match.name).font(.body.weight(.semibold))
                             Text(choice.match.detail).font(.caption).foregroundStyle(palette.onSurfaceVariant)
                         }
@@ -148,7 +158,7 @@ struct VybeView: View {
                     .contentShape(Rectangle())
                 }.buttonStyle(.plain)
             }
-            if results.choices.isEmpty {
+            if results.choices.isEmpty && !results.songs.isEmpty {
                 HStack(spacing: Spacing.sm) {
                     Button { vybe.play(results.songs, index: 0) } label: { Label("Play \(results.songs.count)", systemImage: "play.fill").foregroundStyle(palette.onPrimary) }
                         .buttonStyle(.borderedProminent)
@@ -163,7 +173,7 @@ struct VybeView: View {
                 .padding(.vertical, Spacing.xs)
             }
         }
-        if results.songs.isEmpty && results.choices.isEmpty {
+        if results.songs.isEmpty && results.choices.isEmpty && results.showsEmptySuggestion {
             Text("No matches in your library. Try a broader style or fewer filters.").foregroundStyle(palette.onSurfaceVariant)
         }
         ForEach(Array(results.songs.enumerated()), id: \.element.id) { index, result in

@@ -14,13 +14,18 @@ struct VybeResults: Equatable {
     let note: String?
     let songs: [VybeResult]
     var choices: [VybeNameChoice] = []
+    var matchedReferences: [VybeNameMatch] = []
+    var showsEmptySuggestion = true
 }
 
 struct VybeNameChoice: Equatable, Identifiable {
     let match: VybeNameMatch
     let query: String
     let wantsSimilar: Bool
-    var id: String { match.id }
+    var referenceID: String? = nil
+    var selectedReferences: [String: VybeNameMatch] = [:]
+    var context: String? = nil
+    var id: String { (referenceID ?? "") + "|" + match.id }
 }
 
 /// The screen's query state.
@@ -133,8 +138,13 @@ final class VybeStore {
     func choose(_ choice: VybeNameChoice) {
         afterIndexing { [weak self] in self?.choose(choice) }
         let engine = engine
-        run(choice.match.name) {
-            await engine.select(choice.match, query: choice.query, wantsSimilar: choice.wantsSimilar, limit: Self.resultLimit)
+        run(choice.query) {
+            if let referenceID = choice.referenceID {
+                var selected = choice.selectedReferences
+                selected[referenceID] = choice.match
+                return try await engine.search(choice.query, limit: Self.resultLimit, selections: selected)
+            }
+            return await engine.select(choice.match, query: choice.query, wantsSimilar: choice.wantsSimilar, limit: Self.resultLimit)
         }
     }
 
@@ -197,6 +207,36 @@ final class VybeStore {
             return VybeResults(title: matches.isEmpty ? "No matches with these filters" : "Which one did you mean?",
                                note: matches.isEmpty ? nil : "Choose a match, or add more of its name.", songs: [],
                                choices: matches.map { VybeNameChoice(match: $0, query: query, wantsSimilar: wantsSimilar) })
+        case .references(let answer):
+            let selected = Dictionary(uniqueKeysWithValues: answer.references.compactMap { reference in
+                reference.matches.count == 1 ? reference.matches.first.map { (reference.id, $0) } : nil
+            })
+            var seen = Set<String>()
+            let matched = answer.references.compactMap { selected[$0.id] }.filter { seen.insert($0.id).inserted }
+            let choices = answer.references.flatMap { reference in
+                reference.matches.count <= 1 ? [] : reference.matches.map {
+                    VybeNameChoice(match: $0, query: answer.query, wantsSimilar: answer.wantsSimilar,
+                                   referenceID: reference.id, selectedReferences: selected, context: reference.text)
+                }
+            }
+            var notes = answer.references.compactMap { reference -> String? in
+                guard reference.matches.isEmpty else { return nil }
+                return reference.filteredOut ? "\"\(reference.text)\" has no matches with these filters."
+                    : "Couldn't find \"\(reference.text)\" in your library."
+            }
+            if !choices.isEmpty { notes.append("Choose a match for each remaining reference.") }
+            else if answer.waitingForIndex { notes.append("Indexing your reference tracks. Results will update when ready.") }
+            else if answer.wantsSimilar && !matched.isEmpty {
+                notes.append(matched.count > 1 ? "Using each matched reference equally to find similar tracks."
+                    : "Finding similar tracks using the matched reference.")
+                if answer.similar.isEmpty { notes.append("No other indexed tracks match these filters.") }
+            }
+            var ids = Set<Int64>()
+            let hits = answer.wantsSimilar ? answer.similar : matched.flatMap(\.songIds).filter { ids.insert($0).inserted }
+                .map { VybeHit(songId: $0, score: 1, reasons: ["Name match"]) }
+            return VybeResults(title: choices.isEmpty ? (answer.wantsSimilar ? "Like your references" : "Your matches") : "Which tracks did you mean?",
+                               note: notes.joined(separator: " "), songs: songs(hits), choices: choices,
+                               matchedReferences: matched, showsEmptySuggestion: false)
         }
     }
 
