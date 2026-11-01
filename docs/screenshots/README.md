@@ -1,7 +1,7 @@
 # README screenshots
 
-The main [README](../../README.md#screenshots) displays eight screenshots in two rows of four under **Screenshots**, with seven
-more inside an expandable **More screens** gallery. All images live in this folder and are
+The main [README](../../README.md#screenshots) displays eight screenshots in two rows of four under **Screenshots**, with six
+more in two rows of three inside an expandable **More screens** gallery. All images live in this folder and are
 referenced using relative paths. These documentation files are outside the app target and do
 not add to the IPA size.
 
@@ -22,7 +22,7 @@ The uploaded images were renamed for readability. Their image contents are uncha
 | Artist | `artist.png` | `IMG_6170.png` | Main gallery |
 | Visualizer | `visualizer.png` | `IMG_6173.png` | More screens |
 | Equalizer curve | `equalizer.png` | `IMG_6174.png` | More screens |
-| Equalizer bands | `equalizer-bands.png` | `IMG_6175.png` | More screens |
+| Equalizer bands | `equalizer-bands.png` | `IMG_6175.png` | Not displayed |
 | Lyrics in the player | `player-lyrics.png` | `IMG_6161.png` | More screens |
 | Track menu | `track-menu.png` | `IMG_6171.png` | More screens |
 | Lock Screen | `lock-screen.png` | `IMG_6168.png` | Main gallery |
@@ -51,8 +51,8 @@ not this guide. Keep the table pipes (`|`) around each image cell when editing a
 ## Add another screenshot
 
 Upload the image to this folder, then add a cell or row to the main README's gallery with an
-image tag and a descriptive caption/alt text. Use `width="180"` to keep phone screenshots
-consistent. Extra screens can go inside the existing `<details>` block so the main gallery
+image tag and a descriptive caption/alt text. Use `width="180"` for the four-column main gallery and
+`width="240"` for the three-column **More screens** gallery. Extra screens can go inside the existing `<details>` block so the main gallery
 stays compact. Resize/compress large screenshots before uploading if you want smaller downloads.
 
 ## Optional support link
