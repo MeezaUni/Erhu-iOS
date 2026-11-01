@@ -27,7 +27,7 @@ struct ArtworkFetcherView: View {
                 Text(tab == 0
                     ? "Albums whose songs carry no cover. A cover you pick is saved into every song of the album."
                     : "Artist photos are matched automatically when music is added. Retry missing photos here, or choose an artist to replace their image.")
-            }
+            }.toolSectionAppearance()
             if tab == 0 {
                 Section {
                     if store.albums.isEmpty && !store.isScanning {
@@ -41,7 +41,7 @@ struct ArtworkFetcherView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                }
+                }.toolSectionAppearance()
             } else {
                 Section {
                     Button {
@@ -61,9 +61,9 @@ struct ArtworkFetcherView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                }
+                }.toolSectionAppearance()
             }
-        }
+        }.modifier(ToolPageAppearance())
         .navigationTitle("Artwork Fetcher")
         .toolbar {
             Button { Task { await store.scan() } } label: { Image(systemName: "arrow.clockwise") }

@@ -106,6 +106,57 @@ final class VybeNameLookupTests: XCTestCase {
         XCTAssertEqual(songs[0].artist, "Stage Name")
     }
 
+    private var compoundLibrary: [SongText] {
+        library + [
+            SongText(songId: 6, title: "Dramatic Girl (feat. Che Ecru)", artist: "Baby Keem, Che Ecru", album: "Ca$ino", bpm: 80),
+            SongText(songId: 7, title: "Dramatic Boy", artist: "Baby Keem", album: "Ca$ino", bpm: 140),
+            SongText(songId: 8, title: "Dramatic Girl", artist: "Another Artist", album: "Other", bpm: 75),
+            SongText(songId: 9, title: "Who's That Girl", artist: "Baby Keem", album: "Ca$ino", bpm: 90),
+            SongText(songId: 10, title: "Called", artist: "Baby Keem", album: "Ca$ino", bpm: 100),
+        ]
+    }
+
+    func testArtistAndTitleAreExtractedWithStraightCurlyOrMissingPossessiveApostrophes() throws {
+        let songs = compoundLibrary
+        for query in ["songs similar to baby keems dramatic girl", "songs like Baby Keem's Dramatic Girl",
+                      "like Baby Keem’s Dramatic Girl", "like Dramatic Girl by Baby Keem", "like Dramatic Girl Baby Keem",
+                      "songs like baby keems dramatic gril"] {
+            guard case .named(.title, let name, let ids, let similar) = try discovery(songs).search(query, songs: songs, limit: 15) else {
+                return XCTFail("Artist and title must resolve together: \(query)")
+            }
+            XCTAssertEqual(name, "Dramatic Girl (feat. Che Ecru)", query)
+            XCTAssertEqual(ids, [6], "Another artist's exact title must not beat this artist's decorated title")
+            XCTAssertFalse(similar.contains { $0.songId == 6 })
+        }
+    }
+
+    func testQualifiedNamesKeepAliasesAlbumsAndLiteralTitleApostrophes() throws {
+        let songs = compoundLibrary
+        for (query, expected) in [("like Kanye's Bound", Int64(1)), ("like Baby Keem's Who's That Girl", 9), ("like Baby Keem's song called Called", 10)] {
+            guard case .named(.title, _, let ids, _) = try discovery(songs).search(query, songs: songs, limit: 15) else { return XCTFail(query) }
+            XCTAssertEqual(ids, [expected], query)
+        }
+        guard case .named(.album, let name, let ids, _) = try discovery(songs).search("albums like Kanye's Yeezus", songs: songs, limit: 15) else {
+            return XCTFail("Artist-qualified album")
+        }
+        XCTAssertEqual(name, "Yeezus"); XCTAssertEqual(ids, [1, 2])
+        guard case .unknownName = VybeQueryRouter.route("like Baby Keem's Snooze", songs: songs) else {
+            return XCTFail("Never attribute SZA's song to Baby Keem")
+        }
+    }
+
+    func testQualifiedAmbiguityAndTempoFiltersKeepTheRightSeed() throws {
+        let songs = compoundLibrary
+        guard case .ambiguous(_, let choices, _) = try discovery(songs).search("like baby keems dramatic", songs: songs, limit: 15) else {
+            return XCTFail("Two Baby Keem titles need a choice")
+        }
+        XCTAssertEqual(Set(choices.flatMap(\.songIds)), [6, 7])
+        guard case .named(.title, _, let ids, let similar) = try discovery(songs).search("like baby keems dramatic under 100 BPM", songs: songs, limit: 15) else {
+            return XCTFail("The filter leaves Dramatic Girl as the only matching title")
+        }
+        XCTAssertEqual(ids, [6]); XCTAssertFalse(similar.contains { [2, 5, 6, 7, 10].contains($0.songId) })
+    }
+
     func testCachedIndexRefreshesAnAliasWithoutEmbeddingSongsAgain() async throws {
         let database = try LibraryDatabase.inMemory()
         try database.db.execute("""

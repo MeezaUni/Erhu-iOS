@@ -95,6 +95,7 @@ struct SearchView: View {
                         results
                     }
                 }
+                .padding(.top, Spacing.md)
                 .padding(.bottom, Spacing.lg)
             }
             .scrollDismissesKeyboard(.interactively)
@@ -102,6 +103,7 @@ struct SearchView: View {
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { Button("Done") { dismiss() } }
+            .modifier(ToolPageAppearance())
         }
     }
 
@@ -146,6 +148,7 @@ struct SearchView: View {
             ForEach(search.recents) { item in
                 HStack(spacing: Spacing.md) {
                     Button { reopen(item) } label: { recentRow(item) }.buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     Button { search.forget(item) } label: {
                         Image(systemName: "xmark").foregroundStyle(.secondary).frame(width: 32, height: 44)
                     }
@@ -153,6 +156,7 @@ struct SearchView: View {
                     .accessibilityLabel("Remove from recent")
                 }
                 .padding(.horizontal, Spacing.gutter)
+                .padding(.vertical, Spacing.sm)
             }
         }
     }
@@ -175,6 +179,7 @@ struct SearchView: View {
             }
             Spacer(minLength: 0)
         }
+        .frame(minHeight: ArtworkSize.list)
         .contentShape(Rectangle())
     }
 

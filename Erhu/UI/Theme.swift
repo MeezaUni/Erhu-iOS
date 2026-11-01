@@ -69,14 +69,6 @@ extension AppPalette {
                           buttonFill: Color(argb: sampled.buttonFill), onButtonFill: Color(argb: sampled.onButtonFill))
     }
 
-    static func settings(_ scheme: ColorScheme) -> AppPalette {
-        let base: AppPalette = scheme == .dark ? .dark : .light
-        return AppPalette(primary: base.primary, onPrimary: base.onPrimary,
-                          background: scheme == .dark ? .black : .white,
-                          surface: scheme == .dark ? Color(argb: 0xFF1C1C1E) : Color(argb: 0xFFF2F2F7),
-                          surfaceVariant: base.surfaceVariant, onSurface: base.onSurface,
-                          onSurfaceVariant: base.onSurfaceVariant, outline: base.outline)
-    }
 }
 
 /// The theme the listener picked (Settings › Appearance).
@@ -115,7 +107,7 @@ extension EnvironmentValues {
         get { self[PaletteKey.self] }
         set { self[PaletteKey.self] = newValue }
     }
-    /// The song's theme remains available to playback sheets opened from neutral settings.
+    /// The song's theme remains available to playback sheets opened from a local page theme.
     var playbackPalette: AppPalette {
         get { self[PlaybackPaletteKey.self] }
         set { self[PlaybackPaletteKey.self] = newValue }

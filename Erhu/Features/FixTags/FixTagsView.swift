@@ -17,7 +17,7 @@ struct FixTagsView: View {
             optionsSection
             statusSection
             queueSection
-        }
+        }.modifier(ToolPageAppearance())
         .navigationTitle("Fix tags")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -73,7 +73,7 @@ struct FixTagsView: View {
             Text(FieldSelection(store.selectedFields).fillOnly
                 ? "All fields: the title is corrected; existing album, artist and other valid tags stay. Missing track and disc numbers come from the matched album's tracklist. Album pages sort by disc, then track."
                 : "Selected fields replace the file's tags. Track and disc numbers must belong to the same album edition; unknown positions are left alone. BPM estimates never replace a tagged tempo.")
-        }
+        }.toolSectionAppearance()
     }
 
     private var statusSection: some View {
@@ -114,7 +114,7 @@ struct FixTagsView: View {
             }
         } footer: {
             Text("Searches iTunes, MusicBrainz, Deezer (and Last.fm with your key) with the track's title, artist, album and length (and its file name when the tags are missing). Your music is never uploaded. Each changed file's original is kept until you clear the queue, so it can be reverted.")
-        }
+        }.toolSectionAppearance()
     }
 
     private var summary: String {
@@ -152,7 +152,7 @@ struct FixTagsView: View {
                     }
                 }
             }
-        }
+        }.toolSectionAppearance()
     }
 }
 
@@ -231,7 +231,7 @@ private struct RepairItemDetail: View {
                 Section("Result") {
                     LabeledContent("Status", value: item.status.label)
                     if let reason = item.reason { Text(reason).font(.footnote) }
-                }
+                }.toolSectionAppearance()
                 if !item.changes.isEmpty {
                     Section("Changes") {
                         ForEach(Array(item.changes.enumerated()), id: \.offset) { _, change in
@@ -240,12 +240,12 @@ private struct RepairItemDetail: View {
                                 Text("\(change.oldValue ?? "—") → \(change.newValue)").font(.footnote)
                             }
                         }
-                    }
+                    }.toolSectionAppearance()
                 }
                 if !item.notes.isEmpty {
                     Section("Left alone") {
                         ForEach(item.notes, id: \.self) { Text($0).font(.footnote) }
-                    }
+                    }.toolSectionAppearance()
                 }
                 if let diagnostics = item.diagnostics {
                     Section("The file") {
@@ -256,7 +256,7 @@ private struct RepairItemDetail: View {
                         if !diagnostics.identity.fileTitles.isEmpty {
                             LabeledContent("From the file name", value: diagnostics.identity.fileTitles.joined(separator: " · "))
                         }
-                    }
+                    }.toolSectionAppearance()
                     ForEach(Array(diagnostics.attempts.enumerated()), id: \.offset) { index, attempt in
                         Section("Search \(index + 1) (\(attempt.source))") {
                             Text([attempt.title, attempt.artist, attempt.album.map { "album: \($0)" }].compactMap { $0 }.joined(separator: " · "))
@@ -267,7 +267,7 @@ private struct RepairItemDetail: View {
                                         .font(.caption)
                                 }
                             }
-                        }
+                        }.toolSectionAppearance()
                     }
                     if !diagnostics.topCandidates.isEmpty {
                         Section {
@@ -289,10 +289,10 @@ private struct RepairItemDetail: View {
                             Text("Best candidates")
                         } footer: {
                             if canChoose { Text("Pick the right one to write it, with the fields chosen on the Fix tags page. The original is kept for Revert.") }
-                        }
+                        }.toolSectionAppearance()
                     }
                 }
-            }
+            }.modifier(ToolPageAppearance())
             .confirmationDialog("Write this match?", isPresented: Binding(get: { choice != nil }, set: { if !$0 { choice = nil } }),
                                 titleVisibility: .visible, presenting: choice) { candidate in
                 Button("Write \"\(candidate.title)\" by \(candidate.artist)") {
@@ -332,7 +332,7 @@ private struct AddSongsSheet: View {
                     }
                 }
                 .buttonStyle(.plain)
-            }
+            }.modifier(ToolPageAppearance())
             .searchable(text: $query)
             .navigationTitle("Add songs")
             .navigationBarTitleDisplayMode(.inline)

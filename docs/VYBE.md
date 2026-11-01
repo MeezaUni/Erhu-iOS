@@ -46,6 +46,13 @@ Metadata adds explicit controls:
   one keeps the original BPM/year/exclusion constraints and uses that entity's songs as seeds.
   Exact names beat partial names. Very short fragments and changed track numbers do not become
   fuzzy matches. Bare mood/activity queries retain their semantic route.
+- Artist-qualified titles are resolved as separate catalog facts: “songs similar to baby keems
+  dramatic girl”, “Baby Keem’s Dramatic Girl” and “Dramatic Girl by Baby Keem” find that artist's
+  matching track even when its stored title includes featured artists. Straight/curly possessive
+  apostrophes and a missing apostrophe are accepted. Title lookup is scoped to the named artist
+  before exact/partial priority, so another artist's undecorated title cannot override it.
+  Artist-qualified albums and existing aliases work through the same path. Unmatched words are
+  retained; ambiguity and explicit filters still apply.
 - A small artist/album repetition penalty among close semantic matches; an explicitly named
   artist retains priority. Constraints never infer a missing BPM or year.
 

@@ -50,7 +50,7 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 |---|---|---|
 | Embedded lyrics, LRC / enhanced LRC (word timing) | ✅ | |
 | Synced-first LRCLIB lookup, cache, and manual alternatives | ✅ | Auto-selects real synced matches; provider failures switch immediately with a reason and accurate fallback timing. Search online lists alternatives. |
-| Lyrics colour palette from artwork | ✅ | Muted artwork hues use deep shades in dark appearance and pale shades in light appearance, with tonal gradients and contrast checks. Player cards, lyrics and the app theme follow the effective appearance; Settings use neutral black/white backgrounds |
+| Lyrics colour palette from artwork | ✅ | Muted artwork hues use deep shades in dark appearance and pale shades in light appearance, with tonal gradients and contrast checks. Player cards, lyrics, Settings and tool pages follow the active theme. Settings and drawer links use the same tool destinations and styling |
 
 ## Tools
 

@@ -14,7 +14,7 @@ struct EqualizerView: View {
         Form {
             Section {
                 Toggle("Equalizer", isOn: Binding(get: { settings.isEqEnabled }, set: { sound.setEqEnabled($0) }))
-            }
+            }.toolSectionAppearance()
             Section("Preset & curve") {
                 HStack {
                     Menu {
@@ -49,7 +49,7 @@ struct EqualizerView: View {
                         onDrag: { index, hz, gain in sound.setBandFrequencyAndGain(index, hz, gain) })
                     .frame(height: 200)
                     .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.sm, bottom: Spacing.sm, trailing: Spacing.sm))
-            }
+            }.toolSectionAppearance()
             Section("Bands") {
                 Stepper("Active bands: \(settings.activeBandCount)", value: Binding(get: { settings.activeBandCount }, set: { sound.setActiveBandCount($0) }),
                         in: Equalizer.minBandCount...Equalizer.bandCount)
@@ -58,7 +58,7 @@ struct EqualizerView: View {
                     ForEach(0..<settings.activeBandCount, id: \.self) { Text("\($0 + 1)").tag($0) }
                 }
                 .pickerStyle(.segmented)
-            }
+            }.toolSectionAppearance()
             Section("Band \(selected + 1)") {
                 let isFirst = selected == 0
                 let isLast = selected == settings.activeBandCount - 1
@@ -79,9 +79,9 @@ struct EqualizerView: View {
                               range: Equalizer.minGainDb...Equalizer.maxGainDb)
                 labeledSlider("Q-factor (sharpness)", value: String(format: "%.2f", band.q),
                               binding: Binding(get: { band.q }, set: { sound.setBandQ(selected, $0) }), range: Equalizer.minQ...Equalizer.maxQ)
-            }
+            }.toolSectionAppearance()
             .disabled(!settings.isEqEnabled)
-        }
+        }.modifier(ToolPageAppearance())
         .navigationTitle("Equalizer")
         .alert("Save custom preset", isPresented: $savingPreset) {
             TextField("Preset name", text: $presetName)
