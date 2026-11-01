@@ -1,0 +1,44 @@
+name: Publish beta
+
+on:
+  push:
+    branches: [without-animated-art]
+    paths: [.github/beta-release.json]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: New beta tag; existing tags/releases are never overwritten
+        required: true
+        default: v1.0-beta
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-beta
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'MeezaUni/Erhu-iOS' && github.ref == 'refs/heads/without-animated-art'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Verify publisher safeguards
+        run: python3 -m unittest discover -s Tools/tests -p 'test_publish_beta.py' -v
+      - name: Publish original successful IPAs and source archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: python3 Tools/publish_beta.py
+      - name: Save publication report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-publication-report
+          path: build/release-result.json
+          if-no-files-found: ignore
