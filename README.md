@@ -4,12 +4,60 @@ A native iPhone music player for your own files, with offline discovery and cust
 
 **iOS 17+ · Free to sideload · In active development**
 
+[![Install Erhu](https://img.shields.io/badge/Install_Erhu-2ea44f?style=for-the-badge&logo=apple&logoColor=white)](#install)
+
 ## Why choose Erhu?
 
 | Area | At a glance |
 | --- | --- |
 | **Why Erhu** | • Your own music library, played offline.<br>• No Erhu account or music subscription required.<br>• Free sideloaded builds. |
 | **Design & UI** | • Native SwiftUI interface, artwork carousel, and mini-player.<br>• Artwork-based colours, light/dark/system appearance, and imported colour themes. |
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="22%" loading="lazy">
+  <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="22%" loading="lazy">
+  <img src="docs/screenshots/lock-screen.png" alt="iPhone Lock Screen showing expanded cover artwork and playback controls" width="22%" loading="lazy">
+  <img src="docs/screenshots/vybe1.png" alt="VYBE search matching Dramatic Girl and Carried Away with similar tracks from the library" width="22%" loading="lazy">
+  <br>
+  <sub>Home · Now Playing · Lock Screen · VYBE</sub>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="22%" loading="lazy">
+  <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="22%" loading="lazy">
+  <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="22%" loading="lazy">
+  <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="22%" loading="lazy">
+  <br>
+  <sub>Lyrics · Album · Artist · Transition Studio</sub>
+</p>
+
+<details>
+<summary>More screens: library, themes, visualizer, equalizer, lyrics, and track menu</summary>
+
+<p align="center">
+  <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="22%" loading="lazy">
+  <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="22%" loading="lazy">
+  <img src="docs/screenshots/visualizer.png" alt="Circular audio visualizer around album artwork" width="22%" loading="lazy">
+  <br>
+  <sub>Library · Themes &amp; Settings · Visualizer</sub>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/equalizer.png" alt="Eight-band equalizer with its response curve" width="22%" loading="lazy">
+  <img src="docs/screenshots/player-lyrics.png" alt="Synced lyrics panel beneath the player controls" width="22%" loading="lazy">
+  <img src="docs/screenshots/track-menu.png" alt="Track menu with music information, bookmarks, and playlist actions" width="22%" loading="lazy">
+  <br>
+  <sub>Equalizer · Player Lyrics · Track Menu</sub>
+</p>
+
+</details>
+
+## Features & technical details
+
+| Area | At a glance |
+| --- | --- |
 | **Animated artwork** | • Downloaded video covers in Now Playing, the mini-player, and album pages.<br>• Offline playback after download.<br>• Animated-art build only; Lock Screen animation needs iOS 26+ and is controlled by iOS. |
 | **Audio formats** | • MP3, AAC, ALAC, FLAC, WAV/WAVE, AIFF/AIF/AIFC, and CAF.<br>• M4A, M4B, and MP4 containers; decoding depends on iOS codec support.<br>• Unprotected files. |
 | **Audio engine** | • AVAudioEngine with two AVAudioPlayerNode decks and Core Audio decoding.<br>• Custom Audio Units for EQ and transition processing.<br>• Gapless scheduling for matching formats and timed crossfades. |
@@ -21,29 +69,6 @@ A native iPhone music player for your own files, with offline discovery and cust
 | **Tools** | • Files import and local Wi-Fi Transfer.<br>• Tag editing, automatic metadata matching, artwork/artist images, and missing-BPM lookup or estimation. |
 | **Privacy & data** | • Audio, library data, and VYBE processing stay on your device.<br>• Online lyrics/artwork/metadata services receive search metadata.<br>• Personal API keys stay in the device Keychain. |
 | **Tech stack** | • Swift, SwiftUI, AVFoundation, Core Audio/AudioToolbox, and MediaPlayer.<br>• Core ML with a compressed MiniLM encoder (~17 MB).<br>• SQLite, local JSON settings, Network.framework, and Keychain.<br>• XcodeGen, GitHub Actions, and XCTest. |
-
-## Screenshots
-
-| Home & library | Now Playing | Lock Screen | VYBE (Offline) |
-| :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="180" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="180" loading="lazy"> | <img src="docs/screenshots/lock-screen.png" alt="iPhone Lock Screen showing expanded cover artwork and playback controls" width="180" loading="lazy"> | <img src="docs/screenshots/vybe1.png" alt="VYBE search matching Dramatic Girl and Carried Away with similar tracks from the library" width="180" loading="lazy"> |
-
-| Lyrics | Album | Artist | Transition Studio |
-| :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="180" loading="lazy"> | <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="180" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="180" loading="lazy"> | <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="180" loading="lazy"> |
-
-<details>
-<summary>More screens: library, themes, visualizer, equalizer, lyrics, and track menu</summary>
-
-| Library | Themes & settings | Visualizer |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="240" loading="lazy"> | <img src="docs/screenshots/visualizer.png" alt="Circular audio visualizer around album artwork" width="240" loading="lazy"> |
-
-| Equalizer curve | Lyrics in the player | Track menu |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/equalizer.png" alt="Eight-band equalizer with its response curve" width="240" loading="lazy"> | <img src="docs/screenshots/player-lyrics.png" alt="Synced lyrics panel beneath the player controls" width="240" loading="lazy"> | <img src="docs/screenshots/track-menu.png" alt="Track menu with music information, bookmarks, and playlist actions" width="240" loading="lazy"> |
-
-</details>
 
 ## Install
 
