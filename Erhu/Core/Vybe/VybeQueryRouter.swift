@@ -1,7 +1,7 @@
 import Foundation
 
 /// What a name in a query was found as in the library.
-enum EntityKind: Sendable { case artist, album, title }
+enum EntityKind: String, Sendable { case artist, album, title }
 
 /// How VYBE answers a query.
 enum VybeRoute: Equatable, Sendable {
@@ -10,66 +10,53 @@ enum VybeRoute: Equatable, Sendable {
     case named(kind: EntityKind, name: String, songIds: [Int64], wantsSimilar: Bool)
     /// A "like …" / "from …" query whose name matches nothing in the library.
     case unknownName(name: String, query: String)
+    case ambiguous(name: String, matches: [VybeNameMatch], wantsSimilar: Bool)
     /// Not about a name: a mood / activity description for semantic search.
     case describe(query: String)
 }
 
-/// Sends explicit artist / album / title queries to exact metadata matching instead of embeddings.
-/// Names are compared as word sequences, so "Tyler, the Creator" finds the credit "Tyler/ The
-/// Creator", and an artist inside a credit ("A feat. B") counts. No similarity is inferred.
+/// Name retrieval precedes embeddings, using the library's own word index and search aliases.
+/// Partial names and small spelling errors resolve only when the entity is unambiguous.
 enum VybeQueryRouter {
-    private static let patterns: [(Regex16, Bool)] = [
-        (Regex16(#"^(?:play\s+)?(?:some\s+)?(?:songs?|music|tracks?|stuff|albums?)\s+(?:like|similar to)\s+(.+)$"#), true),
-        (Regex16(#"^(?:more\s+)?(?:like|similar to)\s+(.+)$"#), true),
-        (Regex16(#"^(?:play\s+)?(?:more\s+)?(?:songs?|music|tracks?)?\s*(?:from|by)\s+(.+)$"#), false),
+    private static let patterns: [(Regex16, Bool, EntityKind?)] = [
+        (Regex16(#"^(?:play\s+)?(?:some\s+)?albums?\s+(?:like|similar to)\s+(.+)$"#), true, .album),
+        (Regex16(#"^(?:play\s+)?(?:some\s+)?artists?\s+(?:like|similar to)\s+(.+)$"#), true, .artist),
+        (Regex16(#"^(?:play\s+)?(?:some\s+)?(?:songs?|music|tracks?|stuff)\s+(?:like|similar to)\s+(.+)$"#), true, .title),
+        (Regex16(#"^(?:more\s+)?(?:like|similar to)\s+(.+)$"#), true, nil),
+        (Regex16(#"^(?:play\s+)?(?:more\s+)?(?:songs?|music|tracks?)?\s*(?:from|by|in)\s+(.+)$"#), false, .artist),
     ]
-    private static let nonWord = Regex16(#"[^\p{L}\p{N}$]+"#)
-    /// Names shorter than this (in letters and digits) are too ambiguous to match inside credits.
-    private static let minNameChars = 3
 
     static func route(_ query: String, songs: [SongText]) -> VybeRoute {
-        let original = query.trimmed
-        let text = original.lowercased()
-        var found: (String, Bool)?
-        for (regex, similar) in patterns {
-            guard let match = regex.firstMatch(in: text) else { continue }
-            // The name as the user typed it ("Drake", not "drake"), when lower-casing kept the length.
-            let range = match.range(at: 1)
-            let typed = original.utf16Length == text.utf16Length
-                ? (original as NSString).substring(with: range) : match.group(1, in: text)
-            found = (typed.trimmed, similar)
-            break
-        }
-        guard let (name, wantsSimilar) = found else {
-            let exact = words(original)
-            guard !exact.isEmpty, !exact.allSatisfy({ ["music", "song", "songs", "tracks", "stuff", "play", "some"].contains($0) }) else {
-                return .describe(query: original)
-            }
-            let artists = songs.filter { MusicQueryIntent.artists($0.artist).contains { words($0) == exact } }
-            if !artists.isEmpty { return .named(kind: .artist, name: original, songIds: ids(artists), wantsSimilar: false) }
-            let albums = songs.filter { words($0.album) == exact }
-            if !albums.isEmpty { return .named(kind: .album, name: original, songIds: ids(albums), wantsSimilar: false) }
-            let titles = songs.filter { words($0.title) == exact }
-            if !titles.isEmpty { return .named(kind: .title, name: original, songIds: ids(titles), wantsSimilar: false) }
-            return .describe(query: original)
-        }
-        let nameWords = words(name)
-        if nameWords.joined().utf16Length < minNameChars { return .unknownName(name: name, query: original) }
-
-        let byArtist = songs.filter { containsSequence(words($0.artist), nameWords) }
-        let byAlbum = songs.filter { words($0.album) == nameWords }
-        let byTitle = songs.filter { words($0.title) == nameWords }
-        // Artist wins, then album, then title.
-        if !byArtist.isEmpty { return .named(kind: .artist, name: name, songIds: ids(byArtist), wantsSimilar: wantsSimilar) }
-        if !byAlbum.isEmpty { return .named(kind: .album, name: name, songIds: ids(byAlbum), wantsSimilar: wantsSimilar) }
-        if !byTitle.isEmpty { return .named(kind: .title, name: name, songIds: ids(byTitle), wantsSimilar: wantsSimilar) }
-        return .unknownName(name: name, query: original)
+        route(query, index: VybeNameIndex(songs: songs))
     }
 
-    private static func ids(_ songs: [SongText]) -> [Int64] { songs.map(\.songId).sorted() }
-
-    private static func words(_ text: String) -> [String] {
-        nonWord.split(text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))).filter { !$0.isEmpty }
+    static func route(_ query: String, index: VybeNameIndex) -> VybeRoute {
+        let original = query.trimmed
+        let text = original.lowercased()
+        var found: (String, Bool, EntityKind?)?
+        for (regex, similar, kind) in patterns {
+            guard let match = regex.firstMatch(in: text) else { continue }
+            let range = match.range(at: 1)
+            let name = original.utf16Length == text.utf16Length
+                ? (original as NSString).substring(with: range) : match.group(1, in: text)
+            found = (name.trimmed, similar, kind)
+            break
+        }
+        let name = found?.0 ?? original
+        let wantsSimilar = found?.1 ?? false
+        if found == nil && VybeNameIndex.words(original).allSatisfy({ ["music", "song", "songs", "tracks", "stuff", "play", "some"].contains($0) }) {
+            return .describe(query: original)
+        }
+        let moodWords: Set<String> = ["sad", "happy", "chill", "dark", "calm", "fast", "slow", "relax", "relaxing", "workout", "gym", "sleep", "energetic", "mellow", "music", "songs", "vibes", "rap", "hiphop", "rock", "jazz", "metal", "pop", "soul", "ambient"]
+        if found == nil && index.find(name, allowPartial: false).isEmpty && !Set(VybeNameIndex.words(name)).isDisjoint(with: moodWords) {
+            return .describe(query: original)
+        }
+        let matches = index.find(name, allowPartial: true, preferredKind: found?.2)
+        if matches.count == 1, let match = matches.first {
+            return .named(kind: match.kind, name: match.name, songIds: match.songIds, wantsSimilar: wantsSimilar)
+        }
+        if !matches.isEmpty { return .ambiguous(name: name, matches: matches, wantsSimilar: wantsSimilar) }
+        return found == nil ? .describe(query: original) : .unknownName(name: name, query: original)
     }
 }
 

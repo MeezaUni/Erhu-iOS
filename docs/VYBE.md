@@ -36,13 +36,31 @@ Metadata adds explicit controls:
 - Exclusions of a known artist or genre, such as “chill R&B, no rap” or “without Drake”.
 - Tagged BPM constraints: “under 100 BPM”, “120–150 BPM”, or “around 90 BPM” (±5).
 - Release years and decades, such as “released in 2016” or “music from the 90s”.
-- Exact artist, album and title names, including artist diacritics and featured credits.
+- A cached word index for artist credits, albums and song titles: exact names, whole-word
+  subsets, final-word prefixes and limited spelling corrections. “Like bound” resolves to
+  “Bound 2” when unambiguous; “beautiful fantasy” can find My Beautiful Dark Twisted Fantasy.
+- Search-only Ye/Kanye/Kanye West aliases, approved manual aliases and the existing database
+  aliases. These also apply to artist boosts and exclusions; they never rewrite tags or merge
+  database identities. Changing aliases refreshes the name index without re-embedding songs.
+- Ambiguous names show selectable candidates with their stored names and artists. Selecting
+  one keeps the original BPM/year/exclusion constraints and uses that entity's songs as seeds.
+  Exact names beat partial names. Very short fragments and changed track numbers do not become
+  fuzzy matches. Bare mood/activity queries retain their semantic route.
 - A small artist/album repetition penalty among close semantic matches; an explicitly named
   artist retains priority. Constraints never infer a missing BPM or year.
 
 The query is rerun when initial indexing finishes, so a search made while learning the library
 does not get stuck with incomplete results. The screen also offers a search button and dismisses
 the keyboard on submission.
+
+## Training versus lookup
+
+Partial titles and stage-name aliases belong to deterministic entity retrieval. Their success
+does not require training an embedding model to memorize the listener's library. Mood/style
+ranking is a separate learning task: a meaningful fine-tune needs representative query/song
+relevance labels, difficult negative examples and held-out evaluation. Compression then needs
+the same evaluation again. This update improves entity retrieval and keeps the encoder weights
+unchanged; it does not claim that a new music-specific model was trained.
 
 ## Reproducing the model
 

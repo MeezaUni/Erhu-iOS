@@ -132,20 +132,38 @@ struct VybeView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(results.title).font(.headline)
             if let note = results.note { Text(note).font(.caption).foregroundStyle(palette.onSurfaceVariant) }
-            HStack(spacing: Spacing.sm) {
-                Button { vybe.play(results.songs, index: 0) } label: { Label("Play \(results.songs.count)", systemImage: "play.fill").foregroundStyle(palette.onPrimary) }
-                    .buttonStyle(.borderedProminent)
-                Button { vybe.shuffle(results.songs) } label: { Image(systemName: "shuffle") }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel("Shuffle")
-                Button { vybe.addAllToQueue(results.songs) } label: { Image(systemName: "text.badge.plus") }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel("Add all to queue")
+            ForEach(results.choices) { choice in
+                Button { focused = false; vybe.choose(choice) } label: {
+                    HStack(spacing: Spacing.md) {
+                        Image(systemName: choice.match.symbol).frame(width: 24)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(choice.match.name).font(.body.weight(.semibold))
+                            Text(choice.match.detail).font(.caption).foregroundStyle(palette.onSurfaceVariant)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption)
+                    }
+                    .padding(Spacing.md).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(palette.surfaceVariant.opacity(0.6), in: RoundedRectangle(cornerRadius: Radius.large))
+                    .contentShape(Rectangle())
+                }.buttonStyle(.plain)
             }
-            .disabled(results.songs.isEmpty)
-            .padding(.vertical, Spacing.xs)
+            if results.choices.isEmpty {
+                HStack(spacing: Spacing.sm) {
+                    Button { vybe.play(results.songs, index: 0) } label: { Label("Play \(results.songs.count)", systemImage: "play.fill").foregroundStyle(palette.onPrimary) }
+                        .buttonStyle(.borderedProminent)
+                    Button { vybe.shuffle(results.songs) } label: { Image(systemName: "shuffle") }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("Shuffle")
+                    Button { vybe.addAllToQueue(results.songs) } label: { Image(systemName: "text.badge.plus") }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("Add all to queue")
+                }
+                .disabled(results.songs.isEmpty)
+                .padding(.vertical, Spacing.xs)
+            }
         }
-        if results.songs.isEmpty {
+        if results.songs.isEmpty && results.choices.isEmpty {
             Text("No matches in your library. Try a broader style or fewer filters.").foregroundStyle(palette.onSurfaceVariant)
         }
         ForEach(Array(results.songs.enumerated()), id: \.element.id) { index, result in

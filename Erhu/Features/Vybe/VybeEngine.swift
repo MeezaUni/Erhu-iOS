@@ -37,6 +37,8 @@ actor VybeEngine {
     private var embedder: (any TextEmbedder)?
     private var index: VybeIndexFile?
     private var library: [SongText] = []
+    private var names: VybeNameIndex?
+    private var artistAliases: [String: String] = [:]
     private var indexing: Task<Void, Never>?
     private var status: VybeStatus = .loadingModel
     private var timings = VybeTimings()
@@ -58,6 +60,11 @@ actor VybeEngine {
         let songs: [SongText]
         do {
             songs = try database.songTags().map(VybeText.fromTags)
+            let aliases = try database.aliases()
+            if aliases != artistAliases {
+                artistAliases = aliases
+                names = VybeNameIndex(songs: library, aliases: aliases)
+            }
         } catch {
             update(.failed("The library couldn't be read: \(error.localizedDescription)"))
             return
@@ -85,6 +92,10 @@ actor VybeEngine {
     /// Songs nearest to [songId] by description (e.g. the current track).
     func similarTo(_ songId: Int64, limit: Int) -> VybeAnswer? {
         discovery()?.similarToSong(songId, limit: limit)
+    }
+
+    func select(_ match: VybeNameMatch, query: String, wantsSimilar: Bool, limit: Int) -> VybeAnswer? {
+        discovery()?.select(match, query: query, songs: library, wantsSimilar: wantsSimilar, limit: limit)
     }
 
     /// Indexed songs nearest to a listening taste, for the smart mixes: [seeds] (song id -> weight)
@@ -125,7 +136,7 @@ actor VybeEngine {
         if embedder == nil, !loadModel() { return nil }
         if library.isEmpty, indexing == nil { refresh() }
         guard let embedder, let index else { return nil }
-        return VybeDiscovery(embedder: embedder, vectors: IndexVectors(file: index, live: currentEntries(index)))
+        return VybeDiscovery(embedder: embedder, vectors: IndexVectors(file: index, live: currentEntries(index)), names: names)
     }
 
     /// The index entries whose text is still the song's current description.
@@ -159,6 +170,7 @@ actor VybeEngine {
 
     private func reindex(_ songs: [SongText]) async {
         library = songs
+        names = VybeNameIndex(songs: songs, aliases: artistAliases)
         guard let model = embedder, let file = index else { return }
         let stored = file.entries()
         var wanted: [Int64: Int64] = [:]

@@ -13,6 +13,14 @@ struct VybeResults: Equatable {
     let title: String
     let note: String?
     let songs: [VybeResult]
+    var choices: [VybeNameChoice] = []
+}
+
+struct VybeNameChoice: Equatable, Identifiable {
+    let match: VybeNameMatch
+    let query: String
+    let wantsSimilar: Bool
+    var id: String { match.id }
 }
 
 /// The screen's query state.
@@ -80,7 +88,7 @@ final class VybeStore {
         started = true
         Task { await engine.refresh() }
         observer = NotificationCenter.default.addObserver(forName: SQLiteDatabase.didChange, object: database.db, queue: .main) { [weak self] note in
-            guard SQLiteDatabase.affects(note, tables: ["songs"]) else { return }
+            guard SQLiteDatabase.affects(note, tables: ["songs", "artist_alias"]) else { return }
             MainActor.assumeIsolated { self?.libraryChanged() }
         }
     }
@@ -120,6 +128,14 @@ final class VybeStore {
         running?.cancel()
         retryWhenReady = nil
         query = .idle
+    }
+
+    func choose(_ choice: VybeNameChoice) {
+        afterIndexing { [weak self] in self?.choose(choice) }
+        let engine = engine
+        run(choice.match.name) {
+            await engine.select(choice.match, query: choice.query, wantsSimilar: choice.wantsSimilar, limit: Self.resultLimit)
+        }
     }
 
     func play(_ results: [VybeResult], index: Int) {
@@ -170,13 +186,17 @@ final class VybeStore {
             )
         case .described(_, let hits, let weak, let unknownName):
             let note = [
-                unknownName.map { "\"\($0)\" isn't in your library, so this is matched as a description." },
+                unknownName.map { "No close name match for \"\($0)\". Showing matches by description." },
                 "Matched using your library's genres, tempo, artists and saved lyrics.",
                 weak ? Self.weakNote : nil,
             ].compactMap { $0 }.joined(separator: " ")
             return VybeResults(title: "Closest in your library", note: note, songs: songs(hits))
         case .similarTo(_, let hits):
             return VybeResults(title: "Like what's playing", note: "Songs with similar styles and tempo.", songs: songs(hits))
+        case .ambiguous(let query, let matches, let wantsSimilar):
+            return VybeResults(title: matches.isEmpty ? "No matches with these filters" : "Which one did you mean?",
+                               note: matches.isEmpty ? nil : "Choose a match, or add more of its name.", songs: [],
+                               choices: matches.map { VybeNameChoice(match: $0, query: query, wantsSimilar: wantsSimilar) })
         }
     }
 
