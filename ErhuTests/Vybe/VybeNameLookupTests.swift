@@ -70,7 +70,7 @@ final class VybeNameLookupTests: XCTestCase {
     }
 
     func testWordsPrefixesSmallTyposAndAlbumWordOrder() {
-        for query in ["like bou", "like boudn", "like BOUND", "like Bound2", "bound"] {
+        for query in ["like bou", "like boudn", "like boudn 2", "like boudn2", "like boudn 2 by Kanye", "like BOUND", "like Bound2", "bound"] {
             guard case .named(.title, let name, let ids, _) = VybeQueryRouter.route(query, songs: library) else { return XCTFail(query) }
             XCTAssertEqual(name, "Bound 2"); XCTAssertEqual(ids, [1])
         }
@@ -80,6 +80,7 @@ final class VybeNameLookupTests: XCTestCase {
         }
         guard case .unknownName = VybeQueryRouter.route("like bound 3", songs: library) else { return XCTFail("Numbers must stay exact") }
         guard case .unknownName = VybeQueryRouter.route("like bound3", songs: library) else { return XCTFail("Do not remove numeric suffixes as typos") }
+        guard case .unknownName = VybeQueryRouter.route("like boudn 3", songs: library) else { return XCTFail("Correcting a title must never change its number") }
         guard case .unknownName = VybeQueryRouter.route("like unbound", songs: library) else { return XCTFail("No arbitrary substring matching") }
     }
 
