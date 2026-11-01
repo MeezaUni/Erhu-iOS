@@ -42,7 +42,7 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 | Smart Radio (song, album, artist; new picks) | ✅ | |
 | Generated mix covers and home banners | ✅ | Same seeds and Kotlin random sequence, so covers match |
 | Featured Albums | ✅ | |
-| VYBE (on-device search by mood, genre, tempo, artist) | ✅ | iOS uses a bundled ~17 MB, 6-bit MiniLM sentence encoder through Core ML; Android's supplied EmbeddingGemma bundle is ~184 MB. Added genre aliases, artist/genre exclusions, BPM/year filters, exact name lookup and diversity among close matches. Search stays offline. See `VYBE.md` for model provenance, tests and limitations. |
+| VYBE (on-device search by mood, genre, tempo, artist) | ✅ | iOS uses a bundled ~17 MB, 6-bit MiniLM sentence encoder through Core ML; Android's supplied EmbeddingGemma bundle is ~184 MB. A cached word index handles partial names, conservative typos and Ye/Kanye plus approved aliases, with selectable ambiguous matches. Genre aliases, exclusions, BPM/year filters and diversity among close matches stay offline. See `VYBE.md` for model provenance, tests and limitations. |
 
 ## Lyrics
 

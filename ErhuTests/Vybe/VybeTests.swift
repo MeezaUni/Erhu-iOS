@@ -252,7 +252,7 @@ final class VybeQueryRouterTests: XCTestCase {
     private func route(_ query: String) -> VybeRoute { VybeQueryRouter.route(query, songs: library) }
 
     func testMoreFromAnArtistFindsEveryCreditDespiteABrokenSeparator() {
-        XCTAssertEqual(.named(kind: .artist, name: "Tyler, the Creator", songIds: [1, 2, 3], wantsSimilar: false),
+        XCTAssertEqual(.named(kind: .artist, name: "Tyler, The Creator", songIds: [1, 2, 3], wantsSimilar: false),
                        route("more music from Tyler, the Creator"))
     }
 
@@ -275,7 +275,8 @@ final class VybeQueryRouterTests: XCTestCase {
     }
 
     func testVeryShortNamesAreNotMatchedInsideCredits() {
-        guard case .unknownName = route("songs by Ye") else { return XCTFail("matched") }
+        guard case .unknownName = route("songs by We") else { return XCTFail("matched a short fragment of West") }
+        XCTAssertEqual(.named(kind: .artist, name: "Kanye West", songIds: [4, 6], wantsSimilar: false), route("songs by Ye"))
     }
 }
 

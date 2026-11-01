@@ -8,21 +8,21 @@ struct MusicQueryIntent {
     let bpm: ClosedRange<Int>?
     let years: ClosedRange<Int>?
 
-    init(_ query: String, songs: [SongText]) {
+    init(_ query: String, songs: [SongText], artistNames: VybeArtistNames = VybeArtistNames()) {
         var removed: [NSRange] = []
         var excluded = Set<Int64>()
         let hasExclusion = Regex16(#"\b(?:no|not|without|excluding|exclude|except)\b"#, ignoreCase: true).containsMatch(in: query)
         let genres = hasExclusion ? Set(songs.flatMap(\.genres)) : []
         let artists = hasExclusion ? Set(songs.map(\.artist)) : []
-        let candidates = Set(genres.flatMap(MusicGenres.aliases) + artists.flatMap(Self.artists))
-        for candidate in candidates where candidate.utf16Length >= 3 && query.range(of: candidate, options: .caseInsensitive) != nil {
+        let candidates = Set(genres.flatMap(MusicGenres.aliases) + artists.flatMap { Self.artists($0).flatMap { [$0] + Array(artistNames.forms($0)) } })
+        for candidate in candidates where candidate.utf16Length >= 2 && query.range(of: candidate, options: .caseInsensitive) != nil {
             let escaped = NSRegularExpression.escapedPattern(for: candidate)
             let regex = Regex16("\\b(?:no|not|without|excluding|exclude|except)\\s+(?:any\\s+)?" + escaped + "(?![\\p{L}\\p{N}])", ignoreCase: true)
             let matches = regex.matches(in: query)
             guard !matches.isEmpty else { continue }
             removed += matches.map(\.range)
             for song in songs where song.genres.contains(where: { MusicGenres.matches(candidate, genre: $0) })
-                || Self.artists(song.artist).contains(where: { MusicGenres.normalize($0) == MusicGenres.normalize(candidate) }) {
+                || Self.artists(song.artist).contains(where: { artistNames.forms($0).contains(VybeNameIndex.normalize(candidate)) }) {
                 excluded.insert(song.songId)
             }
         }
@@ -71,7 +71,7 @@ struct MusicQueryIntent {
 
     private static let creditSplit = Regex16(#"\s*(?:/|,|&|;|\bfeat\.?|\bft\.?|\bx\b)\s*"#, ignoreCase: true)
     static func artists(_ credit: String) -> [String] {
-        [credit] + creditSplit.split(credit).map(\.trimmed).filter { !$0.isEmpty }
+        [credit] + CreditText.runs(credit).map(\.raw) + creditSplit.split(credit).map(\.trimmed).filter { !$0.isEmpty }
     }
 
     private static let tempoPatterns: [(String, (NSTextCheckingResult, String) -> ClosedRange<Int>?)] = [
