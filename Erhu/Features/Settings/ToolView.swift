@@ -10,6 +10,10 @@ struct ToolView: View {
     let tool: Tool
 
     var body: some View {
+        content.modifier(ToolPageAppearance())
+    }
+
+    @ViewBuilder private var content: some View {
         switch tool {
         case .settings: SettingsView()
         case .equalizer: EqualizerView()

@@ -140,6 +140,7 @@ struct RootView: View {
             case .shelf(let shelf): LibraryShelfView(shelf: shelf)
             case .allSongs: AllSongsView()
             case .tool(let tool): ToolView(tool: tool)
+            case .settingsPage(let page): SettingsDestinationView(page: page)
             case .transitionStudio(let collection): TransitionStudioView(collection: collection)
             }
         }

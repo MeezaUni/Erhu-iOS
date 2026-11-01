@@ -62,6 +62,12 @@ struct VybeNameIndex {
     private let entries: [Entry]
     private let exact: [String: Set<Int>]
     private let postings: [String: Set<Int>]
+    private let artists: [ArtistEntry]
+    private struct ArtistEntry {
+        let match: VybeNameMatch
+        let ids: Set<Int64>
+        let words: [[String]]
+    }
 
     init(songs: [SongText], aliases: [String: String] = [:]) {
         let artistNames = VybeArtistNames(aliases: aliases)
@@ -90,6 +96,9 @@ struct VybeNameIndex {
             Entry(match: VybeNameMatch(kind: value.0, name: value.1.name, detail: value.1.detail, songIds: value.1.ids.sorted()), forms: value.1.forms)
         }
         self.entries = entries
+        self.artists = entries.filter { $0.match.kind == .artist }.map {
+            ArtistEntry(match: $0.match, ids: Set($0.match.songIds), words: $0.forms.map(Self.words))
+        }
         var exact: [String: Set<Int>] = [:], postings: [String: Set<Int>] = [:]
         for (index, entry) in entries.enumerated() {
             for form in entry.forms {
@@ -104,9 +113,18 @@ struct VybeNameIndex {
     /// Exact names beat partial names, which beat a limited spelling correction. Short aliases
     /// resolve only as complete words; "Ye" must never be extracted from "Yelawolf".
     func find(_ text: String, allowPartial: Bool, preferredKind: EntityKind? = nil) -> [VybeNameMatch] {
+        lookup(text, allowPartial: allowPartial, preferredKind: preferredKind, qualified: true)
+    }
+
+    private func lookup(_ text: String, allowPartial: Bool, preferredKind: EntityKind?, qualified: Bool, allowed: Set<Int64>? = nil) -> [VybeNameMatch] {
         let normalized = Self.normalize(text)
-        if let ids = exact[normalized], !ids.isEmpty { return matches(ids, preferKind: true, preferredKind: preferredKind) }
+        func inScope(_ index: Int) -> Bool { allowed.map { !Set(entries[index].match.songIds).isDisjoint(with: $0) } ?? true }
+        if let ids = exact[normalized] {
+            let matching = matches(Set(ids.filter(inScope)), preferKind: true, preferredKind: preferredKind, allowed: allowed)
+            if !matching.isEmpty { return matching }
+        }
         guard allowPartial else { return [] }
+        let compound = qualified ? qualifiedMatches(text, preferredKind: preferredKind) : []
         let words = Self.words(text)
         guard !words.isEmpty, words.joined().count >= 3 else { return [] }
         var candidates: Set<Int>?
@@ -117,8 +135,17 @@ struct VybeNameIndex {
             }
             candidates = candidates.map { $0.intersection(ids) } ?? ids
         }
-        let partial = (candidates ?? []).filter { matchesForm(entries[$0], words: words, fuzzy: false) }
-        if !partial.isEmpty { return matches(Set(partial), preferKind: false, preferredKind: preferredKind) }
+        let partial = (candidates ?? []).filter { inScope($0) && matchesForm(entries[$0], words: words, fuzzy: false) }
+        if !partial.isEmpty || !compound.isEmpty {
+            var combined = Dictionary(matches(Set(partial), preferKind: false, preferredKind: preferredKind, allowed: allowed).map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            for match in compound { combined[match.id] = match }
+            let ordered = combined.values.sorted {
+                if $0.kind != $1.kind { return Self.priority($0.kind) < Self.priority($1.kind) }
+                return $0.name == $1.name ? $0.id < $1.id : $0.name < $1.name
+            }
+            if let preferredKind, ordered.contains(where: { $0.kind == preferredKind }) { return ordered.filter { $0.kind == preferredKind } }
+            return ordered
+        }
         // One edit (including an adjacent transposition) for 4+ letters, two for 8+.
         // Every query word must match the same name form, avoiding unrelated word fragments.
         guard words.allSatisfy({ $0.count >= 3 }), words.contains(where: { $0.count >= 4 }) else { return [] }
@@ -129,7 +156,50 @@ struct VybeNameIndex {
             for (token, matches) in postings where allowed > 0 && Self.editDistance(word, token, limit: allowed) <= allowed { ids.formUnion(matches) }
             fuzzy = fuzzy.map { $0.intersection(ids) } ?? ids
         }
-        return matches(Set((fuzzy ?? []).filter { matchesForm(entries[$0], words: words, fuzzy: true) }), preferKind: false, preferredKind: preferredKind)
+        return matches(Set((fuzzy ?? []).filter { inScope($0) && matchesForm(entries[$0], words: words, fuzzy: true) }), preferKind: false, preferredKind: preferredKind, allowed: allowed)
+    }
+
+    /// Artist and title are separate facts. An artist span must belong to the matched title's
+    /// own song IDs; words from different songs must never be combined into a match.
+    private func qualifiedMatches(_ text: String, preferredKind: EntityKind?) -> [VybeNameMatch] {
+        let folded = text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+        let query = Self.queryWord.matches(in: folded).map { $0.group(0, in: folded) }
+        guard (2...40).contains(query.count) else { return [] }
+        var found: [String: VybeNameMatch] = [:]
+        for artist in artists {
+            for words in artist.words where !words.isEmpty && words.count <= query.count {
+                for start in 0...(query.count - words.count) {
+                    let end = start + words.count
+                    guard words.indices.allSatisfy({ offset in
+                        let value = query[start + offset], word = words[offset]
+                        if Self.normalize(value) == word { return true }
+                        guard offset == words.count - 1 else { return false }
+                        if value.hasSuffix("'s") || value.hasSuffix("’s") {
+                            return Self.normalize(String(value.dropLast(2))) == word
+                        }
+                        return word.count >= 3 && value == word + "s"
+                    }) else { continue }
+                    var left = Array(query[..<start]), right = Array(query[end...])
+                    if let last = left.last, ["by", "from", "of"].contains(last) { left.removeLast() }
+                    while right.count > 1, let first = right.first, ["song", "songs", "track", "tracks", "called", "titled"].contains(first) { right.removeFirst() }
+                    while left.count > 1, let last = left.last, ["song", "track", "called", "titled"].contains(last) { left.removeLast() }
+                    let remaining = (left + right).joined(separator: " ")
+                    if remaining.isEmpty {
+                        found[artist.match.id] = artist.match
+                        continue
+                    }
+                    let kind: EntityKind = preferredKind == .album ? .album : .title
+                    for title in lookup(remaining, allowPartial: true, preferredKind: kind, qualified: false, allowed: artist.ids) where title.kind != .artist {
+                        if let preferredKind, preferredKind != .artist && title.kind != preferredKind { continue }
+                        let ids = title.songIds.filter(artist.ids.contains)
+                        guard !ids.isEmpty else { continue }
+                        let match = VybeNameMatch(kind: title.kind, name: title.name, detail: title.detail, songIds: ids)
+                        found[match.id] = match
+                    }
+                }
+            }
+        }
+        return found.values.sorted { $0.name == $1.name ? $0.id < $1.id : $0.name < $1.name }
     }
 
     private func matchesForm(_ entry: Entry, words: [String], fuzzy: Bool) -> Bool {
@@ -150,8 +220,13 @@ struct VybeNameIndex {
         }
     }
 
-    private func matches(_ ids: Set<Int>, preferKind: Bool, preferredKind: EntityKind?) -> [VybeNameMatch] {
-        let ordered = ids.map { entries[$0].match }.sorted {
+    private func matches(_ ids: Set<Int>, preferKind: Bool, preferredKind: EntityKind?, allowed: Set<Int64>? = nil) -> [VybeNameMatch] {
+        let ordered = ids.compactMap { index -> VybeNameMatch? in
+            let match = entries[index].match
+            guard let allowed else { return match }
+            let scoped = match.songIds.filter(allowed.contains)
+            return scoped.isEmpty ? nil : VybeNameMatch(kind: match.kind, name: match.name, detail: match.detail, songIds: scoped)
+        }.sorted {
             if $0.kind != $1.kind { return Self.priority($0.kind) < Self.priority($1.kind) }
             return $0.name != $1.name ? $0.name < $1.name : $0.id < $1.id
         }
@@ -170,6 +245,7 @@ struct VybeNameIndex {
     }
 
     private static let nonWord = Regex16(#"[^\p{L}\p{N}]+"#)
+    private static let queryWord = Regex16(#"\p{L}+(?:['’]s\b)?|\p{N}+"#)
     private static let letterNumberBoundary = Regex16(#"(?<=\p{L})(?=\p{N})|(?<=\p{N})(?=\p{L})"#)
     static func normalize(_ text: String) -> String {
         let folded = text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))

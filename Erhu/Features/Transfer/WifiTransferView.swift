@@ -20,7 +20,7 @@ struct WifiTransferView: View {
                         .font(.subheadline)
                     Button { transfer.start() } label: { Label("Start transfer", systemImage: "wifi") }
                 }
-            }
+            }.toolSectionAppearance()
             if !transfer.items.isEmpty {
                 Section {
                     let counts = transfer.counts
@@ -33,7 +33,7 @@ struct WifiTransferView: View {
                     ForEach(transfer.items.reversed()) { item in itemRow(item) }
                 } header: {
                     Text("This session")
-                }
+                }.toolSectionAppearance()
             }
             Section("How to connect") {
                 help("1. Put the phone and the computer on the same Wi-Fi network.")
@@ -41,18 +41,18 @@ struct WifiTransferView: View {
                 help("3. Choose files or a folder (or drag them in) and press Send to phone.")
                 help("Music is saved to Erhu's folder (Files › On My iPhone › Erhu) and appears in your library shortly after.")
                 help("Keep Erhu open while sending: iOS pauses the transfer when the app is in the background.")
-            }
+            }.toolSectionAppearance()
             Section("If the page does not load") {
                 help("Check both devices use the same network (not a guest network: those often block devices from seeing each other).")
                 help("Allow Erhu to find devices on your local network (Settings › Privacy & Security › Local Network).")
                 help("Turn off a VPN on either device, and type the address exactly, starting with http://.")
-            }
+            }.toolSectionAppearance()
             Section {
                 Text("Privacy: the page works only on your local network, only while this screen shows it as on, and only with this session's code. It uses plain HTTP, so on a shared or untrusted Wi-Fi others on the network could see what is sent.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            }
-        }
+            }.toolSectionAppearance()
+        }.modifier(ToolPageAppearance())
         .navigationTitle("Wi-Fi Transfer")
     }
 

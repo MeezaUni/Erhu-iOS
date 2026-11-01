@@ -23,7 +23,7 @@ struct AnimatedArtworkView: View {
                     Text("Downloaded covers can also animate on the Lock Screen when supported by iOS. Use Download again to add portrait artwork to previously saved covers.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
-            }
+            }.toolSectionAppearance()
             Section("Lock Screen") {
                 if let song = player.state.currentSong {
                     Text(song.title).font(.headline)
@@ -38,9 +38,9 @@ struct AnimatedArtworkView: View {
                     .font(.footnote).foregroundStyle(.secondary)
                 Button("Retry Lock Screen artwork") { player.refreshLockScreenArtwork() }
                     .disabled(!store.enabled || player.state.currentSong == nil || player.lockScreenMotion.status == .preparing)
-            }
+            }.toolSectionAppearance()
             if store.downloading != nil {
-                Section { Button("Cancel download", role: .cancel) { store.cancel() } }
+                Section { Button("Cancel download", role: .cancel) { store.cancel() } }.toolSectionAppearance()
             }
             Section("Albums") {
                 if albums.isEmpty { Text("No matching albums in your library.").foregroundStyle(.secondary) }
@@ -66,8 +66,8 @@ struct AnimatedArtworkView: View {
                         }.buttonStyle(.bordered)
                     }.padding(.vertical, Spacing.xs)
                 }
-            }
-        }
+            }.toolSectionAppearance()
+        }.modifier(ToolPageAppearance())
         .searchable(text: $query, prompt: "Album or artist")
         .navigationTitle("Animated covers")
     }

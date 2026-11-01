@@ -1,35 +1,40 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum SettingsPageRoute: String, Hashable { case appearance, visualizer, library, metadata, about }
+
+struct SettingsDestinationView: View {
+    let page: SettingsPageRoute
+    var body: some View {
+        Group {
+            switch page {
+            case .appearance: AppearanceSettingsView()
+            case .visualizer: VisualizerSettingsView()
+            case .library: LibrarySettingsView()
+            case .metadata: MetadataSettingsView()
+            case .about: AboutSettingsView()
+            }
+        }.modifier(ToolPageAppearance())
+    }
+}
+
 /// The Android settings groups, adapted to the controls and tools available on iOS.
 struct SettingsView: View {
     var body: some View {
         SettingsPage {
             SettingsGroup("Personalize") {
-                SettingsLink("Themes & Appearance", subtitle: "Colours, themes and appearance", icon: "paintpalette.fill") {
-                    AppearanceSettingsView()
-                }
+                SettingsLink("Themes & Appearance", subtitle: "Colours, themes and appearance", icon: "paintpalette.fill", page: .appearance)
             }
             SettingsGroup("Sound") {
-                SettingsLink("Audio & Equalizer", subtitle: "8-band equalizer, presets and audio effects", icon: "chart.bar.fill") {
-                    EqualizerView()
-                }
-                SettingsLink("Visualizer", subtitle: "Style and feel of the Now Playing visualizer", icon: "waveform") {
-                    VisualizerSettingsView()
-                }
+                SettingsLink("Audio & Equalizer", subtitle: "8-band equalizer, presets and audio effects", icon: "chart.bar.fill", tool: .equalizer)
+                SettingsLink("Visualizer", subtitle: "Style and feel of the Now Playing visualizer", icon: "waveform", page: .visualizer)
             }
             SettingsGroup("Library") {
-                SettingsLink("Music Library", subtitle: "Music folder, scanning and your collection", icon: "folder.fill") {
-                    LibrarySettingsView()
-                }
-                SettingsLink("Metadata & Artwork", subtitle: "Tags, cover art and online sources", icon: "number") {
-                    MetadataSettingsView()
-                }
+                SettingsLink("Music Library", subtitle: "Music folder, scanning and your collection", icon: "folder.fill", page: .library)
+                SettingsLink("Metadata & Artwork", subtitle: "Tags, cover art and online sources", icon: "number", page: .metadata)
             }
             SettingsGroup("About") {
-                SettingsLink("About Erhu", subtitle: "Version, privacy and source code", icon: "info.circle.fill") {
-                    AboutSettingsView()
-                }
+                SettingsLink("About Erhu", subtitle: "Version, privacy and source code", icon: "info.circle.fill", page: .about)
             }
         }
         .navigationTitle("Settings")
@@ -45,23 +50,8 @@ private struct SettingsPage<Content: View>: View {
                 .padding(Spacing.lg)
                 .padding(.bottom, Spacing.lg)
         }
-        .modifier(SettingsAppearance())
+        .modifier(ToolPageAppearance())
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-private struct SettingsAppearance: ViewModifier {
-    @Environment(\.colorScheme) private var scheme
-
-    func body(content: Content) -> some View {
-        let palette = AppPalette.settings(scheme)
-        content
-            .environment(\.palette, palette)
-            .foregroundStyle(palette.onSurface)
-            .tint(palette.primary)
-            .background(palette.background.ignoresSafeArea())
-            .toolbarBackground(palette.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
@@ -185,53 +175,48 @@ private struct SettingsIcon: View {
     }
 }
 
-private struct SettingsLink<Destination: View>: View {
+private struct SettingsLink: View {
     let title: String
     let subtitle: String
     let icon: String
-    @ViewBuilder let destination: Destination
+    let route: Route
     @Environment(\.palette) private var palette
 
-    init(_ title: String, subtitle: String, icon: String, @ViewBuilder destination: () -> Destination) {
+    init(_ title: String, subtitle: String, icon: String, page: SettingsPageRoute) {
         self.title = title
         self.subtitle = subtitle
         self.icon = icon
-        self.destination = destination()
+        self.route = .settingsPage(page)
+    }
+
+    init(_ title: String, subtitle: String, icon: String, tool: Tool) {
+        self.title = title
+        self.subtitle = subtitle
+        self.icon = icon
+        self.route = .tool(tool)
     }
 
     var body: some View {
-        NavigationLink {
-            destination.modifier(SettingsDetailClearance()).modifier(SettingsAppearance())
-        } label: {
-            HStack(spacing: Spacing.lg) {
-                SettingsIcon(symbol: icon)
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(title).font(.body.weight(.semibold)).foregroundStyle(palette.onSurface)
-                    Text(subtitle).font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(palette.onSurfaceVariant)
-                    .accessibilityHidden(true)
-            }
-            .padding(Spacing.lg)
-            .frame(minHeight: 88)
-            .contentShape(Rectangle())
-        }
-        .pressable()
+        NavigationLink(value: route) { row }.pressable()
     }
-}
 
-/// View-based pushes need the same clearance as the router's destinations above the mini player.
-private struct SettingsDetailClearance: ViewModifier {
-    @Environment(PlayerController.self) private var player
-
-    func body(content: Content) -> some View {
-        content.safeAreaInset(edge: .bottom) {
-            Color.clear.frame(height: player.state.currentSong == nil ? 72 : 136)
+    private var row: some View {
+        HStack(spacing: Spacing.lg) {
+            SettingsIcon(symbol: icon)
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(title).font(.body.weight(.semibold)).foregroundStyle(palette.onSurface)
+                Text(subtitle).font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(palette.onSurfaceVariant)
+                .accessibilityHidden(true)
         }
+        .padding(Spacing.lg)
+        .frame(minHeight: 88)
+        .contentShape(Rectangle())
     }
 }
 
@@ -402,17 +387,11 @@ private struct MetadataSettingsView: View {
     var body: some View {
         SettingsPage {
             SettingsGroup("Tags & cover art") {
-                SettingsLink("Auto Fix Tags", subtitle: "Correct tags and fill in missing details", icon: "wand.and.stars") {
-                    FixTagsView()
-                }
-                SettingsLink("Artwork Fetcher", subtitle: "Find album covers or change artist photos", icon: "photo.on.rectangle.angled") {
-                    ArtworkFetcherView()
-                }
+                SettingsLink("Auto Fix Tags", subtitle: "Correct tags and fill in missing details", icon: "wand.and.stars", tool: .autoFixTags)
+                SettingsLink("Artwork Fetcher", subtitle: "Find album covers or change artist photos", icon: "photo.on.rectangle.angled", tool: .artworkFetcher)
                 // The tool exists only in the animated-art branch; never offer a dead destination.
                 if let motion = Tool(rawValue: "animatedArtwork"), Tool.available.contains(motion) {
-                    SettingsLink(motion.label, subtitle: "Manage your downloaded album covers", icon: motion.icon) {
-                        ToolView(tool: motion)
-                    }
+                    SettingsLink(motion.label, subtitle: "Manage your downloaded album covers", icon: motion.icon, tool: motion)
                 }
             }
             OnlineSourcesSection()

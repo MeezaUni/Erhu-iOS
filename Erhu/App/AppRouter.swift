@@ -88,6 +88,7 @@ enum Route: Hashable {
     case shelf(LibraryShelf)
     case allSongs
     case tool(Tool)
+    case settingsPage(SettingsPageRoute)
     case transitionStudio(CollectionRef)
 }
 
