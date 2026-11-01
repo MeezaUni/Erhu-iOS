@@ -16,7 +16,7 @@ later as the project grows. The sideloaded app is free to use.
 
 | Home & library | Now Playing | VYBE |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="240" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="240" loading="lazy"> | <img src="docs/screenshots/vybe.png" alt="VYBE offline discovery search and suggested prompts" width="240" loading="lazy"> |
+| <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="240" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="240" loading="lazy"> | <img src="docs/screenshots/vybe.png" alt="VYBE search matching Dramatic Girl and Carried Away with similar tracks from the library" width="240" loading="lazy"> |
 
 | Lyrics | Themes & settings | Transition Studio |
 | :---: | :---: | :---: |
