@@ -99,11 +99,11 @@
 
 | Build | Download |
 | --- | --- |
-| Static artwork | [Static-art builds](https://github.com/MeezaUni/Erhu-iOS/actions/workflows/ios.yml?query=branch%3Awithout-animated-art) |
-| Animated artwork | [Animated-art builds](https://github.com/MeezaUni/Erhu-iOS/actions/workflows/ios.yml?query=branch%3Awith-animated-art) |
+| Static artwork | [Download IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta/Erhu-v1.0-beta-static.ipa) |
+| Animated artwork | [Download IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta/Erhu-v1.0-beta-animated.ipa) |
 
-1. Sign in to GitHub, open a successful build, and download **Erhu-ipa** under **Artifacts**.
-2. Extract `Erhu.ipa` and install it with [SideStore](https://sidestore.io/) or [AltStore Classic](https://altstore.io/).
+1. Download the IPA for your chosen variant above, or open the [v1.0-beta release](https://github.com/MeezaUni/Erhu-iOS/releases/tag/v1.0-beta).
+2. Install it with [SideStore](https://sidestore.io/) or [AltStore Classic](https://altstore.io/).
 3. Import music with **+**, the Files app, or **Wi-Fi Transfer**.
 
 Free Apple ID: refresh within **7 days**; the usual **3 active apps** limit includes your installer.
@@ -138,6 +138,8 @@ See the [installation guide](docs/INSTALLING.md) for setup, updates, and support
 
 [Build from source](docs/BUILDING.md) · [Feature status](docs/ANDROID_PORT.md) ·
 [VYBE details](docs/VYBE.md) · [Screenshot guide](docs/screenshots/README.md)
+
+[Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
 
 ## Support
 
