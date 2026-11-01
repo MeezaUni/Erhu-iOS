@@ -235,7 +235,7 @@ final class MusicQueryIntentTests: XCTestCase {
         XCTAssertEqual(VybeQueryRouter.route("Two", songs: songs), .named(kind: .album, name: "Two", songIds: [2], wantsSimilar: false))
         XCTAssertEqual(VybeQueryRouter.route("B", songs: songs), .named(kind: .title, name: "B", songIds: [2], wantsSimilar: false))
         let beyonce = SongText(songId: 8, title: "Halo", artist: "Beyoncé", album: "")
-        XCTAssertEqual(VybeQueryRouter.route("Beyonce", songs: [beyonce]), .named(kind: .artist, name: "Beyonce", songIds: [8], wantsSimilar: false))
+        XCTAssertEqual(VybeQueryRouter.route("Beyonce", songs: [beyonce]), .named(kind: .artist, name: "Beyoncé", songIds: [8], wantsSimilar: false))
     }
 }
 
