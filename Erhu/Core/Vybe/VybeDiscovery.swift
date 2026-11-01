@@ -1,7 +1,7 @@
 import Foundation
 
 /// What a text is embedded as: a user's search query, or a song description being searched.
-enum EmbeddingRole: Sendable { case query, document }
+enum EmbeddingRole: Equatable, Sendable { case query, document }
 
 /// Turns text into a vector, entirely on the device. Nothing in VYBE depends on which model
 /// produces the vectors. Implementations run synchronously: call from a background context.
@@ -78,14 +78,18 @@ struct VybeDiscovery {
 
     func search(_ query: String, songs: [SongText], limit: Int) throws -> VybeAnswer {
         let text = query.trimmed
-        switch VybeQueryRouter.route(text, songs: songs) {
+        let intent = MusicQueryIntent(text, songs: songs)
+        let eligible = songs.filter(intent.allows)
+        let allowed = Set(eligible.map(\.songId))
+        switch VybeQueryRouter.route(intent.text, songs: songs) {
         case .named(let kind, let name, let songIds, let wantsSimilar):
-            let similar = wantsSimilar ? similarTo(Set(songIds), limit: limit) : []
-            return .named(kind: kind, name: name, songIds: songIds, similar: similar)
+            let matched = songIds.filter(allowed.contains)
+            let similar = wantsSimilar && !matched.isEmpty ? similarTo(Set(matched), limit: limit, allowed: allowed) : []
+            return .named(kind: kind, name: name, songIds: matched, similar: similar)
         case .unknownName(let name, _):
-            return try describe(text, songs: songs, limit: limit, unknownName: name)
+            return try describe(text, embeddingText: intent.text, songs: eligible, limit: limit, unknownName: name)
         case .describe:
-            return try describe(text, songs: songs, limit: limit, unknownName: nil)
+            return try describe(text, embeddingText: intent.text, songs: eligible, limit: limit, unknownName: nil)
         }
     }
 
@@ -94,7 +98,7 @@ struct VybeDiscovery {
         .similarTo(seedSongId: songId, hits: similarTo([songId], limit: limit))
     }
 
-    private func similarTo(_ seeds: Set<Int64>, limit: Int) -> [VybeHit] {
+    private func similarTo(_ seeds: Set<Int64>, limit: Int, allowed: Set<Int64>? = nil) -> [VybeHit] {
         let seedVectors = seeds.sorted().compactMap { vectors.vectorOf($0) }
         guard let first = seedVectors.first else { return [] }
         var centroid = [Float](repeating: 0, count: first.count)
@@ -103,20 +107,23 @@ struct VybeDiscovery {
             for vector in seedVectors { sum += Double(vector[i]) }
             centroid[i] = Float(sum) / Float(seedVectors.count)
         }
-        return vectors.rank(limit: limit) { id, v in seeds.contains(id) ? nil : cosineSimilarity(centroid, v) }
+        return vectors.rank(limit: limit) { id, v in
+            seeds.contains(id) || allowed.map({ !$0.contains(id) }) == true ? nil : cosineSimilarity(centroid, v)
+        }
             .map { VybeHit(songId: $0.songId, score: $0.score, reasons: [Self.similarReason]) }
     }
 
-    private func describe(_ query: String, songs: [SongText], limit: Int, unknownName: String?) throws -> VybeAnswer {
+    private func describe(_ query: String, embeddingText: String, songs: [SongText], limit: Int, unknownName: String?) throws -> VybeAnswer {
         if query.isEmpty || songs.isEmpty || limit <= 0 {
             return .described(query: query, hits: [], weak: false, unknownName: unknownName)
         }
-        let queryVector = try embedder.embed(query, role: .query)
-        let boosts = Self.metadataBoosts(query, songs: songs)
+        let queryVector = try embedder.embed(embeddingText.ifBlank("music"), role: .query)
+        let boosts = Self.metadataBoosts(embeddingText, songs: songs)
         // Scores of all songs (cheap: a dot product each) to judge whether the query separates them.
-        let all = vectors.rank(limit: max(songs.count, 1)) { _, v in cosineSimilarity(queryVector, v) }
+        let eligible = Set(songs.map(\.songId))
+        let all = vectors.rank(limit: max(songs.count, 1)) { id, v in eligible.contains(id) ? cosineSimilarity(queryVector, v) : nil }
         let weak = Self.isWeak(all.map(\.score), weakBest: embedder.weakBest)
-        let ranked = all.map { match -> (VybeMatch, Float, Bool) in
+        var ranked = all.map { match -> (VybeMatch, Float, Bool) in
             let reasons = boosts[match.songId] ?? []
             return (match, reasons.reduce(Float(0)) { $0 + $1.1 }, reasons.contains { $0.1 == Self.artistBoost })
         }.sorted { a, b in
@@ -125,9 +132,38 @@ struct VybeDiscovery {
             let sa = a.0.score + a.1
             let sb = b.0.score + b.1
             return sa != sb ? sa > sb : a.0.songId < b.0.songId
-        }.prefix(limit)
-        let hits = ranked.map { match, boost, _ in
-            VybeHit(songId: match.songId, score: match.score + boost, reasons: (boosts[match.songId] ?? []).map(\.0))
+        }
+        // A small repeat penalty broadens close results without promoting weak matches or
+        // moving songs ahead of an artist the listener explicitly named.
+        let byId = Dictionary(songs.map { ($0.songId, $0) }, uniquingKeysWith: { a, _ in a })
+        let keys = byId.mapValues { song -> (artist: String, album: String?) in
+            let artist = MusicGenres.normalize(song.artist)
+            let known = !artist.isEmpty && !Self.notArtists.contains(artist)
+            let key = known ? artist : "unknown:\(song.songId)"
+            return (key, song.album.isBlank ? nil : key + "|" + MusicGenres.normalize(song.album))
+        }
+        var artistCounts: [String: Int] = [:]
+        var albumCounts: [String: Int] = [:]
+        var hits: [VybeHit] = []
+        while !ranked.isEmpty && hits.count < limit {
+            let hasNamedArtist = ranked.contains { $0.2 }
+            func adjusted(_ item: (VybeMatch, Float, Bool)) -> Float {
+                guard let key = keys[item.0.songId] else { return -.infinity }
+                let repeatArtist = min(artistCounts[key.artist, default: 0], 3)
+                let repeatAlbum = key.album.map { min(albumCounts[$0, default: 0], 2) } ?? 0
+                return item.0.score + item.1 - Float(repeatArtist) * 0.025 - Float(repeatAlbum) * 0.015
+            }
+            let candidates = ranked.indices.filter { !hasNamedArtist || ranked[$0].2 }
+            let best = candidates.max { a, b in
+                let sa = adjusted(ranked[a]), sb = adjusted(ranked[b])
+                return sa == sb ? ranked[a].0.songId > ranked[b].0.songId : sa < sb
+            }!
+            let (match, boost, _) = ranked.remove(at: best)
+            hits.append(VybeHit(songId: match.songId, score: match.score + boost, reasons: (boosts[match.songId] ?? []).map(\.0)))
+            if let key = keys[match.songId] {
+                artistCounts[key.artist, default: 0] += 1
+                if let album = key.album { albumCounts[album, default: 0] += 1 }
+            }
         }
         return .described(query: query, hits: hits, weak: weak, unknownName: unknownName)
     }
@@ -142,23 +178,31 @@ struct VybeDiscovery {
     /// Per song: (reason, boost) for metadata the query names outright.
     static func metadataBoosts(_ query: String, songs: [SongText]) -> [Int64: [(String, Float)]] {
         let queryWords = words(query)
+        let requestedGenres = Set(Set(songs.flatMap(\.genres)).filter { MusicGenres.matches(query, genre: $0) })
+        let names = Dictionary(uniqueKeysWithValues: Set(songs.map(\.artist)).map { ($0, artistNames($0)) })
         var boosts: [Int64: [(String, Float)]] = [:]
         for song in songs {
-            if let artist = artistNames(song.artist).first(where: { containsSequence(queryWords, words($0)) }) {
+            if let artist = names[song.artist]?.first(where: { containsSequence(queryWords, words($0)) }) {
                 boosts[song.songId, default: []].append(("Artist: \(artist)", artistBoost))
             }
-            if let genre = song.genres.first(where: { containsSequence(queryWords, words($0)) }) {
+            if let genre = song.genres.first(where: requestedGenres.contains) {
                 boosts[song.songId, default: []].append(("Genre: \(genre)", genreBoost))
             }
             if let bpm = song.bpm, VybeText.plausibleBpm.contains(bpm) {
-                if queryWords.contains(where: fastWords.contains) && bpm >= fastBpm {
+                if hasPositiveTempoWord(queryWords, matching: fastWords) && bpm >= fastBpm {
                     boosts[song.songId, default: []].append(("Tempo: \(bpm) BPM (tag)", tempoBoost))
-                } else if queryWords.contains(where: slowWords.contains) && bpm <= slowBpm {
+                } else if hasPositiveTempoWord(queryWords, matching: slowWords) && bpm <= slowBpm {
                     boosts[song.songId, default: []].append(("Tempo: \(bpm) BPM (tag)", tempoBoost))
                 }
             }
         }
         return boosts
+    }
+
+    private static func hasPositiveTempoWord(_ words: [String], matching terms: Set<String>) -> Bool {
+        words.indices.contains { i in
+            terms.contains(words[i]) && (i == 0 || !["not", "no", "without", "except"].contains(words[i - 1]))
+        }
     }
 
     /// Each credited artist of "A/ B feat. C" on its own, long enough to match safely.

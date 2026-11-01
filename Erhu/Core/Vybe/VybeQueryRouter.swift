@@ -40,7 +40,19 @@ enum VybeQueryRouter {
             found = (typed.trimmed, similar)
             break
         }
-        guard let (name, wantsSimilar) = found else { return .describe(query: original) }
+        guard let (name, wantsSimilar) = found else {
+            let exact = words(original)
+            guard !exact.isEmpty, !exact.allSatisfy({ ["music", "song", "songs", "tracks", "stuff", "play", "some"].contains($0) }) else {
+                return .describe(query: original)
+            }
+            let artists = songs.filter { MusicQueryIntent.artists($0.artist).contains { words($0) == exact } }
+            if !artists.isEmpty { return .named(kind: .artist, name: original, songIds: ids(artists), wantsSimilar: false) }
+            let albums = songs.filter { words($0.album) == exact }
+            if !albums.isEmpty { return .named(kind: .album, name: original, songIds: ids(albums), wantsSimilar: false) }
+            let titles = songs.filter { words($0.title) == exact }
+            if !titles.isEmpty { return .named(kind: .title, name: original, songIds: ids(titles), wantsSimilar: false) }
+            return .describe(query: original)
+        }
         let nameWords = words(name)
         if nameWords.joined().utf16Length < minNameChars { return .unknownName(name: name, query: original) }
 
@@ -56,7 +68,9 @@ enum VybeQueryRouter {
 
     private static func ids(_ songs: [SongText]) -> [Int64] { songs.map(\.songId).sorted() }
 
-    private static func words(_ text: String) -> [String] { nonWord.split(text.lowercased()).filter { !$0.isEmpty } }
+    private static func words(_ text: String) -> [String] {
+        nonWord.split(text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))).filter { !$0.isEmpty }
+    }
 }
 
 /// The needle's words appear in order, back to back, somewhere in the haystack.

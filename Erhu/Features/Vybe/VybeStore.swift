@@ -29,7 +29,7 @@ enum VybeQueryState: Equatable {
 @Observable
 final class VybeStore {
     static let resultLimit = 30
-    private static let weakNote = "Your library's tags barely tell songs apart for this, so the order says little."
+    private static let weakNote = "These are loose matches. Try a genre or add a little more detail."
 
     private(set) var status: VybeStatus = .loadingModel
     private(set) var timings = VybeTimings()
@@ -43,6 +43,7 @@ final class VybeStore {
     @ObservationIgnored private var observer: NSObjectProtocol?
     @ObservationIgnored private var pendingRefresh: Task<Void, Never>?
     @ObservationIgnored private var started = false
+    @ObservationIgnored private var retryWhenReady: (() -> Void)?
 
     init(database: LibraryDatabase, player: PlayerController) {
         self.database = database
@@ -50,11 +51,27 @@ final class VybeStore {
         let box = WeakBox<VybeStore>()
         engine = VybeEngine(database: database) { status, timings in
             Task { @MainActor in
-                box.value?.status = status
-                box.value?.timings = timings
+                box.value?.receive(status, timings)
             }
         }
         box.value = self
+    }
+
+    private func receive(_ status: VybeStatus, _ timings: VybeTimings) {
+        self.status = status
+        self.timings = timings
+        if case .ready = status {
+            let retry = retryWhenReady
+            retryWhenReady = nil
+            retry?()
+        }
+    }
+
+    private func afterIndexing(_ retry: @escaping () -> Void) {
+        switch status {
+        case .loadingModel, .indexing: retryWhenReady = retry
+        default: retryWhenReady = nil
+        }
     }
 
     /// Loads the model and indexes, if not already; library changes then re-index (debounced).
@@ -82,6 +99,7 @@ final class VybeStore {
     func submit(_ text: String) {
         let trimmed = text.trimmed
         if trimmed.isEmpty { return }
+        afterIndexing { [weak self] in self?.submit(trimmed) }
         let engine = engine
         run(trimmed) { try await engine.search(trimmed, limit: Self.resultLimit) }
     }
@@ -89,12 +107,18 @@ final class VybeStore {
     /// Songs like the playing one.
     func similarToCurrent() {
         guard let song = player.state.currentSong else { return }
+        searchSimilar(song.id, title: song.title)
+    }
+
+    private func searchSimilar(_ id: Int64, title: String) {
+        afterIndexing { [weak self] in self?.searchSimilar(id, title: title) }
         let engine = engine
-        run("Like \"\(song.title)\"") { await engine.similarTo(song.id, limit: Self.resultLimit) }
+        run("Like \"\(title)\"") { await engine.similarTo(id, limit: Self.resultLimit) }
     }
 
     func clear() {
         running?.cancel()
+        retryWhenReady = nil
         query = .idle
     }
 
@@ -124,7 +148,7 @@ final class VybeStore {
                 if let result = try await answer() {
                     state = .done(label, present(result))
                 } else {
-                    state = .error(label, "VYBE isn't ready yet")
+                    state = retryWhenReady == nil ? .error(label, "VYBE isn't ready yet") : .searching(label)
                 }
             } catch {
                 state = .error(label, error.localizedDescription)
@@ -141,18 +165,18 @@ final class VybeStore {
             return VybeResults(
                 title: "\(Self.label(kind)): \(name)",
                 note: similar.isEmpty ? "Found by name in your library."
-                    : "Found by name, then the closest songs by genre and tempo (your tags carry no mood, so \"like\" means that).",
+                    : "Your matches, followed by similar tracks from your library.",
                 songs: named + songs(similar)
             )
         case .described(_, let hits, let weak, let unknownName):
             let note = [
                 unknownName.map { "\"\($0)\" isn't in your library, so this is matched as a description." },
-                "Matched against each song's genres, tempo and artist; there is no mood or audio analysis.",
+                "Matched using your library's genres, tempo, artists and saved lyrics.",
                 weak ? Self.weakNote : nil,
             ].compactMap { $0 }.joined(separator: " ")
             return VybeResults(title: "Closest in your library", note: note, songs: songs(hits))
         case .similarTo(_, let hits):
-            return VybeResults(title: "Like what's playing", note: "Closest songs by genre, tempo and artist.", songs: songs(hits))
+            return VybeResults(title: "Like what's playing", note: "Songs with similar styles and tempo.", songs: songs(hits))
         }
     }
 

@@ -11,3 +11,7 @@ DerivedData/
 # macOS / Xcode
 .DS_Store
 xcuserdata/
+
+# Model conversion tooling
+__pycache__/
+*.pyc
