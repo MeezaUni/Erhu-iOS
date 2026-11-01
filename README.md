@@ -6,12 +6,59 @@ A native iPhone music player for your own files, with offline discovery and cust
 
 [![Install Erhu](https://img.shields.io/badge/Install_Erhu-2ea44f?style=for-the-badge&logo=apple&logoColor=white)](#install)
 
-## Why choose Erhu?
+**Why Erhu?** Your music, offline playback, and discovery without an Erhu account or music subscription.
 
-| Area | At a glance |
-| --- | --- |
-| **Why Erhu** | • Your own music library, played offline.<br>• No Erhu account or music subscription required.<br>• Free sideloaded builds. |
-| **Design & UI** | • Native SwiftUI interface, artwork carousel, and mini-player.<br>• Artwork-based colours, light/dark/system appearance, and imported colour themes. |
+<table>
+  <tr>
+    <th width="50%" align="left">Design &amp; UI</th>
+    <th width="50%" align="left">Audio formats &amp; engine</th>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <ul>
+        <li>Native SwiftUI, artwork carousel, and mini-player.</li>
+        <li>Artwork colours, light/dark/system appearance, and imported themes.</li>
+        <li>Downloaded video covers; offline after saving (animated-art build).</li>
+        <li>Lock Screen animation: iOS 26+, controlled by iOS.</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <ul>
+        <li>MP3, AAC, ALAC, FLAC, WAV/WAVE, AIFF/AIF/AIFC, and CAF.</li>
+        <li>M4A, M4B, and MP4 containers; unprotected files with iOS-supported codecs.</li>
+        <li>Dual-deck AVAudioEngine with Core Audio decoding.</li>
+        <li>Custom EQ/transition Audio Units, gapless scheduling for matching formats, and timed crossfades.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th width="50%" align="left">Features &amp; tools</th>
+    <th width="50%" align="left">Privacy &amp; data</th>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <ul>
+        <li><strong>Playback:</strong> queue, shuffle, repeat, background/headphone/Lock Screen controls, waveform seeking, A–B loops, and bookmarks.</li>
+        <li><strong>Sound &amp; transitions:</strong> 8-band EQ, presets, visualizer, and album/playlist/song-pair transitions with editable curves.</li>
+        <li><strong>Library &amp; discovery:</strong> albums, artists, playlists, favorites, search, smart mixes, radio, and listening stats.</li>
+        <li><strong>VYBE:</strong> offline mood/name searches, multiple references, artist aliases, and BPM/year filters.</li>
+        <li><strong>Synced lyrics:</strong> embedded lyrics, LRC/enhanced LRC, online lookup, and word timing when available.</li>
+        <li><strong>Tools:</strong> Files/Wi-Fi import, tag editing, metadata matching, artwork/artist images, and BPM lookup or estimation.</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <ul>
+        <li>Audio files and library data stay on your device.</li>
+        <li>On-device VYBE; no cloud inference.</li>
+        <li>Online lyrics/artwork/metadata providers receive search metadata.</li>
+        <li>Personal API keys are stored in the device Keychain.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 ## Screenshots
 
@@ -54,22 +101,6 @@ A native iPhone music player for your own files, with offline discovery and cust
 
 </details>
 
-## Features & technical details
-
-| Area | At a glance |
-| --- | --- |
-| **Animated artwork** | • Downloaded video covers in Now Playing, the mini-player, and album pages.<br>• Offline playback after download.<br>• Animated-art build only; Lock Screen animation needs iOS 26+ and is controlled by iOS. |
-| **Audio formats** | • MP3, AAC, ALAC, FLAC, WAV/WAVE, AIFF/AIF/AIFC, and CAF.<br>• M4A, M4B, and MP4 containers; decoding depends on iOS codec support.<br>• Unprotected files. |
-| **Audio engine** | • AVAudioEngine with two AVAudioPlayerNode decks and Core Audio decoding.<br>• Custom Audio Units for EQ and transition processing.<br>• Gapless scheduling for matching formats and timed crossfades. |
-| **Playback features** | • Queue, shuffle, repeat, background playback, and headphone/Lock Screen controls.<br>• Waveform seeking, A–B loops, and bookmarks. |
-| **Sound & transitions** | • 8-band parametric EQ, presets, and visualizer.<br>• Transitions by album, playlist, or song pair, with waveform previews and editable fade/EQ/filter curves. |
-| **Library & discovery** | • Albums, artists, playlists, favorites, and search.<br>• Smart playlists, Smart Radio, and Sound Capsule listening stats. |
-| **VYBE** | • Offline mood, style, and name searches using library metadata and saved lyrics.<br>• Multiple reference songs, artist aliases, and BPM/year filters.<br>• Bundled model; no cloud inference. |
-| **Lyrics** | • Embedded lyrics, LRC, enhanced LRC, and online lookup.<br>• Synced and word-timed lyrics when available. |
-| **Tools** | • Files import and local Wi-Fi Transfer.<br>• Tag editing, automatic metadata matching, artwork/artist images, and missing-BPM lookup or estimation. |
-| **Privacy & data** | • Audio, library data, and VYBE processing stay on your device.<br>• Online lyrics/artwork/metadata services receive search metadata.<br>• Personal API keys stay in the device Keychain. |
-| **Tech stack** | • Swift, SwiftUI, AVFoundation, Core Audio/AudioToolbox, and MediaPlayer.<br>• Core ML with a compressed MiniLM encoder (~17 MB).<br>• SQLite, local JSON settings, Network.framework, and Keychain.<br>• XcodeGen, GitHub Actions, and XCTest. |
-
 ## Install
 
 | Build | Download |
@@ -84,6 +115,31 @@ A native iPhone music player for your own files, with offline discovery and cust
 Free Apple ID: refresh within **7 days**; the usual **3 active apps** limit includes your installer.
 See the [installation guide](docs/INSTALLING.md) for setup, updates, and supported imports.
 
+## Tech stack
+
+<table>
+  <tr>
+    <th width="50%" align="left">App &amp; audio</th>
+    <th width="50%" align="left">AI, data &amp; build</th>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <ul>
+        <li>Swift and SwiftUI.</li>
+        <li>AVFoundation, Core Audio/AudioToolbox, and MediaPlayer.</li>
+        <li>Network.framework for local Wi-Fi Transfer.</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <ul>
+        <li>Core ML with compressed MiniLM (~17 MB).</li>
+        <li>SQLite, local JSON settings, and Keychain.</li>
+        <li>XcodeGen, GitHub Actions, and XCTest.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
 ## Development & docs
 
 [Build from source](docs/BUILDING.md) · [Feature status](docs/ANDROID_PORT.md) ·
@@ -94,5 +150,3 @@ See the [installation guide](docs/INSTALLING.md) for setup, updates, and support
 [Test builds, report bugs, or share feedback](https://github.com/MeezaUni/Erhu-iOS/issues).
 
 <!-- OPTIONAL_DONATION_LINK: Add your real Buy Me a Coffee or Ko-fi link here when available. -->
-
-Credits: [Android source & licence](ThirdParty/ANDROID-NOTICE.md) · [Model attribution](ThirdParty/VYBE-MODEL-NOTICE.md).
