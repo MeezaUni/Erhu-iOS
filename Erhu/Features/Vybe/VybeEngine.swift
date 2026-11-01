@@ -44,7 +44,7 @@ actor VybeEngine {
     private var tasteModelId: String?
 
     init(database: LibraryDatabase, indexURL: URL = LibraryPaths.supportFolder.appending(path: "vybe/index.bin"),
-         makeEmbedder: @escaping @Sendable () throws -> any TextEmbedder = { try SentenceEmbedder() },
+         makeEmbedder: @escaping @Sendable () throws -> any TextEmbedder = { try CompactSentenceEmbedder() },
          publish: @escaping @Sendable (VybeStatus, VybeTimings) -> Void) {
         self.database = database
         self.indexURL = indexURL

@@ -141,9 +141,101 @@ final class VybeDiscoveryTests: XCTestCase {
     }
 
     func testDescriptionsLeaveTitlesAndAlbumsOutAndSplitGenres() {
-        XCTAssertEqual("Artist: Don Toliver. Genres: alternative r&b, hip hop, trap. Tempo: 128 BPM", VybeText.describe(songs[2]))
+        XCTAssertEqual("Artist: Don Toliver. Genres: alternative r&b, hip hop, trap. Tempo: 128 BPM (fast tempo)", VybeText.describe(songs[2]))
         XCTAssertFalse(VybeText.describe(songs[0]).contains("Nightmare"))
         XCTAssertEqual("Artist: Unknown Band", VybeText.describe(songs[3]))
+    }
+
+    func testExcludedGenresNeverReturnOrBoostRap() throws {
+        guard case .described(_, let hits, _, _) = try discovery.search("chill R&B, no rap", songs: songs, limit: 10) else {
+            return XCTFail("not described")
+        }
+        XCTAssertEqual(hits.first?.songId, 5)
+        XCTAssertTrue(Set(hits.map(\.songId)).isDisjoint(with: [1, 2, 3]))
+        XCTAssertTrue(hits.contains { $0.songId == 4 }, "Unknown tags must not be invented")
+    }
+
+    func testExplicitTempoFiltersApplyBeforeArtistRouting() throws {
+        guard case .named(.artist, _, let ids, _) = try discovery.search("songs by Frank Ocean under 100 BPM", songs: songs, limit: 10) else {
+            return XCTFail("not named")
+        }
+        XCTAssertEqual(ids, [5])
+        guard case .named(.artist, _, let impossible, _) = try discovery.search("songs by Frank Ocean above 120 BPM", songs: songs, limit: 10) else {
+            return XCTFail("A filtered artist request must remain an artist request")
+        }
+        XCTAssertTrue(impossible.isEmpty, "Do not replace an artist's filtered-out songs with unrelated artists")
+        guard case .described(_, let fast, _, _) = try discovery.search("workout 120-150 BPM", songs: songs, limit: 10) else {
+            return XCTFail("not described")
+        }
+        XCTAssertEqual(Set(fast.map(\.songId)), [1, 3])
+    }
+
+    func testAliasesMatchGenresAndNegatedTempoDoesNotBoostThem() {
+        XCTAssertTrue(MusicGenres.matches("smooth rhythm and blues", genre: "alternative R&B"))
+        XCTAssertTrue(MusicGenres.matches("hiphop", genre: "Hip-Hop"))
+        XCTAssertFalse(MusicGenres.matches("rapping", genre: "rap"))
+        let boosts = VybeDiscovery.metadataBoosts("not fast", songs: songs)
+        XCTAssertFalse(boosts.values.flatMap { $0 }.contains { $0.0.hasPrefix("Tempo:") })
+    }
+
+    func testCloseMatchesDiversifyArtistsWithoutOverridingAnExplicitArtist() throws {
+        let library = [
+            SongText(songId: 1, title: "A", artist: "Artist Alpha", album: "One", genre: "ambient"),
+            SongText(songId: 2, title: "B", artist: "Artist Alpha", album: "One", genre: "ambient"),
+            SongText(songId: 3, title: "C", artist: "Artist Alpha", album: "One", genre: "ambient"),
+            SongText(songId: 4, title: "D", artist: "Artist Beta", album: "Two", genre: "ambient"),
+        ]
+        let d = VybeDiscovery(embedder: KeywordEmbedder(), vectors: MapVectors(map: [1: [1, 0, 0], 2: [1, 0, 0], 3: [1, 0, 0], 4: [1, 0, 0]]))
+        guard case .described(_, let varied, _, _) = try d.search("dark music", songs: library, limit: 3),
+              case .described(_, let named, _, _) = try d.search("dark Artist Alpha vibes", songs: library, limit: 3) else {
+            return XCTFail("not described")
+        }
+        XCTAssertEqual(varied.map(\.songId), [1, 4, 2])
+        XCTAssertEqual(named.map(\.songId), [1, 2, 3])
+    }
+}
+
+final class MusicQueryIntentTests: XCTestCase {
+    private let songs = [
+        SongText(songId: 1, title: "A", artist: "Drake", album: "One", genre: "Hip-Hop; Trap", year: 2016, bpm: 130),
+        SongText(songId: 2, title: "B", artist: "Warm Voice", album: "Two", genre: "R&B; Soul", year: 1997, bpm: 85),
+        SongText(songId: 3, title: "C", artist: "Quiet Hands", album: "Three", genre: "Ambient", year: 1994, bpm: 70),
+        SongText(songId: 4, title: "D", artist: "Unknown", album: "Four"),
+    ]
+
+    func testExclusionsRemoveTheClauseWithoutTreatingItAsPositiveText() {
+        let intent = MusicQueryIntent("chill R&B, no rap, without Drake", songs: songs)
+        XCTAssertEqual(intent.text, "chill R&B")
+        XCTAssertEqual(songs.filter(intent.allows).map(\.songId), [2, 3, 4])
+        XCTAssertTrue(MusicQueryIntent("without HIP-HOP", songs: songs).excluded.contains(1))
+        XCTAssertFalse(MusicQueryIntent("not rapping", songs: songs).excluded.contains(1))
+    }
+
+    func testTempoBoundsAreExplicitAndMissingTagsCannotPass() {
+        let cases: [(String, Set<Int64>)] = [
+            ("between 80 and 100 BPM", [2]), ("70–85 BPM", [2, 3]),
+            ("under 85 BPM", [3]), ("above 85 BPM", [1]),
+            ("around 90 BPM", [2]), ("130 BPM", [1]),
+        ]
+        for (query, expected) in cases {
+            XCTAssertEqual(Set(songs.filter(MusicQueryIntent(query, songs: songs).allows).map(\.songId)), expected, query)
+        }
+        XCTAssertEqual(songs.filter(MusicQueryIntent("calm music", songs: songs).allows).count, 4)
+    }
+
+    func testDecadesAndYearsUseRealYearTags() {
+        for query in ["music from the 90s", "music from the 1990s", "1990s soul"] {
+            XCTAssertEqual(songs.filter(MusicQueryIntent(query, songs: songs).allows).map(\.songId), [2, 3])
+        }
+        XCTAssertEqual(songs.filter(MusicQueryIntent("music released in 2016", songs: songs).allows).map(\.songId), [1])
+    }
+
+    func testPlainArtistAlbumAndTitleNamesHaveExactRoutes() {
+        XCTAssertEqual(VybeQueryRouter.route("Drake", songs: songs), .named(kind: .artist, name: "Drake", songIds: [1], wantsSimilar: false))
+        XCTAssertEqual(VybeQueryRouter.route("Two", songs: songs), .named(kind: .album, name: "Two", songIds: [2], wantsSimilar: false))
+        XCTAssertEqual(VybeQueryRouter.route("B", songs: songs), .named(kind: .title, name: "B", songIds: [2], wantsSimilar: false))
+        let beyonce = SongText(songId: 8, title: "Halo", artist: "Beyoncé", album: "")
+        XCTAssertEqual(VybeQueryRouter.route("Beyonce", songs: [beyonce]), .named(kind: .artist, name: "Beyonce", songIds: [8], wantsSimilar: false))
     }
 }
 

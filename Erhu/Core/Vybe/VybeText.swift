@@ -75,7 +75,7 @@ enum VybeText {
     /// A BPM tag outside this is junk, not a tempo.
     static let plausibleBpm = 20...400
     /// Bumped whenever [describe] changes, so the index re-embeds every song.
-    static let documentVersion = 1
+    static let documentVersion = 2
 
     private static let nothingKnown = "A song with no artist, genre or tempo information"
     private static let unknown: Set<String> = ["<unknown>", "unknown", "unknown artist"]
@@ -87,7 +87,11 @@ enum VybeText {
         let parts: [String?] = [
             !song.artist.isBlank && !unknown.contains(song.artist.lowercased()) ? "Artist: \(song.artist.trimmed)" : nil,
             genres.isEmpty ? nil : (genres.count == 1 ? "Genre: " : "Genres: ") + genres.joined(separator: ", "),
-            song.bpm.flatMap { plausibleBpm.contains($0) ? "Tempo: \($0) BPM" : nil },
+            song.bpm.flatMap { bpm in
+                guard plausibleBpm.contains(bpm) else { return nil }
+                let tempo = bpm < 95 ? "slow tempo" : (bpm >= 120 ? "fast tempo" : "moderate tempo")
+                return "Tempo: \(bpm) BPM (\(tempo))"
+            },
             SongDescriber.lyricsExcerpt(song.lyrics).map { "Lyrics: \($0)" },
         ]
         let text = parts.compactMap { $0 }.joined(separator: ". ")

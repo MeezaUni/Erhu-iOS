@@ -53,6 +53,9 @@ jobs:
           cp -R build/Build/Products/Release-iphoneos/Erhu.app dist/Payload/
           (cd dist && zip -qry Erhu.ipa Payload)
 
+      - name: Report IPA and VYBE model size
+        run: python3 Tools/report_app_size.py build/Build/Products/Release-iphoneos/Erhu.app dist/Erhu.ipa
+
       - uses: actions/upload-artifact@v4
         with:
           name: Erhu-ipa

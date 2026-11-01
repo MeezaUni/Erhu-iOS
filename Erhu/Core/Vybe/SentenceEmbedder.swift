@@ -1,10 +1,8 @@
 import Foundation
 import NaturalLanguage
 
-/// VYBE's embedder on iOS: Apple's on-device NaturalLanguage embeddings, which ship with the OS
-/// and run entirely on the device. Android runs EmbeddingGemma through MediaPipe, which has no
-/// matching iOS runtime; the rest of VYBE (descriptions, routing, boosts, index) is the same, so
-/// only the vectors (and hence the index file) differ. Query and document need no prompt prefixes.
+/// The previous Apple-embedding baseline, retained for native calibration/comparison tests.
+/// Production VYBE uses CompactSentenceEmbedder. Query and document need no prompt prefixes.
 ///
 /// Prefers the sentence embedding; where the OS doesn't have it, falls back to the mean of the
 /// word vectors of the text's words (built into every iOS version this app supports).

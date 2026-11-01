@@ -10,14 +10,14 @@ struct VybeView: View {
     @FocusState private var focused: Bool
 
     private static let suggestions = [
-        "Dark, atmospheric hip-hop", "High-energy music for the gym", "Mellow tracks with warm production",
-        "Late-night Frank Ocean vibes", "Southern rap",
+        "Dark, atmospheric hip-hop", "High-energy music for the gym", "Chill R&B, no rap",
+        "Mellow tracks under 100 BPM", "Music from the 90s", "Sad, soulful music",
     ]
 
     var body: some View {
         LibraryRootScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Find music in your library by mood, genre, tempo or artist. Runs on this phone.")
+                Text("Describe a mood, a sound, or what you're doing. Find the right music in your library, offline.")
                     .font(.subheadline)
                     .foregroundStyle(palette.onSurfaceVariant)
                 field
@@ -52,13 +52,15 @@ struct VybeView: View {
             TextField("Describe what you want to hear", text: $text)
                 .focused($focused)
                 .submitLabel(.search)
-                .onSubmit { vybe.submit(text) }
+                .onSubmit(submit)
             if !text.isEmpty {
                 Button {
                     text = ""
                     vybe.clear()
                 } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(palette.onSurfaceVariant) }
                 .accessibilityLabel("Clear")
+                Button(action: submit) { Image(systemName: "arrow.up.circle.fill").font(.title2) }
+                    .accessibilityLabel("Search your library")
             }
         }
         .padding(.horizontal, Spacing.md)
@@ -66,16 +68,19 @@ struct VybeView: View {
         .background(RoundedRectangle(cornerRadius: Radius.large, style: .continuous).fill(palette.surfaceVariant.opacity(0.6)))
     }
 
+    private func submit() {
+        focused = false
+        vybe.submit(text)
+    }
+
     @ViewBuilder private var status: some View {
-        let timings = vybe.timings
         switch vybe.status {
         case .loadingModel:
-            progress("Loading the model…", nil)
+            progress("Getting VYBE ready…", nil)
         case .indexing(let done, let total):
-            let each = timings.averageEmbedMs.map { String(format: " (~%.1f s per description)", Double($0) / 1000) } ?? ""
-            progress("Indexing \(done) of \(total) songs on this phone\(each)", Double(done) / Double(max(total, 1)))
+            progress("Learning your library · \(done) of \(total) songs", Double(done) / Double(max(total, 1)))
         case .ready(let songs):
-            Text("\(songs) songs indexed" + (timings.lastQueryMs.map { " · last search \($0) ms" } ?? ""))
+            Text("\(songs) songs · Offline search")
                 .font(.caption)
                 .foregroundStyle(palette.onSurfaceVariant)
         case .failed(let message):
@@ -97,12 +102,12 @@ struct VybeView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("Try").font(.headline)
             if let current = player.state.currentSong {
-                chip("Like \"\(current.title)\"", systemImage: "waveform") { vybe.similarToCurrent() }
+                chip("Like \"\(current.title)\"", systemImage: "waveform") { focused = false; vybe.similarToCurrent() }
             }
             ForEach(Self.suggestions, id: \.self) { suggestion in
                 chip(suggestion, systemImage: nil) {
                     text = suggestion
-                    vybe.submit(suggestion)
+                    submit()
                 }
             }
         }
@@ -141,7 +146,7 @@ struct VybeView: View {
             .padding(.vertical, Spacing.xs)
         }
         if results.songs.isEmpty {
-            Text("Nothing in your library matched.").foregroundStyle(palette.onSurfaceVariant)
+            Text("No matches in your library. Try a broader style or fewer filters.").foregroundStyle(palette.onSurfaceVariant)
         }
         ForEach(Array(results.songs.enumerated()), id: \.element.id) { index, result in
             Button { vybe.play(results.songs, index: index) } label: {
