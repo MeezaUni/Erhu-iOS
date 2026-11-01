@@ -14,19 +14,35 @@ later as the project grows. The sideloaded app is free to use.
 
 ## Screenshots
 
-<!--
-SCREENSHOT_SLOTS: These cells are intentionally empty; there are no missing image URLs.
-Upload your images to docs/screenshots/, then replace each screenshot comment with an <img>.
-Instructions, filenames, and an example are in docs/screenshots/README.md.
--->
-
 | Home & library | Now Playing | VYBE |
 | :---: | :---: | :---: |
-| <!-- screenshot:home --> | <!-- screenshot:now-playing --> | <!-- screenshot:vybe --> |
+| <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="240" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="240" loading="lazy"> | <img src="docs/screenshots/vybe.png" alt="VYBE offline discovery search and suggested prompts" width="240" loading="lazy"> |
 
 | Lyrics | Themes & settings | Transition Studio |
 | :---: | :---: | :---: |
-| <!-- screenshot:lyrics --> | <!-- screenshot:themes --> | <!-- screenshot:transitions --> |
+| <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="240" loading="lazy"> | <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="240" loading="lazy"> | <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="240" loading="lazy"> |
+
+<details>
+<summary>More screens: library, albums, artists, visualizer, equalizer, and Lock Screen</summary>
+
+| Library | Album | Artist |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/album.png" alt="Album page with artwork, track list, and Transition Studio" width="240" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="240" loading="lazy"> |
+
+| Visualizer | Equalizer curve | Equalizer band controls |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/visualizer.png" alt="Circular audio visualizer around album artwork" width="240" loading="lazy"> | <img src="docs/screenshots/equalizer.png" alt="Eight-band equalizer with its response curve" width="240" loading="lazy"> | <img src="docs/screenshots/equalizer-bands.png" alt="Equalizer controls for band frequency, gain, and Q" width="240" loading="lazy"> |
+
+| Lyrics in the player | Track menu | Lock Screen |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/player-lyrics.png" alt="Synced lyrics panel beneath the player controls" width="240" loading="lazy"> | <img src="docs/screenshots/track-menu.png" alt="Track menu with music information, bookmarks, and playlist actions" width="240" loading="lazy"> | <img src="docs/screenshots/lock-screen.png" alt="iPhone Lock Screen showing expanded cover artwork and playback controls" width="240" loading="lazy"> |
+
+Lock Screen animation is available in the animated-art build on iOS 26 or later; iOS controls
+when it is displayed. A screenshot shows a single frame of the artwork.
+
+</details>
+
+See [the screenshot guide](docs/screenshots/README.md) to replace or add images.
 
 ## Features
 
