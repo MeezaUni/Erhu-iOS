@@ -28,16 +28,16 @@ A native iPhone music player for your own files, with offline discovery and cust
 | :---: | :---: | :---: |
 | <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="240" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="240" loading="lazy"> | <img src="docs/screenshots/vybe1.png" alt="VYBE search matching Dramatic Girl and Carried Away with similar tracks from the library" width="240" loading="lazy"> |
 
-| Lyrics | Themes & settings | Transition Studio |
+| Lyrics | Album | Transition Studio |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="240" loading="lazy"> | <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="240" loading="lazy"> | <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="240" loading="lazy"> |
+| <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="240" loading="lazy"> | <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="240" loading="lazy"> | <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="240" loading="lazy"> |
 
 <details>
-<summary>More screens: library, albums, artists, visualizer, equalizer, and Lock Screen</summary>
+<summary>More screens: library, themes, artists, visualizer, equalizer, and Lock Screen</summary>
 
-| Library | Album | Artist |
+| Library | Themes & settings | Artist |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="240" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="240" loading="lazy"> |
+| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="240" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="240" loading="lazy"> |
 
 | Visualizer | Equalizer curve | Equalizer band controls |
 | :---: | :---: | :---: |
