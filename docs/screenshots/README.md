@@ -18,7 +18,7 @@ The uploaded images were renamed for readability. Their image contents are uncha
 | Themes and settings | `themes.png` | `IMG_6163.png` | Main gallery |
 | Transition Studio | `transitions.png` | `IMG_6165.png` | Main gallery |
 | Library | `library.png` | `IMG_6157.png` | More screens |
-| Album | `album.png` | `IMG_6169.png` | More screens |
+| Album | `album1.png` | `IMG_6178.png` | More screens |
 | Artist | `artist.png` | `IMG_6170.png` | More screens |
 | Visualizer | `visualizer.png` | `IMG_6173.png` | More screens |
 | Equalizer curve | `equalizer.png` | `IMG_6174.png` | More screens |

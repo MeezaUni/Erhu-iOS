@@ -37,7 +37,7 @@ A native iPhone music player for your own files, with offline discovery and cust
 
 | Library | Album | Artist |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/album.png" alt="Album page with artwork, track list, and Transition Studio" width="240" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="240" loading="lazy"> |
+| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="240" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="240" loading="lazy"> |
 
 | Visualizer | Equalizer curve | Equalizer band controls |
 | :---: | :---: | :---: |
