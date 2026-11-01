@@ -13,7 +13,7 @@ The uploaded images were renamed for readability. Their image contents are uncha
 | --- | --- | --- | --- |
 | Home | `home.png` | `IMG_6158.png` | Main gallery |
 | Now Playing | `now-playing.png` | `IMG_6159.png` | Main gallery |
-| VYBE | `vybe.png` | `IMG_6160.png` | Main gallery |
+| VYBE search results | `vybe.png` | `IMG_6176.png` | Main gallery |
 | Full-screen lyrics | `lyrics.png` | `IMG_6162.png` | Main gallery |
 | Themes and settings | `themes.png` | `IMG_6163.png` | Main gallery |
 | Transition Studio | `transitions.png` | `IMG_6165.png` | Main gallery |
@@ -27,9 +27,8 @@ The uploaded images were renamed for readability. Their image contents are uncha
 | Track menu | `track-menu.png` | `IMG_6171.png` | More screens |
 | Lock Screen | `lock-screen.png` | `IMG_6168.png` | More screens |
 
-The current VYBE image shows the starting screen. A screenshot with a submitted query and
-successful results would be a useful optional replacement; no other screenshot is needed to
-fill the existing gallery.
+The VYBE image shows a submitted search, both matched song references, and similar tracks
+from the library. All gallery slots are filled.
 
 ## Replace an image through GitHub
 
