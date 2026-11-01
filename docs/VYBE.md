@@ -62,6 +62,12 @@ The ONNX SHA-256 is
 The exporter verifies this hash, reconstructs BERT weights without loading a pickle or executing
 remote model code, checks ONNX/PyTorch agreement, exports fixed 128-token inputs with masked
 mean pooling and L2 normalization, compresses weights and measures decoded-weight agreement.
+The attention bias uses a finite -10000 constant: the original float32 minimum overflows in
+FP16 and corrupts real-token attention. Pooling/normalization bounds also stay FP16-safe.
+Export rejects non-finite constants, and native reference-vector tests remain strict.
+`Tools/validate_vybe_graph.py PACKAGE REFERENCES` also evaluates the converted FP16 operations
+against the original reference vectors locally, covering masking/pooling conversion separately
+from decoded-weight agreement. It uses Core ML Tools' pinned MIL value-inference implementation.
 
 Run `python Tools/export_vybe_model.py SOURCE_FOLDER OUTPUT_FOLDER/VybeSentence.mlpackage`.
 Copy the package into `Erhu/Resources/Vybe`, reference-vectors.json into the test fixtures as

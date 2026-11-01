@@ -23,11 +23,15 @@ class SentenceModel(torch.nn.Module):
         self.bert = bert
 
     def forward(self, input_ids, attention_mask):
-        hidden = self.bert(input_ids=input_ids, attention_mask=attention_mask,
-                           token_type_ids=torch.zeros_like(input_ids), return_dict=False)[0]
+        hidden = self.bert.embeddings(input_ids=input_ids, token_type_ids=torch.zeros_like(input_ids))
+        # The float32 minimum overflows to -inf in Core ML FP16, making 0 * -inf NaN
+        # for real tokens. This finite bias is equivalent for softmax and FP16-safe.
+        bias = (1 - attention_mask[:, None, None, :].to(hidden.dtype)) * -10000.0
+        hidden = self.bert.encoder(hidden, attention_mask=bias, return_dict=False)[0]
         mask = attention_mask.unsqueeze(-1).to(hidden.dtype)
-        pooled = (hidden * mask).sum(1) / mask.sum(1).clamp(min=1)
-        return torch.nn.functional.normalize(pooled, p=2, dim=1)
+        pooled = (hidden * mask).sum(1) / mask.sum(1).clamp(min=1, max=128)
+        norm = pooled.square().sum(dim=1, keepdim=True).sqrt().clamp(min=1e-6, max=65504)
+        return pooled / norm
 
 
 def load_bert(folder):
@@ -52,6 +56,7 @@ def validate_compression(compressed, model, tokens, expected):
     decoded = ct.optimize.coreml.decompress_weights(compressed)
     weights = {op.name: op.outputs[0].val for op in decoded._mil_program.functions["main"].operations
                if op.op_type == "const"}
+    matched = 0
     with torch.no_grad():
         for name, parameter in model.named_parameters():
             prefix = name.replace(".", "_")
@@ -59,11 +64,15 @@ def validate_compression(compressed, model, tokens, expected):
                         if prefix + suffix in weights), None)
             if key and tuple(weights[key].shape) == tuple(parameter.shape):
                 parameter.copy_(torch.from_numpy(weights[key].astype(np.float32)))
+                matched += 1
+        assert matched == len(list(model.named_parameters())) - 2, "Every unfused parameter must be checked"
         # Fixed position/type lookups were folded into constants during conversion.
-        model.bert.embeddings.position_embeddings.weight[:128].copy_(torch.from_numpy(
-            weights["position_embeddings_1_to_fp16_palettized"][0].astype(np.float32)))
-        model.bert.embeddings.token_type_embeddings.weight[0].copy_(torch.from_numpy(
-            weights["token_type_embeddings_1_to_fp16_palettized"][0, 0].astype(np.float32)))
+        position = next(v for k, v in weights.items() if k.startswith("position_embeddings")
+                        and isinstance(v, np.ndarray) and v.shape == (1, 128, 384))
+        token_type = next(v for k, v in weights.items() if k.startswith("token_type_embeddings")
+                          and isinstance(v, np.ndarray) and v.shape == (1, 128, 384))
+        model.bert.embeddings.position_embeddings.weight[:128].copy_(torch.from_numpy(position[0].astype(np.float32)))
+        model.bert.embeddings.token_type_embeddings.weight[0].copy_(torch.from_numpy(token_type[0, 0].astype(np.float32)))
         actual = model(tokens.input_ids, tokens.attention_mask).numpy()
     return np.sum(expected * actual, axis=1).tolist()
 
@@ -98,6 +107,11 @@ def main():
                            inputs=[ct.TensorType(name="input_ids", shape=(1, 128), dtype=np.int32),
                                    ct.TensorType(name="attention_mask", shape=(1, 128), dtype=np.int32)],
                            outputs=[ct.TensorType(name="embedding")])
+    for op in converted._mil_program.functions["main"].operations:
+        if op.op_type == "const":
+            value = op.outputs[0].val
+            if isinstance(value, (np.ndarray, np.generic)) and np.issubdtype(value.dtype, np.floating):
+                assert np.isfinite(value).all(), f"Non-finite converted constant: {op.name}"
     config = ct.optimize.coreml.OptimizationConfig(global_config=ct.optimize.coreml.OpPalettizerConfig(
         mode="kmeans", nbits=args.bits, granularity="per_tensor", weight_threshold=2048))
     compressed = ct.optimize.coreml.palettize_weights(converted, config=config)
@@ -107,7 +121,7 @@ def main():
     compressed.author = "Sentence Transformers; Core ML adaptation for Erhu"
     compressed.license = "Apache License 2.0"
     compressed.short_description = f"Offline VYBE sentence embeddings; 384 dimensions, {args.bits}-bit palettes, 128 tokens."
-    compressed.version = f"minilm-l6-v2-p{args.bits}-v1"
+    compressed.version = f"minilm-l6-v2-p{args.bits}-v2"
     compressed.input_description["input_ids"] = "BERT uncased WordPiece IDs, padded to 128 tokens."
     compressed.input_description["attention_mask"] = "1 for real tokens including CLS/SEP, 0 for padding."
     compressed.output_description["embedding"] = "Mean-pooled, L2-normalized 384-dimensional sentence vector."

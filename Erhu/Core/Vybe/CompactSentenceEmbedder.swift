@@ -4,7 +4,7 @@ import Foundation
 /// A 6-bit, 22M-parameter sentence transformer running on Apple's CPU/GPU/Neural Engine.
 /// Query and document vectors share one space; all inference and resources stay on the phone.
 final class CompactSentenceEmbedder: TextEmbedder {
-    static let modelIdentity = "minilm-l6-v2-coreml-p6-v1"
+    static let modelIdentity = "minilm-l6-v2-coreml-p6-v2"
     let modelId = "\(CompactSentenceEmbedder.modelIdentity)|doc\(VybeText.documentVersion)"
     let dimension = 384
     let weakBest: Float = 0.30
