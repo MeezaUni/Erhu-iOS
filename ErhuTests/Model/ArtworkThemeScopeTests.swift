@@ -5,13 +5,13 @@ import XCTest
 @testable import Erhu
 
 final class ArtworkThemeScopeTests: XCTestCase {
-    private struct Snapshot: Equatable {
+    struct Snapshot: Equatable {
         let page: AppPalette
         let playback: AppPalette
     }
 
     @MainActor @Observable
-    private final class State {
+    final class State {
         var artistVisible = false
         var playback: AppPalette
         var backgroundSnapshots: [Snapshot] = []
