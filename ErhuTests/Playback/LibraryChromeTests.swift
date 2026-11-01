@@ -5,24 +5,6 @@ import UIKit
 
 final class LibraryChromeTests: XCTestCase {
     @MainActor
-    func testArtistPageUsesItsPhotoWhileNowPlayingUsesTheSongCover() {
-        let router = AppRouter()
-        let photo = URL(fileURLWithPath: "/artist-photo.jpg")
-        let song = URL(fileURLWithPath: "/playing.mp3")
-        router.section = .library
-        router.artworkFocus = (.library, .image(photo))
-        XCTAssertEqual(router.paletteSource(playingSongURL: song), .image(photo))
-        router.showsNowPlaying = true
-        XCTAssertEqual(router.paletteSource(playingSongURL: song), .track(song))
-        router.showsNowPlaying = false
-        XCTAssertEqual(router.paletteSource(playingSongURL: song), .image(photo))
-        router.artworkFocus = (.library, .image(nil))
-        XCTAssertEqual(router.paletteSource(playingSongURL: song), .image(nil), "A missing artist photo must not borrow another artist's colours")
-        router.select(.albums)
-        XCTAssertEqual(router.paletteSource(playingSongURL: song), .track(song))
-    }
-
-    @MainActor
     func testTabsOpenTheirRootsInsteadOfRestoringTools() {
         let router = AppRouter()
         router.open(.settings)
@@ -46,9 +28,6 @@ final class LibraryChromeTests: XCTestCase {
             XCTAssertEqual(router.scrollToTopRequests[section], before + 2)
             XCTAssertTrue(router.paths[section]!.isEmpty)
         }
-        router.artworkFocus = (.home, .track(URL(fileURLWithPath: "/old-album.mp3")))
-        router.select(.home)
-        XCTAssertNil(router.focusedArtwork)
     }
 
     @MainActor

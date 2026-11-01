@@ -3,6 +3,18 @@ import Compression
 import XCTest
 
 final class ThemeImportTests: XCTestCase {
+    @MainActor
+    func testLegacyMovingArtworkSettingIsIgnoredWithoutLosingThemePreferences() throws {
+        let data = Data(#"{"theme":"artwork","movingArtwork":true,"glassEnabled":false,"startSection":"library"}"#.utf8)
+        let stored = try JSONDecoder().decode(AppSettings.Stored.self, from: data)
+        XCTAssertEqual(stored.theme, .artwork)
+        XCTAssertEqual(stored.startSection, "library")
+        XCTAssertFalse(stored.glassEnabled)
+        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(stored)) as? [String: Any])
+        XCTAssertNil(encoded["movingArtwork"])
+        XCTAssertNil(ThemeChoice.artwork.colorScheme, "Artwork colours should follow the device's appearance")
+    }
+
     private let manifest = """
     {"id":"neon night","name":"Neon Night","author":"Lochan","schemaVersion":1,"isDark":true,
      "colors":{"primary":4294902015,"onPrimary":4278190080,"primaryContainer":0,"onPrimaryContainer":0,"secondary":0,"onSecondary":0,

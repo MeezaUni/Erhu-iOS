@@ -125,8 +125,7 @@ private struct SectionCapsule: View {
                         ForEach(Array(sections.enumerated()), id: \.element) { index, section in
                             Button { select(section) } label: {
                                 VStack(spacing: 2) {
-                                    Image(systemName: router.section == section ? section.selectedIcon : section.icon)
-                                        .font(.system(size: 19))
+                                    LibrarySectionIcon(section: section, selected: router.section == section)
                                     Text(section.label).font(.caption2.weight(.medium)).lineLimit(1)
                                 }
                                 .foregroundStyle(abs(position - CGFloat(index)) < 0.5 ? palette.primary : palette.onSurface)
@@ -159,8 +158,7 @@ private struct SectionCapsule: View {
             .allowsHitTesting(compactness < 0.5)
             .accessibilityHidden(compactness >= 0.5)
             Button { select(router.section) } label: {
-                Image(systemName: router.section.selectedIcon)
-                    .font(.system(size: 21, weight: .semibold))
+                LibrarySectionIcon(section: router.section, selected: true, size: 21, weight: .semibold)
                     .foregroundStyle(palette.primary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(Circle())

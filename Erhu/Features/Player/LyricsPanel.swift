@@ -11,11 +11,12 @@ struct LyricsPanel: View {
     /// source and the lyrics options, drawn on whatever is behind.
     var onExpand: (() -> Void)?
     @Environment(\.palette) private var palette
+    @Environment(\.colorScheme) private var scheme
     @State private var artworkPalette = ArtworkPaletteState()
     @State private var artworkRevision = 0
 
     var body: some View {
-        let colors = LyricsColors(artworkPalette.palette(for: song.url))
+        let colors = LyricsColors(artworkPalette.palette(for: song.url), scheme: scheme)
         let shape = RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
         LyricsPanelContent(song: song, onExpand: onExpand)
             .environment(\.palette, palette.lyrics(colors))

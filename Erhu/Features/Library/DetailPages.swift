@@ -107,8 +107,8 @@ struct AlbumDetailView: View {
         }
         .sheet(item: $artworkTarget) { ArtworkPickerSheet(target: $0) }
         .task(id: library.songs) { songs = (try? library.database.songsOfAlbum(albumId)) ?? [] }
-        .artworkFocus(library.albumCoverSong[albumId]?.url)
         .background { CollectionPageBackground() }
+        .collectionArtworkTheme(.track(library.albumCoverSong[albumId]?.url))
     }
 }
 
@@ -174,8 +174,8 @@ struct ArtistDetailView: View {
         }
         .sheet(item: $artworkTarget) { ArtworkPickerSheet(target: $0) }
         .task(id: library.songs) { load() }
-        .artworkPhotoFocus(library.artist(artistId)?.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) })
         .background { CollectionPageBackground() }
+        .collectionArtworkTheme(.image(library.artist(artistId)?.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) }))
     }
 
     private func load() {
@@ -346,31 +346,5 @@ struct SmartPlaylistDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { mixes.start() }
         .id(library.songs.count)
-    }
-}
-
-/// The top of a collection page washed in its cover's colour, fading into the background (as in
-/// Now Playing), so each album feels like its own.
-struct CoverGlow: View {
-    let url: URL?
-    @State private var colors: LyricsColors?
-    @State private var artworkRevision = 0
-
-    var body: some View {
-        LinearGradient(colors: colors?.cardGradient ?? [.clear], startPoint: .topLeading, endPoint: .bottomTrailing)
-            .mask(LinearGradient(stops: [.init(color: .white, location: 0), .init(color: .white, location: 0.55),
-                                        .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
-            .frame(height: 700)
-            .ignoresSafeArea(edges: .top)
-            .allowsHitTesting(false)
-            .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
-                if note.object as? String == url?.path { artworkRevision += 1 }
-            }
-            .task(id: "\(url?.path ?? "")|\(artworkRevision)") {
-                guard let url else { colors = nil; return }
-                let sampled = LyricsColors(await LyricsPaletteCache.shared.palette(for: url))
-                guard !Task.isCancelled else { return }
-                withAnimation(.easeInOut(duration: 0.5)) { colors = sampled }
-            }
     }
 }

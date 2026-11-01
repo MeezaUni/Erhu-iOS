@@ -123,6 +123,22 @@ final class LyricsPaletteTests: XCTestCase {
         }
     }
 
+    func testLightArtworkShadesStayLightAndReadableWithoutLosingTheDarkPalette() {
+        for hue in stride(from: 0, to: 360, by: 15) {
+            for lightness: Float in [0.15, 0.5, 0.9] {
+                let dark = LyricsPalette.fromPixels(artwork(hslToArgb(Float(hue), 0.8, lightness)))
+                let light = dark.forScheme(.light)
+                XCTAssertGreaterThan(relativeLuminance(light.surface), 0.65)
+                XCTAssertLessThan(relativeLuminance(light.content), 0.1)
+                XCTAssertGreaterThan(relativeLuminance(light.buttonFill), 0.5)
+                XCTAssertGreaterThanOrEqual(contrast(light.onButtonFill, light.buttonFill), 4.5)
+                assertReadable(light)
+                XCTAssertEqual(light.forScheme(.dark), dark, "Changing appearance must preserve the original sampled colours")
+            }
+        }
+        assertReadable(LyricsPalette.fallback.forScheme(.light))
+    }
+
     func testMissingOrTransparentArtworkUsesTheFallback() {
         XCTAssertEqual(LyricsPalette.fromPixels([UInt32](repeating: 0, count: 16)), LyricsPalette.fallback)
         assertReadable(LyricsPalette.fallback)

@@ -48,7 +48,7 @@ struct VybeView: View {
 
     private var field: some View {
         HStack(spacing: Spacing.sm) {
-            Image(systemName: "sparkles").foregroundStyle(palette.onSurfaceVariant)
+            VybeCassetteIcon().foregroundStyle(palette.onSurfaceVariant)
             TextField("Describe what you want to hear", text: $text)
                 .focused($focused)
                 .submitLabel(.search)

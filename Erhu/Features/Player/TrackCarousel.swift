@@ -182,6 +182,7 @@ private struct CarouselCard: View, Equatable {
     @Environment(LibraryActions.self) private var actions
     @Environment(\.playerArtworkInFlight) private var artworkInFlight
     @Environment(\.palette) private var palette
+    @Environment(\.colorScheme) private var scheme
     @State private var artworkPalette = ArtworkPaletteState()
     @State private var artworkRevision = 0
 
@@ -191,7 +192,7 @@ private struct CarouselCard: View, Equatable {
     }
 
     var body: some View {
-        let colors = LyricsColors(artworkPalette.palette(for: song.url))
+        let colors = LyricsColors(artworkPalette.palette(for: song.url), scheme: scheme)
         let shape = RoundedRectangle(cornerRadius: Radius.large + CardMetrics.padding, style: .continuous)
         VStack(spacing: 0) {
             Color.clear

@@ -38,7 +38,6 @@ struct SettingsView: View {
 
 private struct SettingsPage<Content: View>: View {
     @ViewBuilder let content: Content
-    @Environment(\.palette) private var palette
 
     var body: some View {
         ScrollView {
@@ -46,9 +45,23 @@ private struct SettingsPage<Content: View>: View {
                 .padding(Spacing.lg)
                 .padding(.bottom, Spacing.lg)
         }
-        .background(palette.background)
-        .foregroundStyle(palette.onSurface)
+        .modifier(SettingsAppearance())
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct SettingsAppearance: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        let palette = AppPalette.settings(scheme)
+        content
+            .environment(\.palette, palette)
+            .foregroundStyle(palette.onSurface)
+            .tint(palette.primary)
+            .background(palette.background.ignoresSafeArea())
+            .toolbarBackground(palette.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
@@ -128,7 +141,7 @@ private extension ThemeChoice {
         case .system: "Light or dark, following your iPhone"
         case .light: "A bright, clean appearance"
         case .dark: "A darker look for your library"
-        case .artwork: "Colours from the current album artwork"
+        case .artwork: "Artwork colours, following light or dark mode"
         }
     }
 }
@@ -152,6 +165,7 @@ private struct SettingsGroup<Content: View>: View {
                 .accessibilityAddTraits(.isHeader)
             VStack(spacing: 0) { content }
                 .background(palette.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
     }
 }
@@ -187,7 +201,7 @@ private struct SettingsLink<Destination: View>: View {
 
     var body: some View {
         NavigationLink {
-            destination.modifier(SettingsDetailClearance())
+            destination.modifier(SettingsDetailClearance()).modifier(SettingsAppearance())
         } label: {
             HStack(spacing: Spacing.lg) {
                 SettingsIcon(symbol: icon)
@@ -227,7 +241,6 @@ private struct AppearanceSettingsView: View {
     @State private var themeMessage: String?
 
     var body: some View {
-        @Bindable var settings = settings
         SettingsPage {
             SettingsGroup("App theme") {
                 ForEach(ThemeChoice.allCases) { choice in
@@ -248,27 +261,22 @@ private struct AppearanceSettingsView: View {
                 Button { importingTheme = true } label: {
                     Label("Import a theme…", systemImage: "square.and.arrow.down")
                         .frame(maxWidth: .infinity, alignment: .leading).padding(Spacing.lg)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 if let theme = settings.customTheme {
                     Button(role: .destructive) { settings.deleteTheme(theme.id) } label: {
                         Label("Delete \(theme.name)", systemImage: "trash")
+                            .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading).padding(Spacing.lg)
+                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 }
                 if let themeMessage { Text(themeMessage).font(.footnote).foregroundStyle(.secondary).padding(Spacing.lg) }
             }
             Text("Import colours from an Android theme ZIP or its manifest.json.")
                 .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
-            if Tool(rawValue: "animatedArtwork") != nil {
-                SettingsGroup("Player artwork") {
-                    Toggle(isOn: $settings.movingArtwork) {
-                        HStack(spacing: Spacing.lg) {
-                            SettingsIcon(symbol: "photo")
-                            Text("Moving artwork in Now Playing")
-                        }
-                    }.padding(Spacing.lg)
-                }
-            }
         }
         .fileImporter(isPresented: $importingTheme, allowedContentTypes: [.zip, .json]) { result in
             guard case .success(let url) = result else { return }
@@ -288,6 +296,7 @@ private struct AppearanceSettingsView: View {
 
 private struct VisualizerSettingsView: View {
     @Environment(AppSettings.self) private var settings
+    @Environment(\.playbackPalette) private var playbackPalette
     @State private var showingVisualizer = false
 
     var body: some View {
@@ -324,10 +333,14 @@ private struct VisualizerSettingsView: View {
                 Button { showingVisualizer = true } label: {
                     Label("Open visualizer", systemImage: "waveform")
                         .frame(maxWidth: .infinity, alignment: .leading).padding(Spacing.lg)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
         }
-        .sheet(isPresented: $showingVisualizer) { VisualizerView() }
+        .sheet(isPresented: $showingVisualizer) {
+            VisualizerView().environment(\.palette, playbackPalette).tint(playbackPalette.primary)
+        }
         .navigationTitle("Visualizer")
     }
 

@@ -13,7 +13,7 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 | Room database (songs, albums, artists, credits, playlists, play stats, bookmarks, waveforms) | ✅ | SQLite (system library), same tables and ids |
 | MediaStore scan, tag reading (JAudioTagger) | ✅ | Scans the app's Documents folder; native ID3v2/v1, MP4, FLAC, WAV, AIFF reader |
 | Artist identity, credits, album grouping (library model layers A–D) | ✅ | Same ids and ordering; 94 shared test cases |
-| Favorites, playlists, recently played, listening months, Sound Capsule stats | ✅ | Album and artist detail pages use full-width faded image headers; the artwork theme follows the displayed album cover or artist photo |
+| Favorites, playlists, recently played, listening months, Sound Capsule stats | ✅ | Album and artist detail pages use full-width faded image headers and page-local artwork colours; the backing screens and playback chrome keep the current song's theme |
 | Search (accent- and case-insensitive) with recent items | ✅ | |
 | Import music | ✅ | Files app (UIFileSharing), document picker, Wi-Fi Transfer |
 | Library Builder (move files into Artist/Album folders through SAF) | ⏳ | Held back on purpose: on iOS a song's identity is its file path, so moving files would detach favourites, playlists, play history, bookmarks and transitions. Needs a path-to-id migration first. The Files app can organise the folder meanwhile |
@@ -50,7 +50,7 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 |---|---|---|
 | Embedded lyrics, LRC / enhanced LRC (word timing) | ✅ | |
 | Synced-first LRCLIB lookup, cache, and manual alternatives | ✅ | Auto-selects real synced matches; provider failures switch immediately with a reason and accurate fallback timing. Search online lists alternatives. |
-| Lyrics colour palette from artwork | ✅ | Dark, muted artwork-derived hues with deeper control fills, tonal gradients and contrast checks; no synthetic hue rotations. The player backdrop and app theme share these colours |
+| Lyrics colour palette from artwork | ✅ | Muted artwork hues use deep shades in dark appearance and pale shades in light appearance, with tonal gradients and contrast checks. Player cards, lyrics and the app theme follow the effective appearance; Settings use neutral black/white backgrounds |
 
 ## Tools
 

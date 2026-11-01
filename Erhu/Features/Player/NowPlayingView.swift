@@ -376,12 +376,15 @@ private struct ProgressSection: View {
     let song: Song
     @Environment(PlayerController.self) private var player
     @Environment(\.palette) private var palette
+    @Environment(\.colorScheme) private var scheme
     @State private var previewMs: Int64?
     @State private var bookmarks: [Int64] = []
-    @State private var accent: Color?
+    @State private var artworkPalette = ArtworkPaletteState()
+    @State private var artworkRevision = 0
 
     var body: some View {
         let state = player.state
+        let colors = LyricsColors(artworkPalette.palette(for: song.url), scheme: scheme)
         let duration = max(state.durationMs > 0 ? state.durationMs : song.durationMs, 1)
         VStack(spacing: 2) {
             HStack {
@@ -396,15 +399,18 @@ private struct ProgressSection: View {
             .font(.caption.monospacedDigit())
             .foregroundStyle(palette.onSurfaceVariant)
             LineSeekBar(durationMs: duration, isPlaying: state.isPlaying, bookmarks: bookmarks,
-                        loop: state.abLoop?.songId == song.id ? state.abLoop : nil, accent: accent ?? palette.primary,
+                        loop: state.abLoop?.songId == song.id ? state.abLoop : nil, accent: colors.accent,
                         previewMs: $previewMs) { player.seek(to: $0) }
         }
-        .task(id: song.id) {
+        .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
+            if note.object as? String == song.url.path { artworkRevision += 1 }
+        }
+        .task(id: "\(song.url.path)|\(artworkRevision)") {
             bookmarks = ((try? AppServices.shared.database.bookmarks(songId: song.id)) ?? []).map(\.positionMs)
-            // The artwork's accent (chosen to read on a dark surface) on the player's dark backdrop.
+            let revision = ArtworkLoader.shared.revision(for: song.url.path)
             let sampled = await LyricsPaletteCache.shared.palette(for: song.url)
-            let colors = LyricsColors(sampled)
-            withAnimation(.easeInOut(duration: 0.4)) { accent = relativeLuminance(sampled.surface) < 0.4 ? colors.accent : nil }
+            guard !Task.isCancelled else { return }
+            artworkPalette.set(sampled, for: song.url, revision: revision)
         }
     }
 }
@@ -416,11 +422,12 @@ private struct ExpandedLyrics: View {
     let next: () -> Void
     @Environment(PlayerController.self) private var player
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
     @State private var artworkPalette = ArtworkPaletteState()
 
     var body: some View {
         let state = player.state
-        let colors = LyricsColors(artworkPalette.palette(for: state.currentSong?.url))
+        let colors = LyricsColors(artworkPalette.palette(for: state.currentSong?.url), scheme: scheme)
         VStack(spacing: 0) {
             HStack(spacing: Spacing.xs) {
                 Button { dismiss() } label: {
