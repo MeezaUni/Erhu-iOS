@@ -148,7 +148,10 @@ struct VybeNameIndex {
         }
         // One edit (including an adjacent transposition) for 4+ letters, two for 8+.
         // Every query word must match the same name form, avoiding unrelated word fragments.
-        guard words.allSatisfy({ $0.count >= 3 }), words.contains(where: { $0.count >= 4 }) else { return [] }
+        // Short numeric tokens still match exactly (allowedEdits is zero for numbers).
+        // They must not disable correction of a neighboring word, e.g. "boudn 2".
+        guard words.allSatisfy({ $0.count >= 3 || $0.allSatisfy(\.isNumber) }),
+              words.contains(where: { $0.count >= 4 }) else { return [] }
         var fuzzy: Set<Int>?
         for word in words {
             var ids = postings[word] ?? []
