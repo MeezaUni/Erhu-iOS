@@ -24,28 +24,24 @@ A native iPhone music player for your own files, with offline discovery and cust
 
 ## Screenshots
 
-| Home & library | Now Playing | VYBE (Offline) |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="240" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="240" loading="lazy"> | <img src="docs/screenshots/vybe1.png" alt="VYBE search matching Dramatic Girl and Carried Away with similar tracks from the library" width="240" loading="lazy"> |
+| Home & library | Now Playing | Lock Screen | VYBE (Offline) |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/home.png" alt="Erhu home with smart playlists and featured albums" width="180" loading="lazy"> | <img src="docs/screenshots/now-playing.png" alt="Now Playing with artwork, playback controls, and lyrics" width="180" loading="lazy"> | <img src="docs/screenshots/lock-screen.png" alt="iPhone Lock Screen showing expanded cover artwork and playback controls" width="180" loading="lazy"> | <img src="docs/screenshots/vybe1.png" alt="VYBE search matching Dramatic Girl and Carried Away with similar tracks from the library" width="180" loading="lazy"> |
 
-| Lyrics | Album | Transition Studio |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="240" loading="lazy"> | <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="240" loading="lazy"> | <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="240" loading="lazy"> |
+| Lyrics | Album | Artist | Transition Studio |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/lyrics.png" alt="Full-screen synced lyrics with the current line highlighted" width="180" loading="lazy"> | <img src="docs/screenshots/album1.png" alt="Album page with artwork, track list, and Transition Studio" width="180" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="180" loading="lazy"> | <img src="docs/screenshots/transitions.png" alt="Transition Studio with source waveforms and editable transition curves" width="180" loading="lazy"> |
 
 <details>
-<summary>More screens: library, themes, artists, visualizer, equalizer, and Lock Screen</summary>
+<summary>More screens: library, themes, visualizer, equalizer, lyrics, and track menu</summary>
 
-| Library | Themes & settings | Artist |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="240" loading="lazy"> | <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="240" loading="lazy"> | <img src="docs/screenshots/artist.png" alt="Artist page with albums and tracks" width="240" loading="lazy"> |
+| Library | Themes & settings | Visualizer | Equalizer curve |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/library.png" alt="Library with playlists, favorites, and artists" width="180" loading="lazy"> | <img src="docs/screenshots/themes.png" alt="Themes and Appearance with artwork colours selected" width="180" loading="lazy"> | <img src="docs/screenshots/visualizer.png" alt="Circular audio visualizer around album artwork" width="180" loading="lazy"> | <img src="docs/screenshots/equalizer.png" alt="Eight-band equalizer with its response curve" width="180" loading="lazy"> |
 
-| Visualizer | Equalizer curve | Equalizer band controls |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/visualizer.png" alt="Circular audio visualizer around album artwork" width="240" loading="lazy"> | <img src="docs/screenshots/equalizer.png" alt="Eight-band equalizer with its response curve" width="240" loading="lazy"> | <img src="docs/screenshots/equalizer-bands.png" alt="Equalizer controls for band frequency, gain, and Q" width="240" loading="lazy"> |
-
-| Lyrics in the player | Track menu | Lock Screen |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/player-lyrics.png" alt="Synced lyrics panel beneath the player controls" width="240" loading="lazy"> | <img src="docs/screenshots/track-menu.png" alt="Track menu with music information, bookmarks, and playlist actions" width="240" loading="lazy"> | <img src="docs/screenshots/lock-screen.png" alt="iPhone Lock Screen showing expanded cover artwork and playback controls" width="240" loading="lazy"> |
+| Equalizer band controls | Lyrics in the player | Track menu |  |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/equalizer-bands.png" alt="Equalizer controls for band frequency, gain, and Q" width="180" loading="lazy"> | <img src="docs/screenshots/player-lyrics.png" alt="Synced lyrics panel beneath the player controls" width="180" loading="lazy"> | <img src="docs/screenshots/track-menu.png" alt="Track menu with music information, bookmarks, and playlist actions" width="180" loading="lazy"> |  |
 
 </details>
 
