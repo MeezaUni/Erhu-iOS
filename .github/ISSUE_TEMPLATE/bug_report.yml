@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible problem with Erhu for iOS.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "For vulnerabilities, read [SECURITY.md](https://github.com/MeezaUni/Erhu-iOS/security/policy) instead. Remove private files, paths, pairing codes, and API keys from public reports."
+  - type: input
+    id: version
+    attributes:
+      label: Release or commit
+      placeholder: v1.0-beta or the build's commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: variant
+    attributes:
+      label: Build variant
+      options:
+        - Static artwork
+        - Animated artwork
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: iPhone model and iOS version
+      placeholder: iPhone model, iOS version
+    validations:
+      required: true
+  - type: input
+    id: installer
+    attributes:
+      label: Sideloading installer
+      placeholder: SideStore, AltStore Classic, or another installer
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: Describe the shortest repeatable steps.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: File format, if relevant
+      placeholder: Container/codec and whether it affects one file or several
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, recording, or diagnostic details
+      description: Attach only information you are comfortable publishing.

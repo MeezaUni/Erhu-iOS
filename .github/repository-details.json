@@ -1,0 +1,13 @@
+{
+  "description": "Native iOS music player with offline VYBE discovery, animated artwork, gapless playback, custom transitions, synced lyrics, and an 8-band EQ. Built with SwiftUI.",
+  "topics": [
+    "ios", "iphone", "music-player", "offline-music", "local-music",
+    "swift", "swiftui", "avfoundation", "coreml", "audio", "equalizer",
+    "lyrics", "animated-artwork", "privacy", "sideloading"
+  ],
+  "sidebar": {
+    "releases": true,
+    "deployments": false,
+    "packages": false
+  }
+}
