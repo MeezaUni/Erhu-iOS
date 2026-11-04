@@ -405,7 +405,11 @@ private struct AboutSettingsView: View {
         SettingsPage {
             SettingsGroup("Erhu") {
                 HStack(spacing: Spacing.lg) {
-                    SettingsIcon(symbol: "music.note")
+                    Image("ErhuLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 56, height: 56)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text("Erhu").font(.title3.weight(.semibold))
                         Text("Your music, on your iPhone.").font(.subheadline).foregroundStyle(.secondary)

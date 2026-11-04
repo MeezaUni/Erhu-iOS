@@ -3,7 +3,8 @@
 The main [README](../../README.md#screenshots) displays eight screenshots in two rows of four
 under **Screenshots**, with six more in two rows of three inside **More screens**. Every
 screenshot uses the same relative width, so it scales consistently on desktop and mobile.
-Captions sit beneath each image row; table-column widths do not affect the images. All files
+The two main rows are grouped by listening and library features. Each main image links to
+its original file. Captions sit beneath each row; table-column widths do not affect the images. All files
 use relative paths. These documentation files are outside the app target and do not add to
 the IPA size.
 
@@ -44,7 +45,7 @@ If you use a different filename or file extension, also edit the image's `src` i
 `README.md` under **Screenshots**. Paths and filenames are case-sensitive. For example:
 
 ```html
-<img src="docs/screenshots/vybe1.png" alt="VYBE results for a search using two reference songs" width="22%" loading="lazy">
+<a href="docs/screenshots/vybe1.png"><img src="docs/screenshots/vybe1.png" alt="VYBE results for a search using two reference songs" width="22%" loading="lazy"></a>
 ```
 
 Use **Preview** before committing a README edit. The path above is relative to the main README,
@@ -61,6 +62,6 @@ uploading if you want smaller downloads.
 
 ## Optional support link
 
-The main README has an `OPTIONAL_DONATION_LINK` comment under **Support**. Once you have a
+The main README has an `OPTIONAL_DONATION_LINK` comment under **Feedback**. Once you have a
 Buy Me a Coffee or Ko-fi page, replace that whole comment with your real Markdown link.
 No donation account or payment link has been created by these documentation changes.
