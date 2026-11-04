@@ -1,10 +1,16 @@
 import Foundation
 
 /// One artwork found online, with where it came from.
-struct ArtworkCandidate: Identifiable, Hashable, Sendable {
+struct ArtworkCandidate: Identifiable, Codable, Hashable, Sendable {
     let url: String
     let source: String
     var credit: ArtworkCredit? = nil
+    var match: AlbumArtworkMatch? = nil
+    var image: ArtworkImageFacts? = nil
+    var recommended: Bool {
+        guard let match, let image else { return false }
+        return match.review.isEmpty && match.score >= 0.94 && min(image.width, image.height) >= 500
+    }
     var id: String { url }
 }
 
@@ -56,81 +62,142 @@ struct DeezerArtist: Decodable, Equatable, Sendable {
 struct ArtworkSearch: Sendable {
     let client: HTTPClient
     private let commons: CommonsArtworkSearch
-    init(client: HTTPClient = URLSessionHTTPClient()) {
+    private let cache: ArtworkCandidateCache
+    init(client: (any HTTPClient)? = nil, cache: ArtworkCandidateCache = .shared) {
+        let client = client ?? ArtworkRequestClient.shared
         self.client = client
         self.commons = CommonsArtworkSearch(client: client)
+        self.cache = cache
+    }
+
+    /// Preview and Apply use the same verified bytes, even if the source URL changes later.
+    func imageData(_ candidate: ArtworkCandidate) async throws -> Data {
+        if let bytes = await cache.data(for: candidate) { return bytes }
+        guard let checked = await cache.validate(candidate, client: client),
+              let bytes = await cache.data(for: checked) else { throw URLError(.cannotDecodeContentData) }
+        return bytes
     }
 
     // MARK: Album covers
 
-    /// Covers for an album from every source, best sources first, each image once.
-    func albumCovers(album: String, artist: String?) async -> [ArtworkCandidate] {
-        async let iTunes = iTunesAlbumCovers(album: album, artist: artist)
-        async let groups = releaseGroups(album: album, artist: artist)
-        async let deezer = deezerAlbumCovers(album: album, artist: artist)
-        let groupIds = await groups
-        let archive = await archiveAlbumCovers(groupIds)
-        let primary = await iTunes + archive + deezer
-        let all: [ArtworkCandidate]
-        if primary.isEmpty { all = await commons.search([artist, album, "album cover"].compactMap { $0 }.joined(separator: " ")) }
-        else { all = primary }
-        var seen = Set<String>()
-        return all.filter { seen.insert($0.url).inserted }
-    }
-
-    private func archiveAlbumCovers(_ groupIds: [String]) async -> [ArtworkCandidate] {
-        struct Response: Decodable {
-            struct Cover: Decodable { var image: String; var front: Bool; var thumbnails: [String: String]? }
-            var images: [Cover]
-        }
-        var results: [ArtworkCandidate] = []
-        for id in groupIds.prefix(3) {
-            guard let response = try? await fetchJSON(Response.self, URL(string: "https://coverartarchive.org/release-group/\(id)")!, client: client) else { continue }
-            results += response.images.filter(\.front).map { image in
-                ArtworkCandidate(url: image.thumbnails?["1200"] ?? image.thumbnails?["large"] ?? image.image, source: "Cover Art Archive")
+    /// Bounded search, edition-aware ranking and real image validation. No music is modified.
+    func albumCovers(album: String, artist: String?, year: Int = 0) async -> [ArtworkCandidate] {
+        let query = AlbumArtworkQuery(album: album, artist: artist ?? "", year: year)
+        if let hit = await cache.load(query, freshOnly: true) { return hit }
+        let results = await withTaskGroup(of: [ArtworkCandidate].self) { group in
+            group.addTask { await self.albumResults(query) }
+            group.addTask {
+                do { try await Task.sleep(for: .seconds(45)) } catch { return [] }
+                return []
             }
+            let first = await group.next() ?? []
+            group.cancelAll()
+            return first
         }
+        guard !Task.isCancelled else { return [] }
+        if results.isEmpty { return await cache.load(query, freshOnly: false) ?? [] }
+        await cache.save(results, query: query)
         return results
     }
 
-    private func iTunesAlbumCovers(album: String, artist: String?) async -> [ArtworkCandidate] {
-        struct Response: Decodable {
-            struct Result: Decodable { var artworkUrl100: String?; var artworkUrl60: String? }
-            var results: [Result] = []
+    private func albumResults(_ query: AlbumArtworkQuery) async -> [ArtworkCandidate] {
+        async let apple = iTunesAlbumCovers(query)
+        async let archive = musicBrainzCovers(query)
+        async let deezer = deezerAlbumCovers(query)
+        var all = await archive + deezer + apple
+        if all.isEmpty && !Task.isCancelled {
+            all = await commons.search([query.artist, query.album, "album cover"].joined(separator: " "))
         }
-        let usableArtist = artist.flatMap { isUsableTag($0) ? $0 : nil }
-        let term = [usableArtist, album].compactMap { $0 }.joined(separator: " ")
-        guard !term.isBlank else { return [] }
-        let response = try? await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search", [("term", term), ("entity", "album"), ("limit", "10")]), client: client)
-        return (response?.results ?? []).compactMap { ($0.artworkUrl100 ?? $0.artworkUrl60).map { ArtworkCandidate(url: ITunesProvider.upgradeArtwork($0), source: "iTunes") } }
+        all.sort { ($0.match?.score ?? 0) > ($1.match?.score ?? 0) }
+        var urls = Set<String>(), fingerprints = Set<String>(), valid: [ArtworkCandidate] = []
+        for candidate in all.filter({ urls.insert($0.url).inserted }).prefix(10) {
+            guard !Task.isCancelled else { return [] }
+            guard let checked = await cache.validate(candidate, client: client), let facts = checked.image else { continue }
+            // The same bytes on two services collapse only when the release metadata also agrees.
+            let release = checked.match.map { AlbumArtworkMatching.normalize($0.album) + "|" + AlbumArtworkMatching.normalize($0.artist) + "|" + String($0.year) } ?? checked.url
+            guard fingerprints.insert(release + "|" + facts.digest).inserted else { continue }
+            valid.append(checked)
+        }
+        return valid.sorted {
+            if $0.recommended != $1.recommended { return $0.recommended }
+            if ($0.match?.score ?? 0) != ($1.match?.score ?? 0) { return ($0.match?.score ?? 0) > ($1.match?.score ?? 0) }
+            let left = min($0.image?.width ?? 0, $0.image?.height ?? 0)
+            let right = min($1.image?.width ?? 0, $1.image?.height ?? 0)
+            return left == right ? $0.url < $1.url : left > right
+        }
     }
 
-    /// MusicBrainz release groups for an album (their covers live in the Cover Art Archive).
-    private func releaseGroups(album: String, artist: String?) async -> [String] {
-        struct Response: Decodable {
-            struct Group: Decodable { var id: String }
-            var groups: [Group] = []
-            enum CodingKeys: String, CodingKey { case groups = "release-groups" }
-        }
-        var query = "release:\"\(escapePhrase(album.trimmed))\""
-        if let terms = artistSearchTerms(artist.flatMap { isUsableTag($0) ? $0 : nil }) { query += " AND artist:(\(terms))" }
-        let response = try? await fetchJSON(Response.self, requestURL("https://musicbrainz.org/ws/2/release-group", [("query", query), ("fmt", "json"), ("limit", "5")]), client: client)
-        return (response?.groups ?? []).map(\.id)
+    private func candidate(_ url: String?, source: String, query: AlbumArtworkQuery, album: String?, artist: String?, date: String? = nil, group: Bool = false) -> ArtworkCandidate? {
+        guard let url, let album, let artist,
+              let match = AlbumArtworkMatching.match(query, album: album, artist: artist, year: Int((date ?? "").prefix(4)) ?? 0, groupCover: group) else { return nil }
+        return ArtworkCandidate(url: url, source: source, match: match)
     }
 
-    private func deezerAlbumCovers(album: String, artist: String?) async -> [ArtworkCandidate] {
+    private func iTunesAlbumCovers(_ query: AlbumArtworkQuery) async -> [ArtworkCandidate] {
         struct Response: Decodable {
-            struct Album: Decodable {
-                var coverXl: String?
-                var coverBig: String?
-                enum CodingKeys: String, CodingKey { case coverXl = "cover_xl", coverBig = "cover_big" }
+            struct Result: Decodable { var artworkUrl100: String?; var artworkUrl60: String?; var collectionName: String?; var artistName: String?; var releaseDate: String? }
+            var results: [Result]
+        }
+        let term = [query.artist, query.album].joined(separator: " ")
+        guard let response = try? await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search", [("term", term), ("entity", "album"), ("limit", "10")]), client: client) else { return [] }
+        return response.results.compactMap { item in
+            candidate((item.artworkUrl100 ?? item.artworkUrl60).map(ITunesProvider.upgradeArtwork), source: "iTunes", query: query, album: item.collectionName, artist: item.artistName, date: item.releaseDate)
+        }
+    }
+
+    private func deezerAlbumCovers(_ query: AlbumArtworkQuery) async -> [ArtworkCandidate] {
+        struct Response: Decodable {
+            struct Result: Decodable {
+                struct Artist: Decodable { var name: String? }
+                var title: String?; var artist: Artist?; var releaseDate: String?; var coverXl: String?; var coverBig: String?
+                enum CodingKeys: String, CodingKey { case title, artist; case releaseDate = "release_date", coverXl = "cover_xl", coverBig = "cover_big" }
             }
-            var data: [Album]?
+            var data: [Result]?
         }
-        let usableArtist = artist.flatMap { isUsableTag($0) ? $0 : nil }
-        let query = usableArtist.map { "artist:\"\($0)\" album:\"\(album)\"" } ?? album
-        let response = try? await fetchJSON(Response.self, requestURL("https://api.deezer.com/search/album", [("q", query)]), client: client)
-        return (response?.data ?? []).compactMap { ($0.coverXl ?? $0.coverBig).map { ArtworkCandidate(url: $0, source: "Deezer") } }
+        let term = "artist:\"\(query.artist)\" album:\"\(query.album)\""
+        guard let response = try? await fetchJSON(Response.self, requestURL("https://api.deezer.com/search/album", [("q", term), ("limit", "10")]), client: client) else { return [] }
+        return (response.data ?? []).compactMap {
+            candidate($0.coverXl ?? $0.coverBig, source: "Deezer", query: query, album: $0.title, artist: $0.artist?.name, date: $0.releaseDate)
+        }
+    }
+
+    private func musicBrainzCovers(_ query: AlbumArtworkQuery) async -> [ArtworkCandidate] {
+        struct Credit: Decodable { var name: String? }
+        struct Release: Decodable {
+            var id: String; var title: String; var date: String?; var credits: [Credit]?
+            enum CodingKeys: String, CodingKey { case id, title; case date; case credits = "artist-credit" }
+        }
+        struct Group: Decodable {
+            var id: String; var title: String; var date: String?; var credits: [Credit]?
+            enum CodingKeys: String, CodingKey { case id, title; case date = "first-release-date"; case credits = "artist-credit" }
+        }
+        struct Releases: Decodable { var releases: [Release]? }
+        struct Groups: Decodable { var groups: [Group]?; enum CodingKeys: String, CodingKey { case groups = "release-groups" } }
+        let terms = "release:\"\(escapePhrase(query.album))\"" + (artistSearchTerms(query.artist).map { " AND artist:(\($0))" } ?? "")
+        let releases = try? await fetchJSON(Releases.self, requestURL("https://musicbrainz.org/ws/2/release", [("query", terms), ("fmt", "json"), ("limit", "5")]), client: client)
+        var candidates = (releases?.releases ?? []).compactMap {
+            candidate("https://coverartarchive.org/release/\($0.id)", source: "Cover Art Archive", query: query, album: $0.title, artist: $0.credits?.compactMap(\.name).joined(separator: " "), date: $0.date)
+        }.sorted { ($0.match?.score ?? 0) > ($1.match?.score ?? 0) }
+        var results: [ArtworkCandidate] = []
+        for item in candidates.prefix(3) where !Task.isCancelled { results += await archiveImages(item) }
+        if results.isEmpty && !Task.isCancelled {
+            let groups = try? await fetchJSON(Groups.self, requestURL("https://musicbrainz.org/ws/2/release-group", [("query", terms), ("fmt", "json"), ("limit", "3")]), client: client)
+            candidates = (groups?.groups ?? []).compactMap {
+                candidate("https://coverartarchive.org/release-group/\($0.id)", source: "Cover Art Archive", query: query, album: $0.title, artist: $0.credits?.compactMap(\.name).joined(separator: " "), date: $0.date, group: true)
+            }
+            for item in candidates.prefix(2) where !Task.isCancelled { results += await archiveImages(item) }
+        }
+        return results
+    }
+    private func archiveImages(_ release: ArtworkCandidate) async -> [ArtworkCandidate] {
+        struct Response: Decodable {
+            struct Image: Decodable { var image: String; var front: Bool; var approved: Bool?; var thumbnails: [String: String]? }
+            var images: [Image]
+        }
+        guard let url = URL(string: release.url), let response = try? await fetchJSON(Response.self, url, client: client) else { return [] }
+        return response.images.filter { $0.front && $0.approved == true }.map { item in
+            ArtworkCandidate(url: item.thumbnails?["1200"] ?? item.thumbnails?["large"] ?? item.image, source: release.source, match: release.match)
+        }
     }
 
     // MARK: Artist photos

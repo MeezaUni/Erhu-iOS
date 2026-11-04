@@ -1,5 +1,6 @@
 import PhotosUI
 import SwiftUI
+import UIKit
 
 /// The Artwork Fetcher tool: albums without a cover and artists without a photo, each opening a
 /// picker of what was found online (or a photo from the library).
@@ -117,7 +118,7 @@ enum ArtworkTarget: Identifiable {
     }
 }
 
-/// Covers or photos found online in a grid, and a photo from the library; tap one to save it.
+/// Search never writes tags. Every online/custom image gets a full preview and explicit Apply.
 struct ArtworkPickerSheet: View {
     let target: ArtworkTarget
     @Environment(ArtworkFetcherStore.self) private var store
@@ -127,6 +128,8 @@ struct ArtworkPickerSheet: View {
     @State private var saving = false
     @State private var photo: PhotosPickerItem?
     @State private var saveError: String?
+    @State private var preview: ArtworkPreview?
+    @State private var preparingPreview = false
 
     var body: some View {
         NavigationStack {
@@ -145,14 +148,14 @@ struct ArtworkPickerSheet: View {
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: Spacing.sm)], spacing: Spacing.sm) {
                         ForEach(candidates) { candidate in
-                            ArtworkCandidateTile(candidate: candidate) { Task { await apply(candidate) } }
+                            ArtworkCandidateTile(candidate: candidate) { Task { await preparePreview(candidate) } }
                         }
                     }
                 }
                 .padding(Spacing.lg)
             }
-            .disabled(saving)
-            .overlay { if saving { ProgressView("Saving…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12)) } }
+            .disabled(saving || preparingPreview)
+            .overlay { if saving || preparingPreview { ProgressView(saving ? "Saving…" : "Loading preview…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12)) } }
             .alert("Couldn’t save artwork", isPresented: Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })) {
                 Button("OK") { saveError = nil }
             } message: { Text(saveError ?? "") }
@@ -160,6 +163,15 @@ struct ArtworkPickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
             .task { await load() }
+            .sheet(item: $preview) { item in
+                ArtworkPreviewView(preview: item, saving: saving) {
+                    Task {
+                        if let candidate = item.candidate { await apply(candidate, image: item.data) }
+                        else { await apply(item.data) }
+                        preview = nil
+                    }
+                }
+            }
             .onChange(of: photo) { _, item in
                 guard let item else { return }
                 Task {
@@ -168,7 +180,11 @@ struct ArtworkPickerSheet: View {
                             saveError = "The selected photo could not be loaded."
                             return
                         }
-                        await apply(data)
+                        guard ArtworkImageFacts.thumbnail(data, maxPixels: 32) != nil else {
+                            saveError = "The selected photo could not be decoded."
+                            return
+                        }
+                        preview = ArtworkPreview(candidate: nil, data: data)
                     } catch { saveError = error.localizedDescription }
                     photo = nil
                 }
@@ -203,13 +219,26 @@ struct ArtworkPickerSheet: View {
         return requestURL("https://www.google.com/search", [("q", query), ("tbm", "isch")])
     }
 
-    private func apply(_ candidate: ArtworkCandidate) async {
+    private func preparePreview(_ candidate: ArtworkCandidate) async {
+        guard !preparingPreview, !saving else { return }
+        preparingPreview = true
+        defer { preparingPreview = false }
+        do {
+            let bytes = try await store.search.imageData(candidate)
+            guard !Task.isCancelled else { return }
+            var checked = candidate
+            checked.image = ArtworkImageFacts.inspect(bytes)
+            preview = ArtworkPreview(candidate: checked, data: bytes)
+        } catch { saveError = "The full image could not be verified. Try another image." }
+    }
+
+    private func apply(_ candidate: ArtworkCandidate, image: Data) async {
         guard !saving else { return }
         saving = true
         let saved: Bool
         switch target {
-        case .album(let album): saved = await store.applyCover(candidate, to: album)
-        case .artist(let artist): saved = await store.applyPhoto(candidate, to: artist)
+        case .album(let album): saved = await store.applyCover(candidate, image: image, to: album)
+        case .artist(let artist): saved = await store.applyPhoto(candidate, image: image, to: artist)
         }
         saving = false
         if saved { dismiss() } else { saveError = failureReason }
@@ -234,25 +263,82 @@ struct ArtworkPickerSheet: View {
 private struct ArtworkCandidateTile: View {
     let candidate: ArtworkCandidate
     let choose: () -> Void
+    @Environment(ArtworkFetcherStore.self) private var store
+    @State private var thumbnail: UIImage?
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Button(action: choose) {
                 VStack(alignment: .leading, spacing: 4) {
-                    AsyncImage(url: URL(string: candidate.url)) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() }
-                        else if phase.error != nil { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
-                        else { ProgressView() }
+                    Group {
+                        if let thumbnail { Image(uiImage: thumbnail).resizable().scaledToFit() }
+                        else { Image(systemName: "photo").foregroundStyle(.secondary) }
                     }
                     .frame(minWidth: 0, maxWidth: .infinity)
                     .aspectRatio(1, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
                     Text(candidate.source).font(.caption2).foregroundStyle(.secondary)
+                    if let match = candidate.match {
+                        Text(match.album).font(.caption).lineLimit(2)
+                        Text(match.artist + (match.year > 0 ? " · \(match.year)" : "")).font(.caption2).lineLimit(2)
+                        Text(candidate.recommended ? "Recommended" : match.review.joined(separator: " · ").ifBlank("Preview to confirm"))
+                            .font(.caption2).foregroundStyle(candidate.recommended ? Color.green : Color.secondary)
+                    }
+                    if let image = candidate.image { Text(image.resolution).font(.caption2).foregroundStyle(.secondary) }
                 }
-            }.buttonStyle(.plain).accessibilityLabel("Use this image from \(candidate.source)")
+            }.buttonStyle(.plain).accessibilityLabel("Preview image from \(candidate.source)")
             if let credit = candidate.credit {
                 Text(credit.author).font(.caption2).lineLimit(2)
                 Link(credit.license + " · source", destination: credit.page).font(.caption2)
             }
+        }
+        .task(id: candidate.url) {
+            guard let bytes = try? await store.search.imageData(candidate), !Task.isCancelled,
+                  let cg = ArtworkImageFacts.thumbnail(bytes, maxPixels: 350) else { return }
+            thumbnail = UIImage(cgImage: cg)
+        }
+    }
+}
+
+private struct ArtworkPreview: Identifiable {
+    let id = UUID()
+    let candidate: ArtworkCandidate?
+    let data: Data
+}
+
+private struct ArtworkPreviewView: View {
+    let preview: ArtworkPreview
+    let saving: Bool
+    let apply: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let image = ArtworkImageFacts.thumbnail(preview.data, maxPixels: 1600) {
+                        Image(decorative: image, scale: 1).resizable().scaledToFit()
+                    }
+                    if let match = preview.candidate?.match {
+                        Text(match.album).font(.headline)
+                        Text(match.artist + (match.year > 0 ? " · \(match.year)" : ""))
+                        if !match.review.isEmpty { Text(match.review.joined(separator: " · ")).foregroundStyle(.secondary) }
+                    }
+                    if let facts = ArtworkImageFacts.inspect(preview.data) { Text(facts.resolution).font(.caption) }
+                    if let candidate = preview.candidate { Text(candidate.source).font(.caption) }
+                    if let credit = preview.candidate?.credit {
+                        Text(credit.author + " · " + credit.license).font(.caption)
+                        Link("Image source", destination: credit.page)
+                    }
+                    Text("Check the complete image and edition. Apply saves this image to your selected album or artist.").font(.footnote).foregroundStyle(.secondary)
+                }.padding()
+            }
+            .navigationTitle("Preview artwork").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(saving) }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(saving ? "Saving…" : "Apply", action: apply).disabled(saving)
+                }
+            }
+            .interactiveDismissDisabled(saving)
         }
     }
 }
