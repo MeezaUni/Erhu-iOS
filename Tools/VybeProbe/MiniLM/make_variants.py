@@ -49,6 +49,7 @@ def float32_program(model):
             values = result if isinstance(result, (list, tuple)) else [result]
             mapped.update(zip(op.outputs, values))
         function.set_outputs([mapped[v] for v in old.outputs])
+        function.outputs[0].set_name('embedding')
     program = Program(); program.add_function('main', function)
     return ct.convert(program, convert_to='mlprogram', minimum_deployment_target=ct.target.iOS17,
                       compute_precision=ct.precision.FLOAT32, skip_model_load=True)
@@ -83,13 +84,15 @@ def repack(model):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('source', type=Path); p.add_argument('destination', type=Path)
+    p.add_argument('--float32-only', action='store_true')
     args = p.parse_args(); args.destination.mkdir(parents=True, exist_ok=True)
-    fp32_output(args.source, args.destination / 'MiniLMIO32.mlpackage')
+    if not args.float32_only: fp32_output(args.source, args.destination / 'MiniLMIO32.mlpackage')
     model = ct.models.MLModel(str(args.source), skip_model_load=True)
     dense = ct.optimize.coreml.decompress_weights(model)
-    packed = repack(dense)
-    target = args.destination / 'MiniLM8Bit.mlpackage'; packed.save(str(target))
-    fp32_output(target, args.destination / 'MiniLM8BitIO32.mlpackage')
+    if not args.float32_only:
+        packed = repack(dense)
+        target = args.destination / 'MiniLM8Bit.mlpackage'; packed.save(str(target))
+        fp32_output(target, args.destination / 'MiniLM8BitIO32.mlpackage')
     repack(float32_program(dense)).save(str(args.destination / 'MiniLM32.mlpackage'))
 
 

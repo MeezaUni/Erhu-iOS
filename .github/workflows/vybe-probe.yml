@@ -87,7 +87,16 @@ jobs:
       - name: Prepare compatibility variants without changing weights
         run: |
           python -m pip install coremltools==9.0 numpy==2.5.4
-          python Tools/VybeProbe/MiniLM/make_variants.py Erhu/Resources/Vybe/VybeSentence.mlpackage Tools/VybeProbe/MiniLM/Variants > /tmp/variants.log 2>&1 || { tail -40 /tmp/variants.log; exit 1; }
+          python Tools/VybeProbe/MiniLM/make_variants.py Erhu/Resources/Vybe/VybeSentence.mlpackage Tools/VybeProbe/MiniLM/Variants --float32-only > /tmp/variants.log 2>&1 || { tail -40 /tmp/variants.log; exit 1; }
+      - name: Use the compatibility candidate in the isolated production embedder
+        run: |
+          python - <<'PYMODEL'
+          import shutil
+          from pathlib import Path
+          target=Path('Erhu/Resources/Vybe/VybeSentence.mlpackage')
+          shutil.rmtree(target)
+          shutil.copytree('Tools/VybeProbe/MiniLM/Variants/MiniLM32.mlpackage', target)
+          PYMODEL
       - name: Prepare small production-model probe
         run: |
           XCODE=$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)
