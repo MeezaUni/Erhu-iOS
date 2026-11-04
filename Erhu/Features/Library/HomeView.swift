@@ -17,7 +17,7 @@ struct HomeView: View {
         let smart = mixes.mixes
         let visibleMixes = smart?.mixes.filter { vybeEnabled || ($0.kind != .yourSound && $0.kind != .aLittleDifferent) } ?? []
         let hasSongs = !songs.isEmpty
-        let showsHero = hasSongs && (!visibleMixes.isEmpty || smart?.needsMoreListening == true)
+        let showsHero = hasSongs && (!visibleMixes.isEmpty || (vybeEnabled && smart?.needsMoreListening == true))
         let hasShelves = hasSongs || !library.recentAlbums.isEmpty || !library.recentPlaylists.isEmpty
         let songActions = router.songActions(actions)
         let currentId = player.state.currentSong?.id
@@ -30,7 +30,7 @@ struct HomeView: View {
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if showsHero, let smart {
-                    SmartMixHero(mixes: visibleMixes, needsMoreListening: smart.needsMoreListening,
+                    SmartMixHero(mixes: visibleMixes, needsMoreListening: vybeEnabled && smart.needsMoreListening,
                                  isActive: router.section == .home && (router.paths[.home]?.isEmpty ?? true) &&
                                      !router.showsNowPlaying && !router.showsSearch && !router.showsDrawer,
                                  onOpen: { router.open(.smartPlaylist($0)) }, onPlay: { actions.playMix($0) })

@@ -7,7 +7,7 @@ struct ReleaseCheckView: View {
             switch checker.state {
             case .idle: Text("Check GitHub Releases for a newer build.")
             case .checking: ProgressView("Checking releases…")
-            case .current: Label("You have the latest published release", systemImage: "checkmark.circle")
+            case .current: Label("You have the latest published release for this variant", systemImage: "checkmark.circle")
             case .failed(let message): Text(message).foregroundStyle(.secondary)
             case .available(let release):
                 Label("\(release.tag_name) is available", systemImage: "arrow.down.circle")
@@ -20,6 +20,7 @@ struct ReleaseCheckView: View {
             Button { Task { await checker.check(manual: true) } } label: {
                 Label("Check for updates", systemImage: "arrow.clockwise")
             }.disabled(checker.state == .checking)
+            Link("All releases", destination: URL(string: "https://github.com/MeezaUni/Erhu-iOS/releases")!)
             if let checkedAt = checker.checkedAt { Text("Last checked \(checkedAt.formatted())").font(.caption).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(Spacing.lg)
     }

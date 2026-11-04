@@ -14,6 +14,9 @@ struct AudioDetailsView: View {
     @State private var output: OutputDiagnostics?
     @State private var peak: PeakReading?
     @State private var copied = false
+    private var decoderName: String {
+        player.state.currentSong.map { DecodedAudioSource.requiresDecoder($0.url) } == true ? "Xiph Ogg decoder → PCM cache → Core Audio" : "Core Audio file reader"
+    }
 
     enum SourceState: Equatable {
         case loading
@@ -80,7 +83,7 @@ struct AudioDetailsView: View {
         if case .ready(let ready) = source { diagnostics = ready }
         return DiagnosticsReport.build(DiagnosticsSnapshot(
             source: diagnostics, state: stateText.lowercased(),
-            decoderInput: pcmFormatText(player.engine.decodedFormat), sentToSystem: pcmFormatText(player.engine.outputFormat),
+            decoderInput: pcmFormatText(player.engine.decodedFormat), decoderName: decoderName, sentToSystem: pcmFormatText(player.engine.outputFormat),
             eq: eq, headroom: headroom, peak: peak, output: output, transitionFading: player.engine.isCrossfading
         ))
     }
@@ -117,14 +120,14 @@ struct AudioDetailsView: View {
         } header: {
             Text("Source file")
         } footer: {
-            Text("Read from the file itself without decoding it. \"File header\" values come from the audio header and are exact; \"Container\" values are what Core Audio reports for the file (estimates for some formats); \"Library index\" values were recorded when the library was scanned. Bit depth exists only for lossless formats that store it.")
+            Text("Read from the file itself without decoding it. \"File header\" values come from the audio header and are exact; \"Container\" values are what the file/container reader reports for the file (estimates for some formats); \"Library index\" values were recorded when the library was scanned. Bit depth exists only for lossless formats that store it.")
         }
     }
 
     private var playbackSection: some View {
         Section {
             DetailRow("State", Fact(stateText, .player))
-            DetailRow("Decoder", Fact("Core Audio file reader", .player))
+            DetailRow("Decoder", Fact(decoderName, .player))
             DetailRow("Decoder output", pcmFormatText(player.engine.decodedFormat).map { Fact($0, .player) },
                       note: player.engine.decodedFormat == nil ? "Reported when a track starts" : nil)
             DetailRow("Sent to iOS audio", pcmFormatText(player.engine.outputFormat).map { Fact($0, .player) },
@@ -141,7 +144,7 @@ struct AudioDetailsView: View {
         let playing = engine.isRunning && player.state.isPlaying
         let spatial = output?.spatialAudio == true
         return Section {
-            ChainStep(title: "Decoder", state: playing ? "Running" : "Idle", appControlled: true, detail: "Core Audio file reader")
+            ChainStep(title: "Decoder", state: playing ? "Running" : "Idle", appControlled: true, detail: decoderName)
             ChainStep(title: "Transition", state: engine.isCrossfading ? "Fading" : "Unity", appControlled: true,
                       detail: "Changes levels only while a transition set up in the Transition Studio plays")
             if engine.hasProcessing {

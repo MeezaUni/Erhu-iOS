@@ -120,7 +120,7 @@ final class LyricsStore {
             savedLyrics = nil; downloadError = nil
             Task {
                 let saved = await repository.saved(song.lyricsTrack)
-                guard self.song?.id == song.id else { return }
+                guard self.song?.lyricsTrack == song.lyricsTrack else { return }
                 savedLyrics = saved
             }
         }
@@ -142,8 +142,8 @@ final class LyricsStore {
             do {
                 try await repository.download(song.lyricsTrack, candidate: candidate)
                 let saved = await repository.saved(song.lyricsTrack)
-                if self.song?.id == song.id { savedLyrics = saved }
-            } catch { if self.song?.id == song.id { downloadError = "Lyrics could not be saved. Check available storage and retry." } }
+                if self.song?.lyricsTrack == song.lyricsTrack { savedLyrics = saved }
+            } catch { if self.song?.lyricsTrack == song.lyricsTrack { downloadError = "Lyrics could not be saved. Check available storage and retry." } }
         }
     }
 
@@ -154,8 +154,8 @@ final class LyricsStore {
             defer { savingLyrics = false }
             do {
                 try await repository.removeDownload(song.lyricsTrack)
-                if self.song?.id == song.id { savedLyrics = nil }
-            } catch { if self.song?.id == song.id { downloadError = "Saved lyrics could not be removed. Try again." } }
+                if self.song?.lyricsTrack == song.lyricsTrack { savedLyrics = nil }
+            } catch { if self.song?.lyricsTrack == song.lyricsTrack { downloadError = "Saved lyrics could not be removed. Try again." } }
         }
     }
 
@@ -167,7 +167,7 @@ final class LyricsStore {
         let repository = repository
         searchTask = Task {
             let response = await repository.search(song.lyricsTrack, freeText: text)
-            guard !Task.isCancelled, self.song?.id == song.id else { return }
+            guard !Task.isCancelled, self.song?.lyricsTrack == song.lyricsTrack else { return }
             searchTask = nil
             switch response {
             case .success(let result):
@@ -193,7 +193,7 @@ final class LyricsStore {
         let repository = repository
         Task {
             let result = await repository.choose(song.lyricsTrack, candidate)
-            guard self.song?.id == song.id else { return }
+            guard self.song?.lyricsTrack == song.lyricsTrack else { return }
             online = view(of: result, songId: song.id, previous: nil)
             publish()
         }
@@ -243,7 +243,7 @@ final class LyricsStore {
         publish()
         lookupTask = Task {
             let cached = await repository.cached(track)
-            guard !Task.isCancelled, self.song?.id == song.id else { return }
+            guard !Task.isCancelled, self.song?.lyricsTrack == song.lyricsTrack else { return }
             let savedSync = cached?.candidate.flatMap { $0.timing >= .line ? $0 : nil }
             let keep = previousSync ?? savedSync
             if !refresh, Self.timing(embedded) >= .line,
@@ -259,13 +259,13 @@ final class LyricsStore {
             let recheckEmbeddedPlain = Self.timing(embedded) == .plain && savedSync == nil
             let result = await repository.lookup(track, refresh: refresh || recheckEmbeddedPlain) { [weak self] reason in
                 Task { @MainActor [weak self] in
-                    guard let self, self.lookupID == requestID, self.song?.id == song.id,
+                    guard let self, self.lookupID == requestID, self.song?.lyricsTrack == song.lyricsTrack,
                           self.online?.lookup.isSearching == true else { return }
                     self.online?.lookup = .switching(reason)
                     self.publish()
                 }
             }
-            guard !Task.isCancelled, self.song?.id == song.id else { return }
+            guard !Task.isCancelled, self.song?.lyricsTrack == song.lyricsTrack else { return }
             online = view(of: result, songId: song.id, previous: keep)
             publish()
         }

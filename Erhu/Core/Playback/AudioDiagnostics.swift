@@ -73,6 +73,7 @@ struct DiagnosticsSnapshot {
     var state: String
     /// The format the playing file is decoded to, before the app's processing.
     var decoderInput: String?
+    var decoderName: String = "Core Audio file reader"
     /// The format the app hands to iOS after its processing.
     var sentToSystem: String?
     var eq: EqStage?
@@ -115,7 +116,7 @@ enum DiagnosticsReport {
 
         out.section("Playback (reported by the player)")
         out.line("State", snapshot.state)
-        out.line("Decoder", "Core Audio file reader")
+        out.line("Decoder", snapshot.decoderName)
         out.line("Decoder output", snapshot.decoderInput ?? unavailable)
         out.line("Sent to iOS audio", snapshot.sentToSystem ?? unavailable)
 
