@@ -58,7 +58,7 @@ input[type=text] { font:inherit; font-size:22px; letter-spacing:6px; width:9em; 
       <button id="pickFolder" class="hidden">Choose a folder</button>
     </div>
   </div>
-  <input id="fileInput" type="file" multiple accept=".mp3,.flac,.m4a,.aac,.wav,.aif,.aiff,audio/*" class="hidden">
+  <input id="fileInput" type="file" multiple accept=".mp3,.flac,.m4a,.aac,.wav,.aif,.aiff,.ogg,.oga,.opus,audio/*" class="hidden">
   <input id="folderInput" type="file" multiple class="hidden">
 </section>
 
@@ -79,7 +79,7 @@ input[type=text] { font:inherit; font-size:22px; letter-spacing:6px; width:9em; 
 <script>
 (function () {
   "use strict";
-  var AUDIO = ["mp3","flac","m4a","aac","wav","aif","aiff"];
+  var AUDIO = ["mp3","flac","m4a","aac","wav","aif","aiff","ogg","oga","opus"];
   var PARALLEL = 2;
   var token = null;
   var items = [];

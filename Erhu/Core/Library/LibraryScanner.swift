@@ -34,7 +34,7 @@ struct ScannedSong: Equatable {
 /// read again; everything else is read from its own tags. One scan is one transaction: a failed
 /// scan leaves the previous library intact.
 final class LibraryScanner: @unchecked Sendable {
-    static let audioExtensions: Set<String> = ["mp3", "m4a", "m4b", "aac", "alac", "mp4", "flac", "wav", "wave", "aif", "aiff", "aifc", "caf"]
+    static let audioExtensions: Set<String> = ["mp3", "m4a", "m4b", "aac", "alac", "mp4", "flac", "wav", "wave", "aif", "aiff", "aifc", "caf", "ogg", "oga", "opus"]
 
     private let database: LibraryDatabase
     private let folder: URL
@@ -230,6 +230,16 @@ struct AudioFormatInfo: Equatable {
     static func read(_ url: URL, fileSize: Int64) -> AudioFormatInfo {
         var info = AudioFormatInfo()
         info.codec = codecName(url)
+        if DecodedAudioSource.requiresDecoder(url), let data = try? DecodedAudioSource.inspect(url) {
+            info.codec = data["codec"] as? String ?? "Ogg"
+            info.sampleRate = (data["sampleRate"] as? NSNumber)?.intValue ?? 0
+            info.channels = (data["channels"] as? NSNumber)?.intValue ?? 0
+            let frames = (data["frames"] as? NSNumber)?.doubleValue ?? 0
+            let ms = info.sampleRate > 0 ? frames / Double(info.sampleRate) * 1000 : 0
+            info.durationMs = ms.isFinite && ms > 0 && ms < Double(Int64.max) ? Int64(ms) : 0
+            info.bitrate = info.durationMs > 0 ? Int(Double(fileSize) * 8000 / Double(info.durationMs)) : 0
+            return info
+        }
         guard let file = try? AVAudioFile(forReading: url) else { return info }
         let rate = file.fileFormat.sampleRate
         info.sampleRate = Int(rate)
@@ -246,6 +256,8 @@ struct AudioFormatInfo: Equatable {
     private static func codecName(_ url: URL) -> String {
         switch url.pathExtension.lowercased() {
         case "mp3": return "MP3"
+        case "ogg", "oga": return "Ogg Vorbis"
+        case "opus": return "Opus"
         case "flac": return "FLAC"
         case "wav", "wave": return "WAV"
         case "aif", "aiff", "aifc": return "AIFF"

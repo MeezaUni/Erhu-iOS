@@ -244,7 +244,7 @@ enum TempoAudio {
     /// Decodes [analysisSeconds] from a quarter of the way in (past most intros). Throws when the
     /// file can't be decoded. Everything stays on the device.
     static func decode(_ url: URL) throws -> (samples: [Float], sampleRate: Int) {
-        let file = try AVAudioFile(forReading: url)
+        let file = try DecodedAudioSource.open(url)
         let format = file.processingFormat
         let rate = format.sampleRate
         let channels = Int(format.channelCount)

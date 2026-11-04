@@ -110,7 +110,7 @@ actor WaveformStore {
 
     /// Decodes [url] once, streaming its PCM into the bins.
     static func decode(_ url: URL, bins: Int) -> [Float]? {
-        guard let file = try? AVAudioFile(forReading: url) else { return nil }
+        guard let file = try? DecodedAudioSource.open(url) else { return nil }
         let format = file.processingFormat
         let rate = format.sampleRate
         let total = file.length

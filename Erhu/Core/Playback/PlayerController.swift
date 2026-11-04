@@ -44,6 +44,9 @@ final class PlayerController {
     @ObservationIgnored private let albumHistoryQueue = DispatchQueue(label: "erhu.album-history", qos: .utility)
     @ObservationIgnored private var artworkWarmup: Task<Void, Never>?
     @ObservationIgnored private var fileWarmup: Task<Void, Never>?
+    @ObservationIgnored private var audioPreparation: Task<Void, Never>?
+    @ObservationIgnored private var preparingPlayIntent = false
+    private(set) var playbackError: String?
     @ObservationIgnored private var restoreFinished = false
     @ObservationIgnored private var consecutiveErrors = 0
     @ObservationIgnored private var plannedTransition: (entryId: UUID, nextEntryId: UUID, plan: Planned)?
@@ -96,6 +99,7 @@ final class PlayerController {
     }
 
     func pause() {
+        audioPreparation?.cancel(); audioPreparation = nil; preparingPlayIntent = false
         refreshPosition()
         engine.pause()
         playingChanged(false)
@@ -135,6 +139,7 @@ final class PlayerController {
     func seek(to positionMs: Int64) {
         guard let entry = state.currentEntry else { return }
         let target = max(positionMs, 0)
+        if state.status == .buffering { startCurrent(at: target, playing: preparingPlayIntent); return }
         do {
             try engine.seek(entryId: entry.id, url: entry.song.url, toMs: target)
         } catch {
@@ -332,7 +337,33 @@ final class PlayerController {
 
     /// Starts the current entry at [positionMs] from a fresh engine start.
     private func startCurrent(at positionMs: Int64, playing: Bool) {
+        audioPreparation?.cancel(); audioPreparation = nil
+        playbackError = nil
         guard let entry = state.currentEntry else { return }
+        preparingPlayIntent = playing
+        if DecodedAudioSource.requiresDecoder(entry.song.url), !DecodedAudioSource.isPrepared(entry.song.url) {
+            engine.stopAll()
+            listening.onPlayingChanged(false, durationMs: state.durationMs)
+            stopTimer()
+            state.status = .buffering
+            state.durationMs = entry.song.durationMs
+            setPosition(positionMs)
+            updateNowPlaying()
+            audioPreparation = Task {
+                let failure = await Task.detached(priority: .userInitiated) { () -> String? in
+                    do { try DecodedAudioSource.prepare(entry.song.url); return nil }
+                    catch { return error.localizedDescription }
+                }.value
+                guard !Task.isCancelled, state.currentEntry?.id == entry.id else { return }
+                audioPreparation = nil
+                if let failure {
+                    playbackError = failure
+                    state.status = .paused
+                    updateNowPlaying()
+                } else { startCurrent(at: positionMs, playing: playing) }
+            }
+            return
+        }
         if playing && (!state.isPlaying || !engine.isRunning) { activateAudioSession() }
         do {
             try engine.play(entryId: entry.id, url: entry.song.url, positionMs: positionMs, startPlaying: playing)
@@ -447,6 +478,7 @@ final class PlayerController {
             let url = state.queue[index].song.url
             return url == state.currentSong?.url ? nil : url
         }
+        DecodedAudioSource.pin(urls + [state.currentSong?.url].compactMap { $0 })
         fileWarmup = Task { [weak self] in await self?.engine.warmFiles(urls) }
         artworkWarmup?.cancel()
         artworkWarmup = Task {

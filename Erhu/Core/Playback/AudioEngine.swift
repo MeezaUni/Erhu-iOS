@@ -149,7 +149,7 @@ final class AudioEngine {
 
     private func openFile(_ url: URL) throws -> AVAudioFile {
         if let ready = filePreloader.take(url) { return ready }
-        return try AVAudioFile(forReading: url)
+        return try DecodedAudioSource.open(url, allowDecoding: false)
     }
 
     // MARK: Playing
@@ -281,8 +281,8 @@ final class AudioEngine {
     /// Both nodes are scheduled on the render clock; no UI timer starts the incoming track.
     func previewTransition(outgoing: URL, incoming: URL, timing: PairTransitionTiming) throws {
         guard isReady, decks.allSatisfy({ $0.stageUnit != nil }), hasProcessing else { throw EngineError.notReady }
-        let outFile = try AVAudioFile(forReading: outgoing)
-        let inFile = try AVAudioFile(forReading: incoming)
+        let outFile = try DecodedAudioSource.open(outgoing, allowDecoding: false)
+        let inFile = try DecodedAudioSource.open(incoming, allowDecoding: false)
         func frame(_ ms: Int64, _ file: AVAudioFile) -> AVAudioFramePosition {
             AVAudioFramePosition((Double(ms) * file.processingFormat.sampleRate / 1000).rounded())
         }

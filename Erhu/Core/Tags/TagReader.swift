@@ -45,6 +45,7 @@ enum TagReader {
     private static let maxTagBytes = 16 * 1024 * 1024
 
     static func read(_ url: URL) -> FileTags {
+        if DecodedAudioSource.requiresDecoder(url) { return DecodedAudioSource.tags(url) }
         guard let file = try? FileHandle(forReadingFrom: url) else { return FileTags() }
         defer { try? file.close() }
         let reader = ByteSource(file: file)
@@ -69,6 +70,7 @@ enum TagReader {
 
     /// The first embedded picture (front cover preferred), or nil.
     static func artwork(_ url: URL) -> Data? {
+        if DecodedAudioSource.requiresDecoder(url) { return DecodedAudioSource.artwork(url) }
         guard let file = try? FileHandle(forReadingFrom: url) else { return nil }
         defer { try? file.close() }
         let reader = ByteSource(file: file)

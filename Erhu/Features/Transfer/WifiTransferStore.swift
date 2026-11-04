@@ -15,16 +15,12 @@ enum TransferServerState: Equatable {
     case running(address: String, pairingUrl: String, pairingCode: String)
 }
 
-/// One Wi-Fi transfer session at a time, from the user's Start to Stop (Android's
-/// WifiTransferCoordinator). The server accepts connections only over Wi-Fi and only while the app
-/// is open (iOS suspends it in the background): it stops when the user stops it, when Wi-Fi goes
-/// away or changes address, after 10 minutes without any request, when the session's lifetime ends,
-/// or when the app leaves the foreground. Every stop closes the session (its credentials stop
-/// working), every connection, and deletes partial files. Saved files are picked up by a rescan.
+/// One explicit Start/Stop session. It stays alive while Erhu is foreground, including
+/// when the user visits another app page. Backgrounding, Stop, a failed listener or sustained
+/// network loss revokes credentials and cleans incomplete files. It never starts on its own.
 @MainActor
 @Observable
 final class WifiTransferStore {
-    /// Stop after this long without any request from the computer (no upload running).
     private static let watchdogInterval: Duration = .seconds(15)
     /// One rescan after a batch of files, not one per file.
     private static let quietPeriod: Duration = .seconds(4)
