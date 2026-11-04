@@ -6,8 +6,26 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
+  diagnostics:
+    if: contains(github.event.head_commit.message, '[diagnostic]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect previous animated compilation progress
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run view 41887608729 --repo MeezaUni/Erhu-iOS --log > /tmp/compile.log
+          python3 - <<'PYREPORT'
+          from pathlib import Path
+          lines=Path('/tmp/compile.log').read_text(errors='replace').splitlines()
+          selected=[line for line in lines if any(key in line for key in ['SwiftCompile normal', 'SwiftEmitModule', 'error:', '** BUILD', 'SwiftDriverJobDiscovery'])]
+          for line in selected[-38:]:
+              print('::notice title=Previous animated compiler::'+line[-1400:].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PYREPORT
   probe:
+    if: "!contains(github.event.head_commit.message, '[diagnostic]')"
     runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
