@@ -75,6 +75,9 @@ final class TransferServer: @unchecked Sendable {
                         }
                     case .cancelled:
                         if resumed.claim() { continuation.resume(throwing: CancellationError()) }
+                        else if let self, !self.lock.withLock({ self.stopped }) {
+                            self.onFailure("The transfer listener closed. Start a new transfer session.")
+                        }
                     default: break
                     }
                 }

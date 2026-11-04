@@ -4,7 +4,7 @@ import Foundation
 
 /// Where a value comes from, shown next to it so nothing reads as more certain than it is.
 enum Provenance: String, Sendable {
-    /// Parsed from the file's own audio header by Core Audio.
+    /// Parsed from the file's own audio header by Core Audio or the Xiph reader.
     case fileHeader = "File header"
     /// Reported by Core Audio for the file's container (estimates for some formats).
     case container = "Container"
@@ -140,6 +140,22 @@ enum SourceInspector {
         let onDisk = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init)
         let sizeFact = onDisk.map { Fact(MediaFormats.formatSize($0), .platform) }
             ?? (song.fileSize > 0 ? Fact(MediaFormats.formatSize(song.fileSize), .library) : nil)
+        if DecodedAudioSource.requiresDecoder(url), let data = try? DecodedAudioSource.inspect(url),
+           let rate = (data["sampleRate"] as? NSNumber)?.intValue,
+           let channels = (data["channels"] as? NSNumber)?.intValue, rate > 0 {
+            let frames = (data["frames"] as? NSNumber)?.doubleValue ?? 0
+            let seconds = max(frames / Double(rate), 0)
+            let codec = data["codec"] as? String ?? "Ogg"
+            let ms = seconds * 1000
+            let duration: Int64? = ms.isFinite && ms > 0 && ms < Double(Int64.max) ? Int64(ms) : nil
+            let bitrate = duration.flatMap { $0 > 0 ? Int(Double(onDisk ?? song.fileSize) * 8000 / Double($0)) : nil }
+            return SourceDiagnostics(title: song.title, artist: song.artist, album: song.album,
+                container: Fact("Ogg", .container), codec: Fact(codec, .fileHeader),
+                sampleRate: Fact(MediaFormats.sampleRateText(rate), .fileHeader), channels: Fact(MediaFormats.channelsText(channels), .fileHeader),
+                bitDepth: nil, bitDepthNote: "\(codec) is lossy: it stores no bit depth",
+                bitrate: bitrate.map { Fact(MediaFormats.bitrateText($0), .container) },
+                duration: duration.map { Fact(formatDuration($0), .container) }, fileSize: sizeFact, problem: nil)
+        }
         guard let file = AudioFileReader(url) else {
             return fromLibrary(song, sizeFact: sizeFact, problem: "The file could not be opened, so these values come from the library index.")
         }
