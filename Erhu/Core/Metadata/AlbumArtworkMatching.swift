@@ -24,11 +24,10 @@ enum AlbumArtworkMatching {
     private static let editions = "deluxe|remaster(?:ed)?|anniversary|expanded|bonus|live|remix|mono|stereo|explicit|clean|collector|promo(?:tional)?|quadraphonic|box set"
     static func edition(_ title: String) -> Set<String> {
         let normal = normalize(title)
-        let words = Set(normal.split(separator: " ").map(String.init))
-        let markers = words.filter { Regex16("^(?:" + editions + ")$").firstMatch(in: $0) != nil }
+        let markers = Regex16("\\b(?:" + editions + ")\\b").matches(in: normal).map { $0.group(0, in: normal) }
         guard !markers.isEmpty else { return [] }
-        return Set(markers.map { $0.hasPrefix("remaster") ? "remaster" : $0 })
-            .union(words.filter { Regex16("^(19|20)[0-9]{2}$").firstMatch(in: $0) != nil })
+        let years = Regex16("\\b(?:19|20)[0-9]{2}\\b").matches(in: normal).map { $0.group(0, in: normal) }
+        return Set(markers.map { $0.hasPrefix("remaster") ? "remaster" : $0 }).union(years)
     }
     static func base(_ title: String) -> String {
         var text = title.lowercased()
@@ -63,6 +62,14 @@ enum AlbumArtworkMatching {
         var review: [String] = []
         if titleScore < 0.95 { review.append("Check album title") }
         if !knownArtist || artistScore < 0.92 { review.append("Check artist") }
+        func kind(_ title: String) -> String? {
+            let title = normalize(title)
+            if title.hasSuffix(" single") { return "single" }
+            if title.hasSuffix(" ep") { return "ep" }
+            return nil
+        }
+        let differentKind = kind(query.album) != kind(album) && (kind(query.album) != nil || kind(album) != nil)
+        if differentKind { review.append("Check album / single / EP") }
         let differentEdition = edition(query.album) != edition(album)
         if differentEdition { review.append("Different edition") }
         let differentYear = query.year > 0 && year > 0 && abs(query.year - year) > 1
@@ -70,7 +77,7 @@ enum AlbumArtworkMatching {
         if groupCover { review.append("Confirm release edition") }
         if query.year > 0 && year == 0 { review.append("Release year unavailable") }
         let score = 0.55 * titleScore + 0.4 * artistScore + (query.year == 0 || year == query.year ? 0.03 : 0) + 0.02
-            - (differentEdition ? 0.18 : 0) - (differentYear ? 0.1 : 0)
+            - (differentEdition ? 0.18 : 0) - (differentYear ? 0.1 : 0) - (differentKind ? 0.2 : 0)
         return AlbumArtworkMatch(album: album, artist: artist, year: year, review: review, score: min(1, max(0, score)))
     }
 }

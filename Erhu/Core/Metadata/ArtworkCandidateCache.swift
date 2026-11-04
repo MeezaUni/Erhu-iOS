@@ -33,6 +33,7 @@ actor ArtworkRequestClient: HTTPClient {
             try await Task.sleep(for: .seconds(min(time.timeIntervalSinceNow, 60)))
             try Task.checkCancellation()
         }
+        try Task.checkCancellation()
         next[host] = Date().addingTimeInterval(host == "musicbrainz.org" ? 1.1 : 0.25)
         let answer = try await base.get(url, headers: headers)
         if [429, 503].contains(answer.1.statusCode) {
