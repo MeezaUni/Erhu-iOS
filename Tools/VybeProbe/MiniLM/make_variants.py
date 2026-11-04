@@ -13,11 +13,13 @@ def fp32_output(source, target):
     variable = next(v for v in output.outputs if v.name == 'embedding')
     variable.name = 'embedding_fp16'
     dtype = block.operations.add(); dtype.type = 'const'
+    dtype.attributes['name'].type.tensorType.dataType = ct.proto.MIL_pb2.STRING
     dtype.attributes['name'].immediateValue.tensor.strings.values.append('embedding_output_dtype')
     value = dtype.attributes['val']; value.type.tensorType.dataType = ct.proto.MIL_pb2.STRING
     value.immediateValue.tensor.strings.values.append('fp32')
     node = dtype.outputs.add(); node.name = 'embedding_output_dtype'; node.type.tensorType.dataType = ct.proto.MIL_pb2.STRING
     cast = block.operations.add(); cast.type = 'cast'
+    cast.attributes['name'].type.tensorType.dataType = ct.proto.MIL_pb2.STRING
     cast.attributes['name'].immediateValue.tensor.strings.values.append('embedding_output_fp32')
     cast.inputs['x'].arguments.add().name = 'embedding_fp16'
     cast.inputs['dtype'].arguments.add().name = 'embedding_output_dtype'
