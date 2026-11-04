@@ -20,7 +20,9 @@ struct SettingsDestinationView: View {
 
 /// The Android settings groups, adapted to the controls and tools available on iOS.
 struct SettingsView: View {
+    @Environment(AppSettings.self) private var settings
     var body: some View {
+        @Bindable var settings = settings
         SettingsPage {
             SettingsGroup("Personalize") {
                 SettingsLink("Themes & Appearance", subtitle: "Colours, themes and appearance", icon: "paintpalette.fill", page: .appearance)
@@ -30,6 +32,7 @@ struct SettingsView: View {
                 SettingsLink("Visualizer", subtitle: "Style and feel of the Now Playing visualizer", icon: "waveform", page: .visualizer)
             }
             SettingsGroup("Library") {
+                Toggle("Show VYBE and radio discovery", isOn: $settings.vybeEnabled).padding(Spacing.lg)
                 SettingsLink("Music Library", subtitle: "Music folder, scanning and your collection", icon: "folder.fill", page: .library)
                 SettingsLink("Metadata & Artwork", subtitle: "Tags, cover art and online sources", icon: "number", page: .metadata)
             }
@@ -260,6 +263,13 @@ private struct AppearanceSettingsView: View {
                 }
                 if let themeMessage { Text(themeMessage).font(.footnote).foregroundStyle(.secondary).padding(Spacing.lg) }
             }
+            SettingsGroup("Typeface") {
+                Picker("App font", selection: Binding(get: { settings.typeface }, set: { settings.typeface = $0 })) {
+                    ForEach(AppTypeface.allCases) { font in Text(font.label).fontDesign(font.design).tag(font) }
+                }.padding(Spacing.lg)
+            }
+            Text("For system appearance and transparency options, open iPhone Settings → Accessibility → Display & Text Size. Liquid Glass options also depend on your iOS version.")
+                .font(.footnote).foregroundStyle(.secondary)
             Text("Import colours from an Android theme ZIP or its manifest.json.")
                 .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -401,6 +411,7 @@ private struct MetadataSettingsView: View {
 }
 
 private struct AboutSettingsView: View {
+    @State private var showingIntroduction = false
     var body: some View {
         SettingsPage {
             SettingsGroup("Erhu") {
@@ -425,13 +436,18 @@ private struct AboutSettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary).padding([.horizontal, .bottom], Spacing.lg)
             }
             SettingsGroup("Project") {
+                Button { showingIntroduction = true } label: {
+                    Label("Introduction & tool guide", systemImage: "book.closed").padding(Spacing.lg)
+                }
                 Link(destination: URL(string: "https://github.com/MeezaUni/Erhu-iOS")!) {
                     Label("Source code on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                         .frame(maxWidth: .infinity, alignment: .leading).padding(Spacing.lg)
                 }
             }
+            SettingsGroup("Updates") { ReleaseCheckView() }
         }
         .navigationTitle("About Erhu")
+        .sheet(isPresented: $showingIntroduction) { IntroductionView() }
     }
 }
 

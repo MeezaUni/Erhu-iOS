@@ -11,6 +11,9 @@ final class AppSettings {
         /// Glass material on floating surfaces, independent of the theme.
         var glassEnabled = true
         var startSection: String = LibrarySection.home.rawValue
+        var vybeEnabled = true
+        var introductionCompleted = false
+        var typeface: AppTypeface = .system
         var visualizer = VisualizerSettings()
         /// An imported theme in use instead of [theme], by id.
         var customThemeId: String?
@@ -24,6 +27,9 @@ final class AppSettings {
             theme = try c.decodeIfPresent(ThemeChoice.self, forKey: .theme) ?? .system
             glassEnabled = try c.decodeIfPresent(Bool.self, forKey: .glassEnabled) ?? true
             startSection = try c.decodeIfPresent(String.self, forKey: .startSection) ?? LibrarySection.home.rawValue
+            vybeEnabled = try c.decodeIfPresent(Bool.self, forKey: .vybeEnabled) ?? true
+            introductionCompleted = try c.decodeIfPresent(Bool.self, forKey: .introductionCompleted) ?? false
+            typeface = (try? c.decodeIfPresent(AppTypeface.self, forKey: .typeface)) ?? .system
             visualizer = (try? c.decodeIfPresent(VisualizerSettings.self, forKey: .visualizer)) ?? VisualizerSettings()
             customThemeId = try? c.decodeIfPresent(String.self, forKey: .customThemeId)
             importedThemes = (try? c.decodeIfPresent([ImportedTheme].self, forKey: .importedThemes)) ?? []
@@ -46,9 +52,27 @@ final class AppSettings {
     }
 
     var startSection: LibrarySection {
-        get { LibrarySection(rawValue: stored.startSection) ?? .home }
+        get { visibleSection(LibrarySection(rawValue: stored.startSection) ?? .home) }
         set { update { $0.startSection = newValue.rawValue } }
     }
+
+    var vybeEnabled: Bool {
+        get { stored.vybeEnabled }
+        set { update { $0.vybeEnabled = newValue }; store.saveNow(stored) }
+    }
+
+    var introductionCompleted: Bool {
+        get { stored.introductionCompleted }
+        set { update { $0.introductionCompleted = newValue }; store.saveNow(stored) }
+    }
+
+    var typeface: AppTypeface {
+        get { stored.typeface }
+        set { update { $0.typeface = newValue } }
+    }
+
+    var visibleSections: [LibrarySection] { LibrarySection.allCases.filter { vybeEnabled || $0 != .vybe } }
+    func visibleSection(_ section: LibrarySection) -> LibrarySection { !vybeEnabled && section == .vybe ? .home : section }
 
     var visualizer: VisualizerSettings {
         get { stored.visualizer }

@@ -5,6 +5,7 @@ import SwiftUI
 /// the lyrics card follows below and expands to full screen. The overflow menu holds information,
 /// bookmarks, playlists, mixes, radio, the queue, the visualizer, the equalizer and audio details.
 struct NowPlayingView: View {
+    @Environment(\.vybeEnabled) private var vybeEnabled
     @Environment(PlayerController.self) private var player
     @Environment(LibraryActions.self) private var actions
     @Environment(MixStore.self) private var mixes
@@ -241,8 +242,10 @@ struct NowPlayingView: View {
                 }
             }
             Section("Playback") {
-                Button { actions.startRadioFromCurrent() } label: { Label("Start radio", systemImage: "dot.radiowaves.left.and.right") }
-                if let radio = actions.radio, let song, radio.startSongId == song.id || radio.suggested.contains(song.id) {
+                if vybeEnabled, let song {
+                    Button { router.showsNowPlaying = false; router.open(.radio(.song(song.id))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") }
+                }
+                if vybeEnabled, let radio = actions.radio, let song, radio.startSongId == song.id || radio.suggested.contains(song.id) {
                     Button { actions.refreshRadio() } label: { Label("New radio picks", systemImage: "arrow.clockwise") }
                 }
                 Button { showsQueue = true } label: { Label("Queue", systemImage: "music.note.list") }

@@ -9,6 +9,7 @@ settings:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
+    ERHU_RELEASE_TAG: "v1.0-beta"
 targets:
   Erhu:
     type: application

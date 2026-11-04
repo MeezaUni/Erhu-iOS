@@ -277,6 +277,12 @@ final class TransferSession: @unchecked Sendable, CustomStringConvertible {
     /// Hard limit on a session's life, whatever happens: 3 hours.
     static let defaultLifetimeMs: Int64 = 3 * 60 * 60 * 1000
 
+    /// An explicitly started foreground session is closed by Stop, backgrounding or network loss.
+    /// A wall-clock deadline must not interrupt an upload while the user keeps Erhu open.
+    static func foreground(nowMs: Int64) -> TransferSession {
+        create(nowMs: nowMs, lifetimeMs: Int64.max - nowMs)
+    }
+
     let token: String
     let pairingCode: String
     let createdAtMs: Int64

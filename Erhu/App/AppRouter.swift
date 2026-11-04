@@ -83,6 +83,7 @@ enum Route: Hashable {
     case artist(Int64)
     case playlist(Int64)
     case smartPlaylist(String)
+    case radio(RadioSeed)
     case shelf(LibraryShelf)
     case allSongs
     case tool(Tool)
@@ -95,6 +96,7 @@ enum Route: Hashable {
 @Observable
 final class AppRouter {
     var section: LibrarySection = .home
+    var vybeEnabled = true
     var paths: [LibrarySection: NavigationPath] = Dictionary(uniqueKeysWithValues: LibrarySection.allCases.map { ($0, NavigationPath()) })
     var scrollToTopRequests: [LibrarySection: Int] = [:]
     var showsSearch = false
@@ -137,7 +139,7 @@ final class AppRouter {
         case .smartPlaylist(let key): section = .home; destination = .smartPlaylist(key)
         case .library: section = .library; destination = .allSongs
         case .favorites: section = .library; destination = .shelf(.favorites)
-        case .vybe: section = .vybe; destination = nil
+        case .vybe: section = vybeEnabled ? .vybe : .home; destination = nil
         }
         paths[section] = destination.map { NavigationPath([$0]) } ?? NavigationPath()
         showsDrawer = false
@@ -150,7 +152,10 @@ final class AppRouter {
             toggleFavorite: { actions.toggleFavorite($0) },
             playNext: { actions.playNext($0, source: source) },
             addToQueue: { actions.addToQueue($0, source: source) },
-            startRadio: { actions.startRadio(.song($0.id)) },
+            startRadio: { [weak self] song in
+                guard let self, self.vybeEnabled else { return }
+                self.open(.radio(.song(song.id)))
+            },
             addToPlaylist: { [weak self] song in self?.songsForPlaylist = [song] },
             viewDetails: { [weak self] song in self?.songForDetails = song },
             editTags: { [weak self] song in self?.songForTagEdit = song },

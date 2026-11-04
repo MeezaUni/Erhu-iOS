@@ -4,6 +4,8 @@ import SwiftUI
 /// Featured Albums, Recently Played albums and playlists, then every track. The shelves scroll
 /// away with the tracks; each shelf scrolls sideways on its own.
 struct HomeView: View {
+    @State private var releases = ReleaseChecker.shared
+    @Environment(\.vybeEnabled) private var vybeEnabled
     @Environment(LibraryStore.self) private var library
     @Environment(MixStore.self) private var mixes
     @Environment(PlayerController.self) private var player
@@ -13,21 +15,29 @@ struct HomeView: View {
     var body: some View {
         let songs = library.songs
         let smart = mixes.mixes
+        let visibleMixes = smart?.mixes.filter { vybeEnabled || ($0.kind != .yourSound && $0.kind != .aLittleDifferent) } ?? []
         let hasSongs = !songs.isEmpty
-        let showsHero = hasSongs && (!(smart?.mixes.isEmpty ?? true) || smart?.needsMoreListening == true)
+        let showsHero = hasSongs && (!visibleMixes.isEmpty || smart?.needsMoreListening == true)
         let hasShelves = hasSongs || !library.recentAlbums.isEmpty || !library.recentPlaylists.isEmpty
         let songActions = router.songActions(actions)
         let currentId = player.state.currentSong?.id
         LibraryRootScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
+                if case .available(let release) = releases.state {
+                    Button { router.open(.settingsPage(.about)) } label: {
+                        Label("Erhu \(release.tag_name) is available", systemImage: "arrow.down.circle")
+                            .font(.subheadline).padding(Spacing.lg)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                }
                 if showsHero, let smart {
-                    SmartMixHero(mixes: smart.mixes, needsMoreListening: smart.needsMoreListening,
+                    SmartMixHero(mixes: visibleMixes, needsMoreListening: smart.needsMoreListening,
                                  isActive: router.section == .home && (router.paths[.home]?.isEmpty ?? true) &&
                                      !router.showsNowPlaying && !router.showsSearch && !router.showsDrawer,
                                  onOpen: { router.open(.smartPlaylist($0)) }, onPlay: { actions.playMix($0) })
                         .padding(.top, Spacing.xs)
                         .padding(.bottom, Spacing.lg)
                 }
+                if vybeEnabled { RadioStationShelf() }
                 shelves(showsRecentNote: hasSongs)
                 if hasShelves { SectionHeading(title: "Tracks") }
                 if songs.isEmpty {

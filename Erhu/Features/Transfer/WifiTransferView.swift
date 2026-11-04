@@ -16,7 +16,7 @@ struct WifiTransferView: View {
                 case .starting:
                     Button("Starting…") {}.disabled(true)
                 case .stopped:
-                    Text("Starting opens a temporary, private transfer page on this Wi-Fi network only. It stops when you stop it, when Wi-Fi disconnects, when you leave Erhu, or after 10 minutes without activity.")
+                    Text("Tap Start to open a private transfer page on this Wi-Fi. It stays on until you tap Stop, leave Erhu or lose this network. You can use other pages in Erhu while it runs.")
                         .font(.subheadline)
                     Button { transfer.start() } label: { Label("Start transfer", systemImage: "wifi") }
                 }

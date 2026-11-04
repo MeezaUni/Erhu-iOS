@@ -35,7 +35,10 @@ final class AppServices {
         settings = AppSettings()
         sound = SoundStore(kernel: player.engine.eqKernel)
         lyrics = LyricsStore(database: database,
-                             repository: OnlineLyricsRepository(providers: [LrclibProvider(), LyricsOvhProvider()], cache: FileOnlineLyricsCache()))
+                             repository: OnlineLyricsRepository(providers: [LrclibProvider(), LyricsOvhProvider()],
+                                 cache: FileOnlineLyricsCache(folder: LibraryPaths.cachesFolder.appending(path: "online-lyrics")),
+                                 downloads: FileOnlineLyricsCache(folder: LibraryPaths.supportFolder.appending(path: "lyrics-downloads")),
+                                 legacy: FileOnlineLyricsCache()))
         router = AppRouter()
         transfer = WifiTransferStore(library: library)
         fixTags = FixTagsStore(library: library)
