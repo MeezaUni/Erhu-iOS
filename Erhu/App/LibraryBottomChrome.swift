@@ -110,7 +110,7 @@ private struct SectionCapsule: View {
     var body: some View {
         ZStack {
             GeometryReader { geometry in
-                let sections = LibrarySection.allCases
+                let sections = settings.visibleSections
                 let selected = sections.firstIndex(of: router.section) ?? 0
                 let position = draggedPosition ?? CGFloat(selected)
                 let slot = max(geometry.size.width - 8, 1) / CGFloat(sections.count)

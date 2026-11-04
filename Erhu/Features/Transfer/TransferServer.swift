@@ -17,6 +17,7 @@ final class TransferServer: @unchecked Sendable {
     private var connections: [ObjectIdentifier: NWConnection] = [:]
     private let lock = NSLock()
     private var stopped = false
+    var onFailure: @Sendable (String) -> Void = { _ in }
 
     init(address: String, limits: TransferLimits,
          allowsConnection: @escaping @Sendable (NWPath?) -> Bool = { $0?.usesInterfaceType(.wifi) == true },
@@ -53,14 +54,21 @@ final class TransferServer: @unchecked Sendable {
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 let resumed = OnceFlag()
-                listener.stateUpdateHandler = { [weak listener] state in
+                listener.stateUpdateHandler = { [weak self, weak listener] state in
                     switch state {
                     case .ready:
                         if resumed.claim() {
                             if let bound = listener?.port?.rawValue, bound != 0 { continuation.resume(returning: bound) }
                             else { listener?.cancel(); continuation.resume(throwing: NWError.posix(.EINVAL)) }
                         }
-                    case .failed(let error), .waiting(let error):
+                    case .failed(let error):
+                        if resumed.claim() {
+                            listener?.cancel()
+                            continuation.resume(throwing: error)
+                        } else if let self, !self.lock.withLock({ self.stopped }) {
+                            self.onFailure(error.localizedDescription)
+                        }
+                    case .waiting(let error):
                         if resumed.claim() {
                             listener?.cancel()
                             continuation.resume(throwing: error)

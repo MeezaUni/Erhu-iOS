@@ -93,13 +93,19 @@ final class LibraryActions {
     func startRadio(_ seed: RadioSeed) {
         Task {
             guard let plan = await mixes.radio(seed) else { return report(nil) }
-            let queue = songs([plan.startSongId] + plan.songIds)
-            if plan.songIds.isEmpty || queue.isEmpty { return report(plan) }
-            player.setShuffleModeEnabled(false)
-            player.playCollection(queue, startIndex: 0, origin: nil)
-            radio = RadioSession(seed: seed, startSongId: plan.startSongId, suggested: Set(plan.songIds))
-            report(plan)
+            playRadio(plan)
         }
+    }
+
+    /// Browsing a station is silent. Only an explicit Play or track selection calls this.
+    func playRadio(_ plan: RadioPlan, startingAt songId: Int64? = nil) {
+        let queue = songs([plan.startSongId] + plan.songIds)
+        guard !queue.isEmpty else { return report(nil) }
+        let index = songId.flatMap { id in queue.firstIndex { $0.id == id } } ?? 0
+        player.setShuffleModeEnabled(false)
+        player.playCollection(queue, startIndex: index, origin: nil)
+        radio = RadioSession(seed: plan.seed, startSongId: queue[index].id, suggested: Set(queue.map(\.id)))
+        report(plan)
     }
 
     /// A radio from the song playing now: it keeps playing and the radio replaces what comes next.

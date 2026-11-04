@@ -52,6 +52,8 @@ struct CachedLyrics: Codable, Equatable, Sendable {
     var userChosen = false
     /// Older missing-result entries did not prove that the synced source was available.
     var syncedLookupCompleted: Bool?
+    /// Nil in older automatically saved entries. Only a deliberate Download sets this.
+    var explicitDownload: Bool?
 }
 
 /// Storage of fetched lyrics.
@@ -98,6 +100,9 @@ actor OnlineLyricsRepository {
 
     private let providers: [OnlineLyricsProvider]
     private let cache: OnlineLyricsCache
+    private let downloads: OnlineLyricsCache?
+    private let legacy: OnlineLyricsCache?
+    private var selections: [Int64: CachedLyrics] = [:]
     private let now: @Sendable () -> Int64
     private struct Flight {
         let id: UUID
@@ -108,16 +113,46 @@ actor OnlineLyricsRepository {
     private var inFlight: [Int64: Flight] = [:]
 
     init(providers: [OnlineLyricsProvider], cache: OnlineLyricsCache,
+         downloads: OnlineLyricsCache? = nil, legacy: OnlineLyricsCache? = nil,
          now: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }) {
         self.providers = providers
         self.cache = cache
+        self.downloads = downloads
+        self.legacy = legacy
         self.now = now
     }
 
     /// The cached result for [track] if it still fits its metadata; never touches the network.
     func cached(_ track: LyricsTrack) async -> CachedLyrics? {
+        if let selected = selections[track.songId], selected.fingerprint == lyricsFingerprint(track.query) { return selected }
+        if let saved = await saved(track) { return saved }
         guard let entry = await cache.get(track.songId), entry.fingerprint == lyricsFingerprint(track.query) else { return nil }
         return entry
+    }
+
+    /// Durable downloads and the previous app's saved lyrics survive response-cache eviction.
+    func saved(_ track: LyricsTrack) async -> CachedLyrics? {
+        for source in [downloads, legacy].compactMap({ $0 }) {
+            if let entry = await source.get(track.songId), entry.fingerprint == lyricsFingerprint(track.query), entry.candidate?.bestText != nil { return entry }
+        }
+        return nil
+    }
+
+    func download(_ track: LyricsTrack, candidate: LyricsCandidate) async throws {
+        guard let downloads, candidate.bestText != nil else { throw CocoaError(.fileWriteUnknown) }
+        var entry = CachedLyrics(songId: track.songId, fingerprint: lyricsFingerprint(track.query), status: .found,
+                                 candidate: candidate, fetchedAtMs: now(), userChosen: true)
+        entry.explicitDownload = true
+        await downloads.put(entry)
+        guard await downloads.get(track.songId) == entry else { throw CocoaError(.fileWriteUnknown) }
+    }
+
+    func removeDownload(_ track: LyricsTrack) async throws {
+        for source in [downloads, legacy].compactMap({ $0 }) {
+            guard let entry = await source.get(track.songId), entry.fingerprint == lyricsFingerprint(track.query) else { continue }
+            await source.remove(track.songId)
+            guard await source.get(track.songId) == nil else { throw CocoaError(.fileWriteUnknown) }
+        }
     }
 
     /// Lyrics for [track]: from the cache, or looked up online. [refresh] ignores the cache. A caller
@@ -191,11 +226,13 @@ actor OnlineLyricsRepository {
         let entry = CachedLyrics(songId: track.songId, fingerprint: lyricsFingerprint(track.query),
                                  status: candidate.instrumental ? .instrumental : .found, candidate: candidate, fetchedAtMs: now(), userChosen: true)
         await cache.put(entry)
+        selections[track.songId] = entry
         return .found(candidate, fromCache: false, userChosen: true, fetchedAtMs: entry.fetchedAtMs)
     }
 
     /// Forgets what was fetched for [track] (the file's own lyrics, or a new lookup, take over).
     func forget(_ track: LyricsTrack) async {
+        selections[track.songId] = nil
         inFlight.removeValue(forKey: track.songId)?.task.cancel()
         await cache.remove(track.songId)
     }

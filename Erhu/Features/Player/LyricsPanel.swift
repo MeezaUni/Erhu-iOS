@@ -90,6 +90,7 @@ private struct LyricsPanelContent: View {
         let lyrics = store.current?.songId == song.id ? store.current : nil
         VStack(spacing: 0) {
             if let onExpand { cardHeader(lyrics, onExpand) } else { header(lyrics) }
+            if let error = store.downloadError { Text(error).font(.footnote).foregroundStyle(.secondary).padding(.horizontal) }
             if let notice = lyrics?.syncedServiceNotice {
                 Text(notice).font(.caption).foregroundStyle(palette.onSurface)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,6 +160,14 @@ private struct LyricsPanelContent: View {
             Text(origin(lyrics)).font(.caption.weight(.semibold)).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
             Spacer()
             Menu {
+                if store.canDownload {
+                    Button { store.downloadLyrics() } label: { Label("Download lyrics", systemImage: "arrow.down.circle") }.disabled(store.savingLyrics)
+                }
+                if let saved = store.savedLyrics {
+                    Button(role: .destructive) { store.removeDownloadedLyrics() } label: {
+                        Label(saved.explicitDownload == true ? "Remove downloaded lyrics" : "Remove previously saved lyrics", systemImage: "trash")
+                    }.disabled(store.savingLyrics)
+                }
                 Button { store.refresh() } label: { Label("Refresh online lyrics", systemImage: "arrow.clockwise") }
                 Button {
                     searchText = "\(song.title) \(song.artist)"
@@ -183,7 +192,7 @@ private struct LyricsPanelContent: View {
         switch lyrics.origin {
         case .file: return lyrics.parsed.map { if case .plain = $0 { "Lyrics · not synced" } else { "Lyrics" } } ?? "Lyrics"
         case .online, .onlineSaved:
-            return "From \(lyrics.provider ?? "online") · \(lyrics.timing?.label ?? "")"
+            return "From \(lyrics.provider ?? "online") · \(lyrics.timing?.label ?? "")" + (store.currentIsDownloaded ? " · downloaded" : (lyrics.origin == .onlineSaved ? " · cached" : ""))
         }
     }
 

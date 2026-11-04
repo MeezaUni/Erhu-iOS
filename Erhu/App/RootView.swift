@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 /// a glass bottom bar with the mini player above it, Search beside the sections, and the side menu
 /// with the tools.
 struct RootView: View {
+    @Environment(AppSettings.self) private var settings
     @Environment(LibraryStore.self) private var library
     @Environment(PlayerController.self) private var player
     @Environment(LibraryActions.self) private var actions
@@ -28,7 +29,7 @@ struct RootView: View {
         @Bindable var library = library
         ZStack(alignment: .bottom) {
             palette.background.ignoresSafeArea()
-            ForEach(LibrarySection.allCases) { section in
+            ForEach(settings.visibleSections) { section in
                 sectionStack(section)
                     .environment(\.motionCoverVisible, router.section == section && (!playerMotion.isPresented || playerMotion.isCollapsing))
                     .opacity(router.section == section ? 1 : 0)
@@ -88,9 +89,18 @@ struct RootView: View {
         } message: {
             Text(library.errorMessage ?? "")
         }
-        .onAppear { library.scan() }
+        .environment(\.vybeEnabled, settings.vybeEnabled)
+        .fullScreenCover(isPresented: Binding(get: { !settings.introductionCompleted }, set: { if !$0 { settings.introductionCompleted = true } })) {
+            IntroductionView(firstLaunch: true)
+        }
+        .onChange(of: settings.vybeEnabled, initial: true) { _, enabled in
+            router.vybeEnabled = enabled
+            router.section = settings.visibleSection(router.section)
+            if !enabled { router.paths[.vybe] = NavigationPath() }
+        }
+        .onAppear { library.scan(); Task { await ReleaseChecker.shared.check() } }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { library.scan() }
+            if phase == .active { library.scan(); Task { await ReleaseChecker.shared.check() } }
             if phase == .background {
                 transfer.stop(.backgrounded)
                 player.persistNow()
@@ -137,6 +147,7 @@ struct RootView: View {
             case .artist(let id): ArtistDetailView(artistId: id)
             case .playlist(let id): PlaylistDetailView(playlistId: id)
             case .smartPlaylist(let key): SmartPlaylistDetailView(mixKey: key)
+            case .radio(let seed): RadioStationView(seed: seed)
             case .shelf(let shelf): LibraryShelfView(shelf: shelf)
             case .allSongs: AllSongsView()
             case .tool(let tool): ToolView(tool: tool)

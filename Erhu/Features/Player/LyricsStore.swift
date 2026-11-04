@@ -75,6 +75,14 @@ struct SongLyrics: Equatable {
 @Observable
 final class LyricsStore {
     private(set) var current: SongLyrics?
+    private(set) var savedLyrics: CachedLyrics?
+    private(set) var downloadError: String?
+    private(set) var savingLyrics = false
+    private var preferredFileSongs: Set<Int64> = []
+    var currentIsDownloaded: Bool {
+        savedLyrics?.explicitDownload == true && savedLyrics?.candidate == online?.candidate
+    }
+    var canDownload: Bool { current?.origin != .file && online?.candidate?.bestText != nil && !currentIsDownloaded }
 
     private let database: LibraryDatabase
     private let repository: OnlineLyricsRepository
@@ -102,17 +110,54 @@ final class LyricsStore {
 
     /// The lyrics page shows [song]: read its file lyrics and look online if needed (once per song).
     func shown(_ song: Song) {
-        if self.song?.id != song.id || embedded == nil {
+        let metadataChanged = self.song?.lyricsTrack != song.lyricsTrack
+        if metadataChanged || embedded == nil {
+            if metadataChanged { online = nil }
             cancelSearch()
             self.song = song
             embedded = try? database.lyrics(songId: song.id)
             manual = .idle
+            savedLyrics = nil; downloadError = nil
+            Task {
+                let saved = await repository.saved(song.lyricsTrack)
+                guard self.song?.id == song.id else { return }
+                savedLyrics = saved
+            }
         }
+        if preferredFileSongs.contains(song.id) { online = OnlineView(songId: song.id, lookup: .idle); publish(); return }
         if online?.songId != song.id { startLookup(refresh: false) }
         publish()
     }
 
-    func refresh() { startLookup(refresh: true) }
+    func refresh() {
+        if let song { preferredFileSongs.remove(song.id) }
+        startLookup(refresh: true)
+    }
+
+    func downloadLyrics() {
+        guard !savingLyrics, let song, let candidate = online?.candidate, canDownload else { return }
+        savingLyrics = true; downloadError = nil
+        Task {
+            defer { savingLyrics = false }
+            do {
+                try await repository.download(song.lyricsTrack, candidate: candidate)
+                let saved = await repository.saved(song.lyricsTrack)
+                if self.song?.id == song.id { savedLyrics = saved }
+            } catch { if self.song?.id == song.id { downloadError = "Lyrics could not be saved. Check available storage and retry." } }
+        }
+    }
+
+    func removeDownloadedLyrics() {
+        guard !savingLyrics, let song else { return }
+        savingLyrics = true; downloadError = nil
+        Task {
+            defer { savingLyrics = false }
+            do {
+                try await repository.removeDownload(song.lyricsTrack)
+                if self.song?.id == song.id { savedLyrics = nil }
+            } catch { if self.song?.id == song.id { downloadError = "Saved lyrics could not be removed. Try again." } }
+        }
+    }
 
     func search(_ text: String) {
         guard let song else { return }
@@ -140,6 +185,7 @@ final class LyricsStore {
     /// The user picked a result: it is shown, kept, and preferred for this song (the file is never changed).
     func choose(_ candidate: LyricsCandidate) {
         guard let song else { return }
+        preferredFileSongs.remove(song.id)
         lookupTask?.cancel()
         lookupID = UUID()
         cancelSearch()
@@ -156,6 +202,7 @@ final class LyricsStore {
     /// Back to the file's own lyrics: the online result for this song is forgotten.
     func useFileLyrics() {
         guard let song else { return }
+        preferredFileSongs.insert(song.id)
         lookupTask?.cancel()
         lookupID = UUID()
         cancelSearch()

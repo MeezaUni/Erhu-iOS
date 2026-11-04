@@ -60,6 +60,7 @@ func collectionFacts(year: Int? = nil, songs: [Song]) -> String {
 
 /// An album: cover, facts (and "Lossless" when any track is), Play / Shuffle, its tracks by number.
 struct AlbumDetailView: View {
+    @Environment(\.vybeEnabled) private var vybeEnabled
     let albumId: Int64
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
@@ -97,7 +98,7 @@ struct AlbumDetailView: View {
             Menu {
                 Button { songs.reversed().forEach { actions.playNext($0) } } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
                 Button { songs.forEach { actions.addToQueue($0) } } label: { Label("Add to queue", systemImage: "text.badge.plus") }
-                Button { actions.startRadio(.album(albumId)) } label: { Label("Start radio", systemImage: "dot.radiowaves.left.and.right") }
+                if vybeEnabled { Button { router.open(.radio(.album(albumId))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
                 Button { router.songsForPlaylist = songs } label: { Label("Add to playlist", systemImage: "music.note.list") }
                 Button { AppServices.shared.fixTags.enqueue(songs); router.open(.autoFixTags) } label: {
                     Label("Fix tags online", systemImage: "wand.and.stars")
@@ -119,6 +120,7 @@ struct AlbumDetailView: View {
 /// An artist: photo or monogram, Play / Shuffle, albums split into Albums, EPs and Singles, then
 /// features, credited songs and their own tracks.
 struct ArtistDetailView: View {
+    @Environment(\.vybeEnabled) private var vybeEnabled
     let artistId: Int64
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
@@ -164,7 +166,7 @@ struct ArtistDetailView: View {
             Menu {
                 Button { primary.reversed().forEach { actions.playNext($0) } } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
                 Button { primary.forEach { actions.addToQueue($0) } } label: { Label("Add to queue", systemImage: "text.badge.plus") }
-                Button { actions.startRadio(.artist(artistId)) } label: { Label("Start radio", systemImage: "dot.radiowaves.left.and.right") }
+                if vybeEnabled { Button { router.open(.radio(.artist(artistId))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
                 if let artist = library.artist(artistId) {
                     Button { artworkTarget = .artist(artist) } label: { Label("Find a photo", systemImage: "person.crop.square") }
                     if artist.artworkPath != nil {
@@ -215,6 +217,7 @@ struct ArtistDetailView: View {
 
 /// A playlist: cover, facts, Play / Shuffle, its songs; rename, delete, remove a song.
 struct PlaylistDetailView: View {
+    @Environment(\.vybeEnabled) private var vybeEnabled
     let playlistId: Int64
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
@@ -257,7 +260,7 @@ struct PlaylistDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             Menu {
-                Button { actions.startRadio(.song(songs.first?.id ?? 0)) } label: { Label("Start radio", systemImage: "dot.radiowaves.left.and.right") }
+                if vybeEnabled { Button { router.open(.radio(.song(songs.first?.id ?? 0))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
                     .disabled(songs.isEmpty)
                 Button {
                     newName = library.playlist(playlistId)?.name ?? ""
@@ -314,6 +317,7 @@ struct PlaylistDetailView: View {
 
 /// A smart mix's page: generated cover, title, how it was made, facts, Play / Shuffle, its songs.
 struct SmartPlaylistDetailView: View {
+    @Environment(\.vybeEnabled) private var vybeEnabled
     let mixKey: String
     @Environment(MixStore.self) private var mixes
     @Environment(LibraryStore.self) private var library

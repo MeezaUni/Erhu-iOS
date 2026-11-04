@@ -130,6 +130,7 @@ struct ThemedRoot<Content: View>: View {
         let palette = settings.customTheme?.palette
             ?? (followsArtwork ? .artwork(artworkPalette.palette(for: source), scheme: scheme) : (scheme == .dark ? .dark : .light))
         content
+            .fontDesign(settings.typeface.design)
             .environment(\.palette, palette)
             .environment(\.playbackPalette, palette)
             .tint(palette.primary)

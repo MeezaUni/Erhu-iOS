@@ -25,7 +25,6 @@ enum TransferServerState: Equatable {
 @Observable
 final class WifiTransferStore {
     /// Stop after this long without any request from the computer (no upload running).
-    static let idleTimeoutMs: Int64 = 10 * 60 * 1000
     private static let watchdogInterval: Duration = .seconds(15)
     /// One rescan after a batch of files, not one per file.
     private static let quietPeriod: Duration = .seconds(4)
@@ -69,7 +68,7 @@ final class WifiTransferStore {
         }
         state = .starting
         let now = Self.now()
-        let newSession = TransferSession.create(nowMs: now)
+        let newSession = TransferSession.foreground(nowMs: now)
         let newSink = FolderUploadSink()
         registry.clear()
         let registry = registry
@@ -83,6 +82,12 @@ final class WifiTransferStore {
         )
         let newServer = TransferServer(address: address, limits: limits) { hostPort in
             TransferRouter(session: newSession, hostPort: hostPort, sink: newSink, registry: registry, limits: limits, events: events)
+        }
+        newServer.onFailure = { [weak self, weak newServer] message in
+            Task { @MainActor in
+                guard let self, self.server === newServer else { return }
+                self.finish(.failedToStart(message))
+            }
         }
         // Own the starting server/session as well as the running one, so Stop and backgrounding
         // can cancel startup. Identity checks prevent an old attempt from changing a new session.
@@ -153,15 +158,14 @@ final class WifiTransferStore {
 
     private func startWatchdog(_ current: TransferSession, address: String) {
         watchdog = Task {
+            var network = TransferNetworkContinuity()
             while !Task.isCancelled {
                 try? await Task.sleep(for: Self.watchdogInterval)
                 if Task.isCancelled { return }
                 let now = Self.now()
                 if !current.isOpen(now) {
                     stop(.sessionExpired)
-                } else if activity.uploading == 0, now - activity.lastActivity > Self.idleTimeoutMs {
-                    stop(.idleTimeout)
-                } else if addressProvider() != address {
+                } else if network.shouldStop(address: addressProvider(), expected: address) {
                     stop(.wifiLost)
                 }
             }
@@ -169,6 +173,16 @@ final class WifiTransferStore {
     }
 
     private static func now() -> Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
+}
+
+/// A transient interface lookup must not close healthy uploads. A sustained address change
+/// needs a fresh session/address, and is reported after three watchdog observations.
+struct TransferNetworkContinuity {
+    private var mismatches = 0
+    mutating func shouldStop(address: String?, expected: String) -> Bool {
+        mismatches = address == expected ? 0 : mismatches + 1
+        return mismatches >= 3
+    }
 }
 
 /// Request activity and running uploads, updated from the server's threads.
