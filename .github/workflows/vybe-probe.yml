@@ -6,8 +6,32 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
+  diagnostics:
+    if: contains(github.event.head_commit.message, '[diagnostic]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read owned-repository simulator progress if available
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for JOB in 126781687542 126782219778; do
+            if gh api "repos/MeezaUni/Erhu-iOS/actions/jobs/$JOB/logs" > "/tmp/job-$JOB.log" 2>/tmp/log-status; then
+              JOB_ID="$JOB" python3 - <<'PYREPORT'
+          import os
+          from pathlib import Path
+          lines=Path('/tmp/job-'+os.environ['JOB_ID']+'.log').read_text(errors='replace').splitlines()
+          selected=[line for line in lines if any(key in line for key in ['error:', 'Test Case ', 'Test case ', 'Test Suite ', 'Testing started', 'Testing failed', '** TEST', 'SwiftCompile normal', 'CoreSimulator'])]
+          for line in (selected[-22:] or lines[-12:]):
+              print('::notice title=Simulator '+os.environ['JOB_ID']+'::'+line[-900:].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PYREPORT
+            else
+              echo "::notice title=Simulator logs::Job $JOB logs are not yet available through the job-log API."
+            fi
+          done
   probe:
+    if: "!contains(github.event.head_commit.message, '[diagnostic]')"
     runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
