@@ -20,9 +20,20 @@ jobs:
           python3 - <<'PYREPORT'
           from pathlib import Path
           lines=Path('/tmp/prior-probe.log').read_text(errors='replace').splitlines()
-          selected=[s for s in lines if any(k in s.lower() for k in ['error:', 'vybe_probe', 'failed', 'exception', 'could not', 'unable to', 'fatal'])]
-          for line in (selected[-35:] or lines[-30:]):
-              print('::notice title=Previous VYBE probe::'+line.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          selected=[]
+          for index,line in enumerate(lines):
+              if any(k in line.lower() for k in ['check failed', 'fatal', 'terminating app', 'reason:', 'absl::', 'nsinvalidargument', 'sigabrt']):
+                  selected.extend(lines[max(0,index-3):index+10])
+          for line in list(dict.fromkeys(selected))[:55]:
+              print('::notice title=Previous VYBE crash::'+line.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PYREPORT
+          gh api repos/MeezaUni/Erhu-iOS/contributors --jq '.[] | {login,contributions}' > /tmp/contributors.json
+          gh api 'repos/MeezaUni/Erhu-iOS/pulls?state=open&per_page=100' --jq '.[] | {number,head:.head.ref}' > /tmp/reviews.json
+          python3 - <<'PYREPORT'
+          from pathlib import Path
+          for name in ['contributors','reviews']:
+              for line in Path('/tmp/'+name+'.json').read_text().splitlines():
+                  print('::notice title=Repository '+name+'::'+line.replace('%','%25'))
           PYREPORT
   probe:
     if: "!contains(github.event.head_commit.message, '[diagnostic]')"
