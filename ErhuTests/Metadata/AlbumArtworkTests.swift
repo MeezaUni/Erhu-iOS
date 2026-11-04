@@ -51,6 +51,18 @@ final class AlbumArtworkTests: XCTestCase {
         XCTAssertEqual(after.count, requests.count)
     }
 
+    func testArchiveNeverDownloadsBackOrUnapprovedImages() async throws {
+        let root = temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let client = ArtworkFixtureHTTP(image: try image(width: 640, height: 640), archive: true)
+        let results = await ArtworkSearch(client: client, cache: ArtworkCandidateCache(root: root))
+            .albumCovers(album: "Discovery", artist: "Daft Punk", year: 2001)
+        XCTAssertFalse(results.isEmpty)
+        let requests = await client.requests
+        XCTAssertTrue(requests.contains { $0.contains("approved-front") })
+        XCTAssertFalse(requests.contains { $0.contains("back-cover") || $0.contains("unapproved-cover") })
+    }
+
     func testPreviewedImageCannotSilentlyChangeAfterCacheEviction() async throws {
         let root = temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -86,7 +98,7 @@ final class AlbumArtworkTests: XCTestCase {
         let context = try XCTUnwrap(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                                             space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         context.setFillColor(CGColor(red: red ? 1 : 0, green: 0, blue: red ? 0 : 1, alpha: 1))
-        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.fill(CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
         let data = NSMutableData()
         let destination = try XCTUnwrap(CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil))
         CGImageDestinationAddImage(destination, try XCTUnwrap(context.makeImage()), nil)
@@ -99,7 +111,8 @@ private actor ArtworkFixtureHTTP: HTTPClient {
     let image: Data
     private(set) var requests: [String] = []
     private var offline = false
-    init(image: Data) { self.image = image }
+    private let archive: Bool
+    init(image: Data, archive: Bool = false) { self.image = image; self.archive = archive }
     func disableNetwork() { offline = true }
     func get(_ url: URL, headers: [String: String]) async throws -> (Data, HTTPURLResponse) {
         requests.append(url.absoluteString)
@@ -108,7 +121,13 @@ private actor ArtworkFixtureHTTP: HTTPClient {
         if url.host == "example.com" { data = image }
         else if url.host == "itunes.apple.com" {
             data = Data(#"{"results":[{"collectionName":"Discovery","artistName":"Daft Punk","releaseDate":"2001-03-12","artworkUrl100":"https://example.com/cover.jpg"},{"collectionName":"Discovery","artistName":"Pink Floyd","artworkUrl100":"https://example.com/wrong-cover.jpg"}]}"#.utf8)
-        } else if url.path == "/ws/2/release" { data = Data(#"{"releases":[]}"#.utf8) }
+        } else if url.path == "/ws/2/release" {
+            data = archive
+                ? Data(#"{"releases":[{"id":"11111111-1111-1111-1111-111111111111","title":"Discovery","date":"2001-03-12","artist-credit":[{"name":"Daft Punk"}]}]}"#.utf8)
+                : Data(#"{"releases":[]}"#.utf8)
+        } else if url.host == "coverartarchive.org" {
+            data = Data(#"{"images":[{"image":"https://example.com/approved-front.jpg","front":true,"approved":true},{"image":"https://example.com/back-cover.jpg","front":false,"approved":true},{"image":"https://example.com/unapproved-cover.jpg","front":true,"approved":false}]}"#.utf8)
+        }
         else if url.path == "/ws/2/release-group" { data = Data(#"{"release-groups":[]}"#.utf8) }
         else { data = Data(#"{"data":[]}"#.utf8) }
         return (data, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
