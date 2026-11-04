@@ -10,6 +10,7 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     ERHU_RELEASE_TAG: "v1.0-beta"
+    SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) ERHU_ANIMATED_ART"
 packages:
   Ogg:
     url: https://github.com/sbooth/ogg-binary-xcframework

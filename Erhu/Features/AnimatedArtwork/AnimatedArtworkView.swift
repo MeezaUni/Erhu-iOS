@@ -39,6 +39,15 @@ struct AnimatedArtworkView: View {
                 Button("Retry Lock Screen artwork") { player.refreshLockScreenArtwork() }
                     .disabled(!store.enabled || player.state.currentSong == nil || player.lockScreenMotion.status == .preparing)
             }.toolSectionAppearance()
+            if let message = store.compressionMessage {
+                Section { Text(message).font(.footnote) }.toolSectionAppearance()
+            }
+            if store.compressing != nil {
+                Section {
+                    ProgressView("Compressing and checking every frame…")
+                    Button("Cancel compression", role: .cancel) { store.cancel() }
+                }.toolSectionAppearance()
+            }
             if store.downloading != nil {
                 Section { Button("Cancel download", role: .cancel) { store.cancel() } }.toolSectionAppearance()
             }
@@ -58,17 +67,25 @@ struct AnimatedArtworkView: View {
                         else if store.saved.covers[String(album.id)] != nil { Text("Downloaded · available offline").font(.caption).foregroundStyle(.secondary) }
                         HStack {
                             Button(store.saved.covers[String(album.id)] == nil ? "Find & download" : "Download again") { store.download(album) }
-                                .disabled(store.downloading != nil)
+                                .disabled(store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
                             if store.saved.covers[String(album.id)] != nil {
                                 Spacer()
                                 Button("Remove", role: .destructive) { store.remove(album) }.disabled(store.downloading == album.id)
                             }
                         }.buttonStyle(.bordered)
+                        if let cover = store.saved.covers[String(album.id)], cover.compressedSquare != true {
+                            Button("Compress square cover…") { store.compress(album) }
+                                .buttonStyle(.bordered)
+                                .disabled(store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                        }
                     }.padding(.vertical, Spacing.xs)
                 }
             }.toolSectionAppearance()
         }.modifier(ToolPageAppearance())
         .searchable(text: $query, prompt: "Album or artist")
         .navigationTitle("Animated covers")
+        .sheet(item: Binding(get: { store.compressionPreview }, set: { if $0 == nil { store.discardCompression() } }), onDismiss: { store.discardCompression() }) { preview in
+            MotionCompressionPreviewView(preview: preview)
+        }
     }
 }

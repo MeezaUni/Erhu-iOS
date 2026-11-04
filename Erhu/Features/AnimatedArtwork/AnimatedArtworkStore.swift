@@ -7,8 +7,9 @@ struct SavedMotionCover: Codable, Equatable {
     let artist: String
     let catalogId: Int64
     let storefront: String
-    let fileName: String
+    var fileName: String
     var portraitFileName: String? = nil
+    var compressedSquare: Bool? = nil
 }
 
 enum MotionCoverStatus: Equatable {
@@ -33,6 +34,10 @@ final class AnimatedArtworkStore {
     private(set) var saved: Saved
     private(set) var status: [Int64: MotionCoverStatus] = [:]
     private(set) var downloading: Int64?
+    private(set) var compressing: Int64?
+    private(set) var compressionPreview: MotionCompressionPreview?
+    private(set) var compressionMessage: String?
+    @ObservationIgnored private var compressionTask: Task<Void, Never>?
     @ObservationIgnored private let persistence = JSONStore<Saved>(name: "motion-covers.json")
     @ObservationIgnored private let service = AppleMotionService()
     @ObservationIgnored private var pending: Task<Void, Never>?
@@ -65,7 +70,7 @@ final class AnimatedArtworkStore {
     }
 
     func download(_ album: Album) {
-        guard downloading == nil else { return }
+        guard downloading == nil, compressing == nil, compressionPreview == nil else { return }
         downloading = album.id
         status[album.id] = .downloading
         pending = Task {
@@ -120,10 +125,67 @@ final class AnimatedArtworkStore {
         }
     }
 
-    func cancel() { pending?.cancel() }
+    func cancel() { pending?.cancel(); compressionTask?.cancel() }
+
+    func compress(_ album: Album) {
+        guard downloading == nil, compressing == nil, compressionPreview == nil,
+              let cover = saved.covers[String(album.id)], cover.compressedSquare != true else { return }
+        let original = Self.folder.appendingPathComponent(cover.fileName)
+        let candidate = Self.folder.appendingPathComponent(UUID().uuidString + ".mp4")
+        compressing = album.id; compressionMessage = nil
+        compressionTask = Task {
+            defer { compressing = nil; compressionTask = nil }
+            do {
+                let attributes = try original.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+                let work = Task.detached(priority: .utility) {
+                    try await MotionCoverCompressor.prepare(original, candidate: candidate)
+                }
+                try await withTaskCancellationHandler(operation: { try await work.value }, onCancel: { work.cancel() })
+                try Task.checkCancellation()
+                let current = try original.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+                guard current.fileSize == attributes.fileSize, current.contentModificationDate == attributes.contentModificationDate,
+                      saved.covers[String(album.id)]?.fileName == cover.fileName else { throw MotionCompressionError.changed }
+                _ = await MotionCoverPosterCache.shared.image(for: candidate)
+                try Task.checkCancellation()
+                compressionPreview = MotionCompressionPreview(albumId: album.id, title: album.title, original: original, candidate: candidate,
+                    originalBytes: Int64(attributes.fileSize ?? 0), candidateBytes: Int64(try candidate.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0),
+                    modified: attributes.contentModificationDate ?? .distantPast)
+            } catch {
+                removeFile(candidate)
+                compressionMessage = error is CancellationError ? "Compression cancelled. Original kept." : error.localizedDescription
+            }
+        }
+    }
+
+    func discardCompression() {
+        guard let preview = compressionPreview else { return }
+        compressionPreview = nil
+        removeFile(preview.candidate)
+    }
+
+    func acceptCompression() {
+        guard let preview = compressionPreview, var cover = saved.covers[String(preview.albumId)] else { return }
+        do {
+            let attributes = try preview.original.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+            guard attributes.fileSize == Int(preview.originalBytes), attributes.contentModificationDate == preview.modified,
+                  cover.fileName == preview.original.lastPathComponent else { throw MotionCompressionError.changed }
+            cover.fileName = preview.candidate.lastPathComponent; cover.compressedSquare = true
+            var updated = saved
+            updated.covers[String(preview.albumId)] = cover
+            // Atomically publish the manifest before releasing the previous artwork.
+            let data = try JSONEncoder().encode(updated)
+            let manifest = LibraryPaths.supportFolder.appending(path: "motion-covers.json")
+            try data.write(to: manifest, options: .atomic)
+            saved = updated
+            compressionPreview = nil
+            onChange?()
+            removeFile(preview.original)
+            compressionMessage = "Saved " + ByteCountFormatter.string(fromByteCount: preview.saving, countStyle: .file) + ". Portrait artwork was kept."
+        } catch { compressionMessage = error.localizedDescription }
+    }
 
     func remove(_ album: Album) {
-        guard downloading != album.id else { return }
+        guard downloading != album.id, compressing != album.id, compressionPreview?.albumId != album.id else { return }
         if let old = saved.covers.removeValue(forKey: String(album.id)) {
             persistence.saveNow(saved)
             onChange?()
