@@ -40,11 +40,11 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 | Android | iOS | Notes |
 |---|---|---|
 | Smart Playlists (rotation, your sound, forgotten, deep cuts, moods, spotlight, throwbacks, …) | ✅ | Same scoring and tie-break hashes; Android's tests ported |
-| Smart Radio (song, album, artist; new picks) | 🟡 | Generation, playback and fresh picks are ported; Android's featured-station browsing shelf and detail pages are not |
+| Smart Radio (song, album, artist; new picks) | ✅ | Featured station shelf and browse-before-play details use the existing local radio engine |
 | Generated mix covers and home banners | ✅ | Same seeds and Kotlin random sequence, so covers match |
 | Featured Albums | ✅ | |
 | VYBE (on-device search by mood, genre, tempo, artist) | ✅ | iOS uses a bundled ~17 MB, 6-bit MiniLM sentence encoder through Core ML; Android's supplied EmbeddingGemma bundle is ~184 MB. A cached word index handles partial names, conservative typos and Ye/Kanye plus approved aliases, with selectable ambiguous matches. Genre aliases, exclusions, BPM/year filters and diversity among close matches stay offline. See `VYBE.md` for model provenance, tests and limitations. |
-| Persisted VYBE visibility preference | ⏳ | VYBE remains visible; Android's switch also hides radio actions and selected mixes |
+| Persisted VYBE visibility preference | ✅ | Hides the tab, radio actions/stations and selected personal mixes; the introduction and Settings share the same preference |
 
 ## Lyrics
 
@@ -52,29 +52,32 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 |---|---|---|
 | Embedded lyrics, LRC / enhanced LRC (word timing) | ✅ | |
 | Synced-first LRCLIB lookup, cache, and manual alternatives | ✅ | Auto-selects real synced matches; provider failures switch immediately with a reason and accurate fallback timing. Search online lists alternatives. |
-| Explicit lyrics Download / Remove, separate from response cache | ⏳ | iOS automatically persists lookup matches; Android now distinguishes cached responses from user-requested offline downloads |
+| Explicit lyrics Download / Remove, separate from response cache | ✅ | Durable downloads are separate from evictable responses; older saved lyrics are retained and can be removed explicitly |
 | Lyrics colour palette from artwork | ✅ | Muted artwork hues use deep shades in dark appearance and pale shades in light appearance, with tonal gradients and contrast checks. Player cards, lyrics, Settings and tool pages follow the active theme. Settings and drawer links use the same tool destinations and styling |
 
 ## Tools
 
 | Android | iOS | Notes |
 |---|---|---|
-| Wi-Fi Transfer | ✅ | Same page, routes, pairing and checks. Runs only while Erhu is open (iOS suspends apps in the background). Ogg and Opus are refused because iOS cannot play them. |
-| Auto Fix Tags / metadata editor (MusicBrainz, iTunes, Deezer, Last.fm, Discogs, Genius, Wikipedia, AcoustID-free matching, tag writing, revert) | ✅ | Matcher, scorer, filename cleaner and field planner ported with their tests; iTunes, MusicBrainz, Deezer and Last.fm searched (Last.fm with the listener's own key from Settings › Metadata & Artwork › Online sources); native tag writer for MP3 (ID3v2.4), M4A and FLAC with read-back verification; revert restores the kept original. Not yet: Genius (needs its own token), renaming files (song identity is the path on iOS) |
-| Artwork Fetcher (album covers, artist photos, Fanart.tv) | ✅ | iTunes, Cover Art Archive, Deezer, Wikimedia, and Fanart.tv and Discogs when their keys are set in Settings › Metadata & Artwork › Online sources; missing artist photos are matched with the safe Deezer matcher automatically on launch and after library additions; the manual picker includes existing photos for replacements; covers embedded with the verified writer; playlist covers from Photos. Not ported: Genius / DuckDuckGo scraping |
+| Wi-Fi Transfer | ✅ | Same page, routes, pairing and checks. Runs only while Erhu is open (iOS suspends apps in the background). Ogg Vorbis/Opus imports use local Xiph decoding; originals are unchanged. |
+| Auto Fix Tags / metadata editor | ✅ | Keyless iTunes Search, MusicBrainz and Deezer; verified MP3/M4A/FLAC tag writing and revert. Retired credential-based providers and their settings were removed. File renaming remains deferred |
+| Artwork Fetcher | ✅ | Keyless iTunes, MusicBrainz/Cover Art Archive, Deezer and licence-filtered Commons. Creator/source/licence credits are retained for selected Commons images. Browser image search and Photos import remain user-controlled |
 | Animated album artwork (Apple Music motion covers) | Separate branch | Available on `with-animated-art`; this `without-animated-art` branch uses static artwork only |
 | BPM finder | ✅ | AcousticBrainz, then the on-device tempo estimate; only fills a missing BPM |
-| Themes, skins, theme import and rollback | 🟡 | Light / dark / system, artwork colours and imported theme packages (colours) are ported; fonts and widget skins aren't used on iOS |
+| Themes, skins, theme import and rollback | 🟡 | Light / dark / system, artwork colours and imported theme packages (colours) are ported; native system/rounded/serif/monospaced choices are available; Android font packages and widget skins are not imported |
 | Settings navigation | ✅ | Grouped cards, circular icon badges, illustrated theme choices and detail pages for appearance, sound, library, metadata/artwork and about. Tab taps return to the root; reselects scroll to the top. The Library artist shelf includes every artist. Native iOS controls; Android home, widget, glass-tuning and update/crash-log controls are omitted |
-| Introduction / first-launch tool guides | ⏳ | No first-launch tour or Settings introduction destination yet |
+| Introduction / first-launch tool guides | ✅ | Skippable introduction, optional VYBE and replay from About Erhu |
 | Shared logo and app icon | ✅ | Android's temporary logo is reused unchanged in the AppIcon catalog, About page and README; see the third-party notice |
-| Update checker (GitHub releases) | ⏳ | No in-app release notifier. Sideloaded updates require SideStore/AltStore; Android's APK installer is not applicable |
+| Update checker (GitHub releases) | ✅ | Manual and cached foreground checks include beta releases and select this build's IPA; installation still uses SideStore/AltStore |
 
 ## Building and installing
 
 CI (`.github/workflows/ios.yml`) builds an unsigned IPA and runs the unit tests on a simulator on
 every push. The IPA is signed on install with a free Apple ID through SideStore or AltStore.
 
-## API keys
+## Online providers
 
-Last.fm, Fanart.tv and Discogs keys are the listener's own: they are entered in Settings › Metadata & Artwork › Online sources and kept in the iOS Keychain on that device only. None is in this repository or the built IPA; without a key, that source is skipped.
+No API keys or paid integrations are required. Catalogue/lyrics providers retain
+their own usage terms and content rights; keyless access is not an open-content
+licence. Commons fallback results are filtered for usable free-licence metadata
+and their credits are retained. See [current feature notes](FEATURE_UPDATES.md).

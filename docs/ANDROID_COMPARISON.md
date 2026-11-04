@@ -1,5 +1,7 @@
 # Android and iOS comparison
 
+Historical snapshot before the approved feature work. Current changes are recorded in [feature updates](FEATURE_UPDATES.md).
+
 Source review on 4 November 2026. The repositories remain separate.
 
 - Android: [`lochanpthakke/erhu`, `master`, `304cd79`](https://github.com/lochanpthakke/erhu/tree/304cd7935e6b72c74168711fb29597d2a033dd4e).

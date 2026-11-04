@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - "Tools/vybe_lab/**"
       - "Tools/VybeProbe/**"
+      - ".github/workflows/vybe-probe.yml"
       - "docs/downloads/VYBE-training-kit.zip"
   workflow_dispatch:
 

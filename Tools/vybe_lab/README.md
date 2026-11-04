@@ -34,14 +34,14 @@ From the repository root, create/activate a Python 3.12 virtual environment.
 On Linux/Windows without an NVIDIA GPU, first install the CPU wheel:
 
 ```sh
-python -m pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
 python -m pip install -r Tools/vybe_lab/requirements.txt
 python Tools/vybe_lab/train.py music-pairs.jsonl --validate-only
 python Tools/vybe_lab/train.py music-pairs.jsonl trained-minilm --device cpu --batch-size 4
 ```
 
-On macOS, install `torch==2.5.1` from the normal PyPI index instead. For NVIDIA,
-follow PyTorch's official installation instructions for a compatible 2.5.1 CUDA
+On macOS, install `torch==2.15.0` from the normal PyPI index instead. For NVIDIA,
+follow PyTorch's official installation instructions for a compatible 2.15.0 CUDA
 wheel and use `--device cuda`. Supported Apple Silicon can use `--device mps`.
 Training leaves held-out query groups untouched and writes a before/after
 triplet-accuracy report. A tiny test set or improved training loss does not prove
@@ -66,6 +66,8 @@ and change `CompactSentenceEmbedder.modelIdentity` to the generated identity so
 old search vectors cannot be mixed with the new model. No app update or model
 replacement happens automatically when you run these scripts.
 
+The kit uses maintained package versions checked on 4 November 2026; it does not
+install the older environment used to reproduce the originally shipped model.
 The kit's Python syntax/data validation can be checked without model downloads.
 A complete fine-tune/export has not been run in the Linux development workspace;
 it needs the ML environment and real examples described above.

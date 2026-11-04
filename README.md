@@ -24,9 +24,9 @@
     </td>
     <td width="50%" valign="top">
       <ul>
-        <li>MP3, AAC, ALAC, FLAC, WAV/WAVE, AIFF/AIF/AIFC, and CAF.</li>
+        <li>MP3, AAC, ALAC, FLAC, WAV/WAVE, AIFF/AIF/AIFC, and CAF; Ogg Vorbis/Opus in mono or stereo.</li>
         <li>M4A, M4B, and MP4 containers; unprotected files with iOS-supported codecs.</li>
-        <li>Dual-deck AVAudioEngine with Core Audio decoding.</li>
+        <li>Dual-deck AVAudioEngine with Core Audio and local Xiph decoding for Ogg.</li>
         <li>Custom EQ/transition Audio Units, gapless scheduling for matching formats, and timed crossfades.</li>
       </ul>
     </td>
@@ -43,9 +43,9 @@
       <ul>
         <li><strong>Playback:</strong> queue, shuffle, repeat, background/headphone/Lock Screen controls, waveform seeking, A–B loops, and bookmarks.</li>
         <li><strong>Sound &amp; transitions:</strong> 8-band EQ, presets, visualizer, and album/playlist/song-pair transitions with editable curves.</li>
-        <li><strong>Library &amp; discovery:</strong> albums, artists, playlists, favorites, search, smart mixes, radio, and listening stats.</li>
+        <li><strong>Library &amp; discovery:</strong> albums, artists, playlists, favorites, search, smart mixes, browseable radio stations, and listening stats.</li>
         <li><strong>VYBE:</strong> offline mood/name searches, multiple references, artist aliases, and BPM/year filters.</li>
-        <li><strong>Synced lyrics:</strong> embedded lyrics, LRC/enhanced LRC, online lookup, and word timing when available.</li>
+        <li><strong>Synced lyrics:</strong> embedded lyrics, LRC/enhanced LRC, online lookup, and explicit offline downloads.</li>
         <li><strong>Tools:</strong> Files/Wi-Fi import, tag editing, metadata matching, artwork/artist images, and BPM lookup or estimation.</li>
       </ul>
     </td>
@@ -54,7 +54,7 @@
         <li>Audio files and library data stay on your device.</li>
         <li>On-device VYBE; no cloud inference.</li>
         <li>Online lyrics/artwork/metadata providers receive search metadata.</li>
-        <li>Personal API keys are stored in the device Keychain.</li>
+        <li>Keyless metadata/artwork search; no paid provider integrations or API-key setup.</li>
       </ul>
     </td>
   </tr>
@@ -109,7 +109,9 @@ Real iPhone captures. Select a screenshot to open it at full size.
 
 ## Install
 
-**Beta 1** is available as two unsigned IPAs for iOS 17+. Install with your own Apple ID through a sideloading tool.
+**Latest development builds:** [Static](https://github.com/MeezaUni/Erhu-iOS/actions?query=workflow%3AiOS+branch%3Awithout-animated-art) · [Animated](https://github.com/MeezaUni/Erhu-iOS/actions?query=workflow%3AiOS+branch%3Awith-animated-art). Open a successful run and download **Erhu-ipa** for the newest features.
+
+**Beta 1**, the earlier tagged release, remains available below. Both variants are unsigned IPAs for iOS 17+, installed with your own Apple ID through a sideloading tool.
 
 | Build | Download |
 | --- | --- |
@@ -141,7 +143,7 @@ See the [installation guide](docs/INSTALLING.md) for setup, updates, and support
     <td width="50%" valign="top">
       <ul>
         <li>Core ML with compressed MiniLM (~17 MB).</li>
-        <li>SQLite, local JSON settings, and Keychain.</li>
+        <li>SQLite, local JSON settings, and retained Commons image credits.</li>
         <li>XcodeGen, GitHub Actions, and XCTest.</li>
       </ul>
     </td>
@@ -151,7 +153,7 @@ See the [installation guide](docs/INSTALLING.md) for setup, updates, and support
 ## Development & docs
 
 [Build from source](docs/BUILDING.md) · [Feature status](docs/ANDROID_PORT.md) ·
-[Android comparison](docs/ANDROID_COMPARISON.md) · [VYBE details](docs/VYBE.md) · [Screenshot guide](docs/screenshots/README.md)
+[Android comparison](docs/ANDROID_COMPARISON.md) · [Latest feature notes](docs/FEATURE_UPDATES.md) · [VYBE details](docs/VYBE.md) · [Screenshot guide](docs/screenshots/README.md)
 
 Swift/SwiftUI, Core Audio and Core ML. On a Mac with Xcode and XcodeGen:
 
