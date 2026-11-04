@@ -234,6 +234,39 @@ struct ArtworkSearch: Sendable {
         return (exact.isEmpty ? artists : exact).compactMap(Self.realPicture).map { ArtworkCandidate(url: $0, source: "Deezer") }
     }
 
+    struct ArtistLinks: Sendable {
+        let mbid: String
+        let relations: [(type: String, resource: String)]
+    }
+
+    /// The MusicBrainz entries named exactly [name] (at most two) with their links.
+    private func musicBrainzLinks(_ name: String) async -> [ArtistLinks] {
+        struct ArtistSearch: Decodable {
+            struct Artist: Decodable { var id: String; var name: String; var score: Int? }
+            var artists: [Artist] = []
+        }
+        struct Relations: Decodable {
+            struct Relation: Decodable {
+                struct Target: Decodable { var resource: String }
+                var type: String
+                var url: Target?
+            }
+            var relations: [Relation]?
+        }
+        let query = "artist:\"\(escapePhrase(name.trimmed))\" OR alias:\"\(escapePhrase(name.trimmed))\""
+        guard let search = try? await fetchJSON(ArtistSearch.self, requestURL("https://musicbrainz.org/ws/2/artist", [("query", query), ("fmt", "json"), ("limit", "5")]), client: client)
+        else { return [] }
+        let exact = search.artists.filter { ($0.score ?? 0) >= 80 && Self.normalizeArtistName($0.name) == Self.normalizeArtistName(name) }
+        var links: [ArtistLinks] = []
+        for artist in exact.prefix(2) {
+            guard !Task.isCancelled else { break }
+            let relations = try? await fetchJSON(Relations.self, requestURL("https://musicbrainz.org/ws/2/artist/\(artist.id)", [("inc", "url-rels"), ("fmt", "json")]), client: client)
+            let pairs = (relations?.relations ?? []).compactMap { relation in relation.url.map { (type: relation.type.lowercased(), resource: $0.resource) } }
+            links.append(ArtistLinks(mbid: artist.id, relations: pairs))
+        }
+        return links
+    }
+
     /// Resolve MusicBrainz-linked Wikidata portraits through Commons imageinfo, retaining
     /// only images with usable free-licence metadata. Non-free Wikipedia thumbnails are omitted.
     private func wikimediaPhotos(_ name: String, links: [ArtistLinks]) async -> [ArtworkCandidate] {
