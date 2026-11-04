@@ -34,6 +34,7 @@ enum DecodedAudioSource {
     @discardableResult static func prepare(_ url: URL) throws -> URL {
         guard requiresDecoder(url) else { return url }
         return try lock.withLock {
+            try Task.checkCancellation()
             let target = cachedURL(url)
             if FileManager.default.fileExists(atPath: target.path) { return target }
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -47,7 +48,7 @@ enum DecodedAudioSource {
                free < needed { throw CocoaError(.fileWriteOutOfSpace) }
             let temporary = folder.appending(path: ".\(UUID().uuidString).caf")
             defer { try? FileManager.default.removeItem(at: temporary) }
-            try ERHUOggDecoder.decode(url, to: temporary)
+            try ERHUOggDecoder.decode(url, to: temporary, isCancelled: { Task.isCancelled })
             let decoded = try AVAudioFile(forReading: temporary)
             guard decoded.length == frames, cachedURL(url) == target else { throw CocoaError(.fileReadCorruptFile) }
             try FileManager.default.moveItem(at: temporary, to: target)

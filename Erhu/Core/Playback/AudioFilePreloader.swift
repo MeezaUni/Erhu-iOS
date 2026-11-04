@@ -33,7 +33,7 @@ final class AudioFilePreloader {
         for url in wanted {
             guard !Task.isCancelled, generation == token else { return }
             if files[url] != nil { continue }
-            let result = await Task.detached(priority: .userInitiated) { () -> PreparedAudioFile? in
+            let work = Task.detached(priority: .userInitiated) { () -> PreparedAudioFile? in
                 guard let before = AudioFileFingerprint.read(url), let file = try? DecodedAudioSource.open(url) else { return nil }
                 let count = AVAudioFrameCount(min(max(file.length, 0), 4096))
                 if count > 0 {
@@ -43,7 +43,8 @@ final class AudioFilePreloader {
                 }
                 guard AudioFileFingerprint.read(url) == before else { return nil }
                 return PreparedAudioFile(file: file, fingerprint: before)
-            }.value
+            }
+            let result = await withTaskCancellationHandler(operation: { await work.value }, onCancel: { work.cancel() })
             guard !Task.isCancelled, generation == token else { return }
             if let result { files[url] = result }
         }
