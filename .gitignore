@@ -22,3 +22,9 @@ Tools/VybeProbe/*.xcworkspace/
 Tools/VybeProbe/Podfile.lock
 Tools/VybeProbe/*.xcresult/
 Tools/VybeProbe/*.log
+
+# Local model training data and outputs
+Tools/vybe_lab/music-pairs*.jsonl
+Tools/vybe_lab/output/
+Tools/vybe_lab/checkpoints/
+Tools/vybe_lab/.venv/

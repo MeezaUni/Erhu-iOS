@@ -35,6 +35,33 @@ metadata also depends on the correctness of the source entry; the original
 source/licence page is shown for review. No provider fee or API key is required
 by this setup.
 
+## Latest Android artwork comparison
+
+Reviewed `lochanpthakke/erhu` branch `kshitij` at `8d443f9` (2026-11-04).
+The relevant artwork improvements are now adapted for both iOS branches:
+
+- Album/artist matching, accent/punctuation normalization, edition and year review.
+- Release-specific approved front covers from CAA; release-group fallback requires
+  confirming the edition. Back/unapproved covers are excluded.
+- Actual decoded image dimensions, malformed/oversized-image rejection and
+  exact-byte duplicate suppression when release metadata agrees.
+- A disposable 64 MiB image cache, up to 256 query records, seven-day freshness
+  and usable stale results when online refresh fails. Nothing in this cache
+  deletes or changes embedded/custom artwork.
+- A complete image preview and explicit Apply for online results and Photos.
+  Apply uses the bytes previewed; a changed image URL is not silently accepted.
+- Streaming response limits, request pacing/cooldowns, cancellation and a
+  45-second search budget.
+
+This is an iOS adaptation, not a full Kotlin port. It does not yet extract embedded
+MusicBrainz identifiers, calculate perceptual duplicates, or run Android's
+saved accuracy benchmark. TheAudioDB's production key/licence requirement
+conflicts with the keyless setup, so that provider is omitted. Commons remains
+licence-filtered; artist photos remain separate from album matching.
+Android's final commit only fixes test scheduling and needs no app behavior port.
+Native iOS regression tests cover matching, image validation, offline persistence,
+cache bounds and a changed-image URL. Test execution is tracked in iOS Actions.
+
 ## Larger VYBE model experiment
 
 The currently shipped model remains the bundled Apache-2.0 MiniLM. The official

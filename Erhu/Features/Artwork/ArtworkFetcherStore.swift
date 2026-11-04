@@ -121,7 +121,7 @@ final class ArtworkFetcherStore {
 
     func albumCovers(_ album: Album) async -> [ArtworkCandidate] {
         albumStatus[album.id] = .searching
-        let found = await search.albumCovers(album: album.title, artist: album.artist)
+        let found = await search.albumCovers(album: album.title, artist: album.artist, year: album.year)
         albumStatus[album.id] = found.isEmpty ? .notFound : .found(found.count)
         return found
     }
@@ -135,10 +135,15 @@ final class ArtworkFetcherStore {
 
     /// Downloads [candidate] and embeds it into every song of [album] (each write verified).
     @discardableResult
-    func applyCover(_ candidate: ArtworkCandidate, to album: Album) async -> Bool {
+    func applyCover(_ candidate: ArtworkCandidate, image previewedImage: Data? = nil, to album: Album) async -> Bool {
         albumStatus[album.id] = .writing
         do {
-            let image = try await service.downloadArtwork(candidate.url)
+            let image: Data
+            if let previewedImage { image = previewedImage }
+            else { image = try await search.imageData(candidate) }
+            guard let facts = ArtworkImageFacts.inspect(image), candidate.image == nil || candidate.image == facts else {
+                throw URLError(.cannotDecodeContentData)
+            }
             if let credit = candidate.credit { try ArtworkCredits.shared.remember(credit) }
             try await embed(image, in: album)
             albumStatus[album.id] = .done
@@ -188,10 +193,15 @@ final class ArtworkFetcherStore {
 
     /// Downloads [candidate] and stores it as [artist]'s photo.
     @discardableResult
-    func applyPhoto(_ candidate: ArtworkCandidate, to artist: Artist) async -> Bool {
+    func applyPhoto(_ candidate: ArtworkCandidate, image previewedImage: Data? = nil, to artist: Artist) async -> Bool {
         artistStatus[artist.id] = .writing
         do {
-            let image = try await service.downloadArtwork(candidate.url)
+            let image: Data
+            if let previewedImage { image = previewedImage }
+            else { image = try await search.imageData(candidate) }
+            guard let facts = ArtworkImageFacts.inspect(image), candidate.image == nil || candidate.image == facts else {
+                throw URLError(.cannotDecodeContentData)
+            }
             if let credit = candidate.credit { try ArtworkCredits.shared.remember(credit) }
             try storePhoto(image, for: artist, source: "CUSTOM")
             artistStatus[artist.id] = .done

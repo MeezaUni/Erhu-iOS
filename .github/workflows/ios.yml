@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event.deleted != true
     runs-on: macos-15-intel
     timeout-minutes: 45
     env:
