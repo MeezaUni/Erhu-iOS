@@ -1,5 +1,5 @@
 // Minimal contract for compiling the production embedder without the rest of the app.
-enum EmbeddingRole { case query, document }
+enum EmbeddingRole: Equatable { case query, document }
 enum VybeText { static let documentVersion = 1 }
 protocol TextEmbedder {
     var modelId: String { get }

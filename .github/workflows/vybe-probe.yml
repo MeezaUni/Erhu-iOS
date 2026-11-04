@@ -6,10 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
   probe:
-    if: "!contains(github.event.head_commit.message, '[minilm]') && !contains(github.event.head_commit.message, '[diagnostic]')"
+    if: "!contains(github.event.head_commit.message, '[minilm]')"
     runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
@@ -79,9 +78,16 @@ jobs:
   minilm:
     if: contains(github.event.head_commit.message, '[minilm]')
     runs-on: macos-15-intel
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Prepare compatibility variants without changing weights
+        run: |
+          python -m pip install coremltools==9.0 numpy==2.5.4
+          python Tools/VybeProbe/MiniLM/make_variants.py Erhu/Resources/Vybe/VybeSentence.mlpackage Tools/VybeProbe/MiniLM/Variants > /tmp/variants.log 2>&1 || { tail -40 /tmp/variants.log; exit 1; }
       - name: Prepare small production-model probe
         run: |
           XCODE=$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)
@@ -96,7 +102,7 @@ jobs:
           TYPE=$(xcrun simctl list runtimes available -j | jq -r --arg runtime "$RUNTIME" '.runtimes[] | select(.identifier == $runtime) | [.supportedDeviceTypes[] | select(.productFamily == "iPhone")] | last | .identifier')
           DEVICE=$(xcrun simctl create "MiniLM Probe" "$TYPE" "$RUNTIME")
           cd Tools/VybeProbe/MiniLM
-          xcodebuild test -project MiniLMProbe.xcodeproj -scheme MiniLMProbe -destination "id=$DEVICE" -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO -resultBundlePath Results.xcresult 2>&1 | tee probe.log
+          xcodebuild test -project MiniLMProbe.xcodeproj -scheme MiniLMProbe -destination "id=$DEVICE" -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO -resultBundlePath Results.xcresult > probe.log 2>&1
       - name: Publish numerical diagnostics
         if: always()
         run: |
@@ -116,20 +122,3 @@ jobs:
           path: |
             Tools/VybeProbe/MiniLM/probe.log
             Tools/VybeProbe/MiniLM/Results.xcresult
-
-  diagnostics:
-    if: contains(github.event.head_commit.message, '[diagnostic]')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Read completed animated test progress
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh run view 41889189737 --repo MeezaUni/Erhu-iOS --log > /tmp/animated-tests.log
-          python3 - <<'PYREPORT'
-          from pathlib import Path
-          lines=Path('/tmp/animated-tests.log').read_text(errors='replace').splitlines()
-          selected=[line for line in lines if 'Test Suite ' in line or 'Test Case ' in line or 'Executed ' in line or 'error: -[' in line or 'crash' in line.lower()]
-          for line in selected[-45:]:
-              print('::notice title=Animated tests::'+line[-1100:].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
-          PYREPORT

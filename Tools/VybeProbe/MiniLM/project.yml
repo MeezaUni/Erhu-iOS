@@ -16,6 +16,8 @@ targets:
       - ../../../Erhu/Core/Common/Regex16.swift
       - ../../../Erhu/Core/Vybe/WordPieceTokenizer.swift
       - ../../../Erhu/Core/Vybe/CompactSentenceEmbedder.swift
+      - path: Variants
+        buildPhase: resources
       - path: ../../../Erhu/Resources/Vybe
         buildPhase: resources
     settings:
