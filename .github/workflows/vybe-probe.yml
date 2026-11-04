@@ -1,0 +1,56 @@
+name: VYBE iOS compatibility probe
+on:
+  push:
+    branches: [without-animated-art]
+    paths: [Tools/VybeProbe/**, .github/workflows/vybe-probe.yml]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - name: Prepare official model and standalone probe
+        run: |
+          brew install xcodegen
+          python3 - <<'PY'
+          import hashlib, pathlib, urllib.request, zipfile
+          url='https://github.com/lochanpthakke/erhu/releases/download/v1.0.2-beta.1/vybe-embeddinggemma-300m-int4int8.zip'
+          urllib.request.urlretrieve(url, '/tmp/vybe-model.zip')
+          target=pathlib.Path('Tools/VybeProbe/Resources/embedding_gemma.task')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          with zipfile.ZipFile('/tmp/vybe-model.zip') as archive:
+              names=[name for name in archive.namelist() if name.endswith('embedding_gemma.task')]
+              assert len(names)==1
+              with archive.open(names[0]) as source, target.open('wb') as output:
+                  while block:=source.read(1024*1024): output.write(block)
+          assert hashlib.sha256(target.read_bytes()).hexdigest()=='913b7a1edc7c7c3d1da3979ec1d0648ed9e0a370f181bb59ab177ca4b97707ad'
+          PY
+          cd Tools/VybeProbe
+          xcodegen generate
+          pod install --repo-update
+      - name: Test iOS runtime and retrieval
+        run: |
+          set -o pipefail
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for k,v in d["devices"].items() if "iOS" in k for x in v if "iPhone" in x["name"]))')
+          cd Tools/VybeProbe
+          xcodebuild test -workspace VybeProbe.xcworkspace -scheme Probe -destination "id=$DEVICE" CODE_SIGNING_ALLOWED=NO -resultBundlePath Results.xcresult 2>&1 | tee probe.log
+      - name: Publish public probe diagnostics
+        if: always()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('Tools/VybeProbe/probe.log')
+          if p.exists():
+              lines=p.read_text(errors='replace').splitlines()
+              selected=[s for s in lines if 'VYBE_PROBE' in s or 'error:' in s or 'XCTAssert' in s or 'failed (' in s]
+              for line in selected[:20]:
+                  print('::notice title=VYBE iOS probe::'+line.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: VYBE-iOS-probe
+          path: |
+            Tools/VybeProbe/probe.log
+            Tools/VybeProbe/Results.xcresult
