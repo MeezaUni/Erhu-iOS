@@ -32,3 +32,7 @@ Tools/vybe_lab/.venv/
 # Default laptop-training outputs (also when run from the repository root)
 trained-minilm/
 exported-vybe/
+
+Tools/VybeProbe/MiniLM/Variants/
+Tools/VybeProbe/MiniLM/*.xcresult/
+Tools/VybeProbe/MiniLM/*.log

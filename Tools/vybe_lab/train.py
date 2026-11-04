@@ -5,6 +5,7 @@ No training data is uploaded. --validate-only works without ML dependencies.
 import argparse
 import hashlib
 import json
+import os
 import random
 import time
 from pathlib import Path
@@ -70,6 +71,7 @@ def main():
         p.error('Epochs and batch size must be positive')
     if args.output.exists() and any(args.output.iterdir()):
         p.error('Output folder is not empty; choose a new folder to retain previous weights')
+    os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
     import torch
     from sentence_transformers import SentenceTransformer, SentenceTransformerTrainer, SentenceTransformerTrainingArguments, losses
     from datasets import Dataset

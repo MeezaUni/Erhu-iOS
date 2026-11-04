@@ -1,3 +1,8 @@
+> Compatibility update (November 2026): the app now uses FP32 arithmetic/output
+> with exact 8-bit palette storage of the existing quantized values. The original
+> reproduction notes below describe the historical representation. See
+> [the verified compatibility fix](../docs/FEATURE_UPDATES.md#bundled-model-compatibility-fix).
+
 # Offline music discovery
 
 VYBE embeds the listener's own artists, genres, tagged tempo and an excerpt of saved lyrics.

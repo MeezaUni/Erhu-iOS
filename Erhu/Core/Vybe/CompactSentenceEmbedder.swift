@@ -1,10 +1,10 @@
 import CoreML
 import Foundation
 
-/// A 6-bit, 22M-parameter sentence transformer running on Apple's CPU/GPU/Neural Engine.
+/// A compact 22M-parameter encoder with exact 8-bit palette storage and FP32 arithmetic.
 /// Query and document vectors share one space; all inference and resources stay on the phone.
 final class CompactSentenceEmbedder: TextEmbedder {
-    static let modelIdentity = "minilm-l6-v2-coreml-p6-v2"
+    static let modelIdentity = "minilm-l6-v2-coreml-p8-fp32-v3"
     let modelId = "\(CompactSentenceEmbedder.modelIdentity)|doc\(VybeText.documentVersion)"
     let dimension = 384
     let weakBest: Float = 0.30
