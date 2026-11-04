@@ -24,7 +24,11 @@ Tools/VybeProbe/*.xcresult/
 Tools/VybeProbe/*.log
 
 # Local model training data and outputs
-Tools/vybe_lab/music-pairs*.jsonl
+music-pairs*.jsonl
 Tools/vybe_lab/output/
 Tools/vybe_lab/checkpoints/
 Tools/vybe_lab/.venv/
+
+# Default laptop-training outputs (also when run from the repository root)
+trained-minilm/
+exported-vybe/
