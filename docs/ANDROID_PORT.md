@@ -1,6 +1,7 @@
 # Android → iOS port
 
 Android-to-iOS feature status. The original source and licence are listed in [the third-party notice](../ThirdParty/ANDROID-NOTICE.md).
+For the Android changes through `304cd79` (4 November 2026 review), see the [current comparison](ANDROID_COMPARISON.md).
 The rules the Android code follows are kept: nothing is made up, music never leaves the phone,
 no cloud inference, no microphone, and online lyrics send only title, artist, album and duration.
 
@@ -39,10 +40,11 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 | Android | iOS | Notes |
 |---|---|---|
 | Smart Playlists (rotation, your sound, forgotten, deep cuts, moods, spotlight, throwbacks, …) | ✅ | Same scoring and tie-break hashes; Android's tests ported |
-| Smart Radio (song, album, artist; new picks) | ✅ | |
+| Smart Radio (song, album, artist; new picks) | 🟡 | Generation, playback and fresh picks are ported; Android's featured-station browsing shelf and detail pages are not |
 | Generated mix covers and home banners | ✅ | Same seeds and Kotlin random sequence, so covers match |
 | Featured Albums | ✅ | |
 | VYBE (on-device search by mood, genre, tempo, artist) | ✅ | iOS uses a bundled ~17 MB, 6-bit MiniLM sentence encoder through Core ML; Android's supplied EmbeddingGemma bundle is ~184 MB. A cached word index handles partial names, conservative typos and Ye/Kanye plus approved aliases, with selectable ambiguous matches. Genre aliases, exclusions, BPM/year filters and diversity among close matches stay offline. See `VYBE.md` for model provenance, tests and limitations. |
+| Persisted VYBE visibility preference | ⏳ | VYBE remains visible; Android's switch also hides radio actions and selected mixes |
 
 ## Lyrics
 
@@ -50,6 +52,7 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 |---|---|---|
 | Embedded lyrics, LRC / enhanced LRC (word timing) | ✅ | |
 | Synced-first LRCLIB lookup, cache, and manual alternatives | ✅ | Auto-selects real synced matches; provider failures switch immediately with a reason and accurate fallback timing. Search online lists alternatives. |
+| Explicit lyrics Download / Remove, separate from response cache | ⏳ | iOS automatically persists lookup matches; Android now distinguishes cached responses from user-requested offline downloads |
 | Lyrics colour palette from artwork | ✅ | Muted artwork hues use deep shades in dark appearance and pale shades in light appearance, with tonal gradients and contrast checks. Player cards, lyrics, Settings and tool pages follow the active theme. Settings and drawer links use the same tool destinations and styling |
 
 ## Tools
@@ -63,7 +66,9 @@ Legend: ✅ ported · 🟡 partly ported · ⏳ not yet · ➖ not applicable on
 | BPM finder | ✅ | AcousticBrainz, then the on-device tempo estimate; only fills a missing BPM |
 | Themes, skins, theme import and rollback | 🟡 | Light / dark / system, artwork colours and imported theme packages (colours) are ported; fonts and widget skins aren't used on iOS |
 | Settings navigation | ✅ | Grouped cards, circular icon badges, illustrated theme choices and detail pages for appearance, sound, library, metadata/artwork and about. Tab taps return to the root; reselects scroll to the top. The Library artist shelf includes every artist. Native iOS controls; Android home, widget, glass-tuning and update/crash-log controls are omitted |
-| Update checker (GitHub releases) | ➖ | Sideloaded builds are updated by reinstalling |
+| Introduction / first-launch tool guides | ⏳ | No first-launch tour or Settings introduction destination yet |
+| Shared logo and app icon | ✅ | Android's temporary logo is reused unchanged in the AppIcon catalog, About page and README; see the third-party notice |
+| Update checker (GitHub releases) | ⏳ | No in-app release notifier. Sideloaded updates require SideStore/AltStore; Android's APK installer is not applicable |
 
 ## Building and installing
 
