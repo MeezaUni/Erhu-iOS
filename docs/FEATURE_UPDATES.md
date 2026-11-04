@@ -62,6 +62,22 @@ Android's final commit only fixes test scheduling and needs no app behavior port
 Native iOS regression tests cover matching, image validation, offline persistence,
 cache bounds and a changed-image URL. Test execution is tracked in iOS Actions.
 
+## Bundled model compatibility fix
+
+The iOS tests exposed zero output vectors on the simulator GPU and incorrect
+reference agreement on its CPU with the older FP16 representation. The same
+22M-parameter MiniLM weights now use FP32 arithmetic/output and exact 8-bit
+palette storage. Repacking retains the original quantized values; this is a
+runtime compatibility fix, not a new training/relevance claim. Its model identity
+changes so older search indexes rebuild instead of mixing vector versions.
+
+The standalone production-embedder probe in
+[run 41902986570](https://github.com/MeezaUni/Erhu-iOS/actions/runs/41902986570)
+passed reference agreement, empty-input handling, eight style queries and the
+25 MB compiled-model budget. The probe uses the production Swift embedder and
+tokenizer. This is simulator evidence; physical-device timing and real-library
+relevance still depend on the device and available descriptions.
+
 ## Larger VYBE model experiment
 
 The bundled Apache-2.0 MiniLM remains the default. A standalone test of the

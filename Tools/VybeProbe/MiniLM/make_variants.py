@@ -93,7 +93,14 @@ def main():
         packed = repack(dense)
         target = args.destination / 'MiniLM8Bit.mlpackage'; packed.save(str(target))
         fp32_output(target, args.destination / 'MiniLM8BitIO32.mlpackage')
-    repack(float32_program(dense)).save(str(args.destination / 'MiniLM32.mlpackage'))
+    compatible = repack(float32_program(dense))
+    compatible.author = model.author
+    compatible.license = model.license
+    compatible.version = 'minilm-l6-v2-p8-fp32-v3'
+    compatible.short_description = 'Offline VYBE sentence embeddings; 384 dimensions, FP32 arithmetic, exact 8-bit palette storage.'
+    compatible.user_defined_metadata.update(dict(model.user_defined_metadata))
+    compatible.user_defined_metadata['erhu.compatibility'] = 'FP32 arithmetic and output; exact repack of the existing 6-bit palette values into 8-bit storage.'
+    compatible.save(str(args.destination / 'MiniLM32.mlpackage'))
 
 
 if __name__ == '__main__': main()

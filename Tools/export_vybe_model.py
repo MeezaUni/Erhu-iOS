@@ -60,7 +60,7 @@ def validate_compression(compressed, model, tokens, expected):
     with torch.no_grad():
         for name, parameter in model.named_parameters():
             prefix = name.replace(".", "_")
-            key = next((prefix + suffix for suffix in ["_to_fp16_palettized", "_to_fp16", ""]
+            key = next((prefix + suffix for suffix in ["_to_fp16_palettized", "_to_fp16", "_palettized", ""]
                         if prefix + suffix in weights), None)
             if key and tuple(weights[key].shape) == tuple(parameter.shape):
                 parameter.copy_(torch.from_numpy(weights[key].astype(np.float32)))

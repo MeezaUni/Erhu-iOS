@@ -55,7 +55,7 @@ python Tools/vybe_lab/export_trained.py trained-minilm exported-vybe
 
 The exporter only loads local safetensors, requires the existing app vocabulary,
 checks teacher/pooling agreement, exports the existing 128-token/384-dimensional
-Core ML interface and verifies 6-bit compression agreement. The original pinned
+Core ML interface and verifies 8-bit compression agreement with FP32 arithmetic and output. The original pinned
 ONNX exporter retains its existing source-hash checks. Core ML conversion can run
 on supported Python hosts; native compilation/inference requires Apple's tools.
 

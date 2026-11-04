@@ -51,18 +51,18 @@ def main():
     converted = ct.convert(traced, convert_to='mlprogram', minimum_deployment_target=ct.target.iOS17,
         inputs=[ct.TensorType(name='input_ids', shape=(1, 128), dtype=np.int32),
                 ct.TensorType(name='attention_mask', shape=(1, 128), dtype=np.int32)],
-        outputs=[ct.TensorType(name='embedding')])
+        outputs=[ct.TensorType(name='embedding', dtype=np.float32)], compute_precision=ct.precision.FLOAT32)
     for op in converted._mil_program.functions['main'].operations:
         if op.op_type == 'const' and isinstance(op.outputs[0].val, (np.ndarray, np.generic)):
             value = op.outputs[0].val
             if np.issubdtype(value.dtype, np.floating):
                 assert np.isfinite(value).all(), f'Non-finite Core ML constant: {op.name}'
     config = ct.optimize.coreml.OptimizationConfig(global_config=ct.optimize.coreml.OpPalettizerConfig(
-        mode='kmeans', nbits=6, granularity='per_tensor', weight_threshold=2048))
+        mode='uniform', nbits=8, granularity='per_tensor', weight_threshold=2048))
     compressed = ct.optimize.coreml.palettize_weights(converted, config=config)
     palette = validate_compression(compressed, model, tokens, expected)
     assert min(palette) > 0.99, 'Compression changed the model too much'
-    model_id = 'minilm-local-' + digest[:12] + '-p6'
+    model_id = 'minilm-local-' + digest[:12] + '-p8-fp32'
     compressed.author = 'Sentence Transformers; local fine-tune and Erhu Core ML adaptation'
     compressed.license = 'Apache License 2.0'
     compressed.version = model_id
