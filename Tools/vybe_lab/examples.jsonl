@@ -1,0 +1,3 @@
+{"group":"late-night-rap","query":"dark late night rap","positive":"Genre: hip-hop; mood: dark atmospheric introspective; vocals: rapping","negative":"Genre: electronic dance; tempo: 140 BPM; mood: bright energetic instrumental"}
+{"group":"romantic-soul","query":"warm romantic soul","positive":"Genre: soul R&B; mood: romantic mellow; vocals: soft singing","negative":"Genre: heavy metal; mood: aggressive intense; distorted guitars"}
+{"group":"quiet-piano","query":"peaceful piano with no singing","positive":"Genre: instrumental piano; mood: calm gentle reflective; no vocals","negative":"Genre: hip-hop; mood: aggressive energetic; vocals: rapping"}

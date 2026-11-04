@@ -361,10 +361,11 @@ final class PlayerController {
             setPosition(positionMs)
             updateNowPlaying()
             audioPreparation = Task {
-                let failure = await Task.detached(priority: .userInitiated) { () -> String? in
+                let work = Task.detached(priority: .userInitiated) { () -> String? in
                     do { try DecodedAudioSource.prepare(entry.song.url); return nil }
                     catch { return error.localizedDescription }
-                }.value
+                }
+                let failure = await withTaskCancellationHandler(operation: { await work.value }, onCancel: { work.cancel() })
                 guard !Task.isCancelled, state.currentEntry?.id == entry.id else { return }
                 audioPreparation = nil
                 if let failure {

@@ -39,12 +39,13 @@ static NSDictionary *Comments(char **comments, int *lengths, int count) {
     OggVorbis_File vorbis;
     if (ov_fopen(url.fileSystemRepresentation,&vorbis) != 0) { Failed(error,@"This is not a readable Ogg Vorbis or Ogg Opus file."); return nil; }
     vorbis_info *format=ov_info(&vorbis,0);
+    if (!format) { ov_clear(&vorbis); Failed(error,@"Could not read the Vorbis audio format."); return nil; }
     vorbis_comment *tags=ov_comment(&vorbis,0);
     NSDictionary *comments=tags ? Comments(tags->user_comments,tags->comment_lengths,tags->comments) : @{};
     NSDictionary *info=@{@"codec":@"Vorbis", @"sampleRate":@(format->rate), @"channels":@(format->channels), @"frames":@(ov_pcm_total(&vorbis,-1)), @"tags":comments};
     ov_clear(&vorbis); return info;
 }
-+ (BOOL)decodeURL:(NSURL *)url toURL:(NSURL *)destination error:(NSError **)error {
++ (BOOL)decodeURL:(NSURL *)url toURL:(NSURL *)destination isCancelled:(BOOL (^)(void))isCancelled error:(NSError **)error {
     NSDictionary *info=[self inspectURL:url error:error]; if (!info) return NO;
     int channels=[info[@"channels"] intValue]; double rate=[info[@"sampleRate"] doubleValue];
     if (channels<1 || channels>2 || rate<=0 || rate>384000) return Failed(error,@"Ogg playback currently supports mono and stereo recordings.");
@@ -62,6 +63,7 @@ static NSDictionary *Comments(char **comments, int *lengths, int count) {
         if (!interleaved) { op_free(input); return Failed(error,@"Could not allocate the Opus buffer."); }
         BOOL ok=YES; int link=0;
         while (YES) {
+            if (isCancelled()) { ok=Failed(error,@"Audio preparation cancelled."); break; }
             int frames=op_read_float(input,interleaved,4096*channels,&link);
             if (frames==0) break;
             if (frames<0 || op_channel_count(input,link)!=channels) { ok=Failed(error,@"The Opus stream is damaged or changes its channel layout."); break; }
@@ -76,6 +78,7 @@ static NSDictionary *Comments(char **comments, int *lengths, int count) {
         if (ov_fopen(url.fileSystemRepresentation,&input)!=0) return Failed(error,@"Could not open the Vorbis recording.");
         BOOL ok=YES; int link=0;
         while (YES) {
+            if (isCancelled()) { ok=Failed(error,@"Audio preparation cancelled."); break; }
             float **pcm=NULL; long frames=ov_read_float(&input,&pcm,4096,&link);
             if (frames==0) break;
             vorbis_info *current=ov_info(&input,link);
