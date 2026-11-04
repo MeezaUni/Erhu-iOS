@@ -64,17 +64,26 @@ cache bounds and a changed-image URL. Test execution is tracked in iOS Actions.
 
 ## Larger VYBE model experiment
 
-The currently shipped model remains the bundled Apache-2.0 MiniLM. The official
-approximately 184 MB EmbeddingGemma `.task` is being tested separately with the
-shipping MediaPipe iOS SDK, without adding an unverified runtime to the app.
-The experiment verifies the published model checksum and exercises real local
-query/document embeddings. Results are in the VYBE iOS compatibility probe
-workflow; infrastructure failures do not establish model incompatibility.
+The bundled Apache-2.0 MiniLM remains the default. A standalone test of the
+approximately 184 MB official EmbeddingGemma bundle passed with MediaPipe Tasks
+Text 1.0.0 on the Intel iOS simulator in
+[run 41885296022](https://github.com/MeezaUni/Erhu-iOS/actions/runs/41885296022):
+768-dimensional vectors, 6/6 synthetic query matches, approximately 1.68 seconds
+model load and 72.2 seconds for the twelve document/query embeddings plus setup.
+This verifies basic compatibility, not actual-library quality or iPhone speed.
+The earlier pre-test crash was a duplicate static-framework link in the harness;
+that was corrected before the successful test.
 
-No larger-model download button is advertised until a usable runtime is
-validated. Gemma weights have separate Google terms; they are not GPL/Apache
-weights merely because the download is hosted on GitHub. Better text embeddings
-also cannot establish a song's sound when its description lacks relevant data.
+The SDK's shipped `NOTICE`, dated June 5, 2026, says it sends performance and
+usage metrics to Google, while processing text on device. Its public iOS
+headers expose no telemetry-disable option. That SDK is currently confined to
+the standalone probe, not linked into the app. Adding its optional download/
+switch flow is held pending the user's privacy preference; successful inference
+alone does not justify introducing undisclosed telemetry.
+
+Gemma weights have separate Google terms; they are not GPL/Apache weights merely
+because the download is hosted on GitHub. Better text embeddings also cannot
+establish a song's sound when its description lacks relevant data.
 
 If local fine-tuning is preferred, [download the laptop training kit](downloads/VYBE-training-kit.zip)
 and read [its instructions](../Tools/vybe_lab/README.md). It fine-tunes MiniLM with
