@@ -15,3 +15,10 @@ xcuserdata/
 # Model conversion tooling
 __pycache__/
 *.pyc
+
+Tools/VybeProbe/Resources/
+Tools/VybeProbe/Pods/
+Tools/VybeProbe/*.xcworkspace/
+Tools/VybeProbe/Podfile.lock
+Tools/VybeProbe/*.xcresult/
+Tools/VybeProbe/*.log

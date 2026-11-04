@@ -1,0 +1,8 @@
+platform :ios, '17.0'
+project 'VybeProbe.xcodeproj'
+target 'Probe' do
+  pod 'MediaPipeTasksText', '1.0.0'
+  target 'ProbeTests' do
+    inherit! :search_paths
+  end
+end
