@@ -8,6 +8,7 @@ permissions:
   contents: read
 jobs:
   probe:
+    if: "!contains(github.event.head_commit.message, '[minilm]')"
     runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
@@ -73,3 +74,44 @@ jobs:
           path: |
             Tools/VybeProbe/probe.log
             Tools/VybeProbe/Results.xcresult
+
+  minilm:
+    if: contains(github.event.head_commit.message, '[minilm]')
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - name: Prepare small production-model probe
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          brew install xcodegen
+          cd Tools/VybeProbe/MiniLM
+          xcodegen generate
+      - name: Compare actual Core ML backends
+        run: |
+          set -o pipefail
+          RUNTIME=$(xcrun simctl list runtimes available -j | jq -r '[.runtimes[] | select(.platform == "iOS")] | sort_by(.version | split(".") | map(tonumber)) | last | .identifier')
+          TYPE=$(xcrun simctl list runtimes available -j | jq -r --arg runtime "$RUNTIME" '.runtimes[] | select(.identifier == $runtime) | [.supportedDeviceTypes[] | select(.productFamily == "iPhone")] | last | .identifier')
+          DEVICE=$(xcrun simctl create "MiniLM Probe" "$TYPE" "$RUNTIME")
+          cd Tools/VybeProbe/MiniLM
+          xcodebuild test -project MiniLMProbe.xcodeproj -scheme MiniLMProbe -destination "id=$DEVICE" -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO -resultBundlePath Results.xcresult 2>&1 | tee probe.log
+      - name: Publish numerical diagnostics
+        if: always()
+        run: |
+          python3 - <<'PYREPORT'
+          from pathlib import Path
+          p=Path('Tools/VybeProbe/MiniLM/probe.log')
+          if p.exists():
+              lines=p.read_text(errors='replace').splitlines()
+              selected=[line for line in lines if 'MINILM_PROBE' in line or 'error:' in line or 'failed (' in line]
+              for line in selected[:30]+lines[-8:]:
+                  print('::notice title=Bundled model::'+line[-1800:].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PYREPORT
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MiniLM-native-backend-probe
+          path: |
+            Tools/VybeProbe/MiniLM/probe.log
+            Tools/VybeProbe/MiniLM/Results.xcresult
