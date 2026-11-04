@@ -404,7 +404,8 @@ private struct MetadataSettingsView: View {
                     SettingsLink(motion.label, subtitle: "Manage your downloaded album covers", icon: motion.icon, tool: motion)
                 }
             }
-            OnlineSourcesSection()
+            Text("Metadata and artwork searches use keyless iTunes Search, MusicBrainz, Deezer and Wikimedia Commons. No API keys are needed.")
+                .font(.footnote).foregroundStyle(.secondary)
         }
         .navigationTitle("Metadata & Artwork")
     }
@@ -436,6 +437,7 @@ private struct AboutSettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary).padding([.horizontal, .bottom], Spacing.lg)
             }
             SettingsGroup("Project") {
+                NavigationLink("Image credits") { ImageCreditsView() }.padding(Spacing.lg)
                 Button { showingIntroduction = true } label: {
                     Label("Introduction & tool guide", systemImage: "book.closed").padding(Spacing.lg)
                 }
@@ -448,58 +450,5 @@ private struct AboutSettingsView: View {
         }
         .navigationTitle("About Erhu")
         .sheet(isPresented: $showingIntroduction) { IntroductionView() }
-    }
-}
-
-/// Personal API keys for the extra sources, kept in the Keychain on this phone only.
-private struct OnlineSourcesSection: View {
-    @State private var drafts: [APIKeyKind: String] = [:]
-    @State private var saved: [APIKeyKind: Bool] = Dictionary(uniqueKeysWithValues: APIKeyKind.allCases.map { ($0, APIKeys.shared.isSet($0)) })
-
-    var body: some View {
-        SettingsGroup("Online sources") {
-            ForEach(APIKeyKind.allCases) { kind in
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack {
-                        SettingsIcon(symbol: symbol(kind))
-                        Text(kind.label).font(.subheadline)
-                        Spacer()
-                        Text(saved[kind] == true ? "Saved" : "Not set").font(.caption).foregroundStyle(.secondary)
-                    }
-                    HStack {
-                        SecureField(saved[kind] == true ? "Paste a new one to replace it" : "Paste it here", text: Binding(
-                            get: { drafts[kind] ?? "" }, set: { drafts[kind] = $0 }
-                        ))
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        Button("Save") { save(kind, drafts[kind]) }
-                            .disabled((drafts[kind] ?? "").trimmed.isEmpty)
-                        if saved[kind] == true {
-                            Button("Remove", role: .destructive) { save(kind, nil) }
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    Text(kind.help).font(.caption2).foregroundStyle(.secondary)
-                }.padding(Spacing.lg)
-            }
-            Text("Optional. Each key is your own, stored in this iPhone's Keychain only: never in the app's files or the repository, and not carried over to other devices. Without a key that source is simply skipped.")
-                .font(.footnote).foregroundStyle(.secondary).padding(Spacing.lg)
-        }
-    }
-
-    private func symbol(_ kind: APIKeyKind) -> String {
-        switch kind {
-        case .lastFm: "waveform"
-        case .fanartTv: "photo.fill.on.rectangle.fill"
-        case .discogs: "opticaldisc"
-        }
-    }
-
-    private func save(_ kind: APIKeyKind, _ value: String?) {
-        APIKeys.shared.set(kind, value)
-        saved[kind] = APIKeys.shared.isSet(kind)
-        drafts[kind] = nil
-        // A source refused with an old key may be asked again.
-        Task { await AppServices.shared.fixTags.service.forgetRefusals() }
     }
 }

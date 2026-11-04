@@ -65,7 +65,8 @@ final class FixTagsStore {
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
             fields = try values.decodeIfPresent([String].self, forKey: .fields) ?? fields
-            source = try values.decodeIfPresent(String.self, forKey: .source) ?? source
+            let requested = try values.decodeIfPresent(String.self, forKey: .source) ?? source
+            source = MetadataSources.options.first { $0.key.lowercased() == requested.lowercased() }?.key ?? MetadataSources.all
             acceptAt = try values.decodeIfPresent(Float.self, forKey: .acceptAt) ?? acceptAt
             // Add ordering to an existing "all fields" setup once, preserving custom selections.
             if !values.contains(.orderingFieldsVersion), Set(fields).isSuperset(of: MetadataField.fillOnlyTags.map(\.rawValue)) {

@@ -6,11 +6,10 @@ enum MetadataSources {
     static let iTunes = "iTunes"
     static let musicBrainz = "MusicBrainz"
     static let deezer = "Deezer"
-    static let lastFm = "Last.fm"
 
     /// The choices offered for Fix Tags.
     static let options: [(key: String, label: String)] = [
-        (all, "All sources"), (iTunes, "iTunes"), (musicBrainz, "MusicBrainz"), (deezer, "Deezer"), (lastFm, "Last.fm"),
+        (all, "All sources"), (iTunes, "iTunes"), (musicBrainz, "MusicBrainz"), (deezer, "Deezer"),
     ]
 
     static func matches(_ provider: String, _ selection: String) -> Bool {
@@ -47,7 +46,6 @@ actor MetadataService {
     private let iTunes: ITunesProvider
     private let musicBrainz: MusicBrainzProvider
     private let deezer: DeezerProvider
-    private let lastFm: LastFmProvider
     private let retry: RetryPolicy
     private var unusable: [String: ProviderAvailability] = [:]
 
@@ -57,17 +55,15 @@ actor MetadataService {
         iTunes = ITunesProvider(client: client)
         musicBrainz = MusicBrainzProvider(client: client)
         deezer = DeezerProvider(client: client)
-        lastFm = LastFmProvider(client: client, apiKey: { APIKeys.shared.value(.lastFm) })
     }
 
-    private var providers: [MetadataProvider] { [iTunes, musicBrainz, deezer, lastFm] }
+    private var providers: [MetadataProvider] { [iTunes, musicBrainz, deezer] }
 
     private func availability(of provider: MetadataProvider) -> ProviderAvailability {
-        if provider.providerName == lastFm.providerName && !APIKeys.shared.isSet(.lastFm) { return .notConfigured(LastFmProvider.notConfigured) }
         return unusable[provider.providerName] ?? .available
     }
 
-    /// Forgets this session's refusals (after a key was changed in Settings).
+    /// Forgets this session's provider refusals for an explicit retry.
     func forgetRefusals() {
         unusable = [:]
     }

@@ -135,6 +135,9 @@ struct ArtworkPickerSheet: View {
                     PhotosPicker(selection: $photo, matching: .images) {
                         Label("Choose from Photos", systemImage: "photo.on.rectangle")
                     }
+                    Link(destination: webSearchURL) { Label("Search images in browser", systemImage: "magnifyingglass") }
+                    Text("Web results have their own usage rights. Choose a permitted image and import it from Photos.")
+                        .font(.caption).foregroundStyle(.secondary)
                     if loading {
                         HStack { ProgressView(); Text("Searching iTunes, MusicBrainz, Deezer and Wikimedia…") }.font(.footnote)
                     } else if candidates.isEmpty {
@@ -142,25 +145,31 @@ struct ArtworkPickerSheet: View {
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: Spacing.sm)], spacing: Spacing.sm) {
                         ForEach(candidates) { candidate in
-                            Button { Task { await apply(candidate) } } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    AsyncImage(url: URL(string: candidate.url)) { phase in
-                                        if let image = phase.image {
-                                            image.resizable().scaledToFill()
-                                        } else if phase.error != nil {
-                                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary)
-                                        } else {
-                                            ProgressView()
+                            VStack(alignment: .leading, spacing: 4) {
+                                Button { Task { await apply(candidate) } } label: {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        AsyncImage(url: URL(string: candidate.url)) { phase in
+                                            if let image = phase.image {
+                                                image.resizable().scaledToFill()
+                                            } else if phase.error != nil {
+                                                Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary)
+                                            } else {
+                                                ProgressView()
+                                            }
                                         }
+                                        .frame(minWidth: 0, maxWidth: .infinity)
+                                        .aspectRatio(1, contentMode: .fit)
+                                        .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
+                                        Text(candidate.source).font(.caption2).foregroundStyle(.secondary)
                                     }
-                                    .frame(minWidth: 0, maxWidth: .infinity)
-                                    .aspectRatio(1, contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
-                                    Text(candidate.source).font(.caption2).foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Use this image from \(candidate.source)")
+                                if let credit = candidate.credit {
+                                    Text(credit.author).font(.caption2).lineLimit(2)
+                                    Link(credit.license + " · source", destination: credit.page).font(.caption2)
                                 }
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Use this image from \(candidate.source)")
                         }
                     }
                 }
@@ -207,6 +216,15 @@ struct ArtworkPickerSheet: View {
         }
         if case .failed(let reason)? = status { return reason }
         return "The image could not be saved. Try another image."
+    }
+
+    private var webSearchURL: URL {
+        let query: String
+        switch target {
+        case .album(let album): query = [album.title, album.artist, "album cover image"].joined(separator: " ")
+        case .artist(let artist): query = artist.name + " artist photo"
+        }
+        return requestURL("https://www.google.com/search", [("q", query), ("tbm", "isch")])
     }
 
     private func apply(_ candidate: ArtworkCandidate) async {

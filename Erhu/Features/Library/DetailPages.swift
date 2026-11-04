@@ -256,8 +256,10 @@ struct PlaylistDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             Menu {
-                if vybeEnabled { Button { router.open(.radio(.song(songs.first?.id ?? 0))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
-                    .disabled(songs.isEmpty)
+                if vybeEnabled {
+                    Button { router.open(.radio(.song(songs.first?.id ?? 0))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") }
+                        .disabled(songs.isEmpty)
+                }
                 Button {
                     newName = library.playlist(playlistId)?.name ?? ""
                     renaming = true
