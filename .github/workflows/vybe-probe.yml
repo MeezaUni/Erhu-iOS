@@ -4,6 +4,8 @@ on:
     branches: [without-animated-art]
     paths: [Tools/VybeProbe/**, .github/workflows/vybe-probe.yml]
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   probe:
     runs-on: macos-15-intel

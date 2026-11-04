@@ -1,8 +1,7 @@
 platform :ios, '17.0'
 project 'VybeProbe.xcodeproj'
-target 'Probe' do
+# Link MediaPipe once, in the hosted test bundle. Linking its static calculators
+# in both host and tests aborts at launch before a single test can execute.
+target 'ProbeTests' do
   pod 'MediaPipeTasksText', '1.0.0'
-  target 'ProbeTests' do
-    inherit! :search_paths
-  end
 end
