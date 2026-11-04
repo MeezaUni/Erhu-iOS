@@ -6,9 +6,10 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   probe:
-    if: "!contains(github.event.head_commit.message, '[minilm]')"
+    if: "!contains(github.event.head_commit.message, '[minilm]') && !contains(github.event.head_commit.message, '[diagnostic]')"
     runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
@@ -115,3 +116,20 @@ jobs:
           path: |
             Tools/VybeProbe/MiniLM/probe.log
             Tools/VybeProbe/MiniLM/Results.xcresult
+
+  diagnostics:
+    if: contains(github.event.head_commit.message, '[diagnostic]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read completed animated test progress
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run view 41889189737 --repo MeezaUni/Erhu-iOS --log > /tmp/animated-tests.log
+          python3 - <<'PYREPORT'
+          from pathlib import Path
+          lines=Path('/tmp/animated-tests.log').read_text(errors='replace').splitlines()
+          selected=[line for line in lines if 'Test Suite ' in line or 'Test Case ' in line or 'Executed ' in line or 'error: -[' in line or 'crash' in line.lower()]
+          for line in selected[-45:]:
+              print('::notice title=Animated tests::'+line[-1100:].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PYREPORT
