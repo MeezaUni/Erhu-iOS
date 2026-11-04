@@ -4,8 +4,28 @@ on:
     branches: [without-animated-art]
     paths: [Tools/VybeProbe/**, .github/workflows/vybe-probe.yml]
   workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
 jobs:
+  prior-diagnostics:
+    if: contains(github.event.head_commit.message, '[diagnostic]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the earlier owned-repository probe failure
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run view 41853296638 --repo MeezaUni/Erhu-iOS --log-failed > /tmp/prior-probe.log
+          python3 - <<'PYREPORT'
+          from pathlib import Path
+          lines=Path('/tmp/prior-probe.log').read_text(errors='replace').splitlines()
+          selected=[s for s in lines if any(k in s.lower() for k in ['error:', 'vybe_probe', 'failed', 'exception', 'could not', 'unable to', 'fatal'])]
+          for line in (selected[-35:] or lines[-30:]):
+              print('::notice title=Previous VYBE probe::'+line.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          PYREPORT
   probe:
+    if: "!contains(github.event.head_commit.message, '[diagnostic]')"
     runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
