@@ -34,7 +34,7 @@ final class AudioFilePreloader {
             guard !Task.isCancelled, generation == token else { return }
             if files[url] != nil { continue }
             let result = await Task.detached(priority: .userInitiated) { () -> PreparedAudioFile? in
-                guard let before = AudioFileFingerprint.read(url), let file = try? AVAudioFile(forReading: url) else { return nil }
+                guard let before = AudioFileFingerprint.read(url), let file = try? DecodedAudioSource.open(url) else { return nil }
                 let count = AVAudioFrameCount(min(max(file.length, 0), 4096))
                 if count > 0 {
                     guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: count),

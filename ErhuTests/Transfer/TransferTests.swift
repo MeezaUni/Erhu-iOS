@@ -161,7 +161,7 @@ final class TransferCoreTests: XCTestCase {
         XCTAssertNil(TransferFiles.sanitize("song.mp3.exe"))
         XCTAssertNil(TransferFiles.sanitize(""))
         XCTAssertNil(TransferFiles.sanitize(nil))
-        XCTAssertNil(TransferFiles.sanitize("song.ogg"), "iOS cannot play Ogg")
+        XCTAssertEqual(TransferFiles.sanitize("song.ogg"), "song.ogg", "Xiph decoding supports Ogg imports")
         XCTAssertEqual(124, TransferFiles.sanitize(String(repeating: "x", count: 500) + ".mp3")?.count)
         XCTAssertEqual("Song (2).mp3", TransferFiles.numbered("Song.mp3", 2))
     }

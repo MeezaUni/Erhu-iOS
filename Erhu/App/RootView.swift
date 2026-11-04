@@ -81,7 +81,7 @@ struct RootView: View {
         .sheet(isPresented: $router.showsSearch) { SearchView() }
         .routerSheets(active: !router.showsNowPlaying)
         .alert("New playlist", isPresented: $router.showsNewPlaylist) { NewPlaylistAlert() }
-        .fileImporter(isPresented: $showsImporter, allowedContentTypes: [.audio], allowsMultipleSelection: true) { result in
+        .fileImporter(isPresented: $showsImporter, allowedContentTypes: [.audio, UTType(importedAs: "org.xiph.ogg")], allowsMultipleSelection: true) { result in
             if case .success(let urls) = result { library.importFiles(urls) }
         }
         .alert("Something went wrong", isPresented: $library.isShowingError) {
@@ -98,6 +98,7 @@ struct RootView: View {
             router.section = settings.visibleSection(router.section)
             if !enabled { router.paths[.vybe] = NavigationPath() }
         }
+        .onChange(of: player.playbackError) { _, message in if let message { library.report(message) } }
         .onAppear { library.scan(); Task { await ReleaseChecker.shared.check() } }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { library.scan(); Task { await ReleaseChecker.shared.check() } }

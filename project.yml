@@ -10,14 +10,33 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     ERHU_RELEASE_TAG: "v1.0-beta"
+packages:
+  Ogg:
+    url: https://github.com/sbooth/ogg-binary-xcframework
+    revision: 48cbf24e7fb5d329b1f5e24cd2e5b048585ff770
+  Opus:
+    url: https://github.com/sbooth/opus-binary-xcframework
+    revision: 8e23828b9d88f0ff1ff2d7c4bcb65739a4bdeff8
+  Vorbis:
+    url: https://github.com/sbooth/vorbis-binary-xcframework
+    revision: 842020eabcebe410e698c68545d6597b2d232e51
 targets:
   Erhu:
     type: application
     platform: iOS
     sources: [Erhu]
+    dependencies:
+      - package: Ogg
+        product: ogg
+      - package: Opus
+        product: opus
+      - package: Vorbis
+        product: vorbis
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.erhu
+        SWIFT_OBJC_BRIDGING_HEADER: Support/Erhu-Bridging-Header.h
+        HEADER_SEARCH_PATHS: "$(inherited) $(SRCROOT)"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: Support/Info.plist
         TARGETED_DEVICE_FAMILY: "1"

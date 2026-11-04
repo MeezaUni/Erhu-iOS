@@ -188,10 +188,9 @@ enum TransferJSON {
 /// File names and formats accepted by Wi-Fi Transfer. The browser only ever supplies a display
 /// name: any folder part is discarded, so a client can never choose where a file is written.
 enum TransferFiles {
-    /// Ordinary local audio formats iOS plays (no conversion is done). Ogg and Opus, which Android
-    /// accepts, are left out: iOS cannot play them.
-    static let audioExtensions: Set<String> = ["mp3", "flac", "m4a", "aac", "wav", "aif", "aiff"]
-    static let formatsLabel = "MP3, FLAC, M4A, AAC, WAV or AIFF"
+    /// Native iOS audio plus Ogg Vorbis and Opus decoded locally by the Xiph bridge.
+    static let audioExtensions: Set<String> = ["mp3", "flac", "m4a", "aac", "wav", "aif", "aiff", "ogg", "oga", "opus"]
+    static let formatsLabel = "MP3, FLAC, M4A, AAC, WAV, AIFF, Ogg Vorbis or Opus"
     private static let maxBaseLength = 120
     private static let reserved = Regex16(#"[<>:"/\\|?*\x{0000}-\x{001F}\x{007F}]"#)
     private static let whitespace = Regex16(#"\s+"#)
@@ -250,6 +249,7 @@ enum TransferFiles {
         let frameSync = at(0) == 0xFF && (at(1) & 0xE0) == 0xE0
         switch extensionOf(name) {
         case "mp3": return id3 || frameSync
+        case "ogg", "oga", "opus": return ascii(0, "OggS")
         case "flac": return ascii(0, "fLaC") || id3
         case "m4a": return ascii(4, "ftyp")
         case "aac": return (at(0) == 0xFF && (at(1) & 0xF6) == 0xF0) || ascii(0, "ADIF") || id3

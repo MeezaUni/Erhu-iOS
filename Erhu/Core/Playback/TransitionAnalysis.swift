@@ -136,7 +136,7 @@ actor TransitionAnalysisStore {
 
     static func decode(url: URL, range: Range<Int64>, bins: Int = 480) -> TransitionAudioSlice? {
         guard bins > 0, bins <= 8192, range.lowerBound >= 0, range.count > 0, range.count <= 20_000,
-              let file = try? AVAudioFile(forReading: url) else { return nil }
+              let file = try? DecodedAudioSource.open(url) else { return nil }
         let format = file.processingFormat
         let rate = format.sampleRate
         guard rate > 0, format.channelCount > 0 else { return nil }
