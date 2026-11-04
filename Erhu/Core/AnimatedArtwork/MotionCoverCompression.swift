@@ -51,7 +51,8 @@ enum MotionCoverCompressor {
         guard let description = descriptions.first, duration.isFinite, duration > 0, duration <= 120,
               transform == .identity else { throw MotionCompressionError.unsupported }
         let dimensions = CMVideoFormatDescriptionGetDimensions(description)
-        let extensions = CMFormatDescriptionGetExtensions(description) as NSDictionary
+        guard let rawExtensions = CMFormatDescriptionGetExtensions(description) else { throw MotionCompressionError.unsupported }
+        let extensions = rawExtensions as NSDictionary
         var colors: [String: String] = [:]
         for key in [kCMFormatDescriptionExtension_ColorPrimaries, kCMFormatDescriptionExtension_TransferFunction, kCMFormatDescriptionExtension_YCbCrMatrix] {
             if let value = extensions[key] { colors[key as String] = String(describing: value) }
