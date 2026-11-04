@@ -71,8 +71,8 @@ def main():
     if args.output.exists() and any(args.output.iterdir()):
         p.error('Output folder is not empty; choose a new folder to retain previous weights')
     import torch
-    from sentence_transformers import SentenceTransformer, InputExample, losses
-    from torch.utils.data import DataLoader
+    from sentence_transformers import SentenceTransformer, SentenceTransformerTrainer, SentenceTransformerTrainingArguments, losses
+    from datasets import Dataset
     torch.manual_seed(42)
     model = SentenceTransformer(args.base, device=args.device, trust_remote_code=False)
     model.max_seq_length = 128
@@ -80,13 +80,16 @@ def main():
     if config.model_type != 'bert' or config.hidden_size != 384 or config.num_hidden_layers != 6:
         p.error('This kit exports only the existing MiniLM-L6 384-dimensional architecture')
     baseline = accuracy(model, held_out)
-    examples = [InputExample(texts=[r['query'], r['positive'], r['negative']]) for r in train]
-    loader = DataLoader(examples, shuffle=True, batch_size=min(args.batch_size, len(examples)))
+    dataset = Dataset.from_list([{'anchor': r['query'], 'positive': r['positive'], 'negative': r['negative']} for r in train])
     objective = losses.TripletLoss(model=model, triplet_margin=0.2)
+    training = SentenceTransformerTrainingArguments(
+        output_dir=str(args.output / 'checkpoints'), num_train_epochs=args.epochs,
+        per_device_train_batch_size=min(args.batch_size, len(train)), learning_rate=2e-5,
+        warmup_ratio=0.1, save_strategy='no', eval_strategy='no', report_to='none',
+        logging_steps=10, seed=42, use_cpu=args.device == 'cpu', push_to_hub=False,
+        fp16=False, bf16=False, dataloader_num_workers=0)
     started = time.time()
-    model.fit(train_objectives=[(loader, objective)], epochs=args.epochs,
-              warmup_steps=min(100, len(loader) * args.epochs // 10),
-              optimizer_params={'lr': 2e-5}, show_progress_bar=True)
+    SentenceTransformerTrainer(model=model, args=training, train_dataset=dataset, loss=objective).train()
     tuned = accuracy(model, held_out)
     model.save(str(args.output), safe_serialization=True)
     report = {'base': args.base, 'seed': 42, 'maxSequenceLength': 128,

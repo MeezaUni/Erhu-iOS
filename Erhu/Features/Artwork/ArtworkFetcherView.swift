@@ -145,31 +145,7 @@ struct ArtworkPickerSheet: View {
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: Spacing.sm)], spacing: Spacing.sm) {
                         ForEach(candidates) { candidate in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Button { Task { await apply(candidate) } } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        AsyncImage(url: URL(string: candidate.url)) { phase in
-                                            if let image = phase.image {
-                                                image.resizable().scaledToFill()
-                                            } else if phase.error != nil {
-                                                Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary)
-                                            } else {
-                                                ProgressView()
-                                            }
-                                        }
-                                        .frame(minWidth: 0, maxWidth: .infinity)
-                                        .aspectRatio(1, contentMode: .fit)
-                                        .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
-                                        Text(candidate.source).font(.caption2).foregroundStyle(.secondary)
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Use this image from \(candidate.source)")
-                                if let credit = candidate.credit {
-                                    Text(credit.author).font(.caption2).lineLimit(2)
-                                    Link(credit.license + " · source", destination: credit.page).font(.caption2)
-                                }
-                            }
+                            ArtworkCandidateTile(candidate: candidate) { Task { await apply(candidate) } }
                         }
                     }
                 }
@@ -251,6 +227,32 @@ struct ArtworkPickerSheet: View {
                 try store.storePhoto(image, for: artist, source: "CUSTOM")
                 dismiss()
             } catch { saveError = error.localizedDescription }
+        }
+    }
+}
+
+private struct ArtworkCandidateTile: View {
+    let candidate: ArtworkCandidate
+    let choose: () -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button(action: choose) {
+                VStack(alignment: .leading, spacing: 4) {
+                    AsyncImage(url: URL(string: candidate.url)) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() }
+                        else if phase.error != nil { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
+                        else { ProgressView() }
+                    }
+                    .frame(minWidth: 0, maxWidth: .infinity)
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
+                    Text(candidate.source).font(.caption2).foregroundStyle(.secondary)
+                }
+            }.buttonStyle(.plain).accessibilityLabel("Use this image from \(candidate.source)")
+            if let credit = candidate.credit {
+                Text(credit.author).font(.caption2).lineLimit(2)
+                Link(credit.license + " · source", destination: credit.page).font(.caption2)
+            }
         }
     }
 }

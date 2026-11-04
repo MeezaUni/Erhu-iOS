@@ -1,12 +1,12 @@
-# Python 3.12. Install the appropriate torch 2.5.1 wheel first (see README).
-torch==2.5.1
-sentence-transformers==3.3.1
-transformers==4.46.3
-accelerate==1.0.1
-datasets==3.2.0
-numpy==1.26.4
-coremltools==8.3.0
-onnx==1.17.0
-onnxruntime==1.20.1
-scikit-learn==1.5.1
-protobuf==4.25.5
+# Python 3.12. Versions checked against PyPI on 2026-11-04.
+torch==2.15.0
+sentence-transformers==6.2.0
+transformers==5.22.1
+accelerate==1.15.0
+datasets==5.1.0
+numpy==2.5.4
+coremltools==9.0
+onnx==1.23.2
+onnxruntime==1.31.1
+scikit-learn==1.9.1
+protobuf==7.36.2
