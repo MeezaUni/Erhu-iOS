@@ -27,8 +27,7 @@ enum DecodedAudioSource {
     }
 
     static func inspect(_ url: URL) throws -> [String: Any] {
-        guard let info = try ERHUOggDecoder.inspect(url) else { throw CocoaError(.fileReadCorruptFile) }
-        return info
+        try ERHUOggDecoder.inspect(url)
     }
 
     @discardableResult static func prepare(_ url: URL) throws -> URL {

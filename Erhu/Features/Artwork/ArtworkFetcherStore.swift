@@ -139,6 +139,7 @@ final class ArtworkFetcherStore {
         albumStatus[album.id] = .writing
         do {
             let image = try await service.downloadArtwork(candidate.url)
+            if let credit = candidate.credit { try ArtworkCredits.shared.remember(credit) }
             try await embed(image, in: album)
             albumStatus[album.id] = .done
             albums.removeAll { $0.id == album.id }
@@ -191,6 +192,7 @@ final class ArtworkFetcherStore {
         artistStatus[artist.id] = .writing
         do {
             let image = try await service.downloadArtwork(candidate.url)
+            if let credit = candidate.credit { try ArtworkCredits.shared.remember(credit) }
             try storePhoto(image, for: artist, source: "CUSTOM")
             artistStatus[artist.id] = .done
             return true

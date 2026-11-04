@@ -2,6 +2,10 @@ name: iOS
 
 on:
   push:
+    paths-ignore:
+      - "Tools/vybe_lab/**"
+      - "Tools/VybeProbe/**"
+      - "docs/downloads/VYBE-training-kit.zip"
   workflow_dispatch:
 
 concurrency:
