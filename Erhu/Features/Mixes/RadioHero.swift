@@ -55,7 +55,9 @@ struct RadioHero: View {
         .padding(Spacing.lg)
         .background(LinearGradient(colors: colors.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
         .clipShape(RoundedRectangle(cornerRadius: Radius.large))
-        .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { _ in revision += 1 }
+        .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
+            if note.object as? String == source.url?.path { revision += 1 }
+        }
         .task(id: "\(source)|\(revision)") {
             let next = await LyricsPaletteCache.shared.palette(for: source)
             guard !Task.isCancelled else { return }

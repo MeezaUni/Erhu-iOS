@@ -14,7 +14,7 @@ struct ArtworkUpgradeView: View {
     var body: some View {
         List {
             Section {
-                Text("Find a larger version of your existing image. Only likely same-image matches appear here; review before replacing. Your current artwork stays until you apply a match.")
+                Text("Find a larger version of your existing image. Only likely same-image matches appear here; review before replacing. Your current artwork stays until you apply a match. Saved images fit within \(TagWriter.maxArtworkPixels) pixels.")
                     .font(.footnote).foregroundStyle(.secondary)
                 if store.scanning {
                     ProgressView(value: Double(store.checked), total: Double(max(store.total, 1)))
