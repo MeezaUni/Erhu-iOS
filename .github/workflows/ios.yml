@@ -91,11 +91,15 @@ jobs:
       - name: Run transfer and library regressions
         run: |
           set -o pipefail
+          MOTION_TESTS=()
+          if [ -f ErhuTests/AnimatedArtwork/MotionCoverDownloadsTests.swift ]; then
+            MOTION_TESTS+=("-only-testing:ErhuTests/MotionCoverDownloadsTests")
+          fi
           if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
             -destination "id=$SIMULATOR_ID" -resultBundlePath build/RegressionResults.xcresult CODE_SIGNING_ALLOWED=NO \
             -only-testing:ErhuTests/TransferListenerLifecycleTests \
             -only-testing:ErhuTests/TransferNetworkTests \
-            -only-testing:ErhuTests/LibraryModelBuilderTests > build/regression-tests.log 2>&1; then
+            -only-testing:ErhuTests/LibraryModelBuilderTests "${MOTION_TESTS[@]}" > build/regression-tests.log 2>&1; then
             python3 - <<'PYREGRESSION'
           import os, re
           from pathlib import Path

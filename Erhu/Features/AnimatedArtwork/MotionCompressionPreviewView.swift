@@ -28,7 +28,7 @@ struct MotionCompressionPreviewView: View {
                     Button("Use compressed cover") {
                         store.acceptCompression()
                         if store.compressionPreview == nil { dismiss() }
-                    }.buttonStyle(.borderedProminent)
+                    }.modifier(PaletteFilledButton())
                     Button("Keep original") { store.discardCompression(); dismiss() }.buttonStyle(.bordered)
                 }.padding(Spacing.lg)
             }.navigationTitle("Compare covers").navigationBarTitleDisplayMode(.inline)

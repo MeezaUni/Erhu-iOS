@@ -29,17 +29,18 @@ struct AnimatedArtworkView: View {
                 } else {
                     Button(store.availability.hasChecked && store.availability.checked < store.availability.total
                            ? "Continue checking albums" : "Check all albums for motion covers") { store.availability.check(library.albums) }
-                        .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                        .disabled(store.availability.checking || store.isBusy)
                     if store.availability.hasChecked && store.availability.checked < store.availability.total {
                         Button("Start a new check") { store.availability.check(library.albums, restart: true) }
                             .font(.footnote)
-                            .disabled(store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                            .disabled(store.isBusy)
                     }
                 }
                 if let message = store.availability.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
             } footer: {
                 Text("Checks availability only. Videos download when you tap Download.")
             }.toolSectionAppearance()
+            downloadSection
             Section("Lock Screen") {
                 if let song = player.state.currentSong {
                     Text(song.title).font(.headline)
@@ -64,9 +65,6 @@ struct AnimatedArtworkView: View {
                     Button("Cancel compression", role: .cancel) { store.cancel() }
                 }.toolSectionAppearance()
             }
-            if store.downloading != nil {
-                Section { Button("Cancel download", role: .cancel) { store.cancel() } }.toolSectionAppearance()
-            }
             Section("Available & downloaded") {
                 if albums.isEmpty { Text(store.availability.hasChecked ? "No matching motion covers yet." : "Check your albums to find available covers.").foregroundStyle(.secondary) }
                 ForEach(albums) { album in
@@ -83,7 +81,7 @@ struct AnimatedArtworkView: View {
                         else if store.saved.covers[String(album.id)] != nil { Text("Downloaded · available offline").font(.caption).foregroundStyle(.secondary) }
                         HStack {
                             Button(store.saved.covers[String(album.id)] == nil ? "Download" : "Download again") { store.download(album) }
-                                .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                                .disabled(store.availability.checking || store.isBusy)
                             if store.saved.covers[String(album.id)] != nil {
                                 Spacer()
                                 Button("Remove", role: .destructive) { store.remove(album) }.disabled(store.downloading == album.id)
@@ -92,7 +90,7 @@ struct AnimatedArtworkView: View {
                         if let cover = store.saved.covers[String(album.id)], cover.compressedSquare != true {
                             Button("Compress square cover…") { store.compress(album) }
                                 .buttonStyle(.bordered)
-                                .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                                .disabled(store.availability.checking || store.isBusy)
                         }
                     }.padding(.vertical, Spacing.xs)
                 }
@@ -105,4 +103,33 @@ struct AnimatedArtworkView: View {
             MotionCompressionPreviewView(preview: preview)
         }
     }
+
+    private var downloadSection: some View {
+        Section("Downloads") {
+            if store.downloads.isRunning {
+                ProgressView(value: Double(store.downloads.completed), total: Double(max(store.downloads.total, 1)))
+                Text("Downloading \(min(store.downloads.completed + 1, store.downloads.total)) of \(store.downloads.total)")
+                    .font(.subheadline.weight(.semibold))
+                if let album = store.downloads.current { Text(album.title).font(.footnote).foregroundStyle(.secondary) }
+                Text("\(store.downloads.saved) saved · \(store.downloads.failed) failed")
+                    .font(.caption).foregroundStyle(.secondary)
+                Button(store.downloads.isStopping ? "Stopping…" : "Stop downloads", role: .cancel) { store.downloads.stop() }
+                    .disabled(store.downloads.isStopping)
+            } else {
+                let count = store.pendingDownloads(in: library.albums).count
+                Button { store.downloadAll(library.albums) } label: {
+                    Label("Download all available (\(count))", systemImage: "arrow.down.circle")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .contentShape(Rectangle())
+                }
+                .disabled(count == 0 || store.isBusy || store.availability.checking)
+            }
+            if let message = store.downloads.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
+        } footer: {
+            Text("Downloads checked covers one at a time. Existing downloads are skipped. Keep Erhu open; Stop keeps completed covers.")
+        }
+        .toolSectionAppearance()
+    }
+
 }

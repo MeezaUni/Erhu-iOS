@@ -3,7 +3,13 @@
 Open **Menu → Animated covers** and tap **Check all albums for motion covers**. The
 cancellable scan checks metadata only and lists available matches alongside saved
 covers. Tap **Download** for an individual result; checking never downloads videos.
-Already downloaded covers remain listed before a scan. If stopped or interrupted,
+Already downloaded covers remain listed before a scan. Use **Download all available** to save every checked cover that is not already
+on this iPhone. Downloads run one at a time, with progress and **Stop downloads**.
+Completed covers remain saved; tapping Download all again resumes the remaining
+covers. Keep Erhu in the foreground. Individual failures are listed and can be
+retried; a full-storage error stops the batch.
+
+If stopped or interrupted,
 matches found so far remain available. **Continue checking albums** resumes from
 unfinished albums, including after a provider limit. **Start a new check** resets
 that progress. Catalogue searches are paced to iTunes Search's approximate request

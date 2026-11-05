@@ -33,7 +33,8 @@ final class AnimatedArtworkStore {
     }
     private(set) var saved: Saved
     private(set) var status: [Int64: MotionCoverStatus] = [:]
-    private(set) var downloading: Int64?
+    let downloads = MotionCoverDownloads()
+    var downloading: Int64? { downloads.current?.id }
     private(set) var compressing: Int64?
     private(set) var compressionPreview: MotionCompressionPreview?
     private(set) var compressionMessage: String?
@@ -41,7 +42,6 @@ final class AnimatedArtworkStore {
     @ObservationIgnored private let persistence = JSONStore<Saved>(name: "motion-covers.json")
     @ObservationIgnored private let service: AppleMotionService
     let availability: MotionCoverAvailability
-    @ObservationIgnored private var pending: Task<Void, Never>?
     @ObservationIgnored var onChange: (() -> Void)?
 
     init() {
@@ -77,69 +77,102 @@ final class AnimatedArtworkStore {
             .map { Self.folder.appendingPathComponent($0) }
     }
 
+    var isBusy: Bool { downloads.isRunning || compressing != nil || compressionPreview != nil }
+
+    func isDownloaded(_ album: Album) -> Bool {
+        guard let cover = saved.covers[String(album.id)] else { return false }
+        return FileManager.default.fileExists(atPath: Self.folder.appendingPathComponent(cover.fileName).path)
+    }
+
+    func pendingDownloads(in albums: [Album]) -> [Album] {
+        MotionCoverDownloads.pending(albums,
+            available: Set(albums.filter { availability.match(for: $0) != nil }.map(\.id)),
+            downloaded: Set(albums.filter { isDownloaded($0) }.map(\.id)))
+    }
+
     func download(_ album: Album) {
-        guard downloading == nil, compressing == nil, compressionPreview == nil, !availability.checking else { return }
-        downloading = album.id
-        status[album.id] = .downloading
-        pending = Task {
-            defer { downloading = nil; pending = nil }
-            var destination: URL?
-            var portraitDestination: URL?
-            do {
-                let country = Locale.current.region?.identifier ?? "us"
-                let found: AppleMotionMatch?
-                if let cached = availability.match(for: album) { found = cached }
-                else { found = try await service.find(album: album.title, artist: album.artist, country: country) }
-                guard let match = found else {
-                    status[album.id] = .notFound
-                    return
-                }
-                try Task.checkCancellation()
-                try FileManager.default.createDirectory(at: Self.folder, withIntermediateDirectories: true)
-                let name = UUID().uuidString + ".mp4"
-                let url = Self.folder.appendingPathComponent(name)
-                destination = url
-                try await service.download(match, to: url)
-                var portraitName: String?
-                if let master = match.portraitMaster, master != match.master {
-                    let name = UUID().uuidString + ".mp4"
-                    let target = Self.folder.appendingPathComponent(name)
-                    portraitDestination = target
-                    do {
-                        let portrait = AppleMotionMatch(catalogId: match.catalogId, title: match.title, artist: match.artist,
-                                                       storefront: match.storefront, master: master)
-                        try await service.download(portrait, to: target)
-                        portraitName = name
-                    } catch {
-                        try? FileManager.default.removeItem(at: target)
-                        try Task.checkCancellation()
-                        // The square download still works when no usable portrait is available.
-                    }
-                }
-                try Task.checkCancellation()
-                _ = await MotionCoverPosterCache.shared.image(for: url)
-                try Task.checkCancellation()
-                let old = saved.covers[String(album.id)]
-                saved.covers[String(album.id)] = SavedMotionCover(albumId: album.id, album: album.title, artist: album.artist,
-                                                                  catalogId: match.catalogId, storefront: match.storefront, fileName: name,
-                                                                  portraitFileName: portraitName)
-                persistence.saveNow(saved)
-                onChange?()
-                if let old { removeFiles(old) }
-                status[album.id] = .saved
-            } catch {
-                if let destination { removeFile(destination) }
-                if let portraitDestination { removeFile(portraitDestination) }
-                if error is CancellationError || Task.isCancelled { status[album.id] = nil }
-                else { status[album.id] = .failed(error.localizedDescription) }
-            }
+        enqueue([album])
+    }
+
+    func downloadAll(_ albums: [Album]) {
+        enqueue(pendingDownloads(in: albums))
+    }
+
+    private func enqueue(_ albums: [Album]) {
+        guard !isBusy, !availability.checking else { return }
+        downloads.start(albums) { [weak self] album in
+            guard let self else { throw CancellationError() }
+            return try await self.downloadCover(album)
         }
     }
 
-    func cancel() { pending?.cancel(); compressionTask?.cancel() }
+    private func downloadCover(_ album: Album) async throws -> MotionCoverDownloadResult {
+        let retrying: Bool
+        if case .failed? = status[album.id] { retrying = true } else { retrying = false }
+        status[album.id] = .downloading
+        var destination: URL?
+        var portraitDestination: URL?
+        do {
+            try Task.checkCancellation()
+            let country = Locale.current.region?.identifier ?? "us"
+            let found: AppleMotionMatch?
+            if !retrying, let cached = availability.match(for: album) { found = cached }
+            else { found = try await service.find(album: album.title, artist: album.artist, country: country) }
+            try Task.checkCancellation()
+            guard let match = found else {
+                status[album.id] = .notFound
+                return .unavailable
+            }
+            try Task.checkCancellation()
+            try FileManager.default.createDirectory(at: Self.folder, withIntermediateDirectories: true)
+            let name = UUID().uuidString + ".mp4"
+            let url = Self.folder.appendingPathComponent(name)
+            destination = url
+            try await service.download(match, to: url)
+            var portraitName: String?
+            if let master = match.portraitMaster, master != match.master {
+                let name = UUID().uuidString + ".mp4"
+                let target = Self.folder.appendingPathComponent(name)
+                portraitDestination = target
+                do {
+                    let portrait = AppleMotionMatch(catalogId: match.catalogId, title: match.title, artist: match.artist,
+                                                   storefront: match.storefront, master: master)
+                    try await service.download(portrait, to: target)
+                    portraitName = name
+                } catch {
+                    try? FileManager.default.removeItem(at: target)
+                    try Task.checkCancellation()
+                    // A failed optional portrait must not discard the usable square cover.
+                }
+            }
+            try Task.checkCancellation()
+            _ = await MotionCoverPosterCache.shared.image(for: url)
+            try Task.checkCancellation()
+            let old = saved.covers[String(album.id)]
+            var updated = saved
+            updated.covers[String(album.id)] = SavedMotionCover(albumId: album.id, album: album.title, artist: album.artist,
+                                                              catalogId: match.catalogId, storefront: match.storefront, fileName: name,
+                                                              portraitFileName: portraitName)
+            let manifest = LibraryPaths.supportFolder.appendingPathComponent("motion-covers.json")
+            try JSONEncoder().encode(updated).write(to: manifest, options: .atomic)
+            saved = updated
+            onChange?()
+            if let old { removeFiles(old) }
+            status[album.id] = .saved
+            return .saved
+        } catch {
+            if let destination { removeFile(destination) }
+            if let portraitDestination { removeFile(portraitDestination) }
+            if error is CancellationError || Task.isCancelled { status[album.id] = nil }
+            else { status[album.id] = .failed(error.localizedDescription) }
+            throw error
+        }
+    }
+
+    func cancel() { downloads.stop(); compressionTask?.cancel() }
 
     func compress(_ album: Album) {
-        guard downloading == nil, compressing == nil, compressionPreview == nil,
+        guard !isBusy, !availability.checking,
               let cover = saved.covers[String(album.id)], cover.compressedSquare != true else { return }
         let original = Self.folder.appendingPathComponent(cover.fileName)
         let candidate = Self.folder.appendingPathComponent(UUID().uuidString + ".mp4")

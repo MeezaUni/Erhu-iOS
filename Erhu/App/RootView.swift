@@ -12,6 +12,7 @@ struct RootView: View {
     @Environment(AppRouter.self) private var router
     @Environment(SoundStore.self) private var sound
     @Environment(WifiTransferStore.self) private var transfer
+    @Environment(AnimatedArtworkStore.self) private var motionArtwork
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -104,6 +105,8 @@ struct RootView: View {
             if phase == .active { library.scan(); Task { await ReleaseChecker.shared.check() } }
             if phase == .background {
                 transfer.stop(.backgrounded)
+                motionArtwork.downloads.stop()
+                motionArtwork.availability.cancel()
                 player.persistNow()
                 sound.persistNow()
             }
