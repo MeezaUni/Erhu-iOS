@@ -11,58 +11,65 @@ enum RadioHeroSelection {
             return artists.insert(key).inserted
         }.prefix(3))
     }
+
+    /// The station owns its colour source; the currently playing song is deliberately not an input.
+    static func paletteSource(plan: RadioPlan?, library: [Song], artists: [Artist]) -> ArtworkPaletteSource {
+        guard let plan, let main = songs(plan: plan, library: library).first else { return .track(nil) }
+        if let path = artists.first(where: { $0.id == main.artistId })?.artworkPath?.nonBlank {
+            return .image(URL(fileURLWithPath: LibraryPaths.resolveImage(path)))
+        }
+        return .track(main.url)
+    }
 }
 
 struct RadioHero: View {
     let plan: RadioPlan
     @Environment(LibraryStore.self) private var library
-    @Environment(\.colorScheme) private var scheme
-    @State private var sampled = LyricsPalette.fallback
-    @State private var revision = 0
+    @Environment(\.palette) private var palette
 
     private var songs: [Song] { RadioHeroSelection.songs(plan: plan, library: library.songs) }
-    private var source: ArtworkPaletteSource {
-        if let song = songs.first, let path = library.artist(song.artistId)?.artworkPath {
-            return .image(URL(fileURLWithPath: LibraryPaths.resolveImage(path)))
-        }
-        return .track(songs.first?.url)
-    }
-
     var body: some View {
-        let colors = LyricsColors(sampled, scheme: scheme)
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        CollectionHeroLayout {
             GeometryReader { geometry in
                 let width = geometry.size.width
                 ZStack {
                     if songs.count > 1 {
                         portrait(songs[1]).frame(width: width * 0.46, height: width * 0.46)
-                            .position(x: width * 0.14, y: width * 0.30)
+                            .position(x: width * 0.14, y: width * 0.44)
                     }
                     if songs.count > 2 {
                         portrait(songs[2]).frame(width: width * 0.46, height: width * 0.46)
-                            .position(x: width * 0.86, y: width * 0.30)
+                            .position(x: width * 0.86, y: width * 0.44)
                     }
                     if let main = songs.first {
                         portrait(main).frame(width: width * 0.66, height: width * 0.66)
-                            .position(x: width * 0.5, y: width * 0.34)
+                            .position(x: width * 0.5, y: width * 0.46)
                     }
                 }
-            }.aspectRatio(1.4, contentMode: .fit)
-            Text(plan.name + " Radio").font(.largeTitle.bold()).foregroundStyle(colors.content)
-            Text("Selected from your library. Browse first, then choose what to play.")
-                .font(.subheadline).foregroundStyle(colors.secondary)
+            }
+            .background(LinearGradient(colors: [palette.surfaceVariant, palette.background], startPoint: .top, endPoint: .bottom))
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text(plan.name + " Radio").font(.largeTitle.bold()).foregroundStyle(palette.onSurface)
+                Text("Selected from your library. Browse first, then choose what to play.")
+                    .font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
+            }
+            .padding(.horizontal, Spacing.heroGutter)
+            .padding(.bottom, Spacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                GeometryReader { geometry in
+                    LinearGradient(stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: palette.background.opacity(0.18), location: 0.3),
+                        .init(color: palette.background.opacity(0.75), location: 0.75),
+                        .init(color: palette.background, location: 1),
+                    ], startPoint: .top, endPoint: .bottom)
+                    .frame(height: geometry.size.height + 48).offset(y: -48)
+                }
+            }
         }
-        .padding(Spacing.lg)
-        .background(LinearGradient(colors: colors.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
-        .clipShape(RoundedRectangle(cornerRadius: Radius.large))
-        .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
-            if note.object as? String == source.url?.path { revision += 1 }
-        }
-        .task(id: "\(source)|\(revision)") {
-            let next = await LyricsPaletteCache.shared.palette(for: source)
-            guard !Task.isCancelled else { return }
-            sampled = next
-        }
+        .clipped()
     }
 
     private func portrait(_ song: Song) -> some View {
@@ -70,7 +77,7 @@ struct RadioHero: View {
             SongArtworkView(song: song, maxPixels: 600)
         }
         .clipShape(Circle())
-        .overlay { Circle().strokeBorder(LyricsColors(sampled, scheme: scheme).rim.opacity(0.6), lineWidth: 2) }
+        .overlay { Circle().strokeBorder(palette.outline.opacity(0.6), lineWidth: 2) }
         .accessibilityLabel(song.artist)
     }
 }

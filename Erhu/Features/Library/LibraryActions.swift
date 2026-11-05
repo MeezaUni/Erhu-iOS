@@ -97,12 +97,12 @@ final class LibraryActions {
         }
     }
 
-    /// Browsing a station is silent. Only an explicit Play or track selection calls this.
-    func playRadio(_ plan: RadioPlan, startingAt songId: Int64? = nil) {
+    /// Browsing is silent. Play, Shuffle and track selection retain the same station session.
+    func playRadio(_ plan: RadioPlan, startingAt songId: Int64? = nil, shuffled: Bool = false) {
         let queue = songs([plan.startSongId] + plan.songIds)
         guard !queue.isEmpty else { return report(nil) }
-        let index = songId.flatMap { id in queue.firstIndex { $0.id == id } } ?? 0
-        player.setShuffleModeEnabled(false)
+        let index = songId.flatMap { id in queue.firstIndex { $0.id == id } } ?? (shuffled ? Int.random(in: 0..<queue.count) : 0)
+        player.setShuffleModeEnabled(shuffled)
         player.playCollection(queue, startIndex: index, origin: nil)
         radio = RadioSession(seed: plan.seed, startSongId: queue[index].id, suggested: Set(queue.map(\.id)))
         report(plan)
