@@ -10,6 +10,8 @@ final class LibraryStore {
     private(set) var albums: [Album] = []
     private(set) var artists: [Artist] = []
     private(set) var playlists: [Playlist] = []
+    private(set) var browseFacts: [Int64: LibraryBrowseFact] = [:]
+    private(set) var albumLastPlayed: [Int64: Int64] = [:]
     private(set) var favorites: [Song] = []
     private(set) var recentAlbums: [Album] = []
     private(set) var recentPlaylists: [Playlist] = []
@@ -37,7 +39,7 @@ final class LibraryStore {
         self.database = database
         reload()
         observer = NotificationCenter.default.addObserver(forName: SQLiteDatabase.didChange, object: database.db, queue: .main) { [weak self] note in
-            guard SQLiteDatabase.affects(note, tables: ["songs", "albums", "artists", "playlists", "playlist_song_cross_ref", "artist_artwork", "recently_played", "listening_stats"]) else { return }
+            guard SQLiteDatabase.affects(note, tables: ["songs", "albums", "artists", "playlists", "playlist_song_cross_ref", "artist_artwork", "recently_played", "listening_stats", "library_imports"]) else { return }
             MainActor.assumeIsolated { self?.reload() }
         }
     }
@@ -49,6 +51,8 @@ final class LibraryStore {
             artists = try database.allArtists()
             playlists = try database.playlists()
             favorites = try database.favoriteSongs()
+            browseFacts = try database.libraryBrowseFacts()
+            albumLastPlayed = try database.albumPlaybackTimes()
             recentAlbums = try database.recentAlbums(limit: Self.recentShelfLimit)
             recentPlaylists = try database.recentPlaylists(limit: Self.recentShelfLimit)
             var covers: [Int64: Song] = [:]

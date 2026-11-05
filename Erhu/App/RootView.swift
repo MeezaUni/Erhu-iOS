@@ -116,7 +116,7 @@ struct RootView: View {
     private func sectionStack(_ section: LibrarySection) -> some View {
         NavigationStack(path: router.binding(for: section)) {
             sectionRoot(section)
-                .navigationTitle(section == .home ? "Erhu" : section.label)
+                .navigationTitle(section == .albums ? "" : section == .home ? "Erhu" : section.label)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button { router.showsDrawer = true } label: { Image(systemName: "line.3.horizontal") }

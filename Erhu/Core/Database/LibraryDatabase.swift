@@ -6,7 +6,7 @@ import Foundation
 final class LibraryDatabase: @unchecked Sendable {
     let db: SQLiteDatabase
 
-    static let schemaVersion = 1
+    static let schemaVersion = 2
 
     init(db: SQLiteDatabase) throws {
         self.db = db
@@ -27,6 +27,18 @@ final class LibraryDatabase: @unchecked Sendable {
         if db.userVersion < 1 {
             try db.executeScript(Self.schemaV1)
             db.userVersion = 1
+        }
+        if db.userVersion < 2 {
+            try db.transaction {
+                try db.executeScript("""
+                    CREATE TABLE IF NOT EXISTS library_imports (
+                        song_id INTEGER PRIMARY KEY NOT NULL, added_at INTEGER NOT NULL
+                    );
+                    INSERT OR IGNORE INTO library_imports (song_id, added_at)
+                        SELECT id, date_modified FROM songs;
+                    """)
+                try db.execute("PRAGMA user_version = 2")
+            }
         }
     }
 
@@ -419,11 +431,18 @@ extension LibraryDatabase {
 // MARK: - Recently played (RecentlyPlayedDao)
 
 extension LibraryDatabase {
-    func recordAlbumOfSongPlayed(_ songId: Int64) throws {
-        try db.execute("""
-            INSERT OR REPLACE INTO recently_played (kind, item_id, played_at)
-            SELECT 'ALBUM', album_id, ? FROM songs WHERE id = ?
-            """, [Self.now(), songId])
+    /// Record the actual playback start, independently of counted half-track plays.
+    func recordAlbumOfSongPlayed(_ songId: Int64, at timestamp: Int64 = LibraryDatabase.now()) throws {
+        try db.transaction {
+            try db.execute("""
+                INSERT OR REPLACE INTO recently_played (kind, item_id, played_at)
+                SELECT 'ALBUM', album_id, ? FROM songs WHERE id = ?
+                """, [timestamp, songId])
+            try db.execute("""
+                INSERT OR REPLACE INTO recently_played (kind, item_id, played_at)
+                SELECT 'SONG', id, ? FROM songs WHERE id = ?
+                """, [timestamp, songId])
+        }
     }
 
     func markPlaylistPlayed(_ playlistId: Int64) throws {
