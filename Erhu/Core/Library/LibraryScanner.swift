@@ -155,9 +155,12 @@ final class LibraryScanner: @unchecked Sendable {
         let songById = Dictionary(scanned.map { ($0.song.id, $0) }, uniquingKeysWith: { first, _ in first })
         try db.transaction {
             for chunk in removed.chunked(into: 500) {
+                try db.execute("DELETE FROM library_imports WHERE song_id IN (\(placeholders(chunk.count)))", chunk)
                 try db.execute("DELETE FROM songs WHERE id IN (\(placeholders(chunk.count)))", chunk)
             }
+            let importedAt = LibraryDatabase.now()
             for item in scanned {
+                try db.execute("INSERT OR IGNORE INTO library_imports (song_id, added_at) VALUES (?, ?)", [item.song.id, importedAt])
                 try insert(item, assignment: model.songs[item.song.id], into: db)
             }
             for table in ["song_artist_cross_ref", "albums", "artists", "album_artist_cross_ref", "unverified_credit_segment"] {

@@ -2,26 +2,53 @@ import SwiftUI
 
 private let gridColumns = [GridItem(.adaptive(minimum: ArtworkSize.gridMin), spacing: Spacing.lg, alignment: .top)]
 
-/// Albums as an artwork grid.
+/// Albums as an artwork grid, with independent section search and a saved sort order.
 struct AlbumsView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(AppRouter.self) private var router
+    @AppStorage("library.albums.sort") private var sort = LibrarySort.title.rawValue
+    @State private var query = ""
+    @State private var showsSearch = false
+    @State private var results: [Album]?
+
+    private var request: AlbumBrowseRequest {
+        AlbumBrowseRequest(albums: library.albums, songs: library.songs, facts: library.browseFacts,
+                           lastPlayed: library.albumLastPlayed, query: query, sort: LibrarySort(rawValue: sort) ?? .title)
+    }
 
     var body: some View {
-        LibraryRootScrollView {
+        LibraryBrowseScrollView(title: "Albums", isTabRoot: true, query: $query, showsSearch: $showsSearch) {
+            LibrarySortMenu(selection: $sort, options: LibrarySort.albums)
+        } content: {
             if library.albums.isEmpty {
                 EmptyState(message: library.isScanning ? "Scanning your music…" : "No albums yet.", systemImage: "square.stack")
-            } else {
-                LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
-                    ForEach(library.albums) { album in
-                        AlbumTile(album: album) { router.open(.album(album.id)) }
+            } else if let results {
+                Text(countLabel(results.count, "album")).font(.caption).foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.gutter)
+                if results.isEmpty {
+                    EmptyState(message: "No albums match your search.", systemImage: "magnifyingglass")
+                } else {
+                    LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
+                        ForEach(results) { album in
+                            AlbumTile(album: album) { router.open(.album(album.id)) }
+                        }
                     }
+                    .padding(.horizontal, Spacing.gutter)
+                    .padding(.vertical, Spacing.sm)
                 }
-                .padding(.horizontal, Spacing.gutter)
-                .padding(.vertical, Spacing.sm)
+            } else {
+                ProgressView().frame(maxWidth: .infinity).padding()
             }
         }
-        .tracksLibraryScrolling()
+        .task(id: request) {
+            let snapshot = request
+            // Typing cancels the previous delivery; large libraries never sort on the UI thread.
+            if !snapshot.query.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
+            guard !Task.isCancelled else { return }
+            let updated = await Task.detached(priority: .userInitiated) { snapshot.results() }.value
+            guard !Task.isCancelled else { return }
+            results = updated
+        }
         .refreshable { library.scan() }
     }
 }
@@ -121,15 +148,77 @@ struct LibraryShelfView: View {
     }
 }
 
-/// Every track (the Library overview's Songs "More").
+/// Every track, with a local query, remembered sorting, and tag-based genre/mood filters.
 struct AllSongsView: View {
     @Environment(LibraryStore.self) private var library
+    @AppStorage("library.songs.sort") private var sort = LibrarySort.title.rawValue
+    @State private var query = ""
+    @State private var showsSearch = false
+    @State private var genre = ""
+    @State private var mood = LibraryMood.all
+    @State private var results: [Song]?
+    @State private var genres: [String] = []
+
+    private var request: SongBrowseRequest {
+        SongBrowseRequest(songs: library.songs, facts: library.browseFacts, query: query,
+                          sort: LibrarySort(rawValue: sort) ?? .title, genre: genre, mood: mood)
+    }
 
     var body: some View {
-        ScrollView { SongList(songs: library.songs, emptyMessage: "No songs found.", emptyIcon: "music.note") }
-            .tracksLibraryScrolling()
-            .navigationTitle("Songs")
-            .refreshable { library.scan() }
+        LibraryBrowseScrollView(title: "Songs", query: $query, showsSearch: $showsSearch) {
+            LibrarySortMenu(selection: $sort, options: LibrarySort.songs)
+            genreMenu
+            Menu {
+                Picker("Mood", selection: $mood) {
+                    Text("All moods").tag(LibraryMood.all)
+                    ForEach(LibraryMood.allCases.filter { $0 != .all }, id: \.rawValue) { Text($0.label).tag($0) }
+                }
+            } label: {
+                BrowseControlLabel(title: mood.label, icon: "sparkles", selected: mood != .all)
+            }
+            if !genre.isEmpty || mood != .all {
+                Button { genre = ""; mood = .all } label: { BrowseControlLabel(title: "Reset", icon: "xmark") }
+                    .accessibilityLabel("Clear genre and mood filters")
+            }
+        } content: {
+            if mood != .all {
+                Text("Mood matches use your songs’ genre and tempo tags.")
+                    .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.gutter)
+            }
+            if let results {
+                Text(countLabel(results.count, "song")).font(.caption).foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.gutter)
+                SongList(songs: results, emptyMessage: library.songs.isEmpty ? "No songs found." : "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood.", emptyIcon: "music.note")
+            } else {
+                ProgressView().frame(maxWidth: .infinity).padding()
+            }
+        }
+        .navigationTitle("")
+        .task(id: request) {
+            let snapshot = request
+            if !snapshot.query.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
+            guard !Task.isCancelled else { return }
+            let updated = await Task.detached(priority: .userInitiated) {
+                (snapshot.results(), LibraryBrowse.genres(in: snapshot.songs))
+            }.value
+            guard !Task.isCancelled else { return }
+            results = updated.0
+            genres = updated.1
+        }
+        .refreshable { library.scan() }
+    }
+
+    private var genreMenu: some View {
+        Menu {
+            Picker("Genre", selection: $genre) {
+                Text("All genres").tag("")
+                Text("Untagged").tag(LibraryBrowse.untaggedGenre)
+                ForEach(genres, id: \.self) { Text($0).tag(SectionSearch.key($0)) }
+            }
+        } label: {
+            BrowseControlLabel(title: genre.isEmpty ? "Genre" : genre == LibraryBrowse.untaggedGenre ? "Untagged" : genres.first { SectionSearch.key($0) == genre } ?? "Genre",
+                               icon: "guitars", selected: !genre.isEmpty)
+        }
     }
 }
 
