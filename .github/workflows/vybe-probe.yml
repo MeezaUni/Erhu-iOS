@@ -1,7 +1,7 @@
 name: VYBE iOS compatibility probe
 on:
   push:
-    branches: [without-animated-art, with-animated-art]
+    branches: [without-animated-art]
     paths: [Tools/VybeProbe/**, .github/workflows/vybe-probe.yml]
   workflow_dispatch:
 permissions:
@@ -131,48 +131,3 @@ jobs:
           path: |
             Tools/VybeProbe/MiniLM/probe.log
             Tools/VybeProbe/MiniLM/Results.xcresult
-
-  motion_scan_check:
-    if: contains(github.event.head_commit.message, '[motion-scan-check]')
-    runs-on: macos-15-intel
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-      - name: Test production motion scan logic
-        run: |
-          python3 - <<'PYSCAN'
-          from pathlib import Path
-          import shutil
-          root = Path('/tmp/motion-scan-check')
-          source = root / 'Sources/Erhu'
-          tests = root / 'Tests/ErhuTests'
-          source.mkdir(parents=True, exist_ok=True)
-          tests.mkdir(parents=True, exist_ok=True)
-          (root / 'Package.swift').write_text('''// swift-tools-version: 5.10
-          import PackageDescription
-          let package = Package(name: "MotionScanCheck", platforms: [.macOS(.v14)], targets: [
-              .target(name: "Erhu"), .testTarget(name: "ErhuTests", dependencies: ["Erhu"])
-          ])
-          ''')
-          library = Path('Erhu/Core/Model/LibraryModels.swift').read_text()
-          album = library[library.index('struct Album:'):library.index('\nstruct Artist:')]
-          motion = Path('Erhu/Core/AnimatedArtwork/AppleMotionService.swift').read_text()
-          match = motion[motion.index('struct AppleMotionMatch:'):motion.index('\n/// Mirrors')]
-          (source / 'Models.swift').write_text('import Foundation\n' + album + '\n' + match)
-          shutil.copy('Erhu/Features/AnimatedArtwork/MotionCoverAvailability.swift', source)
-          shutil.copy('ErhuTests/Playback/MotionCoverAvailabilityTests.swift', tests)
-          PYSCAN
-          set -o pipefail
-          swift test --package-path /tmp/motion-scan-check 2>&1 | tee /tmp/motion-scan-tests.log
-      - name: Report focused test result
-        if: always()
-        run: |
-          python3 - <<'PYREPORT'
-          from pathlib import Path
-          log = Path('/tmp/motion-scan-tests.log')
-          if log.exists():
-              lines = log.read_text(errors='replace').splitlines()
-              for line in lines:
-                  if 'Executed ' in line or 'error:' in line or ' failed ' in line:
-                      print('::notice title=Motion scan tests::' + line[-1600:].replace('%', '%25').replace('\n', '%0A'))
-          PYREPORT
