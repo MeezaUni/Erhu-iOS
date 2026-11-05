@@ -16,6 +16,7 @@ actor AppleMotionService {
     private let client: HTTPClient
     private var token: String?
     private var retryAt = Date.distantPast
+    private var nextSearchAt = Date.distantPast
     init(client: HTTPClient = URLSessionHTTPClient()) { self.client = client }
 
     struct Search: Decodable {
@@ -109,6 +110,15 @@ actor AppleMotionService {
     }
 
     private func get(_ url: URL) async throws -> Data {
+        // iTunes Search documents an approximate 20 requests/minute limit. This gate
+        // also covers reentrant lookups, and cancellation releases a waiting scan.
+        if url.host == "itunes.apple.com" {
+            while nextSearchAt > Date() {
+                try await Task.sleep(for: .seconds(max(0, nextSearchAt.timeIntervalSinceNow)))
+            }
+            try Task.checkCancellation()
+            nextSearchAt = Date().addingTimeInterval(3.1)
+        }
         let (data, response) = try await client.get(url, headers: [:])
         try check(response)
         guard data.count <= 8 * 1024 * 1024 else { throw MotionArtworkError("The Apple response was too large.") }

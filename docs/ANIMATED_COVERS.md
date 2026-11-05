@@ -4,7 +4,10 @@ Open **Menu → Animated covers** and tap **Check all albums for motion covers**
 cancellable scan checks metadata only and lists available matches alongside saved
 covers. Tap **Download** for an individual result; checking never downloads videos.
 Already downloaded covers remain listed before a scan. If stopped or interrupted,
-matches found so far remain available. Matching uses the
+matches found so far remain available. **Continue checking albums** resumes from
+unfinished albums, including after a provider limit. **Start a new check** resets
+that progress. Catalogue searches are paced to iTunes Search's approximate request
+limit; large libraries can take time. Matching uses the
 library's album and artist, searches the local/US catalog, and checks Apple motion artwork across
 several storefronts. Explicit editions are preferred among matching results. An album with no
 motion artwork keeps its embedded still image. Still images never drift or zoom; only downloaded

@@ -24,6 +24,30 @@ final class MotionCoverAvailabilityTests: XCTestCase {
     }
 
     @MainActor
+    func testRetryResumesAfterFailureIncludingAlbumsWithoutACover() async throws {
+        let history = AvailabilityHistory()
+        let scanner = MotionCoverAvailability(pause: .zero) { album in
+            try await history.find(album)
+        }
+        scanner.check(albums)
+        for _ in 0..<200 {
+            if !scanner.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertFalse(scanner.checking)
+        XCTAssertEqual(scanner.checked, 1)
+        scanner.check(albums)
+        for _ in 0..<200 {
+            if !scanner.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertFalse(scanner.checking)
+        XCTAssertEqual(scanner.checked, 3)
+        let requests = await history.requests
+        XCTAssertEqual(requests, [1, 2, 2, 3], "A retry must skip completed negative results as well as found covers")
+    }
+
+    @MainActor
     func testCancellationPreventsLateResultsAndStopsFurtherLookups() async throws {
         let gate = AvailabilityGate()
         let scanner = MotionCoverAvailability(pause: .zero) { album in
@@ -46,6 +70,15 @@ final class MotionCoverAvailabilityTests: XCTestCase {
         XCTAssertTrue(scanner.results.isEmpty)
         let calls = await gate.calls
         XCTAssertEqual(calls, 1)
+    }
+}
+
+private actor AvailabilityHistory {
+    var requests: [Int64] = []
+    func find(_ album: Album) throws -> AppleMotionMatch? {
+        requests.append(album.id)
+        if requests == [1, 2] { throw URLError(.badServerResponse) }
+        return nil
     }
 }
 

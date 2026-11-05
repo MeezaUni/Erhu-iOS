@@ -27,8 +27,14 @@ struct AnimatedArtworkView: View {
                     Text("Checked \(store.availability.checked) of \(store.availability.total) albums").font(.caption)
                     Button("Stop checking", role: .cancel) { store.availability.cancel() }
                 } else {
-                    Button("Check all albums for motion covers") { store.availability.check(library.albums) }
+                    Button(store.availability.hasChecked && store.availability.checked < store.availability.total
+                           ? "Continue checking albums" : "Check all albums for motion covers") { store.availability.check(library.albums) }
                         .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                    if store.availability.hasChecked && store.availability.checked < store.availability.total {
+                        Button("Start a new check") { store.availability.check(library.albums, restart: true) }
+                            .font(.footnote)
+                            .disabled(store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                    }
                 }
                 if let message = store.availability.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
             } footer: {
