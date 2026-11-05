@@ -131,39 +131,3 @@ jobs:
           path: |
             Tools/VybeProbe/MiniLM/probe.log
             Tools/VybeProbe/MiniLM/Results.xcresult
-
-  ui_test_diagnostics:
-    if: contains(github.event.head_commit.message, '[ui-test-logs]')
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Read completed run test artifact
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python3 - <<'PYLOG'
-          import json, os, subprocess, zipfile
-          from pathlib import Path
-          repo = os.environ['GITHUB_REPOSITORY']
-          run = '42028129286'
-          data = json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/actions/runs/{run}/artifacts'], text=True))
-          artifact = next((a for a in data['artifacts'] if a['name'] == 'Erhu-test-results'), None)
-          if artifact is None:
-              print('::notice::No stopped-run test artifact was available.')
-          else:
-              with open('/tmp/ui-tests.zip', 'wb') as output:
-                  subprocess.run(['gh', 'api', f"repos/{repo}/actions/artifacts/{artifact['id']}/zip"], stdout=output, check=True)
-              with zipfile.ZipFile('/tmp/ui-tests.zip') as archive:
-                  name = next(n for n in archive.namelist() if n == 'tests.log' or n.endswith('/tests.log'))
-                  lines = archive.read(name).decode(errors='replace').splitlines()
-              groups = ['LyricsTimingTests', 'ArtworkUpgradeTests', 'RadioHeroTests', 'MotionCoverAvailabilityTests', 'AudioEngineTests']
-              selected = [line for line in lines if any(g in line for g in groups) and ('passed' in line or 'failed' in line or 'error:' in line)]
-              selected += ['LAST OUTPUT:'] + lines[-45:]
-              for line in selected[-90:]:
-                  print('::notice title=Stopped simulator run::' + line[-1500:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
-              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-                  summary.write('## Stopped run test progress\n\n```text\n' + '\n'.join(selected)[-45000:] + '\n```\n')
-          PYLOG
