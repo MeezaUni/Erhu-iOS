@@ -105,7 +105,7 @@ struct AnimatedArtworkView: View {
     }
 
     private var downloadSection: some View {
-        Section("Downloads") {
+        Section {
             if store.downloads.isRunning {
                 ProgressView(value: Double(store.downloads.completed), total: Double(max(store.downloads.total, 1)))
                 Text("Downloading \(min(store.downloads.completed + 1, store.downloads.total)) of \(store.downloads.total)")
@@ -126,6 +126,8 @@ struct AnimatedArtworkView: View {
                 .disabled(count == 0 || store.isBusy || store.availability.checking)
             }
             if let message = store.downloads.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
+        } header: {
+            Text("Downloads")
         } footer: {
             Text("Downloads checked covers one at a time. Existing downloads are skipped. Keep Erhu open; Stop keeps completed covers.")
         }
