@@ -1,11 +1,12 @@
 import Foundation
+import CoreGraphics
 import Observation
 
 enum ArtworkUpgradeKind { case albums, artists }
 
 struct ArtworkUpgrade: Identifiable {
     let target: ArtworkTarget
-    let original: Data
+    let thumbnail: CGImage?
     let originalFacts: ArtworkImageFacts
     let candidate: ArtworkCandidate
     var id: String { target.id }
@@ -63,7 +64,7 @@ final class ArtworkUpgradeStore {
                         } catch is CancellationError { return }
                         catch { skipped += 1 }
                     }
-                    if let best { results.append(ArtworkUpgrade(target: target, original: original, originalFacts: facts, candidate: best)) }
+                    if let best { results.append(ArtworkUpgrade(target: target, thumbnail: ArtworkImageFacts.thumbnail(original, maxPixels: 96), originalFacts: facts, candidate: best)) }
                 } else { skipped += 1 }
                 checked += 1
                 do { try await Task.sleep(for: .milliseconds(300)) } catch { return }

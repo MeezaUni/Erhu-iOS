@@ -37,7 +37,7 @@ struct ArtworkUpgradeView: View {
                 ForEach(store.results) { result in
                     Button { Task { await open(result) } } label: {
                         HStack(spacing: Spacing.md) {
-                            if let image = ArtworkImageFacts.thumbnail(result.original, maxPixels: 100) {
+                            if let image = result.thumbnail {
                                 Image(decorative: image, scale: 1).resizable().scaledToFill()
                                     .frame(width: 48, height: 48).clipped().clipShape(RoundedRectangle(cornerRadius: 8))
                             }
@@ -81,7 +81,11 @@ struct ArtworkUpgradeView: View {
         defer { loading = false }
         do {
             let data = try await fetcher.search.imageData(result.candidate)
-            guard !Task.isCancelled, ArtworkImageFacts.inspect(data) == result.candidate.image else { return }
+            guard !Task.isCancelled else { return }
+            guard ArtworkImageFacts.inspect(data) == result.candidate.image else {
+                message = "The provider’s image changed. Search again to review the latest match."
+                return
+            }
             selected = result
             preview = ArtworkPreview(candidate: result.candidate, data: data)
         } catch { message = "The full image couldn’t be loaded. Please try again." }
