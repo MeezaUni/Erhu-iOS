@@ -6,6 +6,11 @@ and CPU measurements for building a synthetic library of 10,000 tracks. Compare 
 the same Xcode, simulator and runner class. These measurements are not device temperature
 or battery measurements, and there is no established performance baseline yet.
 
+The large-library correctness test checks every track's assignment and album membership,
+and attaches its elapsed time. It does not impose a ten-second wall-clock limit on a
+shared runner's unoptimised build. Performance trends remain recorded by the separate
+clock/CPU benchmark; use comparable Release/device measurements to set a speed budget.
+
 On a Mac, generate the project with `xcodegen generate`, select an installed iPhone simulator
 with `xcrun simctl list devices available`, then run:
 

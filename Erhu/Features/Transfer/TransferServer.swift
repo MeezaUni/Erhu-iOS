@@ -53,30 +53,35 @@ final class TransferServer: @unchecked Sendable {
         }
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
-                let resumed = OnceFlag()
+                let lifecycle = TransferListenerLifecycle()
                 listener.stateUpdateHandler = { [weak self, weak listener] state in
                     switch state {
                     case .ready:
-                        if resumed.claim() {
-                            if let bound = listener?.port?.rawValue, bound != 0 { continuation.resume(returning: bound) }
-                            else { listener?.cancel(); continuation.resume(throwing: NWError.posix(.EINVAL)) }
+                        if let bound = listener?.port?.rawValue, bound != 0 {
+                            if lifecycle.becomeReady() { continuation.resume(returning: bound) }
+                        } else if lifecycle.end() == .startup {
+                            listener?.cancel()
+                            continuation.resume(throwing: NWError.posix(.EINVAL))
                         }
                     case .failed(let error):
-                        if resumed.claim() {
+                        switch lifecycle.end() {
+                        case .startup:
                             listener?.cancel()
                             continuation.resume(throwing: error)
-                        } else if let self, !self.lock.withLock({ self.stopped }) {
-                            self.onFailure(error.localizedDescription)
+                        case .listening: self?.listenerFailed(listener, message: error.localizedDescription)
+                        case .ignored: break
                         }
                     case .waiting(let error):
-                        if resumed.claim() {
+                        if lifecycle.end(startupOnly: true) == .startup {
                             listener?.cancel()
                             continuation.resume(throwing: error)
                         }
                     case .cancelled:
-                        if resumed.claim() { continuation.resume(throwing: CancellationError()) }
-                        else if let self, !self.lock.withLock({ self.stopped }) {
-                            self.onFailure("The transfer listener closed. Start a new transfer session.")
+                        switch lifecycle.end() {
+                        case .startup: continuation.resume(throwing: CancellationError())
+                        case .listening:
+                            self?.listenerFailed(listener, message: "The transfer listener closed. Start a new transfer session.")
+                        case .ignored: break
                         }
                     default: break
                     }
@@ -89,11 +94,16 @@ final class TransferServer: @unchecked Sendable {
                     listener.start(queue: queue)
                     return true
                 }
-                if !started, resumed.claim() { continuation.resume(throwing: CancellationError()) }
+                if !started, lifecycle.end() == .startup { continuation.resume(throwing: CancellationError()) }
             }
         } onCancel: {
             self.stop()
         }
+    }
+
+    private func listenerFailed(_ listener: NWListener?, message: String) {
+        guard let listener, lock.withLock({ !stopped && self.listener === listener }) else { return }
+        onFailure(message)
     }
 
     func stop() {

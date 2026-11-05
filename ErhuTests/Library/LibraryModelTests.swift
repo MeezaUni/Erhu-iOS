@@ -220,14 +220,25 @@ final class LibraryModelBuilderTests: XCTestCase {
         XCTAssertFalse(model.artists.contains { $0.id == kanye && $0.isUnresolved })
     }
 
-    func testTenThousandTracksBuildQuickly() {
+    func testTenThousandTracksRetainAssignmentsAndAlbumMembership() {
         let big = (0..<10_000).map { i in
             rawTrack(Int64(i), "t\(i)", "Artist \(i % 2000)/Guest \(i % 7)", nil, "Album \(i % 800)", i % 20, 1, "/m/\(i % 800)")
         }
         let start = Date()
-        _ = LibraryModelBuilder.build(big, aliases: [:])
-        // Android allows 2 s on a JVM; this runs unoptimised in a simulator, so the bound is looser.
-        XCTAssertLessThan(Date().timeIntervalSince(start), 10)
+        let model = LibraryModelBuilder.build(big, aliases: [:])
+        let elapsed = Date().timeIntervalSince(start)
+        XCTAssertEqual(Set(model.songs.keys), Set(big.map(\.songId)))
+        XCTAssertEqual(model.albums.count, 800)
+        let grouped = model.albums.flatMap(\.songIds)
+        XCTAssertEqual(grouped.count, big.count)
+        XCTAssertEqual(Set(grouped), Set(big.map(\.songId)))
+        // Shared-runner Debug wall time is diagnostic, not a fixed device performance
+        // budget. LibraryPerformanceTests records clock/CPU metrics in the xcresult.
+        XCTContext.runActivity(named: "10,000-track library build") { activity in
+            let timing = XCTAttachment(string: "Debug simulator wall time: \(elapsed) seconds")
+            timing.lifetime = .keepAlways
+            activity.add(timing)
+        }
     }
 }
 
