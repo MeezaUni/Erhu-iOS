@@ -16,6 +16,32 @@ compression tools exist only in `with-animated-art`.
 | Ogg Vorbis / Opus | Read tags and play mono/stereo originals through Xiph decoding and the existing engine. A disposable PCM cache enables seeking, waveforms, EQ and transitions. Cold preparation is cancellable and off the UI thread; sufficient disk space is required. [Codec details and licences](../ThirdParty/XIPH-CODECS.md). |
 | Animated compression | Personal animated branch only: opt-in square SDR H.264 → HEVC conversion, full-frame decoding, structural/timing/colour checks and a visual preview. The original remains until the listener chooses the compressed cover. Unsupported/no-saving results retain it. Portrait artwork is kept. |
 
+## Library and playback refinements
+
+- Pale accents use explicit contrasting labels and outlined toggle tracks, including
+  system dark appearance.
+- Album row numbers count within the displayed album. File names and embedded
+  track/disc tags are retained; trusted tags still determine the existing album order.
+- Radio headers show the seed artist and up to two distinct artists actually present
+  in the station. Saved artist photos fall back to track artwork; the hero gradient
+  comes from the main picture and adapts to light/dark appearance.
+- **Not synced? Adjust timing** opens a millisecond slider, numeric entry, playback
+  preview and Save/Cancel. Positive offsets delay lyrics; negative offsets bring
+  them earlier. Highlighting, timed words and line-tap seeking use the same offset.
+  Adjustments are local and separate per song/source/text version. Another version's
+  saved timing can be copied explicitly. Original lyrics are never rewritten.
+- Artwork Fetcher has **Find same image in higher resolution** in both tabs. It checks
+  existing images in a cancellable batch, compares whole-image colours/edges and
+  lists likely matches with a meaningful resolution increase after the save limit
+  (1440 px). Full preview and Apply remain required. Different covers/portraits are
+  excluded conservatively; the individual picker remains available.
+- Transition preview publishes actual rendered positions to the waveform overlay;
+  it never advances the playhead from elapsed wall-clock time alone.
+- Personal animated branch: **Check all albums for motion covers** is metadata only.
+  Available/downloaded albums appear in the list and each video needs an explicit
+  Download tap. Stopping or a lookup failure retains matches already found. Long
+  library scans depend on provider availability and request limits.
+
 ## Keyless provider setup
 
 - Keep iTunes Search, MusicBrainz, Cover Art Archive and Deezer for metadata/artwork.

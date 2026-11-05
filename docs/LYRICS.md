@@ -37,3 +37,14 @@ switching, a pending alternate with already-visible local lyrics/reason, saved s
 labelling, cache recovery, aliases, version matching and stale asynchronous results. The native
 iOS workflow builds and tests both variants. Live provider hosts have been blocked by the
 development proxy (CONNECT 403); this does not establish their availability on a phone.
+
+## Adjust timing for a recording
+
+In full-screen synced lyrics, tap **Not synced? Adjust timing**. Move the slider
+or enter milliseconds (−30,000 to +30,000), then preview while listening. Earlier
+uses a negative offset; later uses a positive offset. Save keeps the adjustment
+for this song and lyrics version. Cancel or dismiss discards the preview.
+Changing source starts with that version's own timing; **Use timing from another
+source** can copy a previously saved adjustment for the same song. Refreshing or
+downloading the same version retains its timing. Plain lyrics cannot be adjusted
+because they contain no timestamps. No audio or lyrics file is modified.

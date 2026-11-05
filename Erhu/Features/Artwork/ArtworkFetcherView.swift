@@ -304,13 +304,13 @@ private struct ArtworkCandidateTile: View {
     }
 }
 
-private struct ArtworkPreview: Identifiable {
+struct ArtworkPreview: Identifiable {
     let id = UUID()
     let candidate: ArtworkCandidate?
     let data: Data
 }
 
-private struct ArtworkPreviewView: View {
+struct ArtworkPreviewView: View {
     let preview: ArtworkPreview
     let saving: Bool
     let apply: () -> Void

@@ -25,7 +25,8 @@ struct LyricsTimingEditor: View {
                 HStack {
                     Stepper(value: $offset, in: -30_000...30_000, step: 50) {
                         HStack {
-                            TextField("Offset", value: $offset, format: .number.grouping(.never))
+                            TextField("Offset", value: Binding(get: { offset }, set: { offset = $0.clamped(-30_000, 30_000) }), format: .number.grouping(.never))
+                                .keyboardType(.numbersAndPunctuation)
                                 .multilineTextAlignment(.trailing).frame(width: 95)
                                 .textFieldStyle(.roundedBorder)
                             Text("ms").foregroundStyle(.secondary)
@@ -37,7 +38,7 @@ struct LyricsTimingEditor: View {
                 if !previous.isEmpty {
                     Menu("Use timing from another source") {
                         ForEach(previous) { item in
-                            Button("\(item.label) · \(item.offsetMs) ms") { offset = item.offsetMs }
+                            Button("\(item.label) · \(item.offsetMs) ms · \(item.savedAt.formatted(date: .abbreviated, time: .shortened))") { offset = item.offsetMs }
                         }
                     }.font(.caption)
                 }
@@ -62,7 +63,7 @@ struct LyricsTimingEditor: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         do { try preferences.save(offset, for: context); dismiss() }
-                        catch { error = "Couldn’t save the timing. Check available storage and try again." }
+                        catch { self.error = "Couldn’t save the timing. Check available storage and try again." }
                     }
                 }
             }
@@ -70,5 +71,6 @@ struct LyricsTimingEditor: View {
         .onAppear { offset = preferences.offset(for: context) }
         .onChange(of: offset) { _, value in preferences.preview(value, for: context) }
         .onDisappear { preferences.endPreview(for: context) }
+        .onChange(of: player.state.currentSong?.id) { _, id in if id != song.id { dismiss() } }
     }
 }

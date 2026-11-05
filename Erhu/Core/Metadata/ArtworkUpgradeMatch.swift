@@ -13,7 +13,11 @@ enum ArtworkUpgradeMatch {
 
     static func resembles(_ original: Data, _ candidate: Data) -> Bool {
         guard let a = signature(original), let b = signature(candidate) else { return false }
-        let difference = zip(a, b).map { abs(Double($0) - Double($1)) / 255 }.reduce(0, +) / Double(a.count)
+        var totalDifference = 0.0
+        for index in a.indices {
+            totalDifference += abs(Double(a[index]) - Double(b[index])) / 255
+        }
+        let difference = totalDifference / Double(a.count)
         // Compare spatial colours as well as edges; a matching silhouette alone is insufficient.
         guard difference < 0.065 else { return false }
         var differentEdges = 0
