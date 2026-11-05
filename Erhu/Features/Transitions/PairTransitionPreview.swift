@@ -8,6 +8,8 @@ final class PairTransitionPreview {
     private(set) var isPlaying = false
     private(set) var isPreparing = false
     private(set) var error: String?
+    private(set) var renderedPositionMs: Double?
+    @ObservationIgnored private var positionTask: Task<Void, Never>?
     @ObservationIgnored private var engine: AudioEngine?
     @ObservationIgnored private var setup: Task<Void, Never>?
     @ObservationIgnored private var task: Task<Void, Never>?
@@ -42,6 +44,13 @@ final class PairTransitionPreview {
                 try engine.previewTransition(outgoing: pair.from.song.url, incoming: pair.to.song.url, timing: timing)
                 isPreparing = false
                 isPlaying = true
+                positionTask = Task { [weak self] in
+                    while !Task.isCancelled {
+                        guard let self, self.isPlaying else { return }
+                        self.renderedPositionMs = self.engine?.previewPositionMs()
+                        try? await Task.sleep(for: .milliseconds(33))
+                    }
+                }
             } catch {
                 self.error = "Preview unavailable: the files or transition audio processor could not be opened."
                 stop()
@@ -49,9 +58,12 @@ final class PairTransitionPreview {
         }
     }
 
-    func positionMs() -> Double? { isPlaying ? engine?.previewPositionMs() : nil }
+    func positionMs() -> Double? { isPlaying ? renderedPositionMs : nil }
 
     func stop(resume: Bool = true) {
+        positionTask?.cancel()
+        positionTask = nil
+        renderedPositionMs = nil
         task?.cancel()
         task = nil
         engine?.stopAll()

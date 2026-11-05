@@ -160,8 +160,8 @@ struct VybeView: View {
             }
             if results.choices.isEmpty && !results.songs.isEmpty {
                 HStack(spacing: Spacing.sm) {
-                    Button { vybe.play(results.songs, index: 0) } label: { Label("Play \(results.songs.count)", systemImage: "play.fill").foregroundStyle(palette.onPrimary) }
-                        .buttonStyle(.borderedProminent)
+                    Button { vybe.play(results.songs, index: 0) } label: { Label("Play \(results.songs.count)", systemImage: "play.fill").foregroundStyle(palette.onFilledButton) }
+                        .modifier(PaletteFilledButton())
                     Button { vybe.shuffle(results.songs) } label: { Image(systemName: "shuffle") }
                         .buttonStyle(.bordered)
                         .accessibilityLabel("Shuffle")

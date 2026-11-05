@@ -49,7 +49,7 @@ struct CollectionHeroHeader<Cover: View>: View {
                     Label("Play", systemImage: "play.fill")
                         .frame(maxWidth: .infinity).foregroundStyle(palette.onFilledButton)
                 }
-                .buttonStyle(.borderedProminent)
+                .modifier(PaletteFilledButton())
                 .tint(palette.filledButton)
                 Button(action: onShuffle) {
                     Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity)

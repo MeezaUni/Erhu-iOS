@@ -40,6 +40,7 @@ struct SongLyrics: Equatable {
     let text: String?
     var origin: LyricsOrigin = .file
     var provider: String?
+    var sourceID = "file"
     var timing: LyricsTiming?
     var lookup: LyricsLookup = .idle
     /// The file has readable lyrics of its own.
@@ -75,6 +76,7 @@ struct SongLyrics: Equatable {
 @Observable
 final class LyricsStore {
     private(set) var current: SongLyrics?
+    let timingPreferences = LyricsTimingPreferences()
     private(set) var savedLyrics: CachedLyrics?
     private(set) var downloadError: String?
     private(set) var savingLyrics = false
@@ -312,7 +314,7 @@ final class LyricsStore {
         if let view, let candidate = view.candidate, let text = candidate.bestText,
            (candidate.timing >= .line || permitsPlain || view.userChosen),
            (view.userChosen || candidate.timing > fileTiming || !fileUsable) {
-            current = SongLyrics(songId: song.id, text: text, origin: view.fromCache ? .onlineSaved : .online, provider: candidate.provider,
+            current = SongLyrics(songId: song.id, text: text, origin: view.fromCache ? .onlineSaved : .online, provider: candidate.provider, sourceID: candidate.id,
                                  timing: candidate.timing, lookup: view.lookup, hasFileLyrics: fileUsable, search: manual)
         } else if fileUsable, fileTiming >= .line || permitsPlain {
             current = SongLyrics(songId: song.id, text: embedded, origin: .file, timing: fileTiming,

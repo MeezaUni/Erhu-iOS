@@ -14,14 +14,12 @@ struct RadioStationView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.md) {
                 if let plan {
-                    Text(plan.name).font(.largeTitle.bold())
-                    Text("Selected from your library. Browse first, then choose what to play.")
-                        .foregroundStyle(.secondary)
+                    RadioHero(plan: plan)
                     if !plan.basedOn.isEmpty {
                         Text("Based on " + plan.basedOn.map(\.label).joined(separator: ", ")).font(.footnote).foregroundStyle(.secondary)
                     }
                     Button { actions.playRadio(plan) } label: { Label("Play station", systemImage: "play.fill") }
-                        .buttonStyle(.borderedProminent).controlSize(.large)
+                        .modifier(PaletteFilledButton()).controlSize(.large)
                     let ids = [plan.startSongId] + plan.songIds
                     let songs = Dictionary(library.songs.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
                     ForEach(ids, id: \.self) { id in

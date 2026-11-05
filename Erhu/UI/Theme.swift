@@ -133,7 +133,7 @@ struct ThemedRoot<Content: View>: View {
             .fontDesign(settings.typeface.design)
             .environment(\.palette, palette)
             .environment(\.playbackPalette, palette)
-            .tint(palette.primary)
+            .tint(palette.primary).toggleStyle(PaletteToggleStyle())
             .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
                 if note.object as? String == artworkURL?.path { artworkRevision += 1 }
             }
@@ -209,7 +209,7 @@ struct CollectionArtworkTheme: ViewModifier {
     func body(content: Content) -> some View {
         let followsArtwork = settings.customTheme == nil && settings.theme == .artwork
         let palette = followsArtwork ? AppPalette.artwork(artworkPalette.palette(for: source), scheme: scheme) : inheritedPalette
-        content.environment(\.palette, palette).tint(palette.primary)
+        content.environment(\.palette, palette).tint(palette.primary).toggleStyle(PaletteToggleStyle())
             .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
                 if note.object as? String == source.url?.path { artworkRevision += 1 }
             }

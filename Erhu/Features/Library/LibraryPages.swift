@@ -153,7 +153,7 @@ struct SongList: View {
                 EmptyState(message: emptyMessage, systemImage: emptyIcon)
             }
             ForEach(Array(songs.enumerated()), id: \.element.id) { index, song in
-                TrackRow(song: song, isCurrent: song.id == currentId, showTrackNumber: showTrackNumbers, actions: songActions) {
+                TrackRow(song: song, isCurrent: song.id == currentId, showTrackNumber: showTrackNumbers, displayTrackNumber: showTrackNumbers ? index + 1 : nil, actions: songActions) {
                     actions.play(songs, startIndex: index, origin: origin, source: source)
                 }
             }

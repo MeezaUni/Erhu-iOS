@@ -54,6 +54,7 @@ struct TrackRow: View {
     let song: Song
     let isCurrent: Bool
     var showTrackNumber = false
+    var displayTrackNumber: Int? = nil
     var subtitle: String?
     let actions: SongActions
     let onTap: () -> Void
@@ -146,8 +147,8 @@ struct TrackRow: View {
     }
 
     @ViewBuilder private var leading: some View {
-        if showTrackNumber && song.trackNumber > 0 {
-            Text("\(song.trackNumber)")
+        if showTrackNumber {
+            Text("\(displayTrackNumber ?? song.trackNumber)")
                 .font(.body.weight(.semibold).monospacedDigit())
                 .foregroundStyle(isCurrent ? Color.accentColor : palette.onSurfaceVariant)
                 .frame(width: ArtworkSize.list, height: ArtworkSize.list)

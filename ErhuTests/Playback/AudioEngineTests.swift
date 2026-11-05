@@ -90,6 +90,14 @@ final class AudioEngineTests: XCTestCase {
         let position = try XCTUnwrap(rendered, "The preview playhead must expose the actual render clock")
         XCTAssertGreaterThanOrEqual(position, -Double(timing.leadMs))
         XCTAssertLessThanOrEqual(position, Double(timing.plan.durationMs) + Double(timing.tailMs))
+        // The overlay must receive changing render samples, not merely an initial position.
+        var later = position
+        for _ in 0..<40 {
+            try await Task.sleep(for: .milliseconds(25))
+            if let next = engine.previewPositionMs() { later = next }
+            if later > position + 100 { break }
+        }
+        XCTAssertGreaterThan(later, position + 100)
         engine.stopAll()
         XCTAssertNil(engine.previewPositionMs())
         XCTAssertFalse(engine.isRunning)
