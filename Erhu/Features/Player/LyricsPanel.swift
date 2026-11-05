@@ -84,12 +84,23 @@ private struct LyricsPanelContent: View {
     @Environment(\.palette) private var palette
     @Environment(\.lyricsCompact) private var compact
     @State private var searching = false
+    @State private var timingContext: LyricsTimingContext?
     @State private var searchText = ""
 
     var body: some View {
         let lyrics = store.current?.songId == song.id ? store.current : nil
         VStack(spacing: 0) {
-            if let onExpand { cardHeader(lyrics, onExpand) } else { header(lyrics) }
+            if let onExpand { cardHeader(lyrics, onExpand) } else {
+                header(lyrics)
+                if let lyrics, case .synced? = lyrics.parsed {
+                    Button("Not synced? Adjust timing") {
+                        timingContext = LyricsTimingContext(song: song, lyrics: lyrics)
+                    }
+                    .font(.caption).foregroundStyle(palette.onSurface)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, Spacing.heroGutter).padding(.vertical, Spacing.sm)
+                }
+            }
             if let error = store.downloadError { Text(error).font(.footnote).foregroundStyle(.secondary).padding(.horizontal) }
             if let notice = lyrics?.syncedServiceNotice {
                 Text(notice).font(.caption).foregroundStyle(palette.onSurface)
@@ -99,13 +110,18 @@ private struct LyricsPanelContent: View {
             }
             if let lyrics, let parsed = lyrics.parsed {
                 switch parsed {
-                case .synced(let lines): SyncedLyricsView(lyrics: parsed, lines: lines)
+                case .synced(let lines): SyncedLyricsView(lyrics: parsed, lines: lines, offsetMs: store.timingPreferences.offset(for: LyricsTimingContext(song: song, lyrics: lyrics)))
                 case .plain(let lines): plain(lines)
                 }
             } else if let onExpand {
                 lookupLine(lyrics?.lookup ?? .idle, onExpand)
             } else {
                 status(lyrics?.lookup ?? .idle)
+            }
+        }
+        .sheet(item: $timingContext) { context in
+            if let lyrics = store.current, LyricsTimingContext(song: song, lyrics: lyrics) == context {
+                LyricsTimingEditor(song: song, lyrics: lyrics, context: context, preferences: store.timingPreferences)
             }
         }
         .task(id: song.id) { store.shown(song) }
@@ -298,9 +314,10 @@ private struct LyricsPanelContent: View {
 }
 
 /// Time-synced lines that follow playback.
-private struct SyncedLyricsView: View {
+struct SyncedLyricsView: View {
     let lyrics: Lyrics
     let lines: [LyricLine]
+    var offsetMs: Int64 = 0
     @Environment(PlayerController.self) private var player
     @Environment(\.palette) private var palette
     @Environment(\.lyricsCompact) private var compact
@@ -314,13 +331,13 @@ private struct SyncedLyricsView: View {
         let interval = wordTimed && budget.allowsDecorativeMotion ? 0.1 : 0.25
         TimelineView(.animation(minimumInterval: interval,
                                 paused: !player.state.isPlaying || !visible || scenePhase != .active || playerInMotion)) { _ in
-            let position = player.currentPositionMs()
+            let position = LyricsTimingPreferences.lyricsPosition(playbackMs: player.currentPositionMs(), offsetMs: offsetMs)
             let currentLine = lyrics.lineAt(position)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: compact ? Spacing.md : Spacing.lg) {
                         ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
-                            Button { player.seek(to: line.timeMs) } label: {
+                            Button { player.seek(to: LyricsTimingPreferences.playbackPosition(lyricMs: line.timeMs, offsetMs: offsetMs)) } label: {
                                 lineText(line, index: index, current: currentLine, position: position)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }

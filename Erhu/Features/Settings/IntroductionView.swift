@@ -54,7 +54,7 @@ struct IntroductionView: View {
                 Button(index == pages.count - 1 ? "Start listening" : "Continue") {
                     if index == pages.count - 1 { finish() }
                     else { withAnimation { selected = pages[index + 1].id } }
-                }.buttonStyle(.borderedProminent).controlSize(.large).padding(.bottom)
+                }.modifier(PaletteFilledButton()).controlSize(.large).padding(.bottom)
             }
             .background(palette.background).foregroundStyle(palette.onSurface)
             .navigationTitle("Welcome to Erhu").navigationBarTitleDisplayMode(.inline)

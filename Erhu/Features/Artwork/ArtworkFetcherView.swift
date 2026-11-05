@@ -18,6 +18,11 @@ struct ArtworkFetcherView: View {
                     Text("Artists (\(store.artists.count))").tag(1)
                 }
                 .pickerStyle(.segmented)
+                NavigationLink {
+                    ArtworkUpgradeView(kind: tab == 0 ? .albums : .artists)
+                } label: {
+                    Label("Find same image in higher resolution", systemImage: "arrow.up.left.and.arrow.down.right")
+                }
                 if store.isScanning {
                     HStack { ProgressView(); Text("Looking for missing artwork…") }
                 }
@@ -99,7 +104,7 @@ private struct TargetRow<Art: View>: View {
 }
 
 /// What artwork is being chosen for.
-enum ArtworkTarget: Identifiable {
+enum ArtworkTarget: Identifiable, Sendable {
     case album(Album)
     case artist(Artist)
 

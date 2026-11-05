@@ -6,11 +6,10 @@ struct TransitionPreviewPlayhead: View {
     let viewport: TransitionWaveformViewport
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !preview.isPlaying)) { _ in
-            GeometryReader { geometry in
-                if let time = preview.positionMs() {
-                    TransitionPlayheadStroke(fraction: viewport.fraction(at: time))
-                }
+        GeometryReader { geometry in
+            if let time = preview.renderedPositionMs, preview.isPlaying {
+                TransitionPlayheadStroke(fraction: viewport.fraction(at: time))
+                    .frame(width: geometry.size.width, height: geometry.size.height)
             }
         }
         .clipped()
