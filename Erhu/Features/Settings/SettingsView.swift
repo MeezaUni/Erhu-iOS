@@ -156,7 +156,8 @@ private struct SettingsGroup<Content: View>: View {
                 .foregroundStyle(palette.onSurfaceVariant)
                 .padding(.horizontal, Spacing.lg)
                 .accessibilityAddTraits(.isHeader)
-            VStack(spacing: 0) { content }
+            VStack(alignment: .leading, spacing: 0) { content }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(palette.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
@@ -437,13 +438,16 @@ private struct AboutSettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary).padding([.horizontal, .bottom], Spacing.lg)
             }
             SettingsGroup("Project") {
-                NavigationLink("Image credits") { ImageCreditsView() }.padding(Spacing.lg)
-                Button { showingIntroduction = true } label: {
-                    Label("Introduction & tool guide", systemImage: "book.closed").padding(Spacing.lg)
+                NavigationLink { ImageCreditsView() } label: {
+                    SettingsActionLabel(title: "Image credits", icon: "photo.on.rectangle")
                 }
+                Divider().padding(.leading, Spacing.lg)
+                Button { showingIntroduction = true } label: {
+                    SettingsActionLabel(title: "Introduction & tool guide", icon: "book.closed")
+                }
+                Divider().padding(.leading, Spacing.lg)
                 Link(destination: URL(string: "https://github.com/MeezaUni/Erhu-iOS")!) {
-                    Label("Source code on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
-                        .frame(maxWidth: .infinity, alignment: .leading).padding(Spacing.lg)
+                    SettingsActionLabel(title: "Source code on GitHub", icon: "chevron.left.forwardslash.chevron.right", accessory: "arrow.up.right")
                 }
             }
             SettingsGroup("Updates") { ReleaseCheckView() }
