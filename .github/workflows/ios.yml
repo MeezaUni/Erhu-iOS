@@ -88,6 +88,27 @@ jobs:
           DEVICE=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
           echo "SIMULATOR_ID=$DEVICE" >> "$GITHUB_ENV"
 
+      - name: Run transfer and library regressions
+        run: |
+          set -o pipefail
+          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
+            -destination "id=$SIMULATOR_ID" -resultBundlePath build/RegressionResults.xcresult CODE_SIGNING_ALLOWED=NO \
+            -only-testing:ErhuTests/TransferListenerLifecycleTests \
+            -only-testing:ErhuTests/TransferNetworkTests \
+            -only-testing:ErhuTests/LibraryModelBuilderTests > build/regression-tests.log 2>&1; then
+            python3 - <<'PYREGRESSION'
+          import os, re
+          from pathlib import Path
+          lines = Path('build/regression-tests.log').read_text(errors='replace').splitlines()
+          failures = [line for line in lines if re.search(r'error:|XCTAssert.*failed|Test [Cc]ase .* failed|Testing failed:|\*\* TEST FAILED', line)]
+          for line in (failures or lines[-30:])[:24]:
+              print('::error::' + line[-2000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Transfer/library regressions\n\n```text\n' + '\n'.join((failures + lines[-50:]))[-24000:] + '\n```\n')
+          PYREGRESSION
+            exit 1
+          fi
+
       - name: Run unit tests
         run: |
           set -o pipefail
@@ -157,6 +178,8 @@ jobs:
           name: Erhu-test-results
           path: |
             build/TestResults.xcresult
+            build/RegressionResults.xcresult
+            build/regression-tests.log
             build/tests.log
             build/compile.log
           if-no-files-found: warn
