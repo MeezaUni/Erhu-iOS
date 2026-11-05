@@ -64,12 +64,16 @@ final class TransferNetworkTests: XCTestCase {
     func testOccupiedPortFallsBackAndReportsTheActualPort() async throws {
         let folder = try self.folder(), session = self.session()
         let first = server(folder: folder, session: session), second = server(folder: folder, session: session)
+        let unexpectedFailure = expectation(description: "Retiring the occupied-port attempt must not fail its fallback")
+        unexpectedFailure.isInverted = true
+        second.onFailure = { _ in unexpectedFailure.fulfill() }
         defer { first.stop(); second.stop(); try? FileManager.default.removeItem(at: folder) }
         let occupied = try await first.start(preferredPort: 0)
         let fallback = try await second.start(preferredPort: occupied)
         XCTAssertNotEqual(fallback, occupied)
         let response = try await request(port: fallback, path: "/")
         XCTAssertEqual(response.status, 200, "Host validation must use the fallback socket's real port")
+        await fulfillment(of: [unexpectedFailure], timeout: 0.15)
     }
 
     func testStoppedServerCannotStartAfterCancellation() async throws {
@@ -85,8 +89,14 @@ final class TransferNetworkTests: XCTestCase {
 
     @MainActor
     func testStopThenImmediateRestartCannotPublishAnOldStartup() async throws {
+        let folder = try self.folder()
+        let busy = server(folder: folder, session: self.session())
+        defer { busy.stop(); try? FileManager.default.removeItem(at: folder) }
+        let occupied = try await busy.start(preferredPort: 0)
         let library = LibraryStore(database: try LibraryDatabase.inMemory())
-        let store = WifiTransferStore(library: library, addressProvider: { "127.0.0.1" })
+        // Force fallback for every startup, rather than depending on how quickly the OS
+        // releases port 8770 after Stop. This exercises the previously intermittent race.
+        let store = WifiTransferStore(library: library, addressProvider: { "127.0.0.1" }, preferredPort: occupied)
         defer { store.stop() }
         store.start()
         await Task.yield()

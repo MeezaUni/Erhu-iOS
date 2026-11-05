@@ -30,6 +30,7 @@ final class WifiTransferStore {
 
     private let library: LibraryStore
     @ObservationIgnored private let addressProvider: () -> String?
+    @ObservationIgnored private let preferredPort: UInt16
     @ObservationIgnored private let registry = TransferRegistry()
     @ObservationIgnored private let limits = TransferLimits()
     @ObservationIgnored private var server: TransferServer?
@@ -40,9 +41,11 @@ final class WifiTransferStore {
     @ObservationIgnored private var refresh: Task<Void, Never>?
     @ObservationIgnored private let activity = ActivityClock()
 
-    init(library: LibraryStore, addressProvider: @escaping () -> String? = wifiAddress) {
+    init(library: LibraryStore, addressProvider: @escaping () -> String? = wifiAddress,
+         preferredPort: UInt16 = TransferServer.defaultPort) {
         self.library = library
         self.addressProvider = addressProvider
+        self.preferredPort = preferredPort
         registry.onChange = { [weak self] items in
             Task { @MainActor in self?.items = items }
         }
@@ -81,7 +84,7 @@ final class WifiTransferStore {
         }
         newServer.onFailure = { [weak self, weak newServer] message in
             Task { @MainActor in
-                guard let self, self.server === newServer else { return }
+                guard let self, let newServer, self.server === newServer else { return }
                 self.finish(.failedToStart(message))
             }
         }
@@ -94,7 +97,7 @@ final class WifiTransferStore {
             guard !Task.isCancelled, server === newServer else { return }
             newSink.cleanUpLeftovers()
             do {
-                let port = try await newServer.start()
+                let port = try await newServer.start(preferredPort: preferredPort)
                 guard !Task.isCancelled, server === newServer, state == .starting else {
                     newServer.stop()
                     return
