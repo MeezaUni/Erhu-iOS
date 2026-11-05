@@ -1,6 +1,9 @@
 # Animated covers (personal branch)
 
-Open **Menu → Animated covers**, find an album, and tap **Find & download**. Matching uses the
+Open **Menu → Animated covers** and tap **Check all albums for motion covers**. The
+cancellable scan checks metadata only and lists available matches alongside saved
+covers. Tap **Download** for an individual result; checking never downloads videos.
+If stopped or interrupted, matches found so far remain available. Matching uses the
 library's album and artist, searches the local/US catalog, and checks Apple motion artwork across
 several storefronts. Explicit editions are preferred among matching results. An album with no
 motion artwork keeps its embedded still image. Still images never drift or zoom; only downloaded
