@@ -6,6 +6,7 @@ struct ToolPageAppearance: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .buttonStyle(.plain)
             .scrollContentBackground(.hidden)
             .foregroundStyle(palette.onSurface)
             .tint(palette.primary)
