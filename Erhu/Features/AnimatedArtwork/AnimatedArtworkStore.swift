@@ -16,7 +16,7 @@ enum MotionCoverStatus: Equatable {
     case downloading, saved, notFound, failed(String)
     var label: String {
         switch self {
-        case .downloading: "Finding and downloading…"
+        case .downloading: "Downloading…"
         case .saved: "Downloaded · available offline"
         case .notFound: "No matching motion cover found"
         case .failed(let message): message
@@ -39,11 +39,19 @@ final class AnimatedArtworkStore {
     private(set) var compressionMessage: String?
     @ObservationIgnored private var compressionTask: Task<Void, Never>?
     @ObservationIgnored private let persistence = JSONStore<Saved>(name: "motion-covers.json")
-    @ObservationIgnored private let service = AppleMotionService()
+    @ObservationIgnored private let service: AppleMotionService
+    let availability: MotionCoverAvailability
     @ObservationIgnored private var pending: Task<Void, Never>?
     @ObservationIgnored var onChange: (() -> Void)?
 
-    init() { saved = persistence.load() ?? Saved() }
+    init() {
+        let service = AppleMotionService()
+        self.service = service
+        availability = MotionCoverAvailability { album in
+            try await service.find(album: album.title, artist: album.artist, country: Locale.current.region?.identifier ?? "us")
+        }
+        saved = persistence.load() ?? Saved()
+    }
 
     var enabled: Bool {
         get { saved.enabled }
@@ -70,7 +78,7 @@ final class AnimatedArtworkStore {
     }
 
     func download(_ album: Album) {
-        guard downloading == nil, compressing == nil, compressionPreview == nil else { return }
+        guard downloading == nil, compressing == nil, compressionPreview == nil, !availability.checking else { return }
         downloading = album.id
         status[album.id] = .downloading
         pending = Task {
@@ -79,7 +87,10 @@ final class AnimatedArtworkStore {
             var portraitDestination: URL?
             do {
                 let country = Locale.current.region?.identifier ?? "us"
-                guard let match = try await service.find(album: album.title, artist: album.artist, country: country) else {
+                let found: AppleMotionMatch?
+                if let cached = availability.match(for: album) { found = cached }
+                else { found = try await service.find(album: album.title, artist: album.artist, country: country) }
+                guard let match = found else {
                     status[album.id] = .notFound
                     return
                 }

@@ -7,7 +7,10 @@ struct AnimatedArtworkView: View {
     @State private var query = ""
 
     private var albums: [Album] {
-        library.albums.filter { query.isBlank || SearchNormalizer.matches($0.title + " " + $0.artist, query) }
+        library.albums.filter {
+            (store.availability.match(for: $0) != nil || store.saved.covers[String($0.id)] != nil) &&
+            (query.isBlank || SearchNormalizer.matches($0.title + " " + $0.artist, query))
+        }
     }
 
     var body: some View {
@@ -15,14 +18,21 @@ struct AnimatedArtworkView: View {
         List {
             Section {
                 Toggle("Play downloaded motion covers", isOn: $store.enabled)
-                Text("Download an album’s Apple motion cover to use it offline in Now Playing and on the album page. Covers stay muted and pause in the background, in Low Power Mode, and with Reduce Motion enabled.")
+                Text("Check your albums, then download available motion covers for muted offline playback. Lock Screen animation depends on iOS.")
                     .font(.footnote).foregroundStyle(.secondary)
-                Text("New downloads target 1080-pixel artwork where available. Use Download again to upgrade an existing cover.")
-                    .font(.footnote).foregroundStyle(.secondary)
-                if #available(iOS 26.0, *) {
-                    Text("Downloaded covers can also animate on the Lock Screen when supported by iOS. Use Download again to add portrait artwork to previously saved covers.")
-                        .font(.footnote).foregroundStyle(.secondary)
+            }.toolSectionAppearance()
+            Section {
+                if store.availability.checking {
+                    ProgressView(value: Double(store.availability.checked), total: Double(max(store.availability.total, 1)))
+                    Text("Checked \(store.availability.checked) of \(store.availability.total) albums").font(.caption)
+                    Button("Stop checking", role: .cancel) { store.availability.cancel() }
+                } else {
+                    Button("Check all albums for motion covers") { store.availability.check(library.albums) }
+                        .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
                 }
+                if let message = store.availability.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
+            } footer: {
+                Text("Checks availability only. Videos download when you tap Download.")
             }.toolSectionAppearance()
             Section("Lock Screen") {
                 if let song = player.state.currentSong {
@@ -51,8 +61,8 @@ struct AnimatedArtworkView: View {
             if store.downloading != nil {
                 Section { Button("Cancel download", role: .cancel) { store.cancel() } }.toolSectionAppearance()
             }
-            Section("Albums") {
-                if albums.isEmpty { Text("No matching albums in your library.").foregroundStyle(.secondary) }
+            Section("Available & downloaded") {
+                if albums.isEmpty { Text(store.availability.hasChecked ? "No matching motion covers yet." : "Check your albums to find available covers.").foregroundStyle(.secondary) }
                 ForEach(albums) { album in
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         HStack(spacing: Spacing.md) {
@@ -66,8 +76,8 @@ struct AnimatedArtworkView: View {
                         if let status = store.status[album.id] { Text(status.label).font(.caption).foregroundStyle(.secondary) }
                         else if store.saved.covers[String(album.id)] != nil { Text("Downloaded · available offline").font(.caption).foregroundStyle(.secondary) }
                         HStack {
-                            Button(store.saved.covers[String(album.id)] == nil ? "Find & download" : "Download again") { store.download(album) }
-                                .disabled(store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                            Button(store.saved.covers[String(album.id)] == nil ? "Download" : "Download again") { store.download(album) }
+                                .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
                             if store.saved.covers[String(album.id)] != nil {
                                 Spacer()
                                 Button("Remove", role: .destructive) { store.remove(album) }.disabled(store.downloading == album.id)
@@ -76,7 +86,7 @@ struct AnimatedArtworkView: View {
                         if let cover = store.saved.covers[String(album.id)], cover.compressedSquare != true {
                             Button("Compress square cover…") { store.compress(album) }
                                 .buttonStyle(.bordered)
-                                .disabled(store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
+                                .disabled(store.availability.checking || store.downloading != nil || store.compressing != nil || store.compressionPreview != nil)
                         }
                     }.padding(.vertical, Spacing.xs)
                 }
@@ -84,6 +94,7 @@ struct AnimatedArtworkView: View {
         }.modifier(ToolPageAppearance())
         .searchable(text: $query, prompt: "Album or artist")
         .navigationTitle("Animated covers")
+        .onDisappear { store.availability.cancel() }
         .sheet(item: Binding(get: { store.compressionPreview }, set: { if $0 == nil { store.discardCompression() } }), onDismiss: { store.discardCompression() }) { preview in
             MotionCompressionPreviewView(preview: preview)
         }
