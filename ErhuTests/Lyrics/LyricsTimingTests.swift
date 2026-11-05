@@ -19,7 +19,8 @@ final class LyricsTimingTests: XCTestCase {
         XCTAssertEqual(store.offset(for: second), 0)
         XCTAssertEqual(store.previous(for: second).first?.offsetMs, 1250)
         try store.save(-500, for: second)
-        lyrics.text = "[00:02.00]Corrected timestamp"
+        lyrics = SongLyrics(songId: song.id, text: "[00:02.00]Corrected timestamp", origin: .onlineSaved,
+                            provider: "LRCLIB", sourceID: "LRCLIB:2")
         XCTAssertEqual(store.offset(for: LyricsTimingContext(song: song, lyrics: lyrics)), 0, "Changed lyrics form a new version")
         let restored = LyricsTimingPreferences(url: url)
         XCTAssertEqual(restored.offset(for: first), 1250)
