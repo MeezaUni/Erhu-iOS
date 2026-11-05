@@ -17,9 +17,20 @@ struct RadioStationView: View {
                     RadioHero(plan: plan)
                     if !plan.basedOn.isEmpty {
                         Text("Based on " + plan.basedOn.map(\.label).joined(separator: ", ")).font(.footnote).foregroundStyle(.secondary)
+                            .padding(.horizontal, Spacing.heroGutter)
                     }
-                    Button { actions.playRadio(plan) } label: { Label("Play station", systemImage: "play.fill") }
-                        .modifier(PaletteFilledButton()).controlSize(.large)
+                    HStack(spacing: Spacing.md) {
+                        Button { actions.playRadio(plan) } label: {
+                            Label("Play station", systemImage: "play.fill").frame(maxWidth: .infinity)
+                        }
+                        .modifier(PaletteFilledButton())
+                        Button { actions.playRadio(plan, shuffled: true) } label: {
+                            Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .font(.headline).controlSize(.large).buttonBorderShape(.capsule)
+                    .padding(.horizontal, Spacing.heroGutter)
                     let ids = [plan.startSongId] + plan.songIds
                     let songs = Dictionary(library.songs.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
                     ForEach(ids, id: \.self) { id in
@@ -31,9 +42,14 @@ struct RadioStationView: View {
                 } else if loaded {
                     EmptyState(message: "No available songs for this station. Add more music and reopen it.", systemImage: "dot.radiowaves.left.and.right")
                 } else { ProgressView("Choosing tracks from your library…").padding() }
-            }.padding(Spacing.lg)
+            }.padding(.bottom, Spacing.lg)
         }
-        .modifier(ToolPageAppearance())
+        .tracksLibraryScrolling()
+        .ignoresSafeArea(.container, edges: .top)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .modifier(CollectionTopEdgeEffect())
+        .background { CollectionPageBackground() }
+        .collectionArtworkTheme(RadioHeroSelection.paletteSource(plan: plan, library: library.songs, artists: library.artists), alwaysFollowArtwork: true)
         .navigationTitle("Radio station").navigationBarTitleDisplayMode(.inline)
         .task(id: seed) {
             let next = await mixes.radio(seed)

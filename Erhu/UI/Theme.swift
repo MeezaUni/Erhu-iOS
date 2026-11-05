@@ -150,7 +150,9 @@ struct ThemedRoot<Content: View>: View {
 
 extension View {
     /// An album/artist theme belongs only to that page's subtree, never to its parent or chrome.
-    func collectionArtworkTheme(_ source: ArtworkPaletteSource) -> some View { modifier(CollectionArtworkTheme(source: source)) }
+    func collectionArtworkTheme(_ source: ArtworkPaletteSource, alwaysFollowArtwork: Bool = false) -> some View {
+        modifier(CollectionArtworkTheme(source: source, alwaysFollowArtwork: alwaysFollowArtwork))
+    }
 
     /// A floating glass surface: Liquid Glass on iOS 26, a material elsewhere.
     @ViewBuilder
@@ -201,6 +203,7 @@ extension EnvironmentValues {
 
 struct CollectionArtworkTheme: ViewModifier {
     let source: ArtworkPaletteSource
+    var alwaysFollowArtwork = false
     @Environment(AppSettings.self) private var settings
     @Environment(\.colorScheme) private var scheme
     @Environment(\.palette) private var inheritedPalette
@@ -208,7 +211,7 @@ struct CollectionArtworkTheme: ViewModifier {
     @State private var artworkRevision = 0
 
     func body(content: Content) -> some View {
-        let followsArtwork = settings.customTheme == nil && settings.theme == .artwork
+        let followsArtwork = alwaysFollowArtwork || (settings.customTheme == nil && settings.theme == .artwork)
         let palette = followsArtwork ? AppPalette.artwork(artworkPalette.palette(for: source), scheme: scheme) : inheritedPalette
         content.environment(\.palette, palette).tint(palette.primary).toggleStyle(PaletteToggleStyle())
             .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in

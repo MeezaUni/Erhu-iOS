@@ -32,11 +32,12 @@ final class ArtworkThemeScopeTests: XCTestCase {
     private struct Harness: View {
         let state: State
         let photo: URL
+        var alwaysFollowArtwork = false
         var body: some View {
             VStack {
                 Probe { state.backgroundSnapshots.append($0) }
                 if state.artistVisible {
-                    Probe { state.artistSnapshots.append($0) }.collectionArtworkTheme(.image(photo))
+                    Probe { state.artistSnapshots.append($0) }.collectionArtworkTheme(.image(photo), alwaysFollowArtwork: alwaysFollowArtwork)
                 }
             }
             .environment(\.palette, state.playback)
@@ -55,11 +56,21 @@ final class ArtworkThemeScopeTests: XCTestCase {
 
     @MainActor
     func testArtistScopeCannotRecolourTheBackingScreenOrPlaybackChrome() async throws {
+        try await checkScope(theme: .artwork, alwaysFollowArtwork: false)
+    }
+
+    @MainActor
+    func testRadioScopeKeepsStationColoursWhenPlaybackChangesEvenInAFixedTheme() async throws {
+        try await checkScope(theme: .dark, alwaysFollowArtwork: true)
+    }
+
+    @MainActor
+    private func checkScope(theme: ThemeChoice, alwaysFollowArtwork: Bool) async throws {
         let settings = AppSettings()
         let previousTheme = settings.theme
         let previousCustom = settings.stored.customThemeId
         settings.useCustomTheme(nil)
-        settings.theme = .artwork
+        settings.theme = theme
         defer { settings.theme = previousTheme; settings.useCustomTheme(previousCustom) }
 
         let photo = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
@@ -77,7 +88,7 @@ final class ArtworkThemeScopeTests: XCTestCase {
         let previous = scene.windows.first(where: \.isKeyWindow)
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(x: 0, y: 0, width: 350, height: 600)
-        window.rootViewController = UIHostingController(rootView: Harness(state: state, photo: photo)
+        window.rootViewController = UIHostingController(rootView: Harness(state: state, photo: photo, alwaysFollowArtwork: alwaysFollowArtwork)
             .environment(settings).environment(\.colorScheme, .dark))
         window.makeKeyAndVisible(); window.layoutIfNeeded()
         defer { window.isHidden = true; window.rootViewController = nil; previous?.makeKeyAndVisible() }
