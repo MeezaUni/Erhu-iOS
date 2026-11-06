@@ -25,9 +25,12 @@ enum MetadataEnrichment {
     }
 
     static func sameRecording(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {
+        let firstCredit = creditWords(recordingCredit(a)), secondCredit = creditWords(recordingCredit(b))
+        let omittedCredit = firstCredit.isSubset(of: secondCredit) || secondCredit.isSubset(of: firstCredit)
         guard isUsableTag(a.title), isUsableTag(b.title), isUsableTag(a.artist), isUsableTag(b.artist),
               identityKey(stripFeaturing(a.title)) == identityKey(stripFeaturing(b.title)),
-              identityKey(primaryArtist(a.artist)) == identityKey(primaryArtist(b.artist)) || creditSimilarity(recordingCredit(a), recordingCredit(b)) >= 0.8,
+              (identityKey(primaryArtist(a.artist)) == identityKey(primaryArtist(b.artist)) && omittedCredit)
+                || creditSimilarity(recordingCredit(a), recordingCredit(b)) >= 0.8,
               versionTags(a) == versionTags(b),
               let first = a.durationMs, first > 0, let second = b.durationMs, second > 0
         else { return false }
