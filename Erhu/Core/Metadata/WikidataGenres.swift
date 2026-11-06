@@ -16,12 +16,13 @@ actor WikidataGenres {
     private struct Value: Decodable {
         var text: String?
         var entityID: String?
+        enum CodingKeys: String, CodingKey { case value }
         init(from decoder: Decoder) throws {
-            let value = try decoder.singleValueContainer()
-            if let text = try? value.decode(String.self) { self.text = text }
+            let value = try decoder.container(keyedBy: CodingKeys.self)
+            if let text = try? value.decode(String.self, forKey: .value) { self.text = text }
             else {
                 struct EntityValue: Decodable { var id: String? }
-                entityID = (try? value.decode(EntityValue.self))?.id
+                entityID = (try? value.decode(EntityValue.self, forKey: .value))?.id
             }
         }
     }
