@@ -43,10 +43,50 @@ final class BulkMetadataSelectionTests: XCTestCase {
 
 final class BulkMetadataApplyTests: XCTestCase {
     @MainActor
+    func testPendingTrackGetsITunesGenreAndMusicBrainzDiscInOneAutoAction() async throws {
+        let database = try LibraryDatabase.inMemory()
+        let file = LibraryPaths.musicFolder.appendingPathComponent("fields-\(UUID().uuidString).mp3")
+        defer { try? FileManager.default.removeItem(at: file) }
+        var data = TagFixtures.mp3(v4: true)
+        for (old, new) in [("TCON", "XCON"), ("TPOS", "XPOS")] {
+            if let range = data.range(of: Data(old.utf8)) { data.replaceSubrange(range, with: Data(new.utf8)) }
+        }
+        try data.write(to: file)
+        var prepare = TagWriteRequest()
+        prepare.title = "(When You Gonna) Give It Up to Me - Radio Version"
+        prepare.artist = "Sean Paul & Keyshia Cole"
+        prepare.album = "(When You Gonna) Give It Up to Me"
+        prepare.trackNumber = 1
+        try TagWriter.write(prepare, to: file)
+        try database.db.execute("""
+            INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, track_number, year, date_modified)
+            VALUES (9090, ?, ?, ?, 1, 1, 243000, ?, ?, 1, 2006, 0)
+            """, [prepare.title!, prepare.artist!, prepare.album!, file.lastPathComponent, file.lastPathComponent])
+        let library = LibraryStore(database: database)
+        let store = FixTagsStore(library: library, service: MetadataService(client: MixedFieldsHTTP()))
+        let previous = store.settings
+        defer { store.update { $0 = previous }; store.clear() }
+        store.update { $0.fields = [MetadataField.genre.rawValue, MetadataField.discNumber.rawValue]; $0.source = MetadataSources.musicBrainz }
+        store.enqueue(library.songs)
+        XCTAssertEqual(store.autoCandidateCount, 1, "Pending tracks without saved candidates must be eligible")
+        store.autoSelectBestCandidates()
+        try await waitUntil { !store.isRunning && !library.isScanning }
+        let tags = TagReader.read(file)
+        XCTAssertEqual(Genres.parse(Genres.join(tags.genres)), ["Reggae"])
+        XCTAssertEqual(tags.discNumber, 1)
+        XCTAssertEqual(store.queue.first?.status, .done)
+        XCTAssertTrue(store.queue.first?.notes.contains(where: { $0.contains("Genre from iTunes") }) == true)
+        XCTAssertTrue(store.queue.first?.notes.contains(where: { $0.contains("Track/disc numbers from MusicBrainz") }) == true)
+    }
+
+    @MainActor
     func testBulkChoiceWritesAllReviewEntriesAndRevertRetainsTheFirstOriginal() async throws {
         let database = try LibraryDatabase.inMemory()
         var files: [URL] = []
-        let original = TagFixtures.mp3(v4: true)
+        var original = TagFixtures.mp3(v4: true)
+        for (old, new) in [("TCON", "XCON"), ("TBPM", "XBPM")] {
+            if let range = original.range(of: Data(old.utf8)) { original.replaceSubrange(range, with: Data(new.utf8)) }
+        }
         defer { for file in files { try? FileManager.default.removeItem(at: file) } }
         for id in Int64(9001)...9002 {
             let file = LibraryPaths.musicFolder.appendingPathComponent("bulk-\(UUID().uuidString).mp3")
@@ -78,6 +118,11 @@ final class BulkMetadataApplyTests: XCTestCase {
         let alternate = try XCTUnwrap(first.savedCandidates.first { $0.id == "itunes_102" })
         await store.apply(alternate, to: first.id)
         try await waitUntil { !library.isScanning }
+        var manual = TagWriteRequest(); manual.bpm = 88
+        try await store.saveManual(manual, to: first.id, checkedFields: [.genre, .bpm])
+        try await waitUntil { !library.isScanning }
+        XCTAssertEqual(TagReader.read(first.song.url).bpmText, "88")
+        XCTAssertEqual(store.queue.first?.status, .done)
         await store.revert(Set(store.queue.map(\.id)))
         try await waitUntil { !library.isScanning }
         for file in files { XCTAssertEqual(try Data(contentsOf: file), original) }
@@ -96,5 +141,27 @@ private struct BulkHTTP: HTTPClient {
     func get(_ url: URL, headers: [String: String]) async throws -> (Data, HTTPURLResponse) {
         let body = #"{"results":[{"trackId":101,"trackName":"IGOR’S THEME","artistName":"Tyler, The Creator","collectionName":"IGOR","trackTimeMillis":180000,"primaryGenreName":"Hip Hop"},{"trackId":102,"trackName":"IGOR’S THEME (feat. Someone)","artistName":"Tyler, The Creator","collectionName":"IGOR","trackTimeMillis":180000,"primaryGenreName":"Jazz"}]}"#
         return (Data(body.utf8), HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: [:])!)
+    }
+}
+
+private struct MixedFieldsHTTP: HTTPClient {
+    private let recording = "11111111-1111-4111-8111-111111111111"
+    private let release = "33333333-3333-4333-8333-333333333333"
+    func get(_ url: URL, headers: [String: String]) async throws -> (Data, HTTPURLResponse) {
+        let body: String
+        var code = 200
+        if url.host == "itunes.apple.com" {
+            body = #"{"results":[{"trackId":186774469,"trackName":"(When You Gonna) Give It Up to Me [Radio Version] [feat. Keyshia Cole]","artistName":"Sean Paul featuring Keyshia Cole","collectionName":"(When You Gonna) Give It Up to Me - Single","trackTimeMillis":243880,"primaryGenreName":"Reggae","trackNumber":1,"discNumber":1}]}"#
+        } else if url.path == "/ws/2/recording" {
+            body = """
+                {"recordings":[{"id":"\(recording)","title":"(When You Gonna) Give It Up to Me - Radio Version","length":243000,"artist-credit":[{"name":"Sean Paul & Keyshia Cole"}],"releases":[{"id":"\(release)","title":"(When You Gonna) Give It Up to Me","status":"Official","release-group":{"id":"22222222-2222-4222-8222-222222222222"}}]}]}
+                """
+        } else if url.path == "/ws/2/release/" + release {
+            body = """
+                {"id":"\(release)","title":"(When You Gonna) Give It Up to Me","media":[{"position":1,"tracks":[{"position":1,"recording":{"id":"\(recording)"}}]}]}
+                """
+        } else if url.host == "musicbrainz.org" { body = #"{"genres":[]}"# }
+        else { body = ""; code = 403 }
+        return (Data(body.utf8), HTTPURLResponse(url: url, statusCode: code, httpVersion: nil, headerFields: [:])!)
     }
 }

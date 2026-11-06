@@ -22,7 +22,7 @@ struct FixTagsView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button { store.autoSelectBestCandidates() } label: {
-                        Label("Auto-select best candidates (\(store.autoCandidateCount))", systemImage: "wand.and.stars")
+                        Label("Auto-fill best available tags (\(store.autoCandidateCount))", systemImage: "wand.and.stars")
                     }
                     .disabled(store.isRunning || store.isCheckingMissing || store.autoCandidateCount == 0)
                     Button { addingSongs = true } label: { Label("Add songs", systemImage: "plus") }
@@ -85,7 +85,7 @@ struct FixTagsView: View {
                 HStack {
                     ProgressView()
                     if let progress = store.autoSelectionProgress {
-                        Text("Applying best candidates · \(progress.completed)/\(progress.total)").lineLimit(1)
+                        Text("Filling best available tags · \(progress.completed)/\(progress.total)").lineLimit(1)
                     } else {
                         Text("Looking up \(store.queue.filter { $0.status == .fixing }.first?.song.title ?? "")…").lineLimit(1)
                     }
@@ -107,10 +107,10 @@ struct FixTagsView: View {
                 .disabled(!store.hasWork || store.isCheckingMissing)
                 if store.autoCandidateCount > 0 {
                     Button { store.autoSelectBestCandidates() } label: {
-                        Label(store.isAutoSelectionPaused ? "Continue auto-selecting best candidates" : "Auto-select best candidates", systemImage: "wand.and.stars")
+                        Label(store.isAutoSelectionPaused ? "Continue filling best available tags" : "Auto-fill best available tags", systemImage: "wand.and.stars")
                     }
                     .disabled(store.isCheckingMissing)
-                    Text("Uses saved matches at your selected confidence level and resolves ties automatically. Originals remain available for Revert.")
+                    Text("Checks available sources for each selected missing field. Genre, BPM and album ordering can come from different verified matches. Originals remain available for Revert.")
                         .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
                 } else if !store.hasWork {
                     Text(store.queue.isEmpty ? "Add songs or find the ones with missing tags first." : "Nothing left to fix in the queue.")
@@ -241,19 +241,30 @@ private struct StatusBadge: View {
 /// What one lookup saw: the track's identity, each query and every provider's answer, the best
 /// candidates and the changes made (or why none were).
 private struct RepairItemDetail: View {
-    private var canChoose: Bool { item.status == .needsReview || item.status == .noMatch }
+    private var currentItem: RepairItem { store.queue.first { $0.id == item.id } ?? item }
+    private var canChoose: Bool { BulkMetadataSelection.canResolve(currentItem) }
 
     let item: RepairItem
     @Environment(FixTagsStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var choice: MetadataCandidate?
+    @State private var editingManually = false
 
     var body: some View {
+        let item = currentItem
         NavigationStack {
             List {
                 Section("Result") {
                     LabeledContent("Status", value: item.status.label)
                     if let reason = item.reason { Text(reason).font(.footnote) }
+                    if canChoose {
+                        Button { editingManually = true } label: {
+                            Label("Enter remaining tags manually", systemImage: "square.and.pencil")
+                        }
+                        .disabled(store.isRunning || store.isCheckingMissing)
+                        Text("If a source has no reliable value, enter the tags you know. Leave unknown fields blank.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                 }.toolSectionAppearance()
                 if !item.changes.isEmpty {
                     Section("Changes") {
@@ -316,6 +327,9 @@ private struct RepairItemDetail: View {
                     }
                 }
             }.modifier(ToolPageAppearance())
+            .sheet(isPresented: $editingManually) {
+                EditTagsSheet(song: item.song, queueItemID: item.id, requestedFields: store.selectedFields)
+            }
             .confirmationDialog("Write this match?", isPresented: Binding(get: { choice != nil }, set: { if !$0 { choice = nil } }),
                                 titleVisibility: .visible, presenting: choice) { candidate in
                 Button("Write \"\(candidate.title)\" by \(candidate.artist)") {

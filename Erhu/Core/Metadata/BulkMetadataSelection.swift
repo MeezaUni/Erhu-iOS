@@ -3,6 +3,12 @@ import Foundation
 /// An explicit bulk choice may resolve provider/edition ties, but still respects the user's
 /// confidence threshold. Failed, reverted and completed entries are never silently reapplied.
 enum BulkMetadataSelection {
+    static func canResolve(_ item: RepairItem) -> Bool {
+        switch item.status {
+        case .pending, .needsReview, .noMatch, .networkFailed, .partial, .unchanged, .failed: true
+        case .done, .reverted, .fixing: false
+        }
+    }
     static func canSelect(_ item: RepairItem, minimumConfidence: Float) -> Bool {
         guard item.status == .needsReview || item.status == .noMatch else { return false }
         return item.savedCandidates.contains {

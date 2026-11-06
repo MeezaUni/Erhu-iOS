@@ -132,7 +132,7 @@ final class FixTagsStore {
 
     var hasWork: Bool { queue.contains { $0.status.toProcess } }
     var revertible: [RepairItem] { queue.filter { $0.backup != nil } }
-    var autoCandidateCount: Int { queue.filter { BulkMetadataSelection.canSelect($0, minimumConfidence: settings.acceptAt) }.count }
+    var autoCandidateCount: Int { queue.filter { BulkMetadataSelection.canResolve($0) }.count }
 
     func enqueue(_ songs: [Song]) {
         let present = Set(queue.map(\.id))
@@ -258,7 +258,7 @@ final class FixTagsStore {
         case unreachable(String)
     }
 
-    private func lookUp(_ item: RepairItem, selection: FieldSelection, source: String, acceptAt: Float) async -> Lookup {
+    private func lookUp(_ item: RepairItem, selection: FieldSelection, source: String, acceptAt: Float, autoResolve: Bool = false) async -> Lookup {
         var item = item
         let url = item.song.url
         guard FileManager.default.fileExists(atPath: url.path) else {
@@ -267,6 +267,14 @@ final class FixTagsStore {
             return .concluded(item, nil)
         }
         let embedded = await Task.detached(priority: .utility) { TagReader.read(url) }.value
+        let selected = Set(MetadataField.allCases.filter { $0 != .filename && FieldSelection([$0]).fields.isSubset(of: selection.fields) })
+        let missing = MetadataCompleteness.missing(embedded, fields: selected)
+        if autoResolve && missing.isEmpty {
+            item.status = .unchanged
+            item.reason = "Selected tags are already complete."
+            return .concluded(item, nil)
+        }
+        let effectiveSelection = autoResolve ? FieldSelection(Set(missing), fillMissingOnly: true) : selection
         let fileName = url.lastPathComponent
         let cleaned = FilenameCleaner.clean(fileName)
         let identity = TrackIdentity(
@@ -278,13 +286,19 @@ final class FixTagsStore {
             fileArtist: usableIdentityText(cleaned.artistGuess)
         )
         let service = service
-        let result = await TrackMatcher.match(identity, acceptAt: acceptAt) { query in
+        let result = await TrackMatcher.match(identity, acceptAt: acceptAt, allowBestCandidate: autoResolve) { query in
             let artist = query.artist.flatMap { $0.lowercased() == query.title.lowercased() ? nil : $0 }
             return await service.search(title: query.title, artist: artist, album: query.album, durationMs: identity.durationMs, selection: source)
         }
+        var candidates = result.candidates
+        if autoResolve {
+            let liveIDs = Set(candidates.map(\.id))
+            let query = TrackQuery(title: identity.title ?? identity.fileTitles.first ?? item.song.title, artist: identity.artist ?? identity.fileArtist, source: .tag, album: identity.album)
+            candidates += item.savedCandidates.filter { !liveIDs.contains($0.id) }.map { TrackMatcher.rescore($0, identity, query) }
+        }
         var diagnostics = RepairDiagnostics(fileName: fileName, identity: identity, outcomes: result.outcomes,
-                                            candidates: result.candidates,
-                                            topCandidates: Array(result.candidates.prefix(3)), attempts: result.attempts)
+                                            candidates: candidates,
+                                            topCandidates: Array(candidates.sorted { $0.confidenceScore > $1.confidenceScore }.prefix(3)), attempts: result.attempts)
         func concluded(_ status: RepairStatus, _ reason: String?, _ plan: FieldFixPlan? = nil) -> Lookup {
             diagnostics.finalReason = reason
             item.status = status
@@ -292,9 +306,17 @@ final class FixTagsStore {
             item.diagnostics = diagnostics
             return .concluded(item, plan)
         }
-        if case .confident(let match) = result.decision {
-            let plan = await planFix(match, candidates: result.candidates, local: embedded, song: item.song, url: url,
-                                     selection: selection, acceptAt: acceptAt)
+        let chosen: MetadataCandidate?
+        if autoResolve {
+            var review = item
+            review.status = .needsReview
+            review.diagnostics = diagnostics
+            chosen = BulkMetadataSelection.best(for: review, minimumConfidence: acceptAt)
+        } else if case .confident(let match) = result.decision { chosen = match }
+        else { chosen = nil }
+        if let match = chosen {
+            let plan = await planFix(match, candidates: candidates, local: embedded, song: item.song, url: url,
+                                     selection: effectiveSelection, acceptAt: acceptAt)
             item.changes = plan.changes
             item.notes = plan.notes
             if plan.request == nil {
@@ -317,7 +339,7 @@ final class FixTagsStore {
         case .lowConfidence(_, let reason), .ambiguous(_, let reason):
             return concluded(.needsReview, reason)
         case .confident:
-            return concluded(.failed, nil)
+            return concluded(.needsReview, "No sufficiently verified identity for the remaining fields. Enter known tags manually.")
         }
     }
 
@@ -336,6 +358,14 @@ final class FixTagsStore {
         var reasons: [String: String] = [:]
         var sourceNotes: [String] = []
         let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
+        var albumMatch = match
+        if isUsableTag(local.album), fillOnly || !fields.contains(.album),
+           let sameAlbum = verified.first(where: { MetadataEnrichment.releaseKey($0.album) == MetadataEnrichment.releaseKey(local.album) }) {
+            albumMatch = sameAlbum
+        } else if !isUsableTag(match.album), let knownAlbum = verified.first(where: { isUsableTag($0.album) }) {
+            albumMatch = knownAlbum
+            sourceNotes.append("Album from " + knownAlbum.sourceName)
+        }
         var genre: String?
         if fields.contains(.genre) && (!fillOnly || !isUsableTag(local.genre)) {
             switch await service.lookupGenre(match, candidates: candidates, acceptAt: acceptAt) {
@@ -348,7 +378,7 @@ final class FixTagsStore {
         }
         var releaseDate: ReleaseDate?
         if fields.contains(.year) && (!fillOnly || !isUsableYearTag(local.year)) {
-            switch MetadataEnrichment.releaseDate(match, candidates: candidates, acceptAt: acceptAt) {
+            switch MetadataEnrichment.releaseDate(albumMatch, candidates: candidates, acceptAt: acceptAt) {
             case .found(let date): releaseDate = date
             case .rejected(let reason): reasons["No release year found online"] = "No year: \(reason)"
             }
@@ -368,22 +398,13 @@ final class FixTagsStore {
             case .failed(let reason): reasons["No BPM found"] = "BPM lookup failed: \(reason)"
             }
         }
-        var positioned = match
+        var positioned = albumMatch
         var positionNote: String?
         if (fields.contains(.trackNumber) && (!fillOnly || (local.trackNumber ?? 0) <= 0))
             || (fields.contains(.discNumber) && (!fillOnly || (local.discNumber ?? 0) <= 0)) {
-            (positioned, positionNote) = await service.withAlbumPosition(match)
-            let tied = candidates.filter {
-                $0.id != match.id && $0.confidenceScore >= acceptAt
-                    && match.confidenceScore - $0.confidenceScore <= tieMargin
-                    && albumPositionTitle($0.album) == albumPositionTitle(match.album)
-                    && AlbumTrackPosition(disc: $0.discNumber, track: $0.trackNumber).isValid
-            }
-            if tied.contains(where: { $0.trackNumber != positioned.trackNumber || $0.discNumber != positioned.discNumber }) {
-                positioned.trackNumber = 0
-                positioned.discNumber = 0
-                positionNote = "Equally good matches disagree on album order; track and disc numbers were left unchanged."
-            }
+            (positioned, positionNote) = await service.bestAlbumPosition(albumMatch, candidates: candidates, acceptAt: acceptAt,
+                localTrack: fillOnly || !fields.contains(.trackNumber) ? local.trackNumber : nil,
+                localDisc: fillOnly || !fields.contains(.discNumber) ? local.discNumber : nil)
         }
         var plan = FieldFixPlanner.plan(fields: fields, fillOnly: fillOnly, local: local, match: positioned, genre: genre,
                                         artwork: nil, releaseDate: releaseDate, bpm: bpm)
@@ -436,16 +457,14 @@ final class FixTagsStore {
         autoSelectionMessage = nil
         isRunning = true
         defer { isRunning = false }
-        if await applyOne(match, to: id, selection: FieldSelection(selectedFields), acceptAt: settings.acceptAt, automatic: false) { library.scan() }
+        if await applyOne(match, to: id, selection: FieldSelection(selectedFields), acceptAt: settings.acceptAt) { library.scan() }
     }
 
-    /// One tap applies the best eligible saved candidate to every review entry. No per-track dialogs.
+    /// One tap refreshes unresolved tracks and fills selected missing fields from verified sources.
     func autoSelectBestCandidates() {
         guard !isRunning, !isCheckingMissing else { return }
-        let choices = queue.compactMap { item -> (Int64, MetadataCandidate)? in
-            BulkMetadataSelection.best(for: item, minimumConfidence: settings.acceptAt).map { (item.id, $0) }
-        }
-        guard !choices.isEmpty else { return }
+        let choices = queue.filter { BulkMetadataSelection.canResolve($0) }.map(\.id)
+        guard !choices.isEmpty else { autoSelectionMessage = "No unresolved tracks in this queue. Find missing tags or add songs first."; return }
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else { pauseReason = "Choose which fields to fix first."; return }
         let acceptAt = settings.acceptAt
@@ -461,20 +480,36 @@ final class FixTagsStore {
             for (index, choice) in choices.enumerated() {
                 if pauseRequested {
                     isAutoSelectionPaused = true
-                    pauseReason = "Paused. Use Auto-select best candidates to continue with the remaining tracks."
+                    pauseReason = "Paused. Use Auto-fill best available tags to continue with the remaining tracks."
                     break
                 }
-                if await applyOne(choice.1, to: choice.0, selection: selection, acceptAt: acceptAt, automatic: true) { written += 1 }
+                guard let row = queue.firstIndex(where: { $0.id == choice }) else { continue }
+                let before = queue[row]
+                queue[row].status = .fixing
+                switch await lookUp(before, selection: selection, source: MetadataSources.all, acceptAt: acceptAt, autoResolve: true) {
+                case .unreachable(let reason):
+                    queue[row] = before
+                    queue[row].status = .networkFailed
+                    queue[row].reason = reason + ". Enter known missing tags manually, or retry online."
+                case .concluded(var updated, let plan):
+                    if let request = plan?.request {
+                        updated = await write(request, plan: plan!, item: updated)
+                        if updated.status == .done || updated.status == .partial { written += 1 }
+                    }
+                    queue[row] = updated
+                }
                 autoSelectionProgress = (index + 1, choices.count)
             }
-            let remaining = queue.filter { $0.status == .needsReview || $0.status == .noMatch }.count
-            autoSelectionMessage = "Updated \(countLabel(written, "track")); \(remaining) still need review."
+            let remaining = queue.filter { BulkMetadataSelection.canResolve($0) && $0.status != .unchanged }.count
+            autoSelectionMessage = written > 0
+                ? "Updated \(countLabel(written, "track")); \(remaining) still have unresolved tags. Open an unfinished track to enter known values manually."
+                : "No tags changed. Selected fields are either complete or no reliable value was available. Open an unfinished track to enter known values manually."
             isRunning = false
             if written > 0 { library.scan() }
         }
     }
 
-    private func applyOne(_ match: MetadataCandidate, to id: Int64, selection: FieldSelection, acceptAt: Float, automatic: Bool) async -> Bool {
+    private func applyOne(_ match: MetadataCandidate, to id: Int64, selection: FieldSelection, acceptAt: Float) async -> Bool {
         guard let start = queue.firstIndex(where: { $0.id == id }) else { return false }
         var item = queue[start]
         item.status = .fixing
@@ -486,21 +521,6 @@ final class FixTagsStore {
             return false
         }
         let embedded = await Task.detached(priority: .utility) { TagReader.read(url) }.value
-        if automatic, let previous = item.diagnostics?.identity {
-            var current = previous
-            current.title = usableIdentityText(embedded.title) ?? previous.title
-            if usableIdentityText(embedded.title) != nil { current.fileTitles = [] }
-            current.artist = usableIdentityText(embedded.artist) ?? previous.artist
-            current.album = usableIdentityText(embedded.album) ?? previous.album
-            let query = TrackQuery(title: current.title ?? current.fileTitles.first ?? match.title,
-                                   artist: current.artist ?? current.fileArtist, source: current.title == nil ? .fileName : .tag,
-                                   album: current.album)
-            if TrackMatcher.rescore(match, current, query).confidenceScore < acceptAt {
-                queue[start].status = .needsReview
-                queue[start].reason = "The file's tags no longer support this match at the selected confidence."
-                return false
-            }
-        }
         let plan = await planFix(match, candidates: item.savedCandidates, local: embedded, song: item.song, url: url,
                                  selection: selection, acceptAt: acceptAt)
         item.changes = plan.changes
@@ -513,6 +533,21 @@ final class FixTagsStore {
         }
         if let index = queue.firstIndex(where: { $0.id == id }) { queue[index] = item }
         return item.status == .done || item.status == .partial
+    }
+
+    /// Manual values share the same original backup and update the queue from the file after saving.
+    func saveManual(_ request: TagWriteRequest, to id: Int64, checkedFields: Set<MetadataField>) async throws {
+        guard !isRunning, !isCheckingMissing else { throw TagWriteError.io("Wait for the current tag operation to finish") }
+        guard let index = queue.firstIndex(where: { $0.id == id }) else { throw TagWriteError.io("This track is no longer in the queue") }
+        isRunning = true
+        autoSelectionProgress = nil
+        defer { isRunning = false }
+        let plan = FieldFixPlan(request: request, changes: [], notes: ["Known values entered manually"], checkedFields: checkedFields)
+        var updated = await write(request, plan: plan, item: queue[index])
+        updated.notes.append("Known values entered manually")
+        queue[index] = updated
+        if updated.status == .failed { throw TagWriteError.io(updated.reason ?? "The tags could not be saved") }
+        library.scan()
     }
 
     /// Puts the selected tracks' files back exactly as they were before their fix.
