@@ -2,6 +2,17 @@ import Foundation
 
 /// A high scoring search result is not by itself proof that two catalogues describe one recording.
 enum MetadataEnrichment {
+    private static let featuredNotes = Regex16("\\s*[(\\[]\\s*(?:feat\\.?|ft\\.?|featuring)\\s+([^)\\]]+)[)\\]]", ignoreCase: true)
+    private static let trailingCredit = Regex16("\\s+(?:feat\\.?|ft\\.?|featuring)\\s+(.+)$", ignoreCase: true)
+
+    /// Catalogues put featured performers either in artistName or a title annotation. Keep that
+    /// explicit credit when checking identity instead of treating the performer as missing.
+    private static func recordingCredit(_ candidate: MetadataCandidate) -> String {
+        let bracketed = featuredNotes.matches(in: candidate.title).map { $0.group(1, in: candidate.title) }
+        let plain = featuredNotes.replacing(in: candidate.title, with: "")
+        let trailing = trailingCredit.firstMatch(in: plain).map { $0.group(1, in: plain) }
+        return ([candidate.artist] + bracketed + [trailing].compactMap { $0 }).joined(separator: " ")
+    }
     static func verified(_ match: MetadataCandidate, candidates: [MetadataCandidate], acceptAt: Float) -> [MetadataCandidate] {
         var seen = Set([match.id])
         return [match] + candidates.filter {
@@ -16,7 +27,7 @@ enum MetadataEnrichment {
     static func sameRecording(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {
         guard isUsableTag(a.title), isUsableTag(b.title), isUsableTag(a.artist), isUsableTag(b.artist),
               identityKey(stripFeaturing(a.title)) == identityKey(stripFeaturing(b.title)),
-              identityKey(primaryArtist(a.artist)) == identityKey(primaryArtist(b.artist)) || creditSimilarity(a.artist, b.artist) >= 0.8,
+              identityKey(primaryArtist(a.artist)) == identityKey(primaryArtist(b.artist)) || creditSimilarity(recordingCredit(a), recordingCredit(b)) >= 0.8,
               versionTags(a) == versionTags(b),
               let first = a.durationMs, first > 0, let second = b.durationMs, second > 0
         else { return false }
@@ -25,7 +36,9 @@ enum MetadataEnrichment {
     }
 
     static func recordingScore(_ candidate: MetadataCandidate, against anchor: MetadataCandidate) -> Float {
-        MetadataScorer.score(candidate, title: anchor.title, artist: anchor.artist, durationMs: anchor.durationMs).confidenceScore
+        var normalized = candidate
+        normalized.artist = recordingCredit(candidate)
+        return MetadataScorer.score(normalized, title: anchor.title, artist: recordingCredit(anchor), durationMs: anchor.durationMs).confidenceScore
     }
 
     /// Storefront "- Single"/"- EP" suffixes describe the same release type, not a new edition.
