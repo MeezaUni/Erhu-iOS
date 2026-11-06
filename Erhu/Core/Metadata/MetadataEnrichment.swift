@@ -32,7 +32,8 @@ enum MetadataEnrichment {
     static func releaseKey(_ title: String) -> String {
         var key = albumPositionTitle(title)
         for suffix in [" - single", " - ep"] where key.hasSuffix(suffix) { key = String(key.dropLast(suffix.count)).trimmed }
-        return key
+        let folded = foldForMatch(key)
+        return folded.isEmpty ? key : folded
     }
 
     static func sameRelease(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {

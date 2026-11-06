@@ -133,6 +133,7 @@ struct ITunesProvider: MetadataProvider {
         var releaseDate: String?
         var trackNumber: Int?
         var discNumber: Int?
+        var discCount: Int?
         var primaryGenreName: String?
     }
 
@@ -153,10 +154,18 @@ struct ITunesProvider: MetadataProvider {
                 id: "itunes_\(id)", title: name, artist: result.artistName ?? "", album: result.collectionName ?? "",
                 year: date?.year ?? 0, genre: Genres.join([result.primaryGenreName]), trackNumber: result.trackNumber ?? 0, durationMs: result.trackTimeMillis,
                 coverArtUrl: (result.artworkUrl100 ?? result.artworkUrl60).map(upgradeArtwork), sourceName: "iTunes",
-                releaseDate: date?.tagValue, discNumber: result.discNumber ?? 0,
+                releaseDate: date?.tagValue, discNumber: result.discNumber ?? (result.discCount == 1 ? 1 : 0),
                 releaseId: result.collectionId.map(String.init)
             )
         }
+    }
+
+    /// A bounded field-recovery search, independent of the initial winner's album penalty.
+    func enrichmentCandidates(_ match: MetadataCandidate, album: String? = nil) async throws -> [MetadataCandidate] {
+        let term = [primaryArtist(match.artist), stripFeaturing(match.title), album ?? ""].filter { !$0.isBlank }.joined(separator: " ")
+        let response = try await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search",
+            [("term", term), ("entity", "song"), ("limit", "25")]), client: client)
+        return Self.candidates(response)
     }
 
     /// The 1000 px version of an iTunes artwork URL.
@@ -268,6 +277,9 @@ actor MusicBrainzProvider: MetadataProvider {
     private var lastRequest: Date = .distantPast
     private var genresByRecording: [String: [MusicBrainzGenre]] = [:]
     private var genresByReleaseGroup: [String: [MusicBrainzGenre]] = [:]
+    private var genresByRelease: [String: [MusicBrainzGenre]] = [:]
+    private var linkedEntities: [String: [String]] = [:]
+    private var recordings: [String: MusicBrainzSearchResponse.Recording] = [:]
     private var tracklists: [String: ReleaseTracklist] = [:]
     private static let minInterval: TimeInterval = 1.1
 
@@ -299,6 +311,68 @@ actor MusicBrainzProvider: MetadataProvider {
             try await fetchJSON(MusicBrainzSearchResponse.self, requestURL("https://musicbrainz.org/ws/2/recording", [("query", query), ("fmt", "json")]), client: self.client)
         }
         return Self.candidates(response, targetAlbum: album)
+    }
+
+    /// The search response may list only a subset of a recording's releases. Look up the recording
+    /// itself before concluding that the listener's tagged album has no ordering information.
+    func releaseCandidate(_ match: MetadataCandidate, album: String) async throws -> MetadataCandidate? {
+        guard match.id.hasPrefix("mb_"), UUID(uuidString: String(match.id.dropFirst(3))) != nil else { return nil }
+        let id = String(match.id.dropFirst(3))
+        let recording: MusicBrainzSearchResponse.Recording
+        if let cached = recordings[id] { recording = cached }
+        else {
+            recording = try await throttled {
+                try await fetchJSON(MusicBrainzSearchResponse.Recording.self,
+                    requestURL("https://musicbrainz.org/ws/2/recording/\(id)", [("inc", "artists+releases+release-groups"), ("fmt", "json")]), client: self.client)
+            }
+            if recordings.count >= 100 { recordings.removeAll() }
+            recordings[id] = recording
+        }
+        guard recording.id == id,
+              let result = Self.candidates(MusicBrainzSearchResponse(recordings: [recording]), targetAlbum: album).first,
+              MetadataEnrichment.releaseKey(result.album) == MetadataEnrichment.releaseKey(album),
+              MetadataEnrichment.sameRecording(match, result) else { return nil }
+        var recovered = result
+        recovered.confidenceScore = match.confidenceScore
+        return recovered
+    }
+
+    func releaseGenres(_ id: String) async throws -> [MusicBrainzGenre] {
+        if let cached = genresByRelease[id] { return cached }
+        struct Response: Decodable { var genres: [MusicBrainzGenre]? }
+        let response = try await throttled {
+            try await fetchJSON(Response.self, requestURL("https://musicbrainz.org/ws/2/release/\(id)", [("inc", "genres"), ("fmt", "json")]), client: self.client)
+        }
+        if genresByRelease.count >= 500 { genresByRelease.removeAll() }
+        genresByRelease[id] = response.genres ?? []
+        return response.genres ?? []
+    }
+
+    /// Follow curated Wikidata links only, never a title-only search or an arbitrary supplied URL.
+    func wikidataEntities(entity: String, id: String) async throws -> [String] {
+        guard ["recording", "release-group"].contains(entity), UUID(uuidString: id) != nil else { return [] }
+        let key = entity + "/" + id
+        if let cached = linkedEntities[key] { return cached }
+        struct Response: Decodable {
+            struct Relation: Decodable {
+                struct Address: Decodable { var resource: String }
+                var type: String
+                var url: Address?
+            }
+            var relations: [Relation]?
+        }
+        let response = try await throttled {
+            try await fetchJSON(Response.self, requestURL("https://musicbrainz.org/ws/2/\(entity)/\(id)", [("inc", "url-rels"), ("fmt", "json")]), client: self.client)
+        }
+        let ids = (response.relations ?? []).filter { $0.type == "wikidata" }.compactMap { relation -> String? in
+            guard let address = relation.url?.resource, let url = URL(string: address),
+                  ["www.wikidata.org", "wikidata.org"].contains(url.host?.lowercased() ?? ""),
+                  url.path.hasPrefix("/wiki/"), WikidataGenres.isEntityID(url.lastPathComponent) else { return nil }
+            return url.lastPathComponent
+        }
+        if linkedEntities.count >= 500 { linkedEntities.removeAll() }
+        linkedEntities[key] = Array(Set(ids)).sorted()
+        return linkedEntities[key] ?? []
     }
 
     /// Recording genres are more specific than an album's shared genres.
@@ -399,7 +473,7 @@ actor MusicBrainzProvider: MetadataProvider {
         let wanted = targetAlbum?.trimmed.lowercased().nonBlank.flatMap { $0 == "unknown album" ? nil : $0 }
         func key(_ release: MusicBrainzSearchResponse.Release) -> [String] {
             [
-                wanted != nil && release.title.trimmed.lowercased() == wanted ? "0" : "1",
+                wanted != nil && MetadataEnrichment.releaseKey(release.title) == MetadataEnrichment.releaseKey(wanted!) ? "0" : "1",
                 String(statusRank(release.status)),
                 (release.releaseGroup?.secondaryTypes ?? []).isEmpty ? "0" : "1",
                 String(primaryTypeRank(release.releaseGroup?.primaryType)),

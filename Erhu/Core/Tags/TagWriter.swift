@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 /// A tag edit for one audio file. Nil fields are left exactly as they are in the file; only
 /// non-nil fields are written, and the clear flags remove a field.
-struct TagWriteRequest: Equatable {
+struct TagWriteRequest: Equatable, Sendable {
     var title: String?
     var artist: String?
     var album: String?
@@ -82,7 +82,7 @@ enum TagWriter {
     /// Embedded artwork is scaled to fit this many pixels and saved as JPEG (as on Android).
     static let maxArtworkPixels = 1440
 
-    static func write(_ request: TagWriteRequest, to url: URL) throws {
+    static func write(_ request: TagWriteRequest, to url: URL, requiringComplete fields: Set<MetadataField> = []) throws {
         guard request.hasChanges else { throw TagWriteError.nothingToWrite }
         var request = request
         if let artwork = request.artwork { request.artwork = ArtworkEncoder.prepare(artwork) }
@@ -104,6 +104,10 @@ enum TagWriter {
             }
         }
         try verify(temp, request)
+        let missing = MetadataCompleteness.missing(TagReader.read(temp), fields: fields)
+        guard missing.isEmpty else {
+            throw TagWriteError.verificationFailed("selected tags remain missing: " + missing.map(\.displayName).joined(separator: ", "))
+        }
         do {
             _ = try FileManager.default.replaceItemAt(url, withItemAt: temp)
         } catch {

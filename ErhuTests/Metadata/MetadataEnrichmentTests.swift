@@ -22,6 +22,104 @@ final class MetadataEnrichmentTests: XCTestCase {
         XCTAssertEqual(ITunesProvider.candidates(response).first?.genre, "Alternative")
     }
 
+    func testConfirmedSingleDiscCountSuppliesOneButUnknownAndMultiDiscDoNot() throws {
+        let json = #"{"results":[{"trackId":1,"trackName":"Song","discCount":1},{"trackId":2,"trackName":"Song","discCount":2},{"trackId":3,"trackName":"Song"}]}"#
+        let response = try JSONDecoder().decode(ITunesProvider.Response.self, from: Data(json.utf8))
+        XCTAssertEqual(ITunesProvider.candidates(response).map(\.discNumber), [1, 0, 0])
+        XCTAssertEqual(MetadataEnrichment.releaseKey("Awaara Angaara - Single"), MetadataEnrichment.releaseKey("Awaara Angaara"))
+        XCTAssertEqual(MetadataEnrichment.releaseKey("Album: Part I"), MetadataEnrichment.releaseKey("Album – Part I"))
+        XCTAssertNotEqual(MetadataEnrichment.releaseKey("Album (Deluxe)"), MetadataEnrichment.releaseKey("Album"))
+    }
+
+    func testDiscOnlyRepairIsNotBlockedByAnUnrelatedExistingTrackNumber() async {
+        var donor = brainz(); donor.trackNumber = 2; donor.discNumber = 1
+        let (positioned, _) = await MetadataService(client: EnrichmentHTTP(routes: [:])).bestAlbumPosition(
+            match(), candidates: [donor], acceptAt: 0.85, localTrack: 639, localDisc: nil, needsTrack: false)
+        XCTAssertEqual(positioned.discNumber, 1)
+        XCTAssertEqual(positioned.trackNumber, 639)
+        let (refused, _) = await MetadataService(client: EnrichmentHTTP(routes: [:])).bestAlbumPosition(
+            match(), candidates: [donor], acceptAt: 0.85, localTrack: 639, localDisc: nil)
+        XCTAssertEqual(refused.discNumber, 0, "A full ordering repair must still check the pair")
+    }
+
+    func testAdditionalITunesGenreSearchRequiresVerifiedRecordingIdentity() async {
+        let http = EnrichmentHTTP(routes: ["/search": (200,
+            #"{"results":[{"trackId":5,"trackName":"Yellow","artistName":"Coldplay","collectionName":"Greatest Hits","trackTimeMillis":266000,"primaryGenreName":"Alternative"},{"trackId":6,"trackName":"Yellow (Live)","artistName":"Coldplay","trackTimeMillis":266000,"primaryGenreName":"Rock"}]}"#)])
+        let result = await MetadataService(client: http).lookupGenre(match())
+        XCTAssertEqual(result, .found(["Alternative"], source: "iTunes catalogue (additional verified search)"))
+    }
+
+    func testFullMusicBrainzRecordingLookupRecoversTheTaggedAlbumEdition() async {
+        let release = "33333333-3333-4333-8333-333333333333"
+        let http = EnrichmentHTTP(routes: ["/ws/2/recording/" + recording: (200, """
+            {"id":"\(recording)","title":"Yellow","length":266000,"artist-credit":[{"name":"Coldplay"}],
+            "releases":[{"id":"\(release)","title":"Parachutes","status":"Official","release-group":{"id":"\(group)"}}]}
+            """)])
+        var wrongAlbum = brainz(); wrongAlbum.album = "Greatest Hits"
+        let recovered = await MetadataService(client: http).matchingAlbum(wrongAlbum, candidates: [], album: "Parachutes", acceptAt: 0.85)
+        XCTAssertEqual(recovered?.album, "Parachutes")
+        XCTAssertEqual(recovered?.releaseId, release)
+    }
+
+    func testWikidataGenreFallbackFollowsTheVerifiedAlbumLink() async {
+        let http = EnrichmentHTTP(routes: [
+            "/search": (200, #"{"results":[]}"#),
+            "/ws/2/recording/" + recording: (200, #"{"genres":[],"relations":[]}"#),
+            "/ws/2/release-group/" + group: (200, #"{"genres":[],"relations":[{"type":"wikidata","url":{"resource":"https://www.wikidata.org/wiki/Q131977"}}]}"#),
+            "/wiki/Special:EntityData/Q131977.json": (200, #"{"entities":{"Q131977":{"id":"Q131977","claims":{"P136":[{"rank":"normal","mainsnak":{"datavalue":{"value":{"id":"Q11366"}}}}]}}}}"#),
+            "/w/api.php": (200, #"{"entities":{"Q11366":{"labels":{"en":{"value":"alternative rock"}}}}}"#),
+        ])
+        let result = await MetadataService(client: http).lookupGenre(brainz())
+        XCTAssertEqual(result, .found(["alternative rock"], source: "Wikidata (MusicBrainz-linked album)"))
+    }
+
+    func testAmbiguousTemposNeedIndependentClearSectionsAndAMajority() {
+        let recovered = TempoEstimator.consensus([.beat(90), .beat(91), .octaveAmbiguous(91, 179), .octaveAmbiguous(179, 90), .noBeat, .noBeat, .noBeat])
+        XCTAssertEqual(recovered, .found(bpm: 91, sectionsAgreeing: 4, sections: 7))
+        let uncertainExamples: [[TempoEstimator.SectionTempo]] = [
+            [.octaveAmbiguous(91, 179), .octaveAmbiguous(179, 91), .octaveAmbiguous(91, 179)],
+            [.beat(80), .noBeat, .noBeat],
+            [.beat(80), .beat(80), .beat(160), .beat(160), .octaveAmbiguous(80, 160), .noBeat, .noBeat],
+            [.beat(151), .beat(100), .noBeat]
+        ]
+        for results in uncertainExamples {
+            guard case .uncertain = TempoEstimator.consensus(results) else { return XCTFail("Unresolved tempo must remain missing") }
+        }
+    }
+
+    func testExtendedTempoWindowsCoverTheWholeSongWithoutDuplicatingAudio() {
+        let rate = 11_025.0
+        let starts = TempoAudio.windowStarts(length: Int64(240 * rate), sampleRate: rate)
+        XCTAssertEqual(starts.count, 7)
+        XCTAssertEqual(starts.first, 0)
+        XCTAssertEqual(starts.last, Int64(220 * rate))
+        for pair in zip(starts, starts.dropFirst()) { XCTAssertGreaterThanOrEqual(pair.1 - pair.0, Int64(20 * rate)) }
+        XCTAssertEqual(TempoAudio.windowStarts(length: Int64(10 * rate), sampleRate: rate), [0])
+    }
+
+    func testWikidataLinkedAlbumGenreRejectsDeprecatedAndConflictingItemsAndCaches() async throws {
+        let http = EnrichmentHTTP(routes: [
+            "/wiki/Special:EntityData/Q131977.json": (200, """
+                {"entities":{"Q131977":{"id":"Q131977","claims":{
+                "P436":[{"mainsnak":{"datavalue":{"value":"\(group)"}}}],
+                "P136":[{"rank":"normal","mainsnak":{"datavalue":{"value":{"id":"Q11366"}}}},
+                {"rank":"deprecated","mainsnak":{"datavalue":{"value":{"id":"Q999"}}}}]}}}}
+                """),
+            "/w/api.php": (200, #"{"entities":{"Q11366":{"id":"Q11366","labels":{"en":{"value":"alternative rock"}}}}}"#),
+        ])
+        let provider = WikidataGenres(client: http)
+        for _ in 0..<2 {
+            let genres = try await provider.genres(entityID: "Q131977", musicBrainzID: group, property: "P436")
+            XCTAssertEqual(genres, ["alternative rock"])
+        }
+        let wrong = try await provider.genres(entityID: "Q131977", musicBrainzID: recording, property: "P436")
+        XCTAssertTrue(wrong.isEmpty)
+        let invalid = try await provider.genres(entityID: "../Q131977", musicBrainzID: group, property: "P436")
+        XCTAssertTrue(invalid.isEmpty)
+        let requests = await http.requests
+        XCTAssertEqual(requests.count, 2)
+    }
+
     func testReportedRadioSingleUsesITunesGenreEvenWhenMusicBrainzWonTheMatch() async {
         var anchor = brainz()
         anchor.title = "(When You Gonna) Give It Up to Me - Radio Version"
@@ -224,6 +322,20 @@ private actor EnrichmentHTTP: HTTPClient {
 }
 
 final class MetadataCompletenessTests: XCTestCase {
+    func testCompleteTagVerificationRejectsAnOtherwiseValidPartialWriteAtomically() throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp3")
+        defer { try? FileManager.default.removeItem(at: file) }
+        var original = TagFixtures.mp3(v4: true)
+        if let range = original.range(of: Data("TPOS".utf8)) { original.replaceSubrange(range, with: Data("XPOS".utf8)) }
+        try original.write(to: file)
+        var request = TagWriteRequest(); request.genre = "Jazz"
+        XCTAssertThrowsError(try TagWriter.write(request, to: file, requiringComplete: [.genre, .discNumber]))
+        XCTAssertEqual(try Data(contentsOf: file), original)
+        request.discNumber = 1
+        try TagWriter.write(request, to: file, requiringComplete: [.genre, .discNumber])
+        XCTAssertEqual(TagReader.read(file).genres, ["Jazz"])
+        XCTAssertEqual(TagReader.read(file).discNumber, 1)
+    }
     func testMissingWatermarkedIdentityFieldsAreFilledInsteadOfPreserved() {
         let local = LocalTrackTags(title: "Song", artist: "www.example.com", album: "Unknown Album")
         let candidate = MetadataCandidate(id: "itunes_1", title: "Song", artist: "Artist", album: "Album")

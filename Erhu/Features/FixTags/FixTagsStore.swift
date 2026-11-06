@@ -10,7 +10,7 @@ enum RepairStatus: String, Codable, Sendable {
         case .pending: "Waiting"
         case .fixing: "Looking up…"
         case .done: "Fixed"
-        case .partial: "Partly fixed"
+        case .partial: "Needs review"
         case .unchanged: "Unchanged"
         case .needsReview: "Needs review"
         case .noMatch: "No match"
@@ -43,6 +43,9 @@ struct RepairItem: Identifiable, Sendable {
     var diagnostics: RepairDiagnostics?
     var changes: [FieldFixPlan.Change] = []
     var notes: [String] = []
+    /// Values found online, held until every selected field can be completed together.
+    var proposedRequest: TagWriteRequest?
+    var proposedFields: Set<MetadataField> = []
     /// A copy of the file as it was before the write, for Revert.
     var backup: URL?
 
@@ -243,7 +246,7 @@ final class FixTagsStore {
             case .concluded(var updated, let plan):
                 if let request = plan?.request {
                     updated = await write(request, plan: plan!, item: updated)
-                    wroteAny = wroteAny || updated.status == .done || updated.status == .partial
+                    wroteAny = wroteAny || updated.status == .done
                 }
                 queue[index] = updated
             }
@@ -260,6 +263,10 @@ final class FixTagsStore {
 
     private func lookUp(_ item: RepairItem, selection: FieldSelection, source: String, acceptAt: Float, autoResolve: Bool = false) async -> Lookup {
         var item = item
+        item.proposedRequest = nil
+        item.proposedFields = []
+        item.changes = []
+        item.notes = []
         let url = item.song.url
         guard FileManager.default.fileExists(atPath: url.path) else {
             item.status = .failed
@@ -315,8 +322,9 @@ final class FixTagsStore {
         } else if case .confident(let match) = result.decision { chosen = match }
         else { chosen = nil }
         if let match = chosen {
-            let plan = await planFix(match, candidates: candidates, local: embedded, song: item.song, url: url,
-                                     selection: effectiveSelection, acceptAt: acceptAt)
+            var plan = await planFix(match, candidates: candidates, local: embedded, song: item.song, url: url,
+                                     selection: effectiveSelection, acceptAt: acceptAt, catalogueSource: source)
+            plan.checkedFields = selected
             item.changes = plan.changes
             item.notes = plan.notes
             if plan.request == nil {
@@ -346,7 +354,7 @@ final class FixTagsStore {
     /// Plans the edit for a confident match: looks up a genre, a date and a BPM only when the
     /// selection could use them; lookup failures become notes (and "unfilled" reasons), never empty values.
     private func planFix(_ match: MetadataCandidate, candidates: [MetadataCandidate], local embedded: FileTags, song: Song, url: URL,
-                         selection: FieldSelection, acceptAt: Float) async -> FieldFixPlan {
+                         selection: FieldSelection, acceptAt: Float, catalogueSource: String = MetadataSources.all) async -> FieldFixPlan {
         let fields = selection.fields
         let fillOnly = selection.fillOnly
         let local = LocalTrackTags(
@@ -357,6 +365,7 @@ final class FixTagsStore {
         )
         var reasons: [String: String] = [:]
         var sourceNotes: [String] = []
+        let searchITunes = MetadataSources.matches(MetadataSources.iTunes, catalogueSource)
         let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
         var albumMatch = match
         if isUsableTag(local.album), fillOnly || !fields.contains(.album),
@@ -366,9 +375,17 @@ final class FixTagsStore {
             albumMatch = knownAlbum
             sourceNotes.append("Album from " + knownAlbum.sourceName)
         }
+        if isUsableTag(local.album), fillOnly || !fields.contains(.album),
+           MetadataEnrichment.releaseKey(albumMatch.album) != MetadataEnrichment.releaseKey(local.album),
+           (fields.contains(.discNumber) && (local.discNumber ?? 0) <= 0)
+            || (fields.contains(.trackNumber) && (local.trackNumber ?? 0) <= 0),
+           let recovered = await service.matchingAlbum(match, candidates: candidates, album: local.album, acceptAt: acceptAt, searchITunes: searchITunes) {
+            albumMatch = recovered
+            sourceNotes.append("Recovered the tagged album from " + recovered.sourceName)
+        }
         var genre: String?
         if fields.contains(.genre) && (!fillOnly || !isUsableTag(local.genre)) {
-            switch await service.lookupGenre(match, candidates: candidates, acceptAt: acceptAt) {
+            switch await service.lookupGenre(albumMatch, candidates: candidates, acceptAt: acceptAt, searchITunes: searchITunes) {
             case .found(let genres, let source):
                 genre = Genres.join(genres)
                 sourceNotes.append("Genre from " + source)
@@ -404,7 +421,8 @@ final class FixTagsStore {
             || (fields.contains(.discNumber) && (!fillOnly || (local.discNumber ?? 0) <= 0)) {
             (positioned, positionNote) = await service.bestAlbumPosition(albumMatch, candidates: candidates, acceptAt: acceptAt,
                 localTrack: fillOnly || !fields.contains(.trackNumber) ? local.trackNumber : nil,
-                localDisc: fillOnly || !fields.contains(.discNumber) ? local.discNumber : nil)
+                localDisc: fillOnly || !fields.contains(.discNumber) ? local.discNumber : nil,
+                needsTrack: fields.contains(.trackNumber) && (!fillOnly || (local.trackNumber ?? 0) <= 0))
         }
         var plan = FieldFixPlanner.plan(fields: fields, fillOnly: fillOnly, local: local, match: positioned, genre: genre,
                                         artwork: nil, releaseDate: releaseDate, bpm: bpm)
@@ -424,13 +442,22 @@ final class FixTagsStore {
     private func write(_ request: TagWriteRequest, plan: FieldFixPlan, item: RepairItem) async -> RepairItem {
         var item = item
         let url = item.song.url
+        let before = await Task.detached(priority: .utility) { TagReader.read(url) }.value
+        let missing = MetadataCompleteness.missing(MetadataCompleteness.applying(request, to: before), fields: plan.checkedFields)
+        guard missing.isEmpty else {
+            item.status = .needsReview
+            item.reason = "No tags changed. Still missing: " + missing.map(\.displayName).joined(separator: ", ")
+            item.proposedRequest = request
+            item.proposedFields = plan.checkedFields
+            return item
+        }
         let previousBackup = item.backup
         let backup = previousBackup ?? Self.backupFolder.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
         do {
             let written = try await Task.detached(priority: .utility) {
                 if previousBackup == nil { try FileManager.default.copyItem(at: url, to: backup) }
                 do {
-                    try TagWriter.write(request, to: url)
+                    try TagWriter.write(request, to: url, requiringComplete: plan.checkedFields)
                 } catch {
                     if previousBackup == nil { try? FileManager.default.removeItem(at: backup) }
                     throw error
@@ -440,8 +467,10 @@ final class FixTagsStore {
             ArtworkLoader.shared.forget(path: url.path)
             item.backup = backup
             let remaining = MetadataCompleteness.missing(written, fields: plan.checkedFields).map(\.displayName)
-            item.status = remaining.isEmpty ? .done : .partial
-            item.reason = remaining.isEmpty ? nil : "Still missing: " + remaining.joined(separator: ", ")
+            item.status = remaining.isEmpty ? .done : .needsReview
+            item.reason = remaining.isEmpty ? nil : "The file changed after verification. Still missing: " + remaining.joined(separator: ", ")
+            item.proposedRequest = nil
+            item.proposedFields = []
         } catch {
             item.status = .failed
             item.reason = error.localizedDescription
@@ -494,7 +523,7 @@ final class FixTagsStore {
                 case .concluded(var updated, let plan):
                     if let request = plan?.request {
                         updated = await write(request, plan: plan!, item: updated)
-                        if updated.status == .done || updated.status == .partial { written += 1 }
+                        if updated.status == .done { written += 1 }
                     }
                     queue[row] = updated
                 }
@@ -502,7 +531,7 @@ final class FixTagsStore {
             }
             let remaining = queue.filter { BulkMetadataSelection.canResolve($0) && $0.status != .unchanged }.count
             autoSelectionMessage = written > 0
-                ? "Updated \(countLabel(written, "track")); \(remaining) still have unresolved tags. Open an unfinished track to enter known values manually."
+                ? "Fully fixed \(countLabel(written, "track")); \(remaining) still need review. Incomplete repairs were not written."
                 : "No tags changed. Selected fields are either complete or no reliable value was available. Open an unfinished track to enter known values manually."
             isRunning = false
             if written > 0 { library.scan() }
@@ -522,7 +551,7 @@ final class FixTagsStore {
         }
         let embedded = await Task.detached(priority: .utility) { TagReader.read(url) }.value
         let plan = await planFix(match, candidates: item.savedCandidates, local: embedded, song: item.song, url: url,
-                                 selection: selection, acceptAt: acceptAt)
+                                 selection: selection, acceptAt: acceptAt, catalogueSource: settings.source)
         item.changes = plan.changes
         item.notes = plan.notes
         if let request = plan.request {
@@ -532,7 +561,7 @@ final class FixTagsStore {
             item.reason = plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ")
         }
         if let index = queue.firstIndex(where: { $0.id == id }) { queue[index] = item }
-        return item.status == .done || item.status == .partial
+        return item.status == .done
     }
 
     /// Manual values share the same original backup and update the queue from the file after saving.
@@ -542,11 +571,23 @@ final class FixTagsStore {
         isRunning = true
         autoSelectionProgress = nil
         defer { isRunning = false }
-        let plan = FieldFixPlan(request: request, changes: [], notes: ["Known values entered manually"], checkedFields: checkedFields)
-        var updated = await write(request, plan: plan, item: queue[index])
+        var combined = queue[index].proposedRequest ?? TagWriteRequest()
+        combined.title = request.title ?? combined.title
+        combined.artist = request.artist ?? combined.artist
+        combined.album = request.album ?? combined.album
+        combined.releaseDate = request.releaseDate ?? combined.releaseDate
+        combined.year = request.year ?? combined.year
+        combined.genre = request.genre ?? combined.genre
+        combined.bpm = request.bpm ?? combined.bpm
+        combined.trackNumber = request.trackNumber ?? combined.trackNumber
+        combined.discNumber = request.discNumber ?? combined.discNumber
+        let fields = checkedFields.union(queue[index].proposedFields)
+        let plan = FieldFixPlan(request: combined, changes: [], notes: ["Known values entered manually"], checkedFields: fields)
+        var updated = await write(combined, plan: plan, item: queue[index])
         updated.notes.append("Known values entered manually")
         queue[index] = updated
         if updated.status == .failed { throw TagWriteError.io(updated.reason ?? "The tags could not be saved") }
+        if updated.status == .needsReview { throw TagWriteError.io(updated.reason ?? "Complete the remaining selected tags before saving") }
         library.scan()
     }
 
@@ -565,6 +606,8 @@ final class FixTagsStore {
                 queue[index].backup = nil
                 queue[index].status = .reverted
                 queue[index].reason = nil
+                queue[index].proposedRequest = nil
+                queue[index].proposedFields = []
                 count += 1
             } catch {
                 queue[index].reason = "Couldn't revert: \(error.localizedDescription)"
