@@ -153,6 +153,11 @@ final class MetadataEnrichmentTests: XCTestCase {
         XCTAssertEqual(result, .found(["Arabic"], source: "iTunes catalogue (additional verified search)"))
         var cover = anchor; cover.artist = "Another Singer, Yousra"
         XCTAssertFalse(MetadataEnrichment.sameRecording(anchor, cover))
+        var first = anchor; first.artist = "Abu"; first.title = "3 Daqat (feat. Yousra)"
+        var other = first; other.title = "3 Daqat (feat. Another Singer)"
+        XCTAssertFalse(MetadataEnrichment.sameRecording(first, other), "Conflicting explicit featured performers describe different versions")
+        other.title = "3 Daqat"
+        XCTAssertTrue(MetadataEnrichment.sameRecording(first, other), "A catalogue can omit the same recording's featured credit")
     }
 
     func testRecordingGenreCanCrossAlbumBoundariesButOrderingCannot() {
