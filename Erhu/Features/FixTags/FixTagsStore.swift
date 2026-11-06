@@ -29,6 +29,7 @@ struct RepairDiagnostics: Sendable {
     var fileName: String
     var identity: TrackIdentity
     var outcomes: [ProviderOutcome] = []
+    var candidates: [MetadataCandidate] = []
     var topCandidates: [MetadataCandidate] = []
     var attempts: [QueryAttempt] = []
     var finalReason: String?
@@ -46,6 +47,11 @@ struct RepairItem: Identifiable, Sendable {
     var backup: URL?
 
     var id: Int64 { song.id }
+
+    var savedCandidates: [MetadataCandidate] {
+        guard let diagnostics else { return [] }
+        return diagnostics.candidates.isEmpty ? diagnostics.topCandidates : diagnostics.candidates
+    }
 }
 
 /// Fix Tags: looks up each queued track online, plans the edit for the chosen fields (see
@@ -81,6 +87,9 @@ final class FixTagsStore {
     private(set) var missingScanMessage: String?
     private(set) var pauseReason: String?
     private(set) var settings: Settings
+    private(set) var autoSelectionProgress: (completed: Int, total: Int)?
+    private(set) var autoSelectionMessage: String?
+    private(set) var isAutoSelectionPaused = false
 
     @ObservationIgnored private let library: LibraryStore
     @ObservationIgnored let service: MetadataService
@@ -123,6 +132,7 @@ final class FixTagsStore {
 
     var hasWork: Bool { queue.contains { $0.status.toProcess } }
     var revertible: [RepairItem] { queue.filter { $0.backup != nil } }
+    var autoCandidateCount: Int { queue.filter { BulkMetadataSelection.canSelect($0, minimumConfidence: settings.acceptAt) }.count }
 
     func enqueue(_ songs: [Song]) {
         let present = Set(queue.map(\.id))
@@ -182,6 +192,10 @@ final class FixTagsStore {
     func clear() {
         guard !isRunning, !isCheckingMissing else { return }
         queue = []
+        autoSelectionProgress = nil
+        autoSelectionMessage = nil
+        isAutoSelectionPaused = false
+        pauseReason = nil
         try? FileManager.default.removeItem(at: Self.backupFolder)
     }
 
@@ -195,6 +209,9 @@ final class FixTagsStore {
             return
         }
         isRunning = true
+        autoSelectionProgress = nil
+        autoSelectionMessage = nil
+        isAutoSelectionPaused = false
         pauseRequested = false
         pauseReason = nil
         let source = settings.source
@@ -266,6 +283,7 @@ final class FixTagsStore {
             return await service.search(title: query.title, artist: artist, album: query.album, durationMs: identity.durationMs, selection: source)
         }
         var diagnostics = RepairDiagnostics(fileName: fileName, identity: identity, outcomes: result.outcomes,
+                                            candidates: result.candidates,
                                             topCandidates: Array(result.candidates.prefix(3)), attempts: result.attempts)
         func concluded(_ status: RepairStatus, _ reason: String?, _ plan: FieldFixPlan? = nil) -> Lookup {
             diagnostics.finalReason = reason
@@ -413,16 +431,78 @@ final class FixTagsStore {
     /// Writes [match], picked by the listener for a track that needed review (or had no confident
     /// match), with the same plan and backup as an automatic fix.
     func apply(_ match: MetadataCandidate, to id: Int64) async {
-        guard !isRunning, !isCheckingMissing, let start = queue.firstIndex(where: { $0.id == id }) else { return }
+        guard !isRunning, !isCheckingMissing else { return }
+        autoSelectionProgress = nil
+        autoSelectionMessage = nil
         isRunning = true
         defer { isRunning = false }
+        if await applyOne(match, to: id, selection: FieldSelection(selectedFields), acceptAt: settings.acceptAt, automatic: false) { library.scan() }
+    }
+
+    /// One tap applies the best eligible saved candidate to every review entry. No per-track dialogs.
+    func autoSelectBestCandidates() {
+        guard !isRunning, !isCheckingMissing else { return }
+        let choices = queue.compactMap { item -> (Int64, MetadataCandidate)? in
+            BulkMetadataSelection.best(for: item, minimumConfidence: settings.acceptAt).map { (item.id, $0) }
+        }
+        guard !choices.isEmpty else { return }
+        let selection = FieldSelection(selectedFields)
+        guard !selection.fields.isEmpty else { pauseReason = "Choose which fields to fix first."; return }
+        let acceptAt = settings.acceptAt
+        isRunning = true
+        pauseRequested = false
+        pauseReason = nil
+        isAutoSelectionPaused = false
+        autoSelectionMessage = nil
+        autoSelectionProgress = (0, choices.count)
+        task = Task { [weak self] in
+            guard let self else { return }
+            var written = 0
+            for (index, choice) in choices.enumerated() {
+                if pauseRequested {
+                    isAutoSelectionPaused = true
+                    pauseReason = "Paused. Use Auto-select best candidates to continue with the remaining tracks."
+                    break
+                }
+                if await applyOne(choice.1, to: choice.0, selection: selection, acceptAt: acceptAt, automatic: true) { written += 1 }
+                autoSelectionProgress = (index + 1, choices.count)
+            }
+            let remaining = queue.filter { $0.status == .needsReview || $0.status == .noMatch }.count
+            autoSelectionMessage = "Updated \(countLabel(written, "track")); \(remaining) still need review."
+            isRunning = false
+            if written > 0 { library.scan() }
+        }
+    }
+
+    private func applyOne(_ match: MetadataCandidate, to id: Int64, selection: FieldSelection, acceptAt: Float, automatic: Bool) async -> Bool {
+        guard let start = queue.firstIndex(where: { $0.id == id }) else { return false }
         var item = queue[start]
         item.status = .fixing
         queue[start] = item
         let url = item.song.url
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            queue[start].status = .failed
+            queue[start].reason = "The file no longer exists"
+            return false
+        }
         let embedded = await Task.detached(priority: .utility) { TagReader.read(url) }.value
-        let plan = await planFix(match, candidates: item.diagnostics?.topCandidates ?? [match], local: embedded, song: item.song, url: url,
-                                 selection: FieldSelection(selectedFields), acceptAt: settings.acceptAt)
+        if automatic, let previous = item.diagnostics?.identity {
+            var current = previous
+            current.title = usableIdentityText(embedded.title) ?? previous.title
+            if usableIdentityText(embedded.title) != nil { current.fileTitles = [] }
+            current.artist = usableIdentityText(embedded.artist) ?? previous.artist
+            current.album = usableIdentityText(embedded.album) ?? previous.album
+            let query = TrackQuery(title: current.title ?? current.fileTitles.first ?? match.title,
+                                   artist: current.artist ?? current.fileArtist, source: current.title == nil ? .fileName : .tag,
+                                   album: current.album)
+            if TrackMatcher.rescore(match, current, query).confidenceScore < acceptAt {
+                queue[start].status = .needsReview
+                queue[start].reason = "The file's tags no longer support this match at the selected confidence."
+                return false
+            }
+        }
+        let plan = await planFix(match, candidates: item.savedCandidates, local: embedded, song: item.song, url: url,
+                                 selection: selection, acceptAt: acceptAt)
         item.changes = plan.changes
         item.notes = plan.notes
         if let request = plan.request {
@@ -432,7 +512,7 @@ final class FixTagsStore {
             item.reason = plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ")
         }
         if let index = queue.firstIndex(where: { $0.id == id }) { queue[index] = item }
-        if item.status == .done || item.status == .partial { library.scan() }
+        return item.status == .done || item.status == .partial
     }
 
     /// Puts the selected tracks' files back exactly as they were before their fix.
