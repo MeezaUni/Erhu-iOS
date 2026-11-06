@@ -5,21 +5,38 @@ enum MetadataEnrichment {
     static func verified(_ match: MetadataCandidate, candidates: [MetadataCandidate], acceptAt: Float) -> [MetadataCandidate] {
         var seen = Set([match.id])
         return [match] + candidates.filter {
-            $0.confidenceScore >= acceptAt && sameRecording(match, $0) && seen.insert($0.id).inserted
-        }.sorted { $0.confidenceScore > $1.confidenceScore }
+            sameRecording(match, $0) && recordingScore($0, against: match) >= acceptAt && seen.insert($0.id).inserted
+        }.sorted {
+            let first = sameRelease(match, $0), second = sameRelease(match, $1)
+            if first != second { return first }
+            return $0.confidenceScore > $1.confidenceScore
+        }
     }
 
     static func sameRecording(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {
         guard isUsableTag(a.title), isUsableTag(b.title), isUsableTag(a.artist), isUsableTag(b.artist),
-              isUsableTag(a.album), isUsableTag(b.album),
               identityKey(stripFeaturing(a.title)) == identityKey(stripFeaturing(b.title)),
-              albumPositionTitle(a.album) == albumPositionTitle(b.album),
               identityKey(primaryArtist(a.artist)) == identityKey(primaryArtist(b.artist)) || creditSimilarity(a.artist, b.artist) >= 0.8,
               versionTags(a) == versionTags(b),
               let first = a.durationMs, first > 0, let second = b.durationMs, second > 0
         else { return false }
         // Allow rounding and a short encoder tail, not an edit or an extended recording.
         return abs(first - second) <= max(2_000, min(5_000, min(first, second) / 100))
+    }
+
+    static func recordingScore(_ candidate: MetadataCandidate, against anchor: MetadataCandidate) -> Float {
+        MetadataScorer.score(candidate, title: anchor.title, artist: anchor.artist, durationMs: anchor.durationMs).confidenceScore
+    }
+
+    /// Storefront "- Single"/"- EP" suffixes describe the same release type, not a new edition.
+    static func releaseKey(_ title: String) -> String {
+        var key = albumPositionTitle(title)
+        for suffix in [" - single", " - ep"] where key.hasSuffix(suffix) { key = String(key.dropLast(suffix.count)).trimmed }
+        return key
+    }
+
+    static func sameRelease(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {
+        isUsableTag(a.album) && isUsableTag(b.album) && releaseKey(a.album) == releaseKey(b.album) && sameRecording(a, b)
     }
 
     private static func identityKey(_ text: String) -> String {
@@ -48,7 +65,7 @@ enum MetadataEnrichment {
     }
 
     static func releaseDate(_ match: MetadataCandidate, candidates: [MetadataCandidate], acceptAt: Float) -> ReleaseDateDecision {
-        let matches = verified(match, candidates: candidates, acceptAt: acceptAt)
+        let matches = verified(match, candidates: candidates, acceptAt: acceptAt).filter { $0.id == match.id || sameRelease(match, $0) }
         let dates = matches.compactMap { ReleaseDate.parse($0.releaseDate) }
         let years = Set(dates.map(\.year))
         guard years.count <= 1 else { return .rejected("Verified matches disagree on the release year") }

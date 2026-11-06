@@ -78,6 +78,15 @@ actor MetadataService {
             if match.sourceName == "MusicBrainz", let position = try await musicBrainz.albumPosition(match) {
                 result.trackNumber = position.track
                 result.discNumber = position.disc
+            } else if match.sourceName == MetadataSources.iTunes, match.id.hasPrefix("itunes_"),
+                      let id = Int64(match.id.dropFirst(7)), id > 0 {
+                let response = try await fetchJSON(ITunesProvider.Response.self,
+                    requestURL("https://itunes.apple.com/lookup", [("id", String(id)), ("entity", "song")]), client: client)
+                if let detail = ITunesProvider.candidates(response).first(where: { $0.id == match.id && $0.releaseId == match.releaseId }),
+                   MetadataEnrichment.sameRelease(match, detail) {
+                    result.trackNumber = detail.trackNumber
+                    result.discNumber = detail.discNumber
+                }
             } else if match.sourceName == "Deezer", match.id.hasPrefix("deezer_"),
                       let id = Int64(match.id.dropFirst(7)), id > 0 {
                 let detail = try await deezerTrack(id)
@@ -92,6 +101,29 @@ actor MetadataService {
             if match.sourceName == MetadataSources.deezer { rememberDeezerFailure(error) }
             return (result, "Album order lookup failed: \(error.localizedDescription)")
         }
+    }
+
+    /// Ordering is a field-level choice, with both numbers from one verified album edition.
+    func bestAlbumPosition(_ match: MetadataCandidate, candidates: [MetadataCandidate], acceptAt: Float,
+                           localTrack: Int?, localDisc: Int?) async -> (MetadataCandidate, String?) {
+        let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
+            .filter { $0.id == match.id || MetadataEnrichment.sameRelease(match, $0) }
+        var issues: [String] = []
+        for donor in verified {
+            let (detail, issue) = await withAlbumPosition(donor)
+            if let issue { issues.append(issue) }
+            guard AlbumTrackPosition(disc: detail.discNumber, track: detail.trackNumber).isValid else { continue }
+            if let localDisc, localDisc > 0, detail.discNumber != localDisc { continue }
+            if let localTrack, localTrack > 0, detail.trackNumber != localTrack { continue }
+            var positioned = match
+            positioned.trackNumber = detail.trackNumber
+            positioned.discNumber = detail.discNumber
+            return (positioned, "Track/disc numbers from \(detail.sourceName), \(detail.album)")
+        }
+        var unresolved = match
+        unresolved.trackNumber = 0
+        unresolved.discNumber = 0
+        return (unresolved, issues.first ?? "No verified track/disc pair for this album edition and the existing numbers")
     }
 
     private func deezerTrack(_ id: Int64) async throws -> DeezerProvider.Track {
@@ -157,8 +189,8 @@ actor MetadataService {
         }
         for (_, _, outcome) in results {
             switch outcome.status {
-            case .authFailed: unusable[outcome.providerName] = .rejected(outcome.errorMessage ?? "Credentials rejected")
-            case .unavailable: unusable[outcome.providerName] = .unavailable(outcome.errorMessage ?? "Not available here")
+            case .authFailed: if unusable[outcome.providerName] == nil { unusable[outcome.providerName] = .rejected(outcome.errorMessage ?? "Credentials rejected") }
+            case .unavailable: if unusable[outcome.providerName] == nil { unusable[outcome.providerName] = .unavailable(outcome.errorMessage ?? "Not available here") }
             default: break
             }
         }
@@ -208,7 +240,8 @@ actor MetadataService {
                 do { found += try await musicBrainz.recordingGenres(String(brainz.id.dropFirst(3))) }
                 catch { failed = true; reasons.append("MusicBrainz recording: \(classifyProviderFailure(error).message)") }
             }
-            if let group = brainz.releaseGroupId, UUID(uuidString: group) != nil {
+            if let group = brainz.releaseGroupId, UUID(uuidString: group) != nil,
+               brainz.id == match.id || MetadataEnrichment.sameRelease(match, brainz) {
                 do { found += try await musicBrainz.releaseGroupGenres(group) }
                 catch { failed = true; reasons.append("MusicBrainz album: \(classifyProviderFailure(error).message)") }
             }
@@ -217,7 +250,7 @@ actor MetadataService {
             }
             reasons.append("MusicBrainz lists no genre for this recording or album")
         }
-        if let deezerMatch = verified.first(where: { $0.deezerAlbumId != nil }), let albumID = deezerMatch.deezerAlbumId {
+        if let deezerMatch = verified.first(where: { $0.deezerAlbumId != nil && ($0.id == match.id || MetadataEnrichment.sameRelease(match, $0)) }), let albumID = deezerMatch.deezerAlbumId {
             do {
                 let genres: [String]
                 if let cached = deezerGenres[albumID] { genres = cached }

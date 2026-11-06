@@ -59,7 +59,7 @@ enum TrackMatcher {
     /// A file-name title is weaker evidence than the tag title.
     private static let alternateTitleFactor: Float = 0.97
 
-    static func match(_ identity: TrackIdentity, acceptAt: Float = highConfidenceThreshold,
+    static func match(_ identity: TrackIdentity, acceptAt: Float = highConfidenceThreshold, allowBestCandidate: Bool = false,
                       search: (TrackQuery) async -> SearchResponse) async -> MatchResult {
         let queries = planQueries(identity)
         var found: [String: MetadataCandidate] = [:]
@@ -80,7 +80,9 @@ enum TrackMatcher {
                     order.append(candidate.id)
                 }
             }
-            if case .confident = decide(ranked(order, found), identity, acceptAt: acceptAt) { break }
+            let decision = decide(ranked(order, found), identity, acceptAt: acceptAt)
+            if case .confident = decision { break }
+            if allowBestCandidate, case .ambiguous = decision { break }
         }
         let best = ranked(order, found)
         return MatchResult(decision: decide(best, identity, acceptAt: acceptAt), candidates: best,

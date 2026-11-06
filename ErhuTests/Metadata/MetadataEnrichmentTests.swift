@@ -22,6 +22,72 @@ final class MetadataEnrichmentTests: XCTestCase {
         XCTAssertEqual(ITunesProvider.candidates(response).first?.genre, "Alternative")
     }
 
+    func testReportedRadioSingleUsesITunesGenreEvenWhenMusicBrainzWonTheMatch() async {
+        var anchor = brainz()
+        anchor.title = "(When You Gonna) Give It Up to Me - Radio Version"
+        anchor.artist = "Sean Paul & Keyshia Cole"
+        anchor.album = "(When You Gonna) Give It Up to Me"
+        anchor.durationMs = 243_000
+        var single = match()
+        single.title = "(When You Gonna) Give It Up to Me [Radio Version] [feat. Keyshia Cole]"
+        single.artist = "Sean Paul featuring Keyshia Cole"
+        single.album = "(When You Gonna) Give It Up to Me - Single"
+        single.durationMs = 243_880
+        single.genre = "Reggae"
+        let http = EnrichmentHTTP(routes: [
+            "/ws/2/recording/" + recording: (200, #"{"genres":[]}"#),
+            "/ws/2/release-group/" + group: (200, #"{"genres":[]}"#),
+        ])
+        let result = await MetadataService(client: http).lookupGenre(anchor, candidates: [single])
+        XCTAssertEqual(result, .found(["Reggae"], source: "iTunes catalogue"))
+    }
+
+    func testRecordingGenreCanCrossAlbumBoundariesButOrderingCannot() {
+        let anchor = match()
+        var compilation = match("MusicBrainz", id: "mb_other")
+        compilation.album = "Greatest Hits"
+        compilation.confidenceScore = 0.7 // Album mismatch lowers the original search score.
+        XCTAssertTrue(MetadataEnrichment.sameRecording(anchor, compilation))
+        XCTAssertFalse(MetadataEnrichment.sameRelease(anchor, compilation))
+        XCTAssertEqual(MetadataEnrichment.verified(anchor, candidates: [compilation], acceptAt: 0.85).count, 2)
+    }
+
+    func testAlbumPositionsComeFromAMatchingMusicBrainzReleaseWhenITunesHasNone() async {
+        let release = "33333333-3333-4333-8333-333333333333"
+        let http = EnrichmentHTTP(routes: [
+            "/lookup": (200, #"{"results":[]}"#),
+            "/ws/2/release/" + release: (200, """
+                {"id":"\(release)","title":"Parachutes","media":[{"position":1,"tracks":[{"position":2,"recording":{"id":"\(recording)"}}]}]}
+                """),
+        ])
+        var donor = brainz(); donor.releaseId = release
+        let (positioned, note) = await MetadataService(client: http).bestAlbumPosition(match(), candidates: [donor], acceptAt: 0.85, localTrack: nil, localDisc: nil)
+        XCTAssertEqual(positioned.trackNumber, 2)
+        XCTAssertEqual(positioned.discNumber, 1)
+        XCTAssertTrue(note?.contains("MusicBrainz") == true)
+    }
+
+    func testUnrelatedCompilationCannotSupplyTrackAndDiscNumbers() async {
+        let http = EnrichmentHTTP(routes: ["/lookup": (200, #"{"results":[]}"#)])
+        var compilation = match("Deezer", id: "deezer_8")
+        compilation.album = "Greatest Hits"; compilation.trackNumber = 8; compilation.discNumber = 1
+        let (positioned, _) = await MetadataService(client: http).bestAlbumPosition(match(), candidates: [compilation], acceptAt: 0.85, localTrack: nil, localDisc: nil)
+        XCTAssertEqual(positioned.trackNumber, 0)
+        XCTAssertEqual(positioned.discNumber, 0)
+    }
+
+    func testRepeatedCountryRefusalDoesNotGrowTheDiagnosticMessage() async {
+        let http = EnrichmentHTTP(routes: ["/search": (200, #"{"data":[],"total":14}"#)])
+        let service = MetadataService(client: http)
+        for _ in 0..<4 {
+            let result = await service.search(title: "Song", artist: "Artist", album: "Album", durationMs: nil, selection: MetadataSources.deezer)
+            let note = result.outcomes.first { $0.providerName == "Deezer" }?.errorMessage ?? ""
+            XCTAssertLessThanOrEqual(note.components(separatedBy: "(not asked again)").count - 1, 1)
+        }
+        let requests = await http.requests
+        XCTAssertEqual(requests, ["/search"])
+    }
+
     func testITunesWinnerGetsAllUsableMusicBrainzRecordingAndAlbumGenres() async throws {
         let http = EnrichmentHTTP(routes: [
             "/ws/2/recording/" + recording: (200, #"{"genres":[{"name":"alternative rock","count":8},{"name":"unknown","count":9}]}"#),
@@ -84,10 +150,11 @@ final class MetadataEnrichmentTests: XCTestCase {
         XCTAssertFalse(MetadataEnrichment.sameRecording(winner, other))
         other.versionNote = nil
         other.album = "Parachutes (Deluxe)"
-        XCTAssertFalse(MetadataEnrichment.sameRecording(winner, other))
+        XCTAssertTrue(MetadataEnrichment.sameRecording(winner, other))
+        XCTAssertFalse(MetadataEnrichment.sameRelease(winner, other))
         other = brainz(); other.durationMs = nil
         XCTAssertFalse(MetadataEnrichment.sameRecording(winner, other))
-        other = brainz(); other.confidenceScore = 0.5
+        other = brainz(); other.confidenceScore = 0.5; other.title = "A different song"
         XCTAssertEqual(MetadataEnrichment.verified(winner, candidates: [other], acceptAt: 0.85), [winner])
     }
 

@@ -4,6 +4,8 @@ import SwiftUI
 /// differ from the file's values are written; a blank field keeps what the file has.
 struct EditTagsSheet: View {
     let song: Song
+    var queueItemID: Int64? = nil
+    var requestedFields: Set<MetadataField>? = nil
     @Environment(FixTagsStore.self) private var fixTags
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
@@ -21,19 +23,23 @@ struct EditTagsSheet: View {
     @State private var searchNote: String?
     @State private var saving = false
     @State private var error: String?
+    @State private var editableFields = Set(MetadataField.allCases)
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Title", text: $title)
-                    TextField("Artist", text: $artist)
-                    TextField("Album", text: $album)
-                    TextField("Track number", text: $trackNumber).keyboardType(.numberPad)
-                    TextField("Disc number", text: $discNumber).keyboardType(.numberPad)
-                    TextField("Year or date (2019 or 2019-05-17)", text: $year).keyboardType(.numbersAndPunctuation)
-                    TextField("Genre (separate several with ;)", text: $genre)
-                    TextField("BPM", text: $bpm).keyboardType(.numberPad)
+                    if editableFields.contains(.title) { TextField("Title", text: $title) }
+                    if editableFields.contains(.artist) { TextField("Artist", text: $artist) }
+                    if editableFields.contains(.album) { TextField("Album", text: $album) }
+                    if editableFields.contains(.trackNumber) { TextField("Track number", text: $trackNumber).keyboardType(.numberPad) }
+                    if editableFields.contains(.discNumber) { TextField("Disc number", text: $discNumber).keyboardType(.numberPad) }
+                    if editableFields.contains(.year) { TextField("Year or date (2019 or 2019-05-17)", text: $year).keyboardType(.numbersAndPunctuation) }
+                    if editableFields.contains(.genre) { TextField("Genre (separate several with ;)", text: $genre) }
+                    if editableFields.contains(.bpm) { TextField("BPM", text: $bpm).keyboardType(.numberPad) }
+                    if let requestedFields, editableFields != requestedFields {
+                        Button("Show all selected fields") { editableFields = requestedFields }
+                    }
                 } footer: {
                     Text("Saved into the file itself (\(song.url.pathExtension.uppercased())). Blank fields keep the file's values.")
                 }
@@ -67,7 +73,7 @@ struct EditTagsSheet: View {
                     Text("Sends only the title, artist, album and length. Tap a match to copy its values into the fields above, then check them before saving.")
                 }
             }
-            .navigationTitle("Edit tags")
+            .navigationTitle(queueItemID == nil ? "Edit tags" : "Enter remaining tags")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -75,12 +81,14 @@ struct EditTagsSheet: View {
                     Button("Save") { Task { await save() } }.disabled(saving || request == nil)
                 }
             }
-            .task { load() }
+            .task { await load() }
         }
     }
 
-    private func load() {
-        let tags = TagReader.read(song.url)
+    private func load() async {
+        let url = song.url
+        let tags = await Task.detached(priority: .utility) { TagReader.read(url) }.value
+        guard !Task.isCancelled else { return }
         original = tags
         title = tags.title ?? song.title
         artist = tags.artist ?? ""
@@ -90,6 +98,10 @@ struct EditTagsSheet: View {
         bpm = tags.bpmText ?? ""
         trackNumber = tags.trackNumber.map(String.init) ?? ""
         discNumber = tags.discNumber.map(String.init) ?? ""
+        if let requestedFields {
+            let missing = Set(MetadataCompleteness.missing(tags, fields: requestedFields))
+            editableFields = missing.isEmpty ? requestedFields : missing
+        }
     }
 
     /// Only real changes: unchanged or blank text keeps what the file has.
@@ -99,25 +111,25 @@ struct EditTagsSheet: View {
             return value.isEmpty || value == (current ?? "").trimmed ? nil : value
         }
         var request = TagWriteRequest()
-        request.title = changed(title, original.title)
-        request.artist = changed(artist, original.artist)
-        request.album = changed(album, original.album)
-        if let value = changed(trackNumber, original.trackNumber.map(String.init)) {
+        if editableFields.contains(.title) { request.title = changed(title, original.title) }
+        if editableFields.contains(.artist) { request.artist = changed(artist, original.artist) }
+        if editableFields.contains(.album) { request.album = changed(album, original.album) }
+        if editableFields.contains(.trackNumber), let value = changed(trackNumber, original.trackNumber.map(String.init)) {
             guard let number = Int(value), (1...65535).contains(number) else { return nil }
             request.trackNumber = number
         }
-        if let value = changed(discNumber, original.discNumber.map(String.init)) {
+        if editableFields.contains(.discNumber), let value = changed(discNumber, original.discNumber.map(String.init)) {
             guard let number = Int(value), (1...65535).contains(number) else { return nil }
             request.discNumber = number
         }
-        if let date = changed(year, original.dateText) {
+        if editableFields.contains(.year), let date = changed(year, original.dateText) {
             guard let parsed = ReleaseDate.parse(date) else { return nil }
             request.releaseDate = parsed.tagValue
         }
-        if let value = changed(genre, Genres.join(original.genres)), !Genres.same(value, Genres.join(original.genres)) {
+        if editableFields.contains(.genre), let value = changed(genre, Genres.join(original.genres)), !Genres.same(value, Genres.join(original.genres)) {
             request.genre = value
         }
-        if let value = changed(bpm, original.bpmText) {
+        if editableFields.contains(.bpm), let value = changed(bpm, original.bpmText) {
             guard let tempo = Int(value), plausibleBpm.contains(tempo) else { return nil }
             request.bpm = tempo
         }
@@ -146,7 +158,7 @@ struct EditTagsSheet: View {
         if candidate.trackNumber > 0 { trackNumber = String(candidate.trackNumber) }
         if candidate.discNumber > 0 { discNumber = String(candidate.discNumber) }
         Task {
-            if case .found(let genres, _) = await fixTags.service.lookupGenre(candidate), let joined = Genres.join(genres) { genre = joined }
+            if case .found(let genres, _) = await fixTags.service.lookupGenre(candidate, candidates: candidates), let joined = Genres.join(genres) { genre = joined }
         }
     }
 
@@ -156,9 +168,13 @@ struct EditTagsSheet: View {
         error = nil
         let url = song.url
         do {
-            try await Task.detached(priority: .userInitiated) { try TagWriter.write(request, to: url) }.value
-            ArtworkLoader.shared.forget(path: url.path)
-            library.scan()
+            if let queueItemID {
+                try await fixTags.saveManual(request, to: queueItemID, checkedFields: requestedFields ?? fixTags.selectedFields)
+            } else {
+                try await Task.detached(priority: .userInitiated) { try TagWriter.write(request, to: url) }.value
+                ArtworkLoader.shared.forget(path: url.path)
+                library.scan()
+            }
             dismiss()
         } catch {
             self.error = error.localizedDescription

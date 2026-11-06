@@ -54,7 +54,7 @@ struct FieldSelection: Equatable, Sendable {
     let fillOnly: Bool
     let rename: Bool
 
-    init(_ selected: Set<MetadataField>) {
+    init(_ selected: Set<MetadataField>, fillMissingOnly: Bool = false) {
         var fields = Set<FixField>()
         for field in selected {
             switch field {
@@ -70,7 +70,7 @@ struct FieldSelection: Equatable, Sendable {
             }
         }
         self.fields = fields
-        fillOnly = selected.isSuperset(of: MetadataField.fillOnlyTags)
+        fillOnly = fillMissingOnly || selected.isSuperset(of: MetadataField.fillOnlyTags)
         rename = selected.contains(.filename)
     }
 }
@@ -195,7 +195,7 @@ enum FieldFixPlanner {
         request.bpm = newBpm
         request.artwork = newArtwork
         let destinationAlbum = album ?? local.album
-        let sameReleaseTitle = isUsableTag(destinationAlbum) && albumPositionTitle(destinationAlbum) == albumPositionTitle(match.album)
+        let sameReleaseTitle = isUsableTag(destinationAlbum) && MetadataEnrichment.releaseKey(destinationAlbum) == MetadataEnrichment.releaseKey(match.album)
         for field in [FixField.trackNumber, .discNumber] where fields.contains(field) {
             let existing = field == .trackNumber ? local.trackNumber : local.discNumber
             let found = field == .trackNumber ? match.trackNumber : match.discNumber
