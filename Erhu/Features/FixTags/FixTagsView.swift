@@ -110,7 +110,7 @@ struct FixTagsView: View {
                         Label(store.isAutoSelectionPaused ? "Continue filling best available tags" : "Auto-fill best available tags", systemImage: "wand.and.stars")
                     }
                     .disabled(store.isCheckingMissing)
-                    Text("Checks available sources for each selected missing field. Genre, BPM and album ordering can come from different verified matches. Originals remain available for Revert.")
+                    Text("Checks available sources for each selected missing field. Saves a song only when all selected tags are complete. Unresolved songs stay unchanged for review. Originals remain available for Revert.")
                         .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
                 } else if !store.hasWork {
                     Text(store.queue.isEmpty ? "Add songs or find the ones with missing tags first." : "Nothing left to fix in the queue.")
@@ -131,13 +131,13 @@ struct FixTagsView: View {
                 Text(summary).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
             }
         } footer: {
-            Text("Automatic mode combines verified iTunes, MusicBrainz and Deezer matches for different fields. Deezer is optional where available; a single-source choice restricts catalogue matching. MusicBrainz supplies recording and album genres, with catalogue genres as a fallback. Missing-tag checks cover every selected field. Your music is never uploaded. Each changed file's original is kept until you clear the queue, so it can be reverted.")
+            Text("Automatic mode combines verified iTunes, MusicBrainz and Deezer matches for different fields. Deezer is optional where available; a single-source choice restricts catalogue matching. MusicBrainz supplies recording and album genres, with catalogue genres and linked Wikidata genres as fallbacks. Repairs are saved only when every selected tag is complete. Missing-tag checks cover every selected field. Your music is never uploaded. Each changed file's original is kept until you clear the queue, so it can be reverted.")
         }.toolSectionAppearance()
     }
 
     private var summary: String {
-        let counts = Dictionary(grouping: store.queue, by: \.status).mapValues(\.count)
-        let order: [RepairStatus] = [.done, .partial, .unchanged, .needsReview, .noMatch, .failed, .networkFailed, .reverted, .pending]
+        let counts = Dictionary(grouping: store.queue, by: { $0.status == .partial ? RepairStatus.needsReview : $0.status }).mapValues(\.count)
+        let order: [RepairStatus] = [.done, .unchanged, .needsReview, .noMatch, .failed, .networkFailed, .reverted, .pending]
         return order.compactMap { status in counts[status].map { "\($0) \(status.label.lowercased())" } }.joined(separator: " · ")
     }
 
@@ -262,12 +262,16 @@ private struct RepairItemDetail: View {
                             Label("Enter remaining tags manually", systemImage: "square.and.pencil")
                         }
                         .disabled(store.isRunning || store.isCheckingMissing)
-                        Text("If a source has no reliable value, enter the tags you know. Leave unknown fields blank.")
+                        Text("Complete the remaining selected tags to save the whole repair together. Unknown fields keep this song in Needs review.")
                             .font(.footnote).foregroundStyle(.secondary)
+                        if store.isRunning {
+                            Button("Pause repairs to edit") { store.pause() }
+                            Text("Editing becomes available after the current song finishes.").font(.footnote).foregroundStyle(.secondary)
+                        }
                     }
                 }.toolSectionAppearance()
                 if !item.changes.isEmpty {
-                    Section("Changes") {
+                    Section(item.proposedRequest == nil ? "Changes" : "Suggested changes · not saved") {
                         ForEach(Array(item.changes.enumerated()), id: \.offset) { _, change in
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(change.field.displayName).font(.caption.weight(.semibold))
@@ -328,7 +332,9 @@ private struct RepairItemDetail: View {
                 }
             }.modifier(ToolPageAppearance())
             .sheet(isPresented: $editingManually) {
-                EditTagsSheet(song: item.song, queueItemID: item.id, requestedFields: store.selectedFields)
+                EditTagsSheet(song: item.song, queueItemID: item.id,
+                              requestedFields: item.proposedFields.isEmpty ? store.selectedFields : item.proposedFields,
+                              proposedRequest: item.proposedRequest)
             }
             .confirmationDialog("Write this match?", isPresented: Binding(get: { choice != nil }, set: { if !$0 { choice = nil } }),
                                 titleVisibility: .visible, presenting: choice) { candidate in

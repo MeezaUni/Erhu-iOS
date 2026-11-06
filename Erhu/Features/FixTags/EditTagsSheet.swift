@@ -6,6 +6,7 @@ struct EditTagsSheet: View {
     let song: Song
     var queueItemID: Int64? = nil
     var requestedFields: Set<MetadataField>? = nil
+    var proposedRequest: TagWriteRequest? = nil
     @Environment(FixTagsStore.self) private var fixTags
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
@@ -41,7 +42,9 @@ struct EditTagsSheet: View {
                         Button("Show all selected fields") { editableFields = requestedFields }
                     }
                 } footer: {
-                    Text("Saved into the file itself (\(song.url.pathExtension.uppercased())). Blank fields keep the file's values.")
+                    Text(queueItemID == nil
+                         ? "Saved into the file itself (\(song.url.pathExtension.uppercased())). Blank fields keep the file's values."
+                         : "Found online values are held for you. All selected tags must be complete before anything is saved. Blank fields stay unresolved.")
                 }
                 if let error {
                     Section { Text(error).foregroundStyle(.red).font(.footnote) }
@@ -90,16 +93,17 @@ struct EditTagsSheet: View {
         let tags = await Task.detached(priority: .utility) { TagReader.read(url) }.value
         guard !Task.isCancelled else { return }
         original = tags
-        title = tags.title ?? song.title
-        artist = tags.artist ?? ""
-        album = tags.album ?? ""
-        year = tags.dateText ?? ""
-        genre = Genres.join(tags.genres) ?? ""
-        bpm = tags.bpmText ?? ""
-        trackNumber = tags.trackNumber.map(String.init) ?? ""
-        discNumber = tags.discNumber.map(String.init) ?? ""
+        let preview = MetadataCompleteness.applying(proposedRequest, to: tags)
+        title = preview.title ?? song.title
+        artist = preview.artist ?? ""
+        album = preview.album ?? ""
+        year = preview.dateText ?? ""
+        genre = Genres.join(preview.genres) ?? ""
+        bpm = preview.bpmText ?? ""
+        trackNumber = preview.trackNumber.map(String.init) ?? ""
+        discNumber = preview.discNumber.map(String.init) ?? ""
         if let requestedFields {
-            let missing = Set(MetadataCompleteness.missing(tags, fields: requestedFields))
+            let missing = Set(MetadataCompleteness.missing(preview, fields: requestedFields))
             editableFields = missing.isEmpty ? requestedFields : missing
         }
     }

@@ -39,6 +39,10 @@ enum TempoEstimator {
             .filter { $0.count >= minSectionSeconds * sampleRate }
         guard !sections.isEmpty else { return .uncertain("Too little audio to measure a tempo") }
         let results = sections.map { sectionTempo($0, sampleRate: sampleRate) }
+        return consensus(results)
+    }
+
+    static func consensus(_ results: [SectionTempo]) -> TempoEstimate {
         var tempos: [Double] = []
         var ambiguous: [(Double, Double)] = []
         for result in results {
@@ -58,15 +62,27 @@ enum TempoEstimator {
             }
         }
         let agreeing = best.map { b in tempos.filter { close($0, b) } } ?? []
-        let needed = sections.count == 1 ? 1 : sections.count / 2 + 1
+        let needed = results.count == 1 ? 1 : results.count / 2 + 1
         if agreeing.count >= needed {
             let average = agreeing.reduce(0, +) / Double(agreeing.count)
-            return .found(bpm: Int(average.rounded()), sectionsAgreeing: agreeing.count, sections: sections.count)
+            return .found(bpm: Int(average.rounded()), sectionsAgreeing: agreeing.count, sections: results.count)
+        }
+        // Several clear sections can anchor ambiguous sections at the same pulse. An octave
+        // prior alone is never sufficient: at least two independent clear sections are required.
+        if agreeing.count >= 2, let best,
+           tempos.filter({ !close($0, best) && abs(abs(log2($0 / best)) - 1) < 0.1 }).count < agreeing.count {
+            let support = agreeing.count + ambiguous.filter { close($0.0, best) || close($0.1, best) }.count
+            if support >= needed {
+                return .found(bpm: Int((agreeing.reduce(0, +) / Double(agreeing.count)).rounded()), sectionsAgreeing: support, sections: results.count)
+            }
         }
         if let pair = ambiguous.first {
             return .uncertain("Half-time / double-time ambiguity: \(Int(pair.0.rounded())) or \(Int(pair.1.rounded())) BPM")
         }
         if tempos.isEmpty { return .uncertain("No steady beat found") }
+        if let best, tempos.allSatisfy({ close($0, best) }) {
+            return .uncertain("Only \(tempos.count) of \(results.count) sections had a dependable beat (about \(Int(best.rounded())) BPM)")
+        }
         let shown = tempos.map { String(Int($0.rounded())) }.joined(separator: ", ")
         let octaveSplit = tempos.contains { a in tempos.contains { b in abs(b / a - 2) < octaveTolerance * 2 } }
         return .uncertain(octaveSplit
@@ -76,7 +92,7 @@ enum TempoEstimator {
 
     private static func close(_ a: Double, _ b: Double) -> Bool { abs(a - b) <= agreement * b }
 
-    private enum SectionTempo {
+    enum SectionTempo {
         case beat(Double)
         case octaveAmbiguous(Double, Double)
         case noBeat
@@ -241,26 +257,39 @@ enum TempoAudio {
     private static let startFraction = 0.25
     private static let targetRate = 11_025.0
 
+    /// Up to seven non-overlapping windows spanning the file, including its later sections.
+    static func windowStarts(length: AVAudioFramePosition, sampleRate: Double) -> [AVAudioFramePosition] {
+        let window = max(1, AVAudioFramePosition(Double(TempoEstimator.sectionSeconds) * sampleRate))
+        let count = max(1, min(7, Int(length / window)))
+        return (0..<count).map { index in
+            count == 1 ? 0 : AVAudioFramePosition(Double(max(0, length - window)) * Double(index) / Double(count - 1))
+        }
+    }
+
     /// Decodes [analysisSeconds] from a quarter of the way in (past most intros). Throws when the
     /// file can't be decoded. Everything stays on the device.
-    static func decode(_ url: URL) throws -> (samples: [Float], sampleRate: Int) {
+    static func decode(_ url: URL, distributed: Bool = false) throws -> (samples: [Float], sampleRate: Int) {
         let file = try DecodedAudioSource.open(url)
         let format = file.processingFormat
         let rate = format.sampleRate
         let channels = Int(format.channelCount)
         guard rate > 0, channels > 0 else { throw TagWriteError.unreadable("no audio format") }
-        let window = AVAudioFramePosition(Double(analysisSeconds) * rate)
+        let window = AVAudioFramePosition(Double(distributed ? TempoEstimator.sectionSeconds : analysisSeconds) * rate)
         let start = max(0, min(AVAudioFramePosition(Double(file.length) * startFraction), file.length - window))
-        file.framePosition = start
+        let starts = distributed ? windowStarts(length: file.length, sampleRate: rate) : [start]
         let step = max(1, Int(rate / targetRate))
         var out: [Float] = []
-        out.reserveCapacity(Int(window) / step + 1)
+        out.reserveCapacity(Int(window) * starts.count / step + 1)
         var sum: Float = 0
         var summed = 0
         let chunk: AVAudioFrameCount = 32_768
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: chunk) else { throw TagWriteError.unreadable("no buffer") }
-        var remaining = min(window, file.length - start)
-        while remaining > 0 {
+        for position in starts {
+          file.framePosition = position
+          sum = 0; summed = 0
+          var remaining = min(window, file.length - position)
+          while remaining > 0 {
+            try Task.checkCancellation()
             try file.read(into: buffer, frameCount: AVAudioFrameCount(min(AVAudioFramePosition(chunk), remaining)))
             let frames = Int(buffer.frameLength)
             guard frames > 0, let data = buffer.floatChannelData else { break }
@@ -276,6 +305,7 @@ enum TempoAudio {
                 }
             }
             remaining -= AVAudioFramePosition(frames)
+          }
         }
         return (out, Int(rate) / step)
     }
@@ -317,14 +347,23 @@ actor BpmFinder {
             localFailed = true
             reasons.append("The audio couldn't be analysed (\(error.localizedDescription))")
         }
-        if let brainz = verified.first(where: { $0.id.hasPrefix("mb_") }),
-           UUID(uuidString: String(brainz.id.dropFirst(3))) != nil {
+        for brainz in verified.filter({ $0.id.hasPrefix("mb_") && UUID(uuidString: String($0.id.dropFirst(3))) != nil }).prefix(3) {
             switch await measured(String(brainz.id.dropFirst(3))) {
             case .success(let bpm): return .found(FoundBpm(bpm: bpm, source: "AcousticBrainz archive", estimated: true))
             case .failure(let error):
                 reasons.append("AcousticBrainz archive: \(error.message)")
-                return localFailed && error.status != .noResults ? .failed(reasons.joined(separator: "; ")) : .notFound(reasons.joined(separator: "; "))
             }
+        }
+        if !localFailed {
+            do {
+                let pcm = try await Task.detached(priority: .utility) { try TempoAudio.decode(file, distributed: true) }.value
+                let estimate = await Task.detached(priority: .utility) { TempoEstimator.estimate(pcm.samples, sampleRate: pcm.sampleRate) }.value
+                switch estimate {
+                case .found(let bpm, let agreeing, let sections):
+                    return .found(FoundBpm(bpm: bpm, source: "extended on-device estimate, \(agreeing) of \(sections) sections support it", estimated: true))
+                case .uncertain(let reason): reasons.append("extended on-device estimate: \(reason)")
+                }
+            } catch { reasons.append("Extended audio analysis failed: \(error.localizedDescription)") }
         }
         return localFailed ? .failed(reasons.joined(separator: "; ")) : .notFound(reasons.joined(separator: "; "))
     }

@@ -405,7 +405,7 @@ private struct MetadataSettingsView: View {
                     SettingsLink(motion.label, subtitle: "Manage your downloaded album covers", icon: motion.icon, tool: motion)
                 }
             }
-            Text("Metadata and artwork searches use keyless iTunes Search, MusicBrainz, Deezer and Wikimedia Commons. No API keys are needed.")
+            Text("Metadata and artwork searches use keyless iTunes Search, MusicBrainz, Deezer, Wikidata and Wikimedia Commons. No API keys are needed.")
                 .font(.footnote).foregroundStyle(.secondary)
         }
         .navigationTitle("Metadata & Artwork")

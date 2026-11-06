@@ -43,6 +43,54 @@ final class BulkMetadataSelectionTests: XCTestCase {
 
 final class BulkMetadataApplyTests: XCTestCase {
     @MainActor
+    func testIncompleteRepairLeavesOriginalUntouchedAndManualValuesFinishTheHeldPlan() async throws {
+        let database = try LibraryDatabase.inMemory()
+        let file = LibraryPaths.musicFolder.appendingPathComponent("atomic-\(UUID().uuidString).mp3")
+        defer { try? FileManager.default.removeItem(at: file) }
+        var original = TagFixtures.mp3(v4: true)
+        for (old, new) in [("TCON", "XCON"), ("TPOS", "XPOS")] {
+            if let range = original.range(of: Data(old.utf8)) { original.replaceSubrange(range, with: Data(new.utf8)) }
+        }
+        try original.write(to: file)
+        try database.db.execute("""
+            INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, track_number, year, date_modified)
+            VALUES (9091, 'IGOR’S THEME', 'Tyler/ The Creator', 'IGOR', 1, 1, 180000, ?, ?, 3, 2019, 0)
+            """, [file.lastPathComponent, file.lastPathComponent])
+        let library = LibraryStore(database: database)
+        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()))
+        let previous = store.settings
+        defer { store.update { $0 = previous }; store.clear() }
+        store.update { $0.fields = [MetadataField.genre.rawValue, MetadataField.discNumber.rawValue] }
+        store.enqueue(library.songs)
+        store.autoSelectBestCandidates()
+        try await waitUntil { !store.isRunning && !library.isScanning }
+        let held = try XCTUnwrap(store.queue.first)
+        XCTAssertEqual(held.status, .needsReview)
+        XCTAssertNil(held.backup)
+        XCTAssertEqual(held.proposedRequest?.genre, "Hip Hop")
+        XCTAssertEqual(try Data(contentsOf: file), original, "A useful genre must not be committed without the selected disc tag")
+        var incomplete = TagWriteRequest(); incomplete.genre = "Hip Hop"
+        do {
+            try await store.saveManual(incomplete, to: held.id, checkedFields: [.genre, .discNumber])
+            XCTFail("An incomplete manual repair must not be committed")
+        } catch {
+            XCTAssertEqual(try Data(contentsOf: file), original)
+            XCTAssertEqual(store.queue.first?.status, .needsReview)
+            XCTAssertNil(store.queue.first?.backup)
+        }
+        var manual = TagWriteRequest(); manual.discNumber = 1
+        try await store.saveManual(manual, to: held.id, checkedFields: [.genre, .discNumber])
+        try await waitUntil { !library.isScanning }
+        XCTAssertEqual(store.queue.first?.status, .done)
+        XCTAssertEqual(TagReader.read(file).discNumber, 1)
+        XCTAssertEqual(TagReader.read(file).genres, ["Hip Hop"])
+        XCTAssertNil(store.queue.first?.proposedRequest)
+        await store.revert([held.id])
+        try await waitUntil { !library.isScanning }
+        XCTAssertEqual(try Data(contentsOf: file), original)
+    }
+
+    @MainActor
     func testPendingTrackGetsITunesGenreAndMusicBrainzDiscInOneAutoAction() async throws {
         let database = try LibraryDatabase.inMemory()
         let file = LibraryPaths.musicFolder.appendingPathComponent("fields-\(UUID().uuidString).mp3")

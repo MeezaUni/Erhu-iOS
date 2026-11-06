@@ -46,6 +46,7 @@ actor MetadataService {
     private let iTunes: ITunesProvider
     private let musicBrainz: MusicBrainzProvider
     private let deezer: DeezerProvider
+    private let wikidata: WikidataGenres
     private let retry: RetryPolicy
     private var unusable: [String: ProviderAvailability] = [:]
     private var deezerDetails: [Int64: DeezerProvider.Track] = [:]
@@ -57,6 +58,7 @@ actor MetadataService {
         iTunes = ITunesProvider(client: client)
         musicBrainz = MusicBrainzProvider(client: client)
         deezer = DeezerProvider(client: client)
+        wikidata = WikidataGenres(client: client)
     }
 
     private var providers: [MetadataProvider] { [iTunes, musicBrainz, deezer] }
@@ -105,25 +107,43 @@ actor MetadataService {
 
     /// Ordering is a field-level choice, with both numbers from one verified album edition.
     func bestAlbumPosition(_ match: MetadataCandidate, candidates: [MetadataCandidate], acceptAt: Float,
-                           localTrack: Int?, localDisc: Int?) async -> (MetadataCandidate, String?) {
+                           localTrack: Int?, localDisc: Int?, needsTrack: Bool = true) async -> (MetadataCandidate, String?) {
         let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
             .filter { $0.id == match.id || MetadataEnrichment.sameRelease(match, $0) }
         var issues: [String] = []
         for donor in verified {
             let (detail, issue) = await withAlbumPosition(donor)
             if let issue { issues.append(issue) }
-            guard AlbumTrackPosition(disc: detail.discNumber, track: detail.trackNumber).isValid else { continue }
+            guard (1...65535).contains(detail.discNumber),
+                  !needsTrack || (1...65535).contains(detail.trackNumber) else { continue }
             if let localDisc, localDisc > 0, detail.discNumber != localDisc { continue }
-            if let localTrack, localTrack > 0, detail.trackNumber != localTrack { continue }
+            if needsTrack, let localTrack, localTrack > 0, detail.trackNumber != localTrack { continue }
             var positioned = match
-            positioned.trackNumber = detail.trackNumber
+            positioned.trackNumber = needsTrack ? detail.trackNumber : (localTrack ?? detail.trackNumber)
             positioned.discNumber = detail.discNumber
             return (positioned, "Track/disc numbers from \(detail.sourceName), \(detail.album)")
         }
         var unresolved = match
         unresolved.trackNumber = 0
         unresolved.discNumber = 0
-        return (unresolved, issues.first ?? "No verified track/disc pair for this album edition and the existing numbers")
+        return (unresolved, issues.first ?? (needsTrack
+            ? "No verified track/disc pair for this album edition and the existing numbers"
+            : "No verified disc number for this album edition"))
+    }
+
+    /// Recover the tagged release when the initial search showed only another album/single.
+    func matchingAlbum(_ match: MetadataCandidate, candidates: [MetadataCandidate], album: String, acceptAt: Float, searchITunes: Bool = true) async -> MetadataCandidate? {
+        let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
+        let key = MetadataEnrichment.releaseKey(album)
+        if let known = verified.first(where: { MetadataEnrichment.releaseKey($0.album) == key }) { return known }
+        for brainz in verified.filter({ $0.sourceName == MetadataSources.musicBrainz }).prefix(2) {
+            if let recovered = try? await musicBrainz.releaseCandidate(brainz, album: album) { return recovered }
+        }
+        if searchITunes, let recovered = try? await iTunes.enrichmentCandidates(match, album: album) {
+            return MetadataEnrichment.verified(match, candidates: recovered, acceptAt: acceptAt)
+                .first { $0.id != match.id && MetadataEnrichment.releaseKey($0.album) == key }
+        }
+        return nil
     }
 
     private func deezerTrack(_ id: Int64) async throws -> DeezerProvider.Track {
@@ -230,7 +250,7 @@ actor MetadataService {
 
     /// Enrich fields across verified recordings, even when another provider won the identity match.
     /// MusicBrainz's recording/release genres come first; album and broad catalogue genres are fallbacks.
-    func lookupGenre(_ match: MetadataCandidate, candidates: [MetadataCandidate] = [], acceptAt: Float = highConfidenceThreshold) async -> GenreLookup {
+    func lookupGenre(_ match: MetadataCandidate, candidates: [MetadataCandidate] = [], acceptAt: Float = highConfidenceThreshold, searchITunes: Bool = true) async -> GenreLookup {
         let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
         var reasons: [String] = []
         var failed = false
@@ -244,6 +264,11 @@ actor MetadataService {
                brainz.id == match.id || MetadataEnrichment.sameRelease(match, brainz) {
                 do { found += try await musicBrainz.releaseGroupGenres(group) }
                 catch { failed = true; reasons.append("MusicBrainz album: \(classifyProviderFailure(error).message)") }
+            }
+            if found.isEmpty, let release = brainz.releaseId, UUID(uuidString: release) != nil,
+               brainz.id == match.id || MetadataEnrichment.sameRelease(match, brainz) {
+                do { found += try await musicBrainz.releaseGenres(release) }
+                catch { failed = true; reasons.append("MusicBrainz release: \(classifyProviderFailure(error).message)") }
             }
             if case .found(let genres, _) = Self.genre(fromMusicBrainz: found) {
                 return .found(genres, source: "MusicBrainz recording / album")
@@ -269,6 +294,34 @@ actor MetadataService {
         for candidate in verified {
             let genres = Genres.parse(candidate.genre)
             if !genres.isEmpty { return .found(genres, source: candidate.sourceName + " catalogue") }
+        }
+        // Initial matching can stop before a useful iTunes genre enters the pool. Search for the
+        // verified recording once more, validating title/artist/version/length before taking it.
+        if searchITunes {
+            do {
+                let recovered = try await iTunes.enrichmentCandidates(match)
+                for candidate in MetadataEnrichment.verified(match, candidates: recovered, acceptAt: acceptAt) {
+                    let genres = Genres.parse(candidate.genre)
+                    if !genres.isEmpty { return .found(genres, source: "iTunes catalogue (additional verified search)") }
+                }
+            } catch { failed = true; reasons.append("iTunes genre search: \(classifyProviderFailure(error).message)") }
+        }
+        for brainz in verified.filter({ $0.sourceName == MetadataSources.musicBrainz }).prefix(2) {
+            var targets: [(String, String, String)] = []
+            if brainz.id.hasPrefix("mb_"), UUID(uuidString: String(brainz.id.dropFirst(3))) != nil {
+                targets.append(("recording", String(brainz.id.dropFirst(3)), "P4404"))
+            }
+            if let group = brainz.releaseGroupId, brainz.id == match.id || MetadataEnrichment.sameRelease(match, brainz) {
+                targets.append(("release-group", group, "P436"))
+            }
+            for (entity, id, property) in targets {
+                do {
+                    for linked in try await musicBrainz.wikidataEntities(entity: entity, id: id).prefix(2) {
+                        let genres = try await wikidata.genres(entityID: linked, musicBrainzID: id, property: property)
+                        if !genres.isEmpty { return .found(genres, source: "Wikidata (MusicBrainz-linked \(entity == "recording" ? "recording" : "album"))") }
+                    }
+                } catch { failed = true; reasons.append("Wikidata genre: \(classifyProviderFailure(error).message)") }
+            }
         }
         let reason = reasons.isEmpty ? "No genre available from the verified matches" : reasons.joined(separator: "; ")
         return failed ? .failed(reason) : .notFound(reason)
