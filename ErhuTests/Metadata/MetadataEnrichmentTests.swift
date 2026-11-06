@@ -224,6 +224,15 @@ private actor EnrichmentHTTP: HTTPClient {
 }
 
 final class MetadataCompletenessTests: XCTestCase {
+    func testMissingWatermarkedIdentityFieldsAreFilledInsteadOfPreserved() {
+        let local = LocalTrackTags(title: "Song", artist: "www.example.com", album: "Unknown Album")
+        let candidate = MetadataCandidate(id: "itunes_1", title: "Song", artist: "Artist", album: "Album")
+        let plan = FieldFixPlanner.plan(fields: [.artist, .album], fillOnly: true, local: local, match: candidate,
+                                        genre: nil, artwork: nil, releaseDate: nil, bpm: nil)
+        XCTAssertEqual(plan.request?.artist, "Artist")
+        XCTAssertEqual(plan.request?.album, "Album")
+    }
+
     func testEverySelectedMissingFieldIsReportedEvenWhenCoreIdentityIsPresent() {
         let tags = FileTags(title: "Yellow", artist: "Coldplay", album: "Parachutes")
         XCTAssertEqual(MetadataCompleteness.missing(tags, fields: Set(MetadataField.allCases)), [.year, .genre, .bpm, .trackNumber, .discNumber])
