@@ -113,6 +113,7 @@ struct FieldFixPlan: Equatable, Sendable {
     var changes: [Change]
     var notes: [String]
     var unfilled: [String] = []
+    var checkedFields: Set<MetadataField> = []
 }
 
 /// Turns a confident match into the tag edit for a field selection, and nothing more (a port of
@@ -230,6 +231,10 @@ enum FieldFixPlanner {
                                    _ changes: inout [FieldFixPlan.Change], _ notes: inout [String]) -> String? {
         let genres = Genres.join(Genres.parse(found))
         let existing = Genres.join(Genres.parse(current))
+        if genres == nil, fillOnly, let existing {
+            notes.append("Kept the existing genre \"\(existing)\"")
+            return nil
+        }
         guard let genres else {
             notes.append("No genre found online")
             return nil
@@ -246,6 +251,10 @@ enum FieldFixPlanner {
     private static func planBpm(_ local: LocalTrackTags, _ found: FoundBpm?, _ fillOnly: Bool,
                                 _ changes: inout [FieldFixPlan.Change], _ notes: inout [String]) -> Int? {
         let current = usableBpm(local.bpm)
+        if let current, found == nil {
+            notes.append("Kept the existing BPM \(current)")
+            return nil
+        }
         guard let found else {
             notes.append("No BPM found")
             return nil

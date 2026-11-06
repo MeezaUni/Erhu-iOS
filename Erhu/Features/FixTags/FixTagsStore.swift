@@ -77,6 +77,8 @@ final class FixTagsStore {
 
     private(set) var queue: [RepairItem] = []
     private(set) var isRunning = false
+    private(set) var isCheckingMissing = false
+    private(set) var missingScanMessage: String?
     private(set) var pauseReason: String?
     private(set) var settings: Settings
 
@@ -116,6 +118,7 @@ final class FixTagsStore {
         var fields = selectedFields
         if on { fields.insert(field) } else { fields.remove(field) }
         update { $0.fields = MetadataField.allCases.filter { fields.contains($0) }.map(\.rawValue) }
+        missingScanMessage = nil
     }
 
     var hasWork: Bool { queue.contains { $0.status.toProcess } }
@@ -126,32 +129,58 @@ final class FixTagsStore {
         queue += songs.filter { !present.contains($0.id) }.map { RepairItem(song: $0) }
     }
 
-    /// Android's "Scan for bad / incomplete tracks": no title, artist or album, or a title carrying
-    /// a download site's leftovers.
-    nonisolated static func incomplete(_ songs: [Song]) -> [Song] {
+    /// Cached scan for callers that already have complete Song metadata. The UI reads actual tags.
+    nonisolated static func incomplete(_ songs: [Song], fields: Set<MetadataField> = Set(MetadataField.allCases)) -> [Song] {
         songs.filter { song in
-            song.title.isBlank || song.artist.isBlank || song.artist == unknownArtist || song.album.isBlank
-                || song.trackNumber <= 0
-                || song.album.caseInsensitiveCompare("Unknown Album") == .orderedSame
-                || song.title.localizedCaseInsensitiveContains("mp3") || song.title.localizedCaseInsensitiveContains(".com")
+            let tags = FileTags(title: song.title, artist: song.artist, album: song.album,
+                                trackNumber: song.trackNumber, discNumber: song.discNumber, year: song.year,
+                                genres: Genres.parse(song.genre), bpmText: song.bpm.map(String.init))
+            return !MetadataCompleteness.missing(tags, fields: fields).isEmpty
         }
     }
 
+    func findMissingTags() async {
+        guard !isRunning, !isCheckingMissing else { return }
+        let fields = selectedFields
+        guard !fields.subtracting([.filename]).isEmpty else {
+            missingScanMessage = "Choose which tags to check first."
+            return
+        }
+        isCheckingMissing = true
+        defer { isCheckingMissing = false }
+        let songs = library.songs
+        let found = await Task.detached(priority: .utility) {
+            songs.compactMap { song -> (Song, [MetadataField])? in
+                let missing = MetadataCompleteness.missing(TagReader.read(song.url), fields: fields)
+                return missing.isEmpty ? nil : (song, missing)
+            }
+        }.value
+        enqueue(found.map { $0.0 })
+        for (song, missing) in found {
+            if let index = queue.firstIndex(where: { $0.id == song.id }) {
+                queue[index].status = .pending
+                queue[index].reason = "Missing: " + missing.map(\.displayName).joined(separator: ", ")
+            }
+        }
+        let labels = MetadataField.allCases.filter { field in found.contains { $0.1.contains(field) } }.map(\.displayName)
+        missingScanMessage = found.isEmpty ? "No missing selected tags found." : "Found \(countLabel(found.count, "track")) needing: " + labels.joined(separator: ", ") + "."
+    }
+
     func remove(_ item: RepairItem) {
-        guard !isRunning else { return }
+        guard !isRunning, !isCheckingMissing else { return }
         if let backup = item.backup { try? FileManager.default.removeItem(at: backup) }
         queue.removeAll { $0.id == item.id }
     }
 
     func retry(_ item: RepairItem) {
-        guard let index = queue.firstIndex(where: { $0.id == item.id }), !isRunning else { return }
+        guard let index = queue.firstIndex(where: { $0.id == item.id }), !isRunning, !isCheckingMissing else { return }
         queue[index].status = .pending
         queue[index].reason = nil
     }
 
     /// Empties the queue and deletes the kept originals (changes can no longer be reverted).
     func clear() {
-        guard !isRunning else { return }
+        guard !isRunning, !isCheckingMissing else { return }
         queue = []
         try? FileManager.default.removeItem(at: Self.backupFolder)
     }
@@ -159,7 +188,7 @@ final class FixTagsStore {
     func pause() { pauseRequested = true }
 
     func start() {
-        guard !isRunning, hasWork else { return }
+        guard !isRunning, !isCheckingMissing, hasWork else { return }
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else {
             pauseReason = "Choose at least one field to fix"
@@ -252,7 +281,7 @@ final class FixTagsStore {
             item.notes = plan.notes
             if plan.request == nil {
                 // Nothing to write is not a fix: say why instead of reporting success.
-                return concluded(.unchanged, plan.notes.joined(separator: "; ").nonBlank ?? "The tags already match the online match")
+                return concluded(plan.unfilled.isEmpty ? .unchanged : .needsReview, plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ") + ". See details for lookup results.")
             }
             return concluded(.fixing, nil, plan)
         }
@@ -281,30 +310,41 @@ final class FixTagsStore {
         let fields = selection.fields
         let fillOnly = selection.fillOnly
         let local = LocalTrackTags(
-            title: embedded.title ?? song.title, artist: embedded.artist ?? song.artist, album: embedded.album ?? song.album,
+            title: embedded.title ?? "", artist: embedded.artist ?? "", album: embedded.album ?? "",
             genre: Genres.join(embedded.genres), hasArtwork: embedded.hasArtwork, tagsReadable: true,
-            year: embedded.dateText, bpm: embedded.bpmText,
+            year: embedded.dateText ?? embedded.year.map(String.init), bpm: embedded.bpmText,
             trackNumber: embedded.trackNumber, discNumber: embedded.discNumber
         )
         var reasons: [String: String] = [:]
+        var sourceNotes: [String] = []
+        let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
         var genre: String?
         if fields.contains(.genre) && (!fillOnly || !isUsableTag(local.genre)) {
-            switch await service.lookupGenre(match) {
-            case .found(let genres, _): genre = Genres.join(genres)
+            switch await service.lookupGenre(match, candidates: candidates, acceptAt: acceptAt) {
+            case .found(let genres, let source):
+                genre = Genres.join(genres)
+                sourceNotes.append("Genre from " + source)
             case .notFound(let reason): reasons["No genre found online"] = "No genre: \(reason)"
             case .failed(let reason): reasons["No genre found online"] = "Genre lookup failed: \(reason)"
             }
         }
         var releaseDate: ReleaseDate?
         if fields.contains(.year) && (!fillOnly || !isUsableYearTag(local.year)) {
-            switch releaseDateFor(match, candidates: candidates, confidentScore: acceptAt) {
+            switch MetadataEnrichment.releaseDate(match, candidates: candidates, acceptAt: acceptAt) {
             case .found(let date): releaseDate = date
             case .rejected(let reason): reasons["No release year found online"] = "No year: \(reason)"
             }
         }
         var bpm: FoundBpm?
-        if fields.contains(.bpm) && (!fillOnly || usableBpm(local.bpm) == nil) {
-            switch await bpmFinder.find(match, file: url) {
+        if fields.contains(.bpm) && usableBpm(local.bpm) == nil {
+            var tempoMatches = verified
+            if let index = tempoMatches.firstIndex(where: { $0.sourceName == MetadataSources.deezer }) {
+                let (enriched, note) = await service.withReportedTempo(tempoMatches[index])
+                tempoMatches[index] = enriched
+                if let note { sourceNotes.append(note) }
+            }
+            let tempoMatch = tempoMatches.first(where: { $0.id == match.id }) ?? match
+            switch await bpmFinder.find(tempoMatch, file: url, supporting: tempoMatches) {
             case .found(let found): bpm = found
             case .notFound(let reason): reasons["No BPM found"] = "No BPM: \(reason)"
             case .failed(let reason): reasons["No BPM found"] = "BPM lookup failed: \(reason)"
@@ -330,9 +370,13 @@ final class FixTagsStore {
         var plan = FieldFixPlanner.plan(fields: fields, fillOnly: fillOnly, local: local, match: positioned, genre: genre,
                                         artwork: nil, releaseDate: releaseDate, bpm: bpm)
         plan.notes = plan.notes.map { reasons[$0] ?? $0 }
-        plan.unfilled = Array(reasons.values)
+        plan.notes += sourceNotes
         if let positionNote { plan.notes.append(positionNote) }
-        plan.unfilled += plan.notes.filter { $0.hasPrefix("No verified ") || $0.hasPrefix("Kept track number:") || $0.hasPrefix("Kept disc number:") }
+        plan.checkedFields = Set(MetadataField.allCases.filter {
+            $0 != .filename && FieldSelection([$0]).fields.isSubset(of: fields)
+        })
+        let after = MetadataCompleteness.applying(plan.request, to: embedded)
+        plan.unfilled = MetadataCompleteness.missing(after, fields: plan.checkedFields).map(\.displayName)
         return plan
     }
 
@@ -341,21 +385,24 @@ final class FixTagsStore {
     private func write(_ request: TagWriteRequest, plan: FieldFixPlan, item: RepairItem) async -> RepairItem {
         var item = item
         let url = item.song.url
-        let backup = Self.backupFolder.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
+        let previousBackup = item.backup
+        let backup = previousBackup ?? Self.backupFolder.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
         do {
-            try await Task.detached(priority: .utility) {
-                try FileManager.default.copyItem(at: url, to: backup)
+            let written = try await Task.detached(priority: .utility) {
+                if previousBackup == nil { try FileManager.default.copyItem(at: url, to: backup) }
                 do {
                     try TagWriter.write(request, to: url)
                 } catch {
-                    try? FileManager.default.removeItem(at: backup)
+                    if previousBackup == nil { try? FileManager.default.removeItem(at: backup) }
                     throw error
                 }
+                return TagReader.read(url)
             }.value
             ArtworkLoader.shared.forget(path: url.path)
             item.backup = backup
-            item.status = plan.unfilled.isEmpty ? .done : .partial
-            item.reason = plan.unfilled.isEmpty ? nil : plan.unfilled.joined(separator: "; ")
+            let remaining = MetadataCompleteness.missing(written, fields: plan.checkedFields).map(\.displayName)
+            item.status = remaining.isEmpty ? .done : .partial
+            item.reason = remaining.isEmpty ? nil : "Still missing: " + remaining.joined(separator: ", ")
         } catch {
             item.status = .failed
             item.reason = error.localizedDescription
@@ -366,7 +413,7 @@ final class FixTagsStore {
     /// Writes [match], picked by the listener for a track that needed review (or had no confident
     /// match), with the same plan and backup as an automatic fix.
     func apply(_ match: MetadataCandidate, to id: Int64) async {
-        guard !isRunning, let start = queue.firstIndex(where: { $0.id == id }) else { return }
+        guard !isRunning, !isCheckingMissing, let start = queue.firstIndex(where: { $0.id == id }) else { return }
         isRunning = true
         defer { isRunning = false }
         var item = queue[start]
@@ -381,8 +428,8 @@ final class FixTagsStore {
         if let request = plan.request {
             item = await write(request, plan: plan, item: item)
         } else {
-            item.status = .unchanged
-            item.reason = plan.notes.joined(separator: "; ").nonBlank ?? "The tags already match this choice"
+            item.status = plan.unfilled.isEmpty ? .unchanged : .needsReview
+            item.reason = plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ")
         }
         if let index = queue.firstIndex(where: { $0.id == id }) { queue[index] = item }
         if item.status == .done || item.status == .partial { library.scan() }
@@ -390,7 +437,7 @@ final class FixTagsStore {
 
     /// Puts the selected tracks' files back exactly as they were before their fix.
     func revert(_ ids: Set<Int64>) async {
-        guard !isRunning else { return }
+        guard !isRunning, !isCheckingMissing else { return }
         var count = 0
         for index in queue.indices where ids.contains(queue[index].id) {
             guard let backup = queue[index].backup else { continue }

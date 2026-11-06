@@ -133,6 +133,7 @@ struct ITunesProvider: MetadataProvider {
         var releaseDate: String?
         var trackNumber: Int?
         var discNumber: Int?
+        var primaryGenreName: String?
     }
 
     func searchTrack(title: String, artist: String?, album: String?) async throws -> [MetadataCandidate] {
@@ -150,7 +151,7 @@ struct ITunesProvider: MetadataProvider {
             let id = result.trackId ?? result.collectionId ?? Int64(javaHashCode(name))
             return MetadataCandidate(
                 id: "itunes_\(id)", title: name, artist: result.artistName ?? "", album: result.collectionName ?? "",
-                year: date?.year ?? 0, trackNumber: result.trackNumber ?? 0, durationMs: result.trackTimeMillis,
+                year: date?.year ?? 0, genre: Genres.join([result.primaryGenreName]), trackNumber: result.trackNumber ?? 0, durationMs: result.trackTimeMillis,
                 coverArtUrl: (result.artworkUrl100 ?? result.artworkUrl60).map(upgradeArtwork), sourceName: "iTunes",
                 releaseDate: date?.tagValue, discNumber: result.discNumber ?? 0,
                 releaseId: result.collectionId.map(String.init)
@@ -265,6 +266,7 @@ actor MusicBrainzProvider: MetadataProvider {
     nonisolated let providerName = "MusicBrainz"
     private let client: HTTPClient
     private var lastRequest: Date = .distantPast
+    private var genresByRecording: [String: [MusicBrainzGenre]] = [:]
     private var genresByReleaseGroup: [String: [MusicBrainzGenre]] = [:]
     private var tracklists: [String: ReleaseTracklist] = [:]
     private static let minInterval: TimeInterval = 1.1
@@ -297,6 +299,19 @@ actor MusicBrainzProvider: MetadataProvider {
             try await fetchJSON(MusicBrainzSearchResponse.self, requestURL("https://musicbrainz.org/ws/2/recording", [("query", query), ("fmt", "json")]), client: self.client)
         }
         return Self.candidates(response, targetAlbum: album)
+    }
+
+    /// Recording genres are more specific than an album's shared genres.
+    func recordingGenres(_ id: String) async throws -> [MusicBrainzGenre] {
+        if let cached = genresByRecording[id] { return cached }
+        struct Response: Decodable { var genres: [MusicBrainzGenre]? }
+        let response = try await throttled {
+            try await fetchJSON(Response.self, requestURL("https://musicbrainz.org/ws/2/recording/\(id)", [("inc", "genres"), ("fmt", "json")]), client: self.client)
+        }
+        let genres = response.genres ?? []
+        if genresByRecording.count >= 500 { genresByRecording.removeAll() }
+        genresByRecording[id] = genres
+        return genres
     }
 
     /// Curated genres (with vote counts) of a release group; cached for the session. Throws on failure.
@@ -474,6 +489,23 @@ struct DeezerProvider: MetadataProvider {
         var message: String?
     }
 
+    static func failure(_ error: DeezerError) -> ProviderError {
+        let message = error.message ?? "Lookup failed"
+        let text = message.lowercased()
+        let regional = text.contains("not available") && ["country", "region", "territor", "service"].contains(where: text.contains)
+        return ProviderError(status: regional ? .unavailable : .failed, message: "Deezer: " + message, sessionWide: regional)
+    }
+
+    struct TrackDetail: Decodable {
+        let track: Track
+        private enum CodingKeys: String, CodingKey { case error }
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            if let error = try values.decodeIfPresent(DeezerError.self, forKey: .error) { throw DeezerProvider.failure(error) }
+            track = try Track(from: decoder)
+        }
+    }
+
     struct Track: Decodable {
         var id: Int64
         var title: String
@@ -525,14 +557,14 @@ struct DeezerProvider: MetadataProvider {
             var error: DeezerError?
         }
         let detail = try await fetchJSON(Detail.self, URL(string: "https://api.deezer.com/album/\(albumId)")!, client: client)
-        if let error = detail.error { throw ProviderError(status: .failed, message: "Deezer: \(error.message ?? "album lookup failed")") }
+        if let error = detail.error { throw Self.failure(error) }
         return (detail.genres?.data ?? []).map(\.name.trimmed).filter { !$0.isEmpty }
     }
 
     /// Maps a track search. An error, or matches counted but none returned (results withheld in this
     /// country), is reported as such, never as "no such track".
     static func candidates(_ response: SearchResponse) throws -> [MetadataCandidate] {
-        if let error = response.error { throw ProviderError(status: .failed, message: "Deezer: \(error.message ?? "search failed")") }
+        if let error = response.error { throw Self.failure(error) }
         if response.data.isEmpty && response.total > 0 {
             throw ProviderError(status: .unavailable,
                                 message: "Deezer found \(response.total) matches but returned none: track search isn't available in this country",

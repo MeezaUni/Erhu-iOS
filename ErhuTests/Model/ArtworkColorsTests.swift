@@ -61,6 +61,6 @@ final class ArtworkColorsTests: XCTestCase {
             song(5, "song.mp3", "Unknown Artist", "Album"),
             song(6, "Fine", "Artist", "Album", trackNumber: 0),
         ]
-        XCTAssertEqual(FixTagsStore.incomplete(songs).map(\.id), [2, 3, 4, 5, 6])
+        XCTAssertEqual(FixTagsStore.incomplete(songs, fields: [.title, .artist, .album, .trackNumber]).map(\.id), [2, 3, 4, 5, 6])
     }
 }

@@ -10,7 +10,6 @@ struct FixTagsView: View {
     @State private var selectedForRevert = Set<Int64>()
     @State private var detail: RepairItem?
     @State private var confirmingClear = false
-    @State private var scanMessage: String?
 
     var body: some View {
         List {
@@ -23,7 +22,7 @@ struct FixTagsView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button { addingSongs = true } label: { Label("Add songs", systemImage: "plus") }
-                        .disabled(store.isRunning)
+                        .disabled(store.isRunning || store.isCheckingMissing)
                     if !store.revertible.isEmpty {
                         Button {
                             Task { await store.revert(selectedForRevert.isEmpty ? Set(store.revertible.map(\.id)) : selectedForRevert) }
@@ -31,10 +30,10 @@ struct FixTagsView: View {
                         } label: {
                             Label(selectedForRevert.isEmpty ? "Revert all changes" : "Revert \(selectedForRevert.count)", systemImage: "arrow.uturn.backward")
                         }
-                        .disabled(store.isRunning)
+                        .disabled(store.isRunning || store.isCheckingMissing)
                     }
                     Button(role: .destructive) { confirmingClear = true } label: { Label("Clear queue", systemImage: "trash") }
-                        .disabled(store.isRunning || store.queue.isEmpty)
+                        .disabled(store.isRunning || store.isCheckingMissing || store.queue.isEmpty)
                 } label: { Image(systemName: "ellipsis.circle") }
                 .accessibilityLabel("Queue options")
             }
@@ -55,18 +54,18 @@ struct FixTagsView: View {
         Section {
             ForEach(MetadataField.allCases.filter { $0 != .filename }) { field in
                 Toggle(field.displayName, isOn: Binding(get: { store.selectedFields.contains(field) }, set: { store.setField(field, $0) }))
-                    .disabled(store.isRunning)
+                    .disabled(store.isRunning || store.isCheckingMissing)
             }
             Picker("Source", selection: Binding(get: { store.settings.source }, set: { value in store.update { $0.source = value } })) {
                 ForEach(MetadataSources.options, id: \.key) { Text($0.label).tag($0.key) }
             }
-            .disabled(store.isRunning)
+            .disabled(store.isRunning || store.isCheckingMissing)
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Write a match from \(Int((store.settings.acceptAt * 100).rounded())) % confidence")
                 Slider(value: Binding(get: { Double(store.settings.acceptAt) }, set: { value in store.update { $0.acceptAt = Float(value) } }),
                        in: 0.7...0.99, step: 0.01)
             }
-            .disabled(store.isRunning)
+            .disabled(store.isRunning || store.isCheckingMissing)
         } header: {
             Text("What to fix")
         } footer: {
@@ -87,9 +86,7 @@ struct FixTagsView: View {
                 }
             } else {
                 Button {
-                    let found = FixTagsStore.incomplete(library.songs)
-                    store.enqueue(found)
-                    scanMessage = found.isEmpty ? "Every track has a title, artist and album." : "Added \(countLabel(found.count, "track")) with missing or odd tags."
+                    Task { await store.findMissingTags() }
                 } label: {
                     Label("Find tracks with missing tags", systemImage: "wand.and.stars")
                 }
@@ -99,12 +96,15 @@ struct FixTagsView: View {
                 } label: {
                     Label(store.queue.contains { $0.status != .pending && $0.status.toProcess } ? "Resume" : "Start", systemImage: "play.fill")
                 }
-                .disabled(!store.hasWork)
+                .disabled(!store.hasWork || store.isCheckingMissing)
                 if !store.hasWork {
                     Text(store.queue.isEmpty ? "Add songs or find the ones with missing tags first." : "Nothing left to fix in the queue.")
                         .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
                 }
-                if let scanMessage { Text(scanMessage).font(.footnote).foregroundStyle(palette.onSurfaceVariant) }
+                if store.isCheckingMissing {
+                    HStack { ProgressView(); Text("Checking the selected tags in your files…") }.font(.footnote)
+                }
+                if let message = store.missingScanMessage { Text(message).font(.footnote).foregroundStyle(palette.onSurfaceVariant) }
             }
             if let reason = store.pauseReason {
                 Text(reason).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
@@ -113,7 +113,7 @@ struct FixTagsView: View {
                 Text(summary).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
             }
         } footer: {
-            Text("Searches iTunes, MusicBrainz, Deezer (and Last.fm with your key) with the track's title, artist, album and length (and its file name when the tags are missing). Your music is never uploaded. Each changed file's original is kept until you clear the queue, so it can be reverted.")
+            Text("Automatic mode combines verified iTunes, MusicBrainz and Deezer matches for different fields. Deezer is optional where available; a single-source choice restricts catalogue matching. MusicBrainz supplies recording and album genres, with catalogue genres as a fallback. Missing-tag checks cover every selected field. Your music is never uploaded. Each changed file's original is kept until you clear the queue, so it can be reverted.")
         }.toolSectionAppearance()
     }
 
@@ -167,6 +167,10 @@ private struct RepairRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.song.title).lineLimit(1)
+                if item.status != .pending && item.status != .fixing {
+                    Text(item.status.label).font(.caption.weight(.semibold))
+                        .foregroundStyle(item.status == .partial || item.status == .needsReview ? Color.orange : palette.onSurfaceVariant)
+                }
                 Text(item.song.subtitle).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
                 if let reason = item.reason ?? item.changes.first.map({ "\($0.field.displayName): \($0.newValue)" }) {
                     Text(reason).font(.caption2).foregroundStyle(palette.onSurfaceVariant).lineLimit(2)
@@ -195,7 +199,7 @@ private struct StatusBadge: View {
         case .pending: "clock"
         case .fixing: "hourglass"
         case .done: "checkmark.circle.fill"
-        case .partial: "checkmark.circle"
+        case .partial: "exclamationmark.circle"
         case .unchanged: "equal.circle"
         case .needsReview: "questionmark.circle"
         case .noMatch: "magnifyingglass"
@@ -207,7 +211,8 @@ private struct StatusBadge: View {
 
     private var color: Color {
         switch status {
-        case .done, .partial: .green
+        case .done: .green
+        case .partial: .orange
         case .failed, .networkFailed: .red
         case .needsReview: .orange
         default: .secondary
@@ -243,7 +248,7 @@ private struct RepairItemDetail: View {
                     }.toolSectionAppearance()
                 }
                 if !item.notes.isEmpty {
-                    Section("Left alone") {
+                    Section("Lookup details") {
                         ForEach(item.notes, id: \.self) { Text($0).font(.footnote) }
                     }.toolSectionAppearance()
                 }
@@ -280,7 +285,7 @@ private struct RepairItemDetail: View {
                                             Text("Use").font(.footnote.weight(.semibold))
                                         }
                                     }
-                                    .disabled(store.isRunning)
+                                    .disabled(store.isRunning || store.isCheckingMissing)
                                 } else {
                                     Text(TrackMatcher.describe(candidate, diagnostics.identity)).font(.footnote)
                                 }

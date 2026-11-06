@@ -9,7 +9,7 @@ enum MetadataSources {
 
     /// The choices offered for Fix Tags.
     static let options: [(key: String, label: String)] = [
-        (all, "All sources"), (iTunes, "iTunes"), (musicBrainz, "MusicBrainz"), (deezer, "Deezer"),
+        (all, "Automatic (all sources)"), (iTunes, "iTunes only"), (musicBrainz, "MusicBrainz only"), (deezer, "Deezer only (where available)"),
     ]
 
     static func matches(_ provider: String, _ selection: String) -> Bool {
@@ -48,6 +48,8 @@ actor MetadataService {
     private let deezer: DeezerProvider
     private let retry: RetryPolicy
     private var unusable: [String: ProviderAvailability] = [:]
+    private var deezerDetails: [Int64: DeezerProvider.Track] = [:]
+    private var deezerGenres: [Int64: [String]] = [:]
 
     init(client: HTTPClient = URLSessionHTTPClient(), retry: RetryPolicy = RetryPolicy()) {
         self.client = client
@@ -78,7 +80,7 @@ actor MetadataService {
                 result.discNumber = position.disc
             } else if match.sourceName == "Deezer", match.id.hasPrefix("deezer_"),
                       let id = Int64(match.id.dropFirst(7)), id > 0 {
-                let detail = try await fetchJSON(DeezerProvider.Track.self, URL(string: "https://api.deezer.com/track/\(id)")!, client: client)
+                let detail = try await deezerTrack(id)
                 if detail.id == id, detail.album?.id == match.deezerAlbumId,
                    albumPositionTitle(detail.album?.title ?? "") == albumPositionTitle(match.album) {
                     result.trackNumber = detail.trackPosition ?? 0
@@ -87,7 +89,52 @@ actor MetadataService {
             }
             return (result, nil)
         } catch {
+            if match.sourceName == MetadataSources.deezer { rememberDeezerFailure(error) }
             return (result, "Album order lookup failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func deezerTrack(_ id: Int64) async throws -> DeezerProvider.Track {
+        if let cached = deezerDetails[id] { return cached }
+        try requireDeezer()
+        let response = try await fetchJSON(DeezerProvider.TrackDetail.self, URL(string: "https://api.deezer.com/track/\(id)")!, client: client)
+        let detail = response.track
+        guard detail.id == id else { throw ProviderError(status: .failed, message: "Deezer returned a different recording") }
+        if deezerDetails.count >= 500 { deezerDetails.removeAll() }
+        deezerDetails[id] = detail
+        return detail
+    }
+
+    private func requireDeezer() throws {
+        switch unusable[MetadataSources.deezer] ?? .available {
+        case .available: break
+        case .unavailable(let reason), .rejected(let reason), .notConfigured(let reason):
+            throw ProviderError(status: .unavailable, message: reason, sessionWide: true)
+        }
+    }
+
+    private func rememberDeezerFailure(_ error: Error) {
+        let failure = classifyProviderFailure(error)
+        if failure.sessionWide || failure.status == .unavailable || failure.status == .authFailed {
+            unusable[MetadataSources.deezer] = .unavailable(failure.message)
+        }
+    }
+
+    /// Search results often omit BPM. Read the matched track's detail, validating its identity again.
+    func withReportedTempo(_ match: MetadataCandidate) async -> (MetadataCandidate, String?) {
+        guard match.sourceName == MetadataSources.deezer, match.bpm == nil,
+              match.id.hasPrefix("deezer_"), let id = Int64(match.id.dropFirst(7)), id > 0 else { return (match, nil) }
+        do {
+            let detail = try await deezerTrack(id)
+            guard let candidate = try DeezerProvider.candidates(.init(data: [detail], total: 1)).first,
+                  candidate.deezerAlbumId == match.deezerAlbumId, MetadataEnrichment.sameRecording(match, candidate)
+            else { return (match, "Deezer tempo detail did not match this recording and album") }
+            var result = match
+            result.bpm = candidate.bpm
+            return (result, nil)
+        } catch {
+            rememberDeezerFailure(error)
+            return (match, "Deezer tempo lookup: " + classifyProviderFailure(error).message)
         }
     }
 
@@ -149,21 +196,49 @@ actor MetadataService {
         }
     }
 
-    /// The genre of a confident match: MusicBrainz's curated release-group genres (every usable one,
-    /// most-voted first), or the Deezer album's. Album-level, never invented.
-    func lookupGenre(_ match: MetadataCandidate) async -> GenreLookup {
-        do {
-            if let groupId = match.releaseGroupId {
-                return Self.genre(fromMusicBrainz: try await musicBrainz.releaseGroupGenres(groupId))
+    /// Enrich fields across verified recordings, even when another provider won the identity match.
+    /// MusicBrainz's recording/release genres come first; album and broad catalogue genres are fallbacks.
+    func lookupGenre(_ match: MetadataCandidate, candidates: [MetadataCandidate] = [], acceptAt: Float = highConfidenceThreshold) async -> GenreLookup {
+        let verified = MetadataEnrichment.verified(match, candidates: candidates, acceptAt: acceptAt)
+        var reasons: [String] = []
+        var failed = false
+        if let brainz = verified.first(where: { $0.sourceName == MetadataSources.musicBrainz }) {
+            var found: [MusicBrainzGenre] = []
+            if brainz.id.hasPrefix("mb_"), UUID(uuidString: String(brainz.id.dropFirst(3))) != nil {
+                do { found += try await musicBrainz.recordingGenres(String(brainz.id.dropFirst(3))) }
+                catch { failed = true; reasons.append("MusicBrainz recording: \(classifyProviderFailure(error).message)") }
             }
-            if let albumId = match.deezerAlbumId {
-                let genres = Genres.normalize(try await deezer.albumGenres(albumId).map { Optional($0) })
-                return genres.isEmpty ? .notFound("Deezer lists no genre for this album") : .found(genres, source: "Deezer album")
+            if let group = brainz.releaseGroupId, UUID(uuidString: group) != nil {
+                do { found += try await musicBrainz.releaseGroupGenres(group) }
+                catch { failed = true; reasons.append("MusicBrainz album: \(classifyProviderFailure(error).message)") }
             }
-            return .notFound("\(match.sourceName) doesn't provide genres")
-        } catch {
-            return .failed(classifyProviderFailure(error).message)
+            if case .found(let genres, _) = Self.genre(fromMusicBrainz: found) {
+                return .found(genres, source: "MusicBrainz recording / album")
+            }
+            reasons.append("MusicBrainz lists no genre for this recording or album")
         }
+        if let deezerMatch = verified.first(where: { $0.deezerAlbumId != nil }), let albumID = deezerMatch.deezerAlbumId {
+            do {
+                let genres: [String]
+                if let cached = deezerGenres[albumID] { genres = cached }
+                else {
+                    try requireDeezer()
+                    genres = Genres.normalize(try await deezer.albumGenres(albumID).map(Optional.init))
+                    deezerGenres[albumID] = genres
+                }
+                if !genres.isEmpty { return .found(genres, source: "Deezer album") }
+                reasons.append("Deezer lists no genre for this album")
+            } catch {
+                rememberDeezerFailure(error)
+                failed = true; reasons.append("Deezer: \(classifyProviderFailure(error).message)")
+            }
+        }
+        for candidate in verified {
+            let genres = Genres.parse(candidate.genre)
+            if !genres.isEmpty { return .found(genres, source: candidate.sourceName + " catalogue") }
+        }
+        let reason = reasons.isEmpty ? "No genre available from the verified matches" : reasons.joined(separator: "; ")
+        return failed ? .failed(reason) : .notFound(reason)
     }
 
     static func genre(fromMusicBrainz genres: [MusicBrainzGenre]) -> GenreLookup {
