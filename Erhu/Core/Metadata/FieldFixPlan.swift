@@ -140,7 +140,7 @@ enum FieldFixPlanner {
                 return nil
             }
             if value == current.trimmed { return nil }
-            if keepValidLocal && isUsableTag(current) {
+            if keepValidLocal && usableIdentityText(current) != nil {
                 notes.append("Kept the existing \(label) \"\(current.trimmed)\"")
                 return nil
             }
@@ -157,7 +157,7 @@ enum FieldFixPlanner {
             title = text(.title, "title", current: local.title, found: matchTitle, keepValidLocal: false)
         }
         var artist: String?
-        if fields.contains(.artist) && isUsableTag(local.artist) && creditContains(local.artist, match.artist) {
+        if fields.contains(.artist) && usableIdentityText(local.artist) != nil && creditContains(local.artist, match.artist) {
             if local.artist.trimmed.lowercased() != match.artist.trimmed.lowercased() {
                 notes.append("Kept the existing artist credit \"\(local.artist.trimmed)\"")
             }
