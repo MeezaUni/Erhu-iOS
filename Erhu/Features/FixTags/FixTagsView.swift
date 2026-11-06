@@ -21,6 +21,10 @@ struct FixTagsView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
+                    Button { store.autoSelectBestCandidates() } label: {
+                        Label("Auto-select best candidates (\(store.autoCandidateCount))", systemImage: "wand.and.stars")
+                    }
+                    .disabled(store.isRunning || store.isCheckingMissing || store.autoCandidateCount == 0)
                     Button { addingSongs = true } label: { Label("Add songs", systemImage: "plus") }
                         .disabled(store.isRunning || store.isCheckingMissing)
                     if !store.revertible.isEmpty {
@@ -80,7 +84,11 @@ struct FixTagsView: View {
             if store.isRunning {
                 HStack {
                     ProgressView()
-                    Text("Looking up \(store.queue.filter { $0.status == .fixing }.first?.song.title ?? "")…").lineLimit(1)
+                    if let progress = store.autoSelectionProgress {
+                        Text("Applying best candidates · \(progress.completed)/\(progress.total)").lineLimit(1)
+                    } else {
+                        Text("Looking up \(store.queue.filter { $0.status == .fixing }.first?.song.title ?? "")…").lineLimit(1)
+                    }
                     Spacer()
                     Button("Pause") { store.pause() }
                 }
@@ -97,7 +105,14 @@ struct FixTagsView: View {
                     Label(store.queue.contains { $0.status != .pending && $0.status.toProcess } ? "Resume" : "Start", systemImage: "play.fill")
                 }
                 .disabled(!store.hasWork || store.isCheckingMissing)
-                if !store.hasWork {
+                if store.autoCandidateCount > 0 {
+                    Button { store.autoSelectBestCandidates() } label: {
+                        Label(store.isAutoSelectionPaused ? "Continue auto-selecting best candidates" : "Auto-select best candidates", systemImage: "wand.and.stars")
+                    }
+                    .disabled(store.isCheckingMissing)
+                    Text("Uses saved matches at your selected confidence level and resolves ties automatically. Originals remain available for Revert.")
+                        .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
+                } else if !store.hasWork {
                     Text(store.queue.isEmpty ? "Add songs or find the ones with missing tags first." : "Nothing left to fix in the queue.")
                         .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
                 }
@@ -108,6 +123,9 @@ struct FixTagsView: View {
             }
             if let reason = store.pauseReason {
                 Text(reason).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
+            }
+            if let message = store.autoSelectionMessage {
+                Text(message).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
             }
             if !store.queue.isEmpty {
                 Text(summary).font(.footnote).foregroundStyle(palette.onSurfaceVariant)

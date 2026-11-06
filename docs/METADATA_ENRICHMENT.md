@@ -30,3 +30,14 @@ the queue is cleared, so Revert can undo the whole set of changes.
 
 No API keys, paid integrations or audio uploads are added by this workflow. Catalogue
 coverage and regional availability vary; an unknown value is left missing rather than guessed.
+
+## Bulk review
+
+The top Fix Tags menu includes **Auto-select best candidates**, with the eligible track count.
+It uses saved results at the current confidence setting, selecting the highest score and
+breaking ties by the tagged album, closest duration, then the provider's original order.
+Completed, reverted and failed entries are excluded. Low-confidence entries remain for review.
+
+The queue shows progress and supports Pause. Use the same action to continue the remaining
+review entries. The file's current tags are checked again before applying a bulk choice.
+No per-track confirmation is required, and original backups remain available for Revert.
