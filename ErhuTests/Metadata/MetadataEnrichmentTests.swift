@@ -140,6 +140,21 @@ final class MetadataEnrichmentTests: XCTestCase {
         XCTAssertEqual(result, .found(["Reggae"], source: "iTunes catalogue"))
     }
 
+    func testReportedAbuYousraGenreMatchesFeaturedArtistInTheITunesTitle() async {
+        var anchor = brainz()
+        anchor.title = "3 Daqat"; anchor.artist = "Abu, Yousra"; anchor.album = "3 Daqat"; anchor.durationMs = 275_000
+        let body = #"{"results":[{"trackId":55,"trackName":"3 Daqat (feat. Yousra)","artistName":"Abu","collectionName":"3 Daqat (feat. Yousra) - Single","trackTimeMillis":275228,"primaryGenreName":"Arabic","discNumber":1,"trackNumber":1}]}"#
+        let http = EnrichmentHTTP(routes: [
+            "/ws/2/recording/" + recording: (200, #"{"genres":[]}"#),
+            "/ws/2/release-group/" + group: (200, #"{"genres":[]}"#),
+            "/search": (200, body),
+        ])
+        let result = await MetadataService(client: http).lookupGenre(anchor)
+        XCTAssertEqual(result, .found(["Arabic"], source: "iTunes catalogue (additional verified search)"))
+        var cover = anchor; cover.artist = "Another Singer, Yousra"
+        XCTAssertFalse(MetadataEnrichment.sameRecording(anchor, cover))
+    }
+
     func testRecordingGenreCanCrossAlbumBoundariesButOrderingCannot() {
         let anchor = match()
         var compilation = match("MusicBrainz", id: "mb_other")
