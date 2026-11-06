@@ -290,10 +290,8 @@ enum BpmLookup: Equatable {
     case failed(String)
 }
 
-/// Finds a track's tempo, most trustworthy source first: AcousticBrainz for a MusicBrainz match
-/// (only the recording id is sent; its data stops in 2022), then an estimate from the file's own
-/// audio, decoded and analysed on this device. Both are treated as estimates: they can land on half
-/// or double time, so they never replace a BPM the file already has.
+/// Uses a verified Deezer tempo when present, then analyses local audio. Archived AcousticBrainz
+/// measurements are a last fallback. All are estimates and never replace a valid tagged BPM.
 actor BpmFinder {
     private let client: HTTPClient
     private var byRecording: [String: Result<Int, ProviderError>] = [:]
@@ -302,37 +300,33 @@ actor BpmFinder {
         self.client = client
     }
 
-    func find(_ match: MetadataCandidate, file: URL) async -> BpmLookup {
+    func find(_ match: MetadataCandidate, file: URL, supporting: [MetadataCandidate] = []) async -> BpmLookup {
+        let verified = MetadataEnrichment.verified(match, candidates: supporting, acceptAt: highConfidenceThreshold)
+        if let found = MetadataEnrichment.reportedTempo(verified) { return .found(found) }
         var reasons: [String] = []
-        var failures = 0
-        let recordingId = match.id.hasPrefix("mb_") ? String(match.id.dropFirst(3)) : nil
-        if let recordingId {
-            switch await measured(recordingId) {
-            case .success(let bpm): return .found(FoundBpm(bpm: bpm, source: "AcousticBrainz", estimated: true))
-            case .failure(let failure):
-                if failure.status == .noResults { reasons.append(failure.message) } else {
-                    failures += 1
-                    reasons.append("AcousticBrainz lookup failed (\(failure.message))")
-                }
-            }
-        } else {
-            reasons.append("AcousticBrainz needs a MusicBrainz match")
-        }
+        var localFailed = false
         do {
             let pcm = try await Task.detached(priority: .utility) { try TempoAudio.decode(file) }.value
             let estimate = await Task.detached(priority: .utility) { TempoEstimator.estimate(pcm.samples, sampleRate: pcm.sampleRate) }.value
             switch estimate {
             case .found(let bpm, let agreeing, let sections):
                 return .found(FoundBpm(bpm: bpm, source: "on-device estimate, \(agreeing) of \(sections) sections agree", estimated: true))
-            case .uncertain(let reason):
-                reasons.append("on-device estimate: \(reason)")
+            case .uncertain(let reason): reasons.append("on-device estimate: \(reason)")
             }
         } catch {
-            failures += 1
-            reasons.append("the audio couldn't be analysed (\(error.localizedDescription))")
+            localFailed = true
+            reasons.append("The audio couldn't be analysed (\(error.localizedDescription))")
         }
-        let reason = reasons.joined(separator: "; ")
-        return failures == (recordingId == nil ? 1 : 2) ? .failed(reason) : .notFound(reason)
+        if let brainz = verified.first(where: { $0.id.hasPrefix("mb_") }),
+           UUID(uuidString: String(brainz.id.dropFirst(3))) != nil {
+            switch await measured(String(brainz.id.dropFirst(3))) {
+            case .success(let bpm): return .found(FoundBpm(bpm: bpm, source: "AcousticBrainz archive", estimated: true))
+            case .failure(let error):
+                reasons.append("AcousticBrainz archive: \(error.message)")
+                return localFailed && error.status != .noResults ? .failed(reasons.joined(separator: "; ")) : .notFound(reasons.joined(separator: "; "))
+            }
+        }
+        return localFailed ? .failed(reasons.joined(separator: "; ")) : .notFound(reasons.joined(separator: "; "))
     }
 
     /// AcousticBrainz's tempo for a recording, cached for the session (network errors aren't cached).
