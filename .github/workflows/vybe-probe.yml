@@ -154,12 +154,14 @@ jobs:
           for index in markers:
               selected += lines[max(0,index-10):min(len(lines),index+22)]
           selected=list(dict.fromkeys(selected))
-          for line in selected[:100]:
-              print('::notice title=Artwork crash::'+line[-2000:].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+          detail='\n'.join(selected)[-28000:]
+          print('::notice title=Artwork test output::'+detail.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
           bundle=root/'TestResults.xcresult'
           output=pathlib.Path('/tmp/artwork-diagnostics')
           result=subprocess.run(['xcrun','xcresulttool','export','diagnostics','--path',str(bundle),'--output-path',str(output)],capture_output=True,text=True)
           print(result.stdout[-1000:]);print(result.stderr[-1000:])
+          listing='\n'.join(str(p.relative_to(output)) for p in output.rglob('*') if p.is_file())[:6000]
+          print('::notice title=Diagnostic files::'+listing.replace('%','%25').replace('\n','%0A'))
           for path in output.rglob('*'):
               if path.suffix not in ['.ips','.crash']: continue
               raw=path.read_text(errors='replace')
@@ -169,12 +171,15 @@ jobs:
                   decoder=json.JSONDecoder();first,end=decoder.raw_decode(raw);body=json.loads(raw[end:])
                   detail={k:body.get(k) for k in ['procName','exception','termination','asi','faultingThread']}
                   threads=body.get('threads',[]);fault=body.get('faultingThread',0)
-                  detail['crashedThread']=threads[fault] if threads else None
+                  thread=threads[fault] if threads else {}
                   images=body.get('usedImages',[])
-                  detail['images']=[{k:im.get(k) for k in ['name','path','base']} for im in images]
+                  frames=[]
+                  for frame in thread.get('frames',[])[:35]:
+                      image=images[frame.get('imageIndex',0)] if images else {}
+                      frames.append({'image':image.get('name'), 'symbol':frame.get('symbol'), 'offset':frame.get('imageOffset')})
+                  detail['frames']=frames
                   summary=json.dumps(detail,ensure_ascii=False)
               except Exception:summary=raw[:18000]
               with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('## Artwork crash\n```text\n'+summary+'\n```\n')
-              for line in [summary[i:i+1800] for i in range(0,min(len(summary),24000),1800)]:
-                  print('::notice title=Crash trace::'+line.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+              print('::notice title=Crash trace::'+summary[:28000].replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
           PY
