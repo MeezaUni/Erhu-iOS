@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// Sorts and filters stay pinned. Pulling past the top reveals a search for this page only.
+/// Sorts and filters scroll away with the page. Pulling past the top reveals a search for this page only.
 struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
     let title: String
     var isTabRoot = false
@@ -15,37 +15,34 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
 
     var body: some View {
         scroll
-            .modifier(RevealSectionSearch {
-                if showsSearch { closeSearch() } else { revealSearch() }
-            })
+            .modifier(RevealSectionSearch { revealSearch() })
             .scrollBounceBehavior(.always)
             .scrollDismissesKeyboard(.interactively)
             .tracksLibraryScrolling()
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .top, spacing: 0) {
-                if showsSearch || showsControls {
-                    VStack(spacing: 10) {
-                        if showsSearch {
-                            GlassSearchField(text: $query, prompt: "Search \(title.lowercased())", focused: $searchFocused,
-                                             close: { closeSearch() }, identifier: "sectionSearchField")
-                                .gesture(DragGesture(minimumDistance: 16).onEnded { value in
-                                    if value.translation.height > 24 { closeSearch() }
-                                })
+    }
+
+    @ViewBuilder private var searchAndControls: some View {
+        if showsSearch || showsControls {
+            VStack(spacing: 10) {
+                if showsSearch {
+                    GlassSearchField(text: $query, prompt: "Search \(title.lowercased())", focused: $searchFocused,
+                                     close: { closeSearch() }, identifier: "sectionSearchField")
+                }
+                if showsControls {
+                    HStack(alignment: .top, spacing: 10) {
+                        BrowseControlFlow { controls }
+                        Button { revealSearch(); searchFocused = true } label: {
+                            Image(systemName: "magnifyingglass").frame(width: 44, height: 44)
                         }
-                        if showsControls {
-                            HStack(alignment: .top, spacing: 10) {
-                                BrowseControlFlow { controls }
-                                if !showsSearch {
-                                    Button { revealSearch(); searchFocused = true } label: {
-                                        Image(systemName: "magnifyingglass").frame(width: 44, height: 44)
-                                    }.accessibilityLabel("Search \(title.lowercased())")
-                                }
-                            }
-                        }
+                        .accessibilityLabel("Search \(title.lowercased())")
+                        .accessibilityIdentifier("sectionSearchButton")
                     }
-                    .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
                 }
             }
+            .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
+            .accessibilityIdentifier("sectionBrowseControls")
+        }
     }
 
     @ViewBuilder private var scroll: some View {
@@ -59,8 +56,9 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
     private var pageContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             if #unavailable(iOS 18.0) {
-                LegacySearchPullProbe { if showsSearch { closeSearch() } else { revealSearch() } }.frame(height: 0)
+                LegacySearchPullProbe { revealSearch() }.frame(height: 0)
             }
+            searchAndControls
             Text(title).font(.largeTitle.bold())
                 .padding(.horizontal, Spacing.gutter)
                 .accessibilityAddTraits(.isHeader)

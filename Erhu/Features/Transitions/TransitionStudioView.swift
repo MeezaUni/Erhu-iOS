@@ -25,7 +25,7 @@ struct TransitionStudioRow: View {
               HStack(spacing: Spacing.md) {
                 Image(systemName: "slider.horizontal.3").foregroundStyle(palette.onSurfaceVariant)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Transition Studio").font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface)
+                    Text("Transition Studio").font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface).lineLimit(1)
                     Text(summary(config, choice) + (custom > 0 ? " · \(custom) custom" : ""))
                         .font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
                 }
@@ -35,10 +35,13 @@ struct TransitionStudioRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("Opens Transition Studio")
+            .accessibilityIdentifier("transitionStudioOpen")
             Toggle("Enable transitions for this \(noun(collection))", isOn: Binding(
                 get: { transitions.config.collectionEnabled(collection) },
                 set: { transitions.setCollectionEnabled(collection, $0) }))
-                .labelsHidden().tint(AutomationColors.volume)
+                .toggleStyle(.switch).labelsHidden().fixedSize()
+                .tint(palette.primary)
+                .accessibilityLabel("Enable transitions for this \(noun(collection))")
             Button { router.open(.transitionStudio(collection)) } label: {
                 Image(systemName: "chevron.right").font(.caption.weight(.semibold))
                     .foregroundStyle(palette.onSurfaceVariant).frame(width: 32, height: 44)

@@ -58,7 +58,7 @@ struct RootView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .onChange(of: geometry.size, initial: true) { _, size in playerMotion.travel = max(size.height * 0.65, 240) }
             }
-            .allowsHitTesting(playerMotion.acceptsInput)
+            .allowsHitTesting(playerMotion.isPresented)
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: router.showsDrawer)
         .coordinateSpace(name: PlayerArtworkSpace.root)
@@ -164,9 +164,9 @@ struct RootView: View {
             case .radio(let seed): RadioStationView(seed: seed)
             case .shelf(let shelf): LibraryShelfView(shelf: shelf)
             case .allSongs: AllSongsView()
-            case .tool(let tool): ToolView(tool: tool)
-            case .settingsPage(let page): SettingsDestinationView(page: page)
-            case .transitionStudio(let collection): TransitionStudioView(collection: collection)
+            case .tool(let tool): ToolView(tool: tool).tracksLibraryScrolling()
+            case .settingsPage(let page): SettingsDestinationView(page: page).tracksLibraryScrolling()
+            case .transitionStudio(let collection): TransitionStudioView(collection: collection).tracksLibraryScrolling()
             }
         }
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: chromeHeight) }

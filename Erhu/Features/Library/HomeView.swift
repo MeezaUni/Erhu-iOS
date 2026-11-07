@@ -265,21 +265,27 @@ private struct MoreListeningBanner: View {
     }
 }
 
-private struct PageDots: View {
+struct PageDots: View {
     let count: Int
     let current: Int
     @Environment(\.palette) private var palette
 
     var body: some View {
         HStack(spacing: Spacing.xs) {
-            ForEach(Array(LoopingPages.indices(count: count)), id: \.self) { slot in
-                        let index = LoopingPages.logical(slot, count: count)
+            ForEach(0..<max(count, 0), id: \.self) { index in
                 Capsule()
                     .fill(index == current ? palette.primary : palette.onSurface.opacity(0.32))
                     .frame(width: index == current ? 18 : 6, height: 6)
+                    .accessibilityLabel("Page \(index + 1)")
+                    .accessibilityValue(index == current ? "Current" : "")
+                    .accessibilityAddTraits(index == current ? .isSelected : [])
+                    .accessibilityIdentifier("smartPlaylistDot-\(index)")
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: current)
+        // One discrete highlight; wraparound must not animate two selected-looking capsules.
+        .transaction { $0.animation = nil }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("smartPlaylistDots")
         .frame(maxWidth: .infinity)
     }
 }

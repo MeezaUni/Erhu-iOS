@@ -98,7 +98,7 @@ struct SearchView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .safeAreaInset(edge: .top, spacing: 0) {
-                GlassSearchField(text: $search.query, prompt: "Songs, albums, artists", focused: $focused, close: { dismiss() })
+                GlassSearchField(text: $search.query, prompt: "Songs, albums, artists", focused: $focused, close: { focused = false; router.showsSearch = false; dismiss() })
                     .padding(.horizontal, Spacing.gutter).padding(.vertical, Spacing.sm)
             }
             .toolbar(.hidden, for: .navigationBar)

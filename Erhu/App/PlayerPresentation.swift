@@ -308,7 +308,6 @@ final class PlayerDragState {
     private(set) var acceptsInput = false
     @ObservationIgnored let meter = PlayerProgressMeter()
     @ObservationIgnored private var animationID = UUID()
-    @ObservationIgnored private var settlement: Task<Void, Never>?
     @ObservationIgnored private var wantsPresented = false
     @ObservationIgnored private var dragOrigin: CGFloat?
     @ObservationIgnored private var collapseOrigin: CGFloat?
@@ -323,7 +322,6 @@ final class PlayerDragState {
         dragOrigin = nil
         collapseOrigin = nil
         if presented && !isPresented {
-            settlement?.cancel(); settlement = nil
             animationID = UUID()
             meter.reset()
             var instant = Transaction(); instant.disablesAnimations = true
@@ -343,7 +341,6 @@ final class PlayerDragState {
     func update(_ distance: CGFloat) {
         guard acceptsInput, isReady, distance.isFinite else { return }
         if dragOrigin == nil {
-            settlement?.cancel(); settlement = nil
             animationID = UUID()
             dragOrigin = meter.read(fallback: progress)
             collapseOrigin = meter.readCollapse(fallback: collapseFraction)
@@ -379,26 +376,25 @@ final class PlayerDragState {
     }
 
     private func animate(to target: CGFloat, reduceMotion: Bool, velocity: CGFloat? = nil) {
-        settlement?.cancel()
         let id = UUID(); animationID = id
         let delta = target - meter.read(fallback: progress)
         let duration = reduceMotion ? 0.16 : target == 0
             ? (PlayerMotionTiming.duration * sqrt(Double(abs(delta)))).clamped(0.18, PlayerMotionTiming.duration)
             : PlayerMotionTiming.duration
-        withAnimation(PlayerMotionTiming.presentation(reduceMotion: reduceMotion, duration: duration, delta: delta, velocity: velocity)) {
+        withAnimation(PlayerMotionTiming.presentation(reduceMotion: reduceMotion, duration: duration, delta: delta, velocity: velocity), completionCriteria: .removed) {
             isMoving = true
             translation = 0
             progress = target
             collapseFraction = target == 0 ? 1 : 0
-        }
-        settlement = Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .seconds(duration)) } catch { return }
-            guard let self, self.animationID == id, !Task.isCancelled else { return }
-            self.settlement = nil
-            self.meter.record(target)
-            self.meter.recordCollapse(self.collapseFraction)
-            self.isMoving = false
-            if target == 0 && !self.wantsPresented { self.isPresented = false; self.isReady = false }
+        } completion: { [weak self] in
+            // Hop once so a viewless synchronous completion cannot finish inside its caller.
+            Task { @MainActor [weak self] in
+                guard let self, self.animationID == id else { return }
+                self.meter.record(target)
+                self.meter.recordCollapse(self.collapseFraction)
+                self.isMoving = false
+                if target == 0 && !self.wantsPresented { self.isPresented = false; self.isReady = false }
+            }
         }
     }
 }

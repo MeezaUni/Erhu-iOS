@@ -66,17 +66,16 @@ struct FeaturedSetlistsShelf: View {
     @Environment(AppRouter.self) private var router
 
     var body: some View {
-        if !library.featuredAlbums.isEmpty || (includesRadio && !library.favorites.isEmpty) {
-            Shelf(title: "Featured Setlists") {
-                ForEach(library.featuredAlbums) { album in
-                    AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: ArtworkSize.shelf)
-                    if includesRadio, let cover = library.albumCoverSong[album.id] {
-                        radioTile(cover: cover, title: album.title, subtitle: "Album radio", seed: .album(album.id))
-                    }
-                }
-                if includesRadio {
-                    ForEach(Array(library.favorites.prefix(3))) { song in
-                        radioTile(cover: song, title: song.artist, subtitle: "Based on " + song.title, seed: .song(song.id))
+        let items = FeaturedSetlists.select(albums: library.featuredAlbums, covers: library.albumCoverSong,
+            radioSongs: library.favorites + library.songs, includesRadio: includesRadio)
+        if !items.isEmpty {
+            Shelf(title: "Featured Setlists", lazy: false) {
+                ForEach(items) { item in
+                    switch item {
+                    case .album(let album):
+                        AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: ArtworkSize.shelf)
+                    case .radio(let seed, let title, let subtitle, let cover):
+                        radioTile(cover: cover, title: title, subtitle: subtitle, seed: seed)
                     }
                 }
             }.padding(.bottom, Spacing.lg)
@@ -84,15 +83,11 @@ struct FeaturedSetlistsShelf: View {
     }
 
     private func radioTile(cover: Song, title: String, subtitle: String, seed: RadioSeed) -> some View {
-        Button { router.open(.radio(seed)) } label: {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                RadioSetlistArtwork(cover: cover, title: title)
-                    .frame(width: ArtworkSize.shelf, height: ArtworkSize.shelf)
-                    .collectionArtworkTheme(.track(cover.url), alwaysFollowArtwork: true)
-                Text(title + " Radio").font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-            }.frame(width: ArtworkSize.shelf, alignment: .leading).contentShape(Rectangle())
-        }.buttonStyle(.plain)
+        ArtworkTile(title: title + " Radio", subtitle: subtitle, action: { router.open(.radio(seed)) }) {
+            RadioSetlistArtwork(cover: cover, title: title)
+                .collectionArtworkTheme(.track(cover.url), alwaysFollowArtwork: true)
+        }.frame(width: ArtworkSize.shelf)
+
     }
 }
 

@@ -162,3 +162,12 @@ iOS Actions artifact for current development code.
 Unicode names stay intact and empty normalized strings never count as matches. Search ranks exact names before prefixes and bounded typo correction (including swapped adjacent letters); numbers remain exact. An album query returns matching albums and their own tracklists; an artist query returns matching artists and their credited songs/albums; a song query returns matching songs plus their albums without expanding unrelated album tracks. Exact artist/album names lead ambiguous same-name song matches. A supplied artist qualifier narrows a title query. Processing is cancellable and runs off the main thread.
 
 Global and section search share a floating Liquid Glass field (material fallback before iOS 26), a clear-text control and a circular close X. Section headers use the page background instead of a separate bar. Pull once to reveal, pull again or use X to close and clear the local query. Artists have pull-down search without sorting/filter controls. VYBE's existing spelling correction now also handles misspelled artist qualifiers and short words adjacent to a longer typo, preserving its ambiguity choices and exact numeric matching.
+
+
+## Home and interaction corrections
+
+The carousel draws one dot for each real playlist; wraparound sentinel pages do not create extra dots or highlights. Featured Setlists chooses an album or its station once per release, with additional stations from other releases. Its small shelf measures all cards and uses a consistent caption layout, avoiding cropped radio subtitles.
+
+Sort/filter controls and their search button are part of the page's scrolling header. A top pull reveals local search; scrolling carries it and the controls away without a pinned overlay or a mid-scroll layout reset. The search clear target is 44 points, and decorative glass/borders cannot intercept clear or close taps. The global close button explicitly closes its router sheet. Native tap-and-swipe tests cover search with a visible keyboard, scrolling controls, carousel dots and the label-free transition switch.
+
+Tool/settings/Transition Studio destinations now use the same vertical-scroll chrome tracking as collection pages. Player dismissal finishes artwork ownership at native animation completion, preserving stale-completion guards; the closing overlay retains hit testing until removed so touches cannot reach the mini-player underneath midway through the flight.

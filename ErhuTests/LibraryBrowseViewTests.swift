@@ -48,6 +48,10 @@ final class LibraryBrowseViewTests: XCTestCase {
         }
         XCTAssertTrue(search.revealed)
         XCTAssertEqual(search.query, "", "Pulling down must not invent or reuse a global query")
+        let before = scroll.adjustedContentInset.top
+        scroll.setContentOffset(CGPoint(x: 0, y: 600), animated: false)
+        try await Task.sleep(for: .milliseconds(150))
+        XCTAssertEqual(scroll.adjustedContentInset.top, before, accuracy: 1, "The controls are page content, not a changing pinned safe-area inset")
     }
 }
 
