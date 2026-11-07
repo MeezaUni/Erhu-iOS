@@ -42,6 +42,7 @@ struct TransitionStudioRow: View {
                 .toggleStyle(.switch).labelsHidden().fixedSize()
                 .tint(palette.primary)
                 .accessibilityLabel("Enable transitions for this \(noun(collection))")
+                .accessibilityIdentifier("collectionTransitionToggle")
             Button { router.open(.transitionStudio(collection)) } label: {
                 Image(systemName: "chevron.right").font(.caption.weight(.semibold))
                     .foregroundStyle(palette.onSurfaceVariant).frame(width: 32, height: 44)

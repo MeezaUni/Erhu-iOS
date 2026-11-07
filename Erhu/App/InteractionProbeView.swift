@@ -26,7 +26,7 @@ struct InteractionProbeView: View {
                 }.environment(chrome).environment(\.artworkSection, router.section)
             } else if page == "tools" {
                 NavigationStack {
-                    ToolView(tool: .autoFixTags).tracksLibraryScrolling()
+                    ToolView(tool: .autoFixTags).tracksLibraryScrolling(usesUIKit: true)
                         .overlay(alignment: .bottom) {
                             Text(String(format: "%.2f", Double(chrome.fraction))).accessibilityIdentifier("chromeFraction")
                         }
