@@ -26,13 +26,37 @@ enum LibrarySearch {
             let qualified = qualifiedScore(album.title, album.artist)
             return max(name, edition, qualified == 100 ? 97 : qualified == 75 ? 85 : qualified == 60 ? 55 : 0)
         }
-        let rankedArtists = artists.map { ($0, SearchNormalizer.score($0.name, query)) }.filter { $0.1 > 0 }.sorted { $0.1 == $1.1 ? $0.0.id < $1.0.id : $0.1 > $1.1 }
-        let rankedAlbums = albums.map { ($0, scoreAlbum($0)) }.filter { $0.1 > 0 }.sorted { $0.1 == $1.1 ? $0.0.id < $1.0.id : $0.1 > $1.1 }
-        let rankedSongs = songs.map { song -> (Song, Int) in
+        var rankedArtists: [(Artist, Int)] = artists.map { artist in
+            (artist, SearchNormalizer.score(artist.name, query))
+        }
+        rankedArtists.removeAll { $0.1 <= 0 }
+        rankedArtists.sort { a, b in
+            if a.1 != b.1 { return a.1 > b.1 }
+            return a.0.id < b.0.id
+        }
+        var rankedAlbums: [(Album, Int)] = albums.map { album in (album, scoreAlbum(album)) }
+        rankedAlbums.removeAll { $0.1 <= 0 }
+        rankedAlbums.sort { a, b in
+            if a.1 != b.1 { return a.1 > b.1 }
+            return a.0.id < b.0.id
+        }
+        var rankedSongs: [(Song, Int)] = songs.map { song in
             let direct = SearchNormalizer.score(song.title, query)
             let qualified = qualifiedScore(song.title, song.artist)
-            return (song, max(direct, qualified == 100 ? 98 : qualified == 75 ? 88 : qualified == 60 ? 55 : 0))
-        }.filter { $0.1 > 0 }.sorted { $0.1 == $1.1 ? $0.0.id < $1.0.id : $0.1 > $1.1 }
+            let qualifiedRank: Int
+            switch qualified {
+            case 100: qualifiedRank = 98
+            case 75: qualifiedRank = 88
+            case 60: qualifiedRank = 55
+            default: qualifiedRank = 0
+            }
+            return (song, max(direct, qualifiedRank))
+        }
+        rankedSongs.removeAll { $0.1 <= 0 }
+        rankedSongs.sort { a, b in
+            if a.1 != b.1 { return a.1 > b.1 }
+            return a.0.id < b.0.id
+        }
         let artistScore = rankedArtists.first?.1 ?? 0, albumScore = rankedAlbums.first?.1 ?? 0, songScore = rankedSongs.first?.1 ?? 0
         guard max(artistScore, albumScore, songScore) > 0 else { return LibrarySearchResults() }
         func ordered(_ songs: [Song]) -> [Song] {

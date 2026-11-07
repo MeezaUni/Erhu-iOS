@@ -19,8 +19,9 @@ final class LibrarySearchTests: XCTestCase {
         Album(id: 6, title: "SKY CITY", artist: "¥$", artistId: 6, songCount: 1, year: 2025)
     ]
     private var songs: [Song] {
-        [(1, "Always Forever", 1), (2, "No One Noticed", 2), (3, "Headlines", 3), (4, "Over My Dead Body", 3),
-         (5, "生而平凡", 4), (6, "Milonga with Lover", 5), (7, "SKY CITY", 6)].map { id, title, albumID in
+        let entries: [(Int64, String, Int)] = [(1, "Always Forever", 1), (2, "No One Noticed", 2), (3, "Headlines", 3), (4, "Over My Dead Body", 3),
+         (5, "生而平凡", 4), (6, "Milonga with Lover", 5), (7, "SKY CITY", 6)]
+        return entries.map { id, title, albumID in
             let album = albums[albumID - 1]
             return Song(id: Int64(id), title: title, artist: album.artist, album: album.title, artistId: album.artistId,
                         albumId: album.id, durationMs: 180_000, path: "\(id).mp3")
