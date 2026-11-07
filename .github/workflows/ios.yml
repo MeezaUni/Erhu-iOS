@@ -98,6 +98,8 @@ jobs:
             -only-testing:ErhuTests/RadioHeroTests \
             -only-testing:ErhuTests/ArtworkThemeScopeTests \
             -only-testing:ErhuTests/ArtworkUpgradeTests \
+            -only-testing:ErhuTests/AlbumArtworkTests \
+            -only-testing:ErhuTests/AudioEngineTests \
             -only-testing:ErhuTests/TransitionResolverTests \
             -only-testing:ErhuTests/TransitionEditingTests \
             -only-testing:ErhuTests/BulkMetadataSelectionTests \

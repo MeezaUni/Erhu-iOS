@@ -45,9 +45,10 @@ final class PlayerController {
     @ObservationIgnored private var artworkWarmup: Task<Void, Never>?
     @ObservationIgnored private var fileWarmup: Task<Void, Never>?
     @ObservationIgnored private var audioPreparation: Task<Void, Never>?
+    @ObservationIgnored private var engineSetup: Task<Void, Never>?
     @ObservationIgnored private var preparingPlayIntent = false
     private(set) var playbackError: String?
-    @ObservationIgnored private var restoreFinished = false
+    @ObservationIgnored private(set) var restoreFinished = false
     @ObservationIgnored private var consecutiveErrors = 0
     @ObservationIgnored private var plannedTransition: (entryId: UUID, nextEntryId: UUID, plan: Planned)?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
@@ -76,7 +77,7 @@ final class PlayerController {
         configureRemoteCommands()
         observeAudioSession()
         Task {
-            await engine.setUp()
+            // Restoring the queue and browsing the library do not need an audio output device.
             restorePersistedState()
         }
     }
@@ -106,7 +107,8 @@ final class PlayerController {
     }
 
     func togglePlayPause() {
-        state.isPlaying ? pause() : play()
+        if state.isPlaying || (state.status == .buffering && preparingPlayIntent) { pause() }
+        else { play() }
     }
 
     /// Plays [songs] from [startIndex] as an ordinary queue.
@@ -140,6 +142,12 @@ final class PlayerController {
         guard let entry = state.currentEntry else { return }
         let target = max(positionMs, 0)
         if state.status == .buffering { startCurrent(at: target, playing: preparingPlayIntent); return }
+        if !engine.isReady {
+            setPosition(target)
+            updateNowPlaying()
+            persistState()
+            return
+        }
         do {
             try engine.seek(entryId: entry.id, url: entry.song.url, toMs: target)
         } catch {
@@ -341,6 +349,13 @@ final class PlayerController {
         playbackError = nil
         guard let entry = state.currentEntry else { return }
         preparingPlayIntent = playing
+        if !playing && !engine.isReady {
+            setPosition(positionMs)
+            state.durationMs = entry.song.durationMs
+            currentEntryChanged(sameEntryRepeated: false)
+            playingChanged(false)
+            return
+        }
         if DecodedAudioSource.requiresDecoder(entry.song.url), !DecodedAudioSource.isPrepared(entry.song.url) {
             engine.stopAll()
             listening.onPlayingChanged(false, durationMs: state.durationMs)
@@ -374,8 +389,23 @@ final class PlayerController {
             currentEntryChanged(sameEntryRepeated: false)
             playingChanged(playing)
         } catch AudioEngine.EngineError.notReady {
-            // The engine is still being built: the restore or the user's next tap starts it.
-            state.status = .paused
+            // One shared setup survives a cancelled/changed play request; only the latest
+            // request may start audio once it is ready. No second tap is needed.
+            state.status = .buffering
+            state.durationMs = entry.song.durationMs
+            setPosition(positionMs)
+            updateNowPlaying()
+            if engineSetup == nil {
+                let engine = engine
+                engineSetup = Task { await engine.setUp() }
+            }
+            let setup = engineSetup
+            audioPreparation = Task {
+                await setup?.value
+                guard !Task.isCancelled, state.currentEntry?.id == entry.id else { return }
+                audioPreparation = nil
+                startCurrent(at: positionMs, playing: playing)
+            }
         } catch {
             handleError(entry)
         }

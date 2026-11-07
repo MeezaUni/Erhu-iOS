@@ -27,6 +27,13 @@ final class PairTransitionPreview {
         isPreparing = true
         task = Task { [weak self] in
             guard let self else { return }
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch {
+                self.error = "Preview unavailable: the audio output could not be activated."
+                stop()
+                return
+            }
             if self.engine == nil {
                 let engine = AudioEngine()
                 self.engine = engine
@@ -40,7 +47,6 @@ final class PairTransitionPreview {
             engine.onEntryFinished = { [weak self] _ in self?.stop() }
             engine.onConfigurationChange = { [weak self] in self?.stop(resume: false) }
             do {
-                try AVAudioSession.sharedInstance().setActive(true)
                 try engine.previewTransition(outgoing: pair.from.song.url, incoming: pair.to.song.url, timing: timing)
                 isPreparing = false
                 isPlaying = true

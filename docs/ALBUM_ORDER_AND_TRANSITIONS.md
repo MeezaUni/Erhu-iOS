@@ -30,6 +30,10 @@ deleting defaults or pair edits. Enabling a previously unconfigured collection s
 Other collections and the independent global master switch stay as configured. The same switch
 is available inside Transition Studio. Older settings files load with no paused collections.
 
+Queue restoration and artwork browsing do not initialise the audio output. Playback and pair
+preview activate the audio session before preparing their output graph. Initial playback requests
+wait for one shared setup; changing or cancelling the request cannot start an earlier track later.
+
 The pair editor displays short decoded PCM windows around the outgoing/incoming cues, with
 absolute per-channel peak and RMS envelopes. These are source audio, not a predicted processed
 waveform, spectrum, beat grid, or loudness-normalized decorative shape. Opposite-phase stereo
