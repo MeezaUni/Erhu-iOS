@@ -110,6 +110,7 @@ jobs:
             -only-testing:ErhuTests/BulkMetadataApplyTests \
             -only-testing:ErhuTests/MetadataEnrichmentTests \
             -only-testing:ErhuTests/DiscogsGenresTests \
+            -only-testing:ErhuTests/MotionCoverAvailabilityTests \
             -only-testing:ErhuTests/ReleaseAndDiscoveryTests \
             -only-testing:ErhuTests/MetadataCompletenessTests \
             -only-testing:ErhuTests/LibraryBrowseTests \
