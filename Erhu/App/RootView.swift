@@ -168,9 +168,9 @@ struct RootView: View {
             case .radio(let seed): RadioStationView(seed: seed)
             case .shelf(let shelf): LibraryShelfView(shelf: shelf)
             case .allSongs: AllSongsView()
-            case .tool(let tool): ToolView(tool: tool).tracksLibraryScrolling()
-            case .settingsPage(let page): SettingsDestinationView(page: page).tracksLibraryScrolling()
-            case .transitionStudio(let collection): TransitionStudioView(collection: collection).tracksLibraryScrolling()
+            case .tool(let tool): ToolView(tool: tool).tracksLibraryScrolling(usesUIKit: true)
+            case .settingsPage(let page): SettingsDestinationView(page: page).tracksLibraryScrolling(usesUIKit: true)
+            case .transitionStudio(let collection): TransitionStudioView(collection: collection).tracksLibraryScrolling(usesUIKit: true)
             }
         }
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: chromeHeight) }

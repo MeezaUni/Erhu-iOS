@@ -41,7 +41,6 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
                 }
             }
             .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
-            .accessibilityIdentifier("sectionBrowseControls")
         }
     }
 

@@ -46,8 +46,13 @@ final class LibraryInteractionTests: XCTestCase {
 
     @MainActor func testCarouselWrapKeepsExactlyThreeDotsAndOneHighlight() {
         let app = launch("carousel")
-        let carousel = app.descendants(matching: .any).matching(identifier: "smartPlaylistCarousel").firstMatch
-        XCTAssertTrue(carousel.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "smartPlaylistDot-0").firstMatch.waitForExistence(timeout: 10))
+        func swipe(left: Bool) {
+            // Swipe across the banner, not a small nested Play button with an inherited ID.
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: left ? 0.85 : 0.15, dy: 0.20))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: left ? 0.15 : 0.85, dy: 0.20))
+            start.press(forDuration: 0.05, thenDragTo: end)
+        }
         func check() {
             let dots = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "smartPlaylistDot-"))
             XCTAssertEqual(dots.count, 3)
@@ -62,11 +67,11 @@ final class LibraryInteractionTests: XCTestCase {
         }
         check()
         let initial = currentPage()
-        carousel.swipeLeft(); check()
+        swipe(left: true); check()
         XCTAssertNotEqual(currentPage(), initial)
-        for _ in 0..<2 { carousel.swipeLeft(); check() }
+        for _ in 0..<2 { swipe(left: true); check() }
         XCTAssertEqual(currentPage(), initial, "Swiping past the last playlist returns the one selected dot to the start")
-        for _ in 0..<3 { carousel.swipeRight(); check() }
+        for _ in 0..<3 { swipe(left: false); check() }
         XCTAssertEqual(currentPage(), initial)
     }
 
@@ -85,7 +90,11 @@ final class LibraryInteractionTests: XCTestCase {
         let app = launch("transitions")
         XCTAssertTrue(app.buttons["transitionStudioOpen"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["Enable transitions for this album"].exists)
-        XCTAssertEqual(app.switches.count, 1)
-        XCTAssertTrue(app.switches.firstMatch.isHittable)
+        let toggle = app.switches.matching(identifier: "collectionTransitionToggle").firstMatch
+        XCTAssertTrue(toggle.exists)
+        XCTAssertTrue(toggle.isHittable)
+        let before = toggle.value as? String
+        toggle.tap()
+        XCTAssertNotEqual(toggle.value as? String, before)
     }
 }

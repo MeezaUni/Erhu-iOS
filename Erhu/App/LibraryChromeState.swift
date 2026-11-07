@@ -1,5 +1,6 @@
 import Observation
 import SwiftUI
+import UIKit
 
 /// Scroll changes only this small object, observed by the chrome rather than the library tree.
 @MainActor
@@ -27,7 +28,9 @@ final class LibraryChromeState {
 
 extension View {
     /// Attach to the outer vertical scroll view, never a horizontal album shelf.
-    func tracksLibraryScrolling() -> some View { modifier(LibraryScrollTracking()) }
+    func tracksLibraryScrolling(usesUIKit: Bool = false) -> some View {
+        modifier(LibraryScrollTracking(usesUIKit: usesUIKit))
+    }
 }
 
 /// Only tab roots consume reselects. Nested shelves keep their independent scroll positions.
@@ -57,6 +60,7 @@ struct LibraryRootScrollView<Content: View>: View {
 }
 
 private struct LibraryScrollTracking: ViewModifier {
+    var usesUIKit = false
     @Environment(LibraryChromeState.self) private var chrome
     @Environment(AppRouter.self) private var router
     @Environment(\.artworkSection) private var section
@@ -70,7 +74,13 @@ private struct LibraryScrollTracking: ViewModifier {
     @ViewBuilder
     func body(content: Content) -> some View {
         Group {
-            if #available(iOS 18.0, *) {
+            if usesUIKit {
+                content.overlay {
+                    ToolScrollTrackingProbe(active: { active }, consume: { chrome.consume($0) },
+                                            settle: { chrome.settle(reduceMotion: reduceMotion) })
+                        .allowsHitTesting(false).accessibilityHidden(true)
+                }
+            } else if #available(iOS 18.0, *) {
                 content
                     .onScrollGeometryChange(for: CGFloat.self) { geometry in
                         let end = max(geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height, 0)
