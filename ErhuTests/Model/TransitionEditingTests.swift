@@ -28,6 +28,24 @@ final class TransitionEditingTests: XCTestCase {
         TransitionEditing.curveOf(spec, role).points
     }
 
+    func testCollectionPageConnectorsTrackOccurrencesAndOpenTheExactPairDraft() {
+        let tracks = [t1, t2, t1Again]
+        let cfg = config([key(t1, t2): .custom(rise)])
+        let pairs = collectionTransitionPairs(playlist, tracks: tracks, config: cfg)
+        XCTAssertEqual(pairs.count, 2)
+        XCTAssertEqual(pairs[0].key, key(t1, t2))
+        XCTAssertEqual(pairs[1].key, key(t2, t1Again))
+        XCTAssertEqual(EditorDraft.open(.pair(pairs[0]), config: cfg).original, .custom(rise))
+        XCTAssertEqual(EditorDraft.open(.pair(pairs[1]), config: cfg).mode, .inherit)
+        let paused = cfg.withCollectionEnabled(playlist, false)
+        XCTAssertTrue(collectionTransitionPairs(playlist, tracks: tracks, config: paused).isEmpty)
+        XCTAssertEqual(collectionTransitionPairs(playlist, tracks: tracks, config: paused.withCollectionEnabled(playlist, true)), pairs)
+        let reordered = collectionTransitionPairs(playlist, tracks: [t1Again, t1, t2], config: cfg)
+        XCTAssertEqual(reordered.last?.key, key(t1, t2))
+        XCTAssertEqual(reordered.last?.choice, .custom(rise))
+        XCTAssertTrue(collectionTransitionPairs(playlist, tracks: [t1], config: cfg).isEmpty)
+    }
+
     func testPlotActivationEntersCustomFromOffOrDefaultAndIsOneUndoableEdit() {
         let pair = studioPairs(playlist, tracks: [t1, t2], config: TransitionConfig())[0]
         for choice in [TransitionChoice.inherit, .off] {

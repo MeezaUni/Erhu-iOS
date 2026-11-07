@@ -19,6 +19,17 @@ and FLAC. Valid existing total counts and unrelated metadata/audio are preserved
 than the repaired position is cleared rather than inventing a total); backups and Revert
 still apply. A scan after successful repairs updates album ordering and adjacent transition pairs.
 
+Album and playlist pages show compact **Auto / Off / preset** controls between adjacent songs
+when that collection has transitions enabled. Tapping one opens the existing pair editor directly,
+including its waveforms, preview, Save and Cancel. Album occurrences use the song ID; playlist
+occurrences use each entry's persistent position, so repeated songs retain independent transitions.
+Reordering changes adjacency without moving an edit to another pair.
+
+The collection's switch pauses all of its transitions, including exact-pair overrides, without
+deleting defaults or pair edits. Enabling a previously unconfigured collection starts with Fade.
+Other collections and the independent global master switch stay as configured. The same switch
+is available inside Transition Studio. Older settings files load with no paused collections.
+
 The pair editor displays short decoded PCM windows around the outgoing/incoming cues, with
 absolute per-channel peak and RMS envelopes. These are source audio, not a predicted processed
 waveform, spectrum, beat grid, or loudness-normalized decorative shape. Opposite-phase stereo

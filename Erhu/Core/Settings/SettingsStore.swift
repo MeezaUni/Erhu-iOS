@@ -42,10 +42,23 @@ final class JSONStore<Value: Codable & Equatable> {
 @MainActor
 @Observable
 final class TransitionSettingsStore {
-    private struct Stored: Codable, Equatable {
+    struct Stored: Codable, Equatable {
         var global = GlobalTransitionSettings()
         var collections: [String: TransitionChoice] = [:]
         var pairs: [String: TransitionChoice] = [:]
+        /// Optional so existing transition files decode without resetting saved edits.
+        var disabledCollections: [String]? = nil
+
+        var configuration: TransitionConfig {
+            TransitionConfig(
+                global: global,
+                collections: Dictionary(collections.compactMap { key, value in CollectionRef.fromKey(key).map { ($0, value) } },
+                                        uniquingKeysWith: { first, _ in first }),
+                pairs: Dictionary(pairs.compactMap { key, value in TransitionPairKey.fromKey(key).map { ($0, value) } },
+                                  uniquingKeysWith: { first, _ in first }),
+                disabledCollections: Set((disabledCollections ?? []).compactMap { CollectionRef.fromKey($0) })
+            )
+        }
     }
 
     private(set) var config = TransitionConfig()
@@ -54,13 +67,7 @@ final class TransitionSettingsStore {
 
     init() {
         if let stored = store.load() {
-            config = TransitionConfig(
-                global: stored.global,
-                collections: Dictionary(stored.collections.compactMap { key, value in CollectionRef.fromKey(key).map { ($0, value) } },
-                                        uniquingKeysWith: { first, _ in first }),
-                pairs: Dictionary(stored.pairs.compactMap { key, value in TransitionPairKey.fromKey(key).map { ($0, value) } },
-                                  uniquingKeysWith: { first, _ in first })
-            )
+            config = stored.configuration
         }
     }
 
@@ -90,6 +97,11 @@ final class TransitionSettingsStore {
         changed()
     }
 
+    func setCollectionEnabled(_ collection: CollectionRef, _ enabled: Bool) {
+        config = config.withCollectionEnabled(collection, enabled)
+        changed()
+    }
+
     private static func sanitized(_ choice: TransitionChoice) -> TransitionChoice {
         if case .custom(let spec) = choice { return .custom(spec.sanitized()) }
         return choice
@@ -99,7 +111,8 @@ final class TransitionSettingsStore {
         store.save(Stored(
             global: config.global,
             collections: Dictionary(uniqueKeysWithValues: config.collections.map { ($0.key.key, $0.value) }),
-            pairs: Dictionary(uniqueKeysWithValues: config.pairs.map { ($0.key.key, $0.value) })
+            pairs: Dictionary(uniqueKeysWithValues: config.pairs.map { ($0.key.key, $0.value) }),
+            disabledCollections: config.disabledCollections.map(\.key).sorted()
         ))
         onChange?()
     }

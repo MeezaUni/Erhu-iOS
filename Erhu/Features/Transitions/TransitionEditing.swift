@@ -38,6 +38,12 @@ func studioPairs(_ collection: CollectionRef, tracks: [StudioTrack], config: Tra
     }
 }
 
+/// Collection pages show controls only while this collection has transitions enabled. Studio
+/// itself keeps its full timeline available even while the collection is paused.
+func collectionTransitionPairs(_ collection: CollectionRef, tracks: [StudioTrack], config: TransitionConfig) -> [StudioPair] {
+    config.collectionEnabled(collection) ? studioPairs(collection, tracks: tracks, config: config) : []
+}
+
 /// Short label for a pair chip: Auto (inherits), Off, or the preset name.
 func pairLabel(_ choice: TransitionChoice) -> String {
     switch choice {

@@ -12,6 +12,29 @@ struct ArtworkUpgrade: Identifiable {
     var id: String { target.id }
 }
 
+/// Immutable bytes for both sides of a comparison. A stale scan or changed provider image
+/// cannot become an upgrade the user did not review.
+struct ArtworkUpgradeReview: Identifiable {
+    let upgrade: ArtworkUpgrade
+    let original: Data
+    let replacement: Data
+    let originalFacts: ArtworkImageFacts
+    let replacementFacts: ArtworkImageFacts
+    var id: String { upgrade.id }
+
+    init?(upgrade: ArtworkUpgrade, original: Data, replacement: Data) {
+        guard let old = ArtworkImageFacts.inspect(original), old == upgrade.originalFacts,
+              let next = ArtworkImageFacts.inspect(replacement), next == upgrade.candidate.image,
+              ArtworkUpgradeMatch.isLarger(next, than: old), ArtworkUpgradeMatch.resembles(original, replacement) else { return nil }
+        self.upgrade = upgrade; self.original = original; self.replacement = replacement
+        originalFacts = old; replacementFacts = next
+    }
+
+    func matchesCurrentArtwork(_ data: Data?) -> Bool {
+        data.flatMap(ArtworkImageFacts.inspect) == originalFacts
+    }
+}
+
 @MainActor @Observable
 final class ArtworkUpgradeStore {
     private(set) var results: [ArtworkUpgrade] = []
@@ -27,24 +50,12 @@ final class ArtworkUpgradeStore {
         results = []; checked = 0; skipped = 0; finished = false; scanning = true
         let targets: [ArtworkTarget] = kind == .albums ? library.albums.map(ArtworkTarget.album)
             : library.artists.filter { $0.artworkPath != nil && !$0.isUnresolved }.map(ArtworkTarget.artist)
-        let covers = library.albumCoverSong
         total = targets.count
         task = Task {
             defer { scanning = false; task = nil }
             for target in targets {
                 guard !Task.isCancelled else { return }
-                let source: URL?
-                switch target {
-                case .album(let album): source = covers[album.id]?.url
-                case .artist(let artist): source = artist.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) }
-                }
-                let original: Data? = await Task.detached(priority: .utility) {
-                    guard let source else { return nil }
-                    switch target {
-                    case .album: return TagReader.artwork(source)
-                    case .artist: return try? Data(contentsOf: source)
-                    }
-                }.value
+                let original = await Self.currentArtwork(target, library: library)
                 guard !Task.isCancelled else { return }
                 if let original, let facts = ArtworkImageFacts.inspect(original) {
                     let candidates: [ArtworkCandidate]
@@ -75,4 +86,19 @@ final class ArtworkUpgradeStore {
 
     func remove(_ result: ArtworkUpgrade) { results.removeAll { $0.id == result.id } }
     func cancel() { task?.cancel() }
+
+    static func currentArtwork(_ target: ArtworkTarget, library: LibraryStore) async -> Data? {
+        let source: URL?
+        switch target {
+        case .album(let album): source = library.albumCoverSong[album.id]?.url
+        case .artist(let artist): source = library.artist(artist.id)?.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) }
+        }
+        return await Task.detached(priority: .utility) {
+            guard let source else { return nil as Data? }
+            switch target {
+            case .album: return TagReader.artwork(source)
+            case .artist: return try? Data(contentsOf: source)
+            }
+        }.value
+    }
 }

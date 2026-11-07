@@ -35,6 +35,52 @@ final class TransitionResolverTests: XCTestCase {
         XCTAssertEqual(.masterOff, r.source)
     }
 
+    func testCollectionSwitchPausesPairOverridesAndRestoresThemWithoutChangingOtherCollections() {
+        let original = config(collection: .custom(albumSpec), pair: .custom(pairSpec))
+        XCTAssertTrue(original.collectionEnabled(album))
+        let paused = original.withCollectionEnabled(album, false)
+        XCTAssertFalse(paused.collectionEnabled(album))
+        XCTAssertNil(resolve(paused).spec)
+        XCTAssertNil(TransitionResolver.collectionDefault(paused, collection: album))
+        XCTAssertEqual(resolve(paused, origin(playlist, 1), origin(playlist, 2)).spec, global)
+        XCTAssertEqual(paused.collections, original.collections)
+        XCTAssertEqual(paused.pairs, original.pairs)
+        let resumed = paused.withCollectionEnabled(album, true)
+        XCTAssertEqual(resumed, original)
+        XCTAssertEqual(resolve(resumed).spec, pairSpec)
+    }
+
+    func testEnablingUnconfiguredCollectionCreatesFadeAndKeepsMasterAndPairOffIndependent() {
+        let original = config(defaultChoice: .off, pair: .off)
+        XCTAssertFalse(original.collectionEnabled(album))
+        let enabled = original.withCollectionEnabled(album, true)
+        XCTAssertTrue(enabled.collectionEnabled(album))
+        XCTAssertEqual(enabled.global, original.global)
+        XCTAssertEqual(enabled.pairs, original.pairs)
+        XCTAssertNil(resolve(enabled).spec)
+        XCTAssertEqual(resolve(enabled, a2, origin(album, 3)).spec, TransitionSpec())
+        var masterOff = enabled; masterOff.global.masterEnabled = false
+        XCTAssertTrue(masterOff.collectionEnabled(album))
+        XCTAssertNil(resolve(masterOff).spec)
+    }
+
+    @MainActor
+    func testPersistedCollectionSwitchKeepsOlderSettingsAndRoundTripsPausedCollections() throws {
+        let original = config(collection: .custom(albumSpec), pair: .custom(pairSpec))
+        var stored = TransitionSettingsStore.Stored(global: original.global,
+            collections: [album.key: .custom(albumSpec)], pairs: [pairKey.key: .custom(pairSpec)])
+        // Older files have no disabledCollections member.
+        let encoded = try JSONEncoder().encode(stored)
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        json.removeValue(forKey: "disabledCollections")
+        let old = try JSONDecoder().decode(TransitionSettingsStore.Stored.self, from: JSONSerialization.data(withJSONObject: json))
+        XCTAssertEqual(old.configuration, original)
+        stored.disabledCollections = [album.key, "not-a-collection"]
+        let restored = try JSONDecoder().decode(TransitionSettingsStore.Stored.self, from: JSONEncoder().encode(stored))
+        XCTAssertEqual(restored.configuration, original.withCollectionEnabled(album, false))
+        XCTAssertEqual(restored.configuration.withCollectionEnabled(album, true), original)
+    }
+
     func testPairBeatsCollectionBeatsGlobal() {
         let all = config(collection: .custom(albumSpec), pair: .custom(pairSpec))
         XCTAssertEqual(pairSpec, resolve(all).spec)

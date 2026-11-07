@@ -80,7 +80,9 @@ struct AlbumDetailView: View {
                         AlbumArtworkView(albumId: albumId, maxPixels: 1200)
                     }
                     TransitionStudioRow(collection: origin).padding(.bottom, Spacing.sm)
-                    SongList(songs: songs, origin: origin, showTrackNumbers: true)
+                    CollectionTransitionTrackList(collection: origin,
+                                                  tracks: songs.map { StudioTrack(song: $0, occurrence: TrackOccurrence($0.id)) },
+                                                  showTrackNumbers: true)
                 }
             } else {
                 EmptyState(message: "This album is no longer in your library.", systemImage: "square.stack")
@@ -242,11 +244,9 @@ struct PlaylistDetailView: View {
                     if songs.isEmpty {
                         EmptyState(message: "This playlist is empty. Add songs from any song's menu.", systemImage: "music.note.list")
                     }
-                    ForEach(Array(entries.enumerated()), id: \.element.position) { index, entry in
-                        TrackRow(song: entry.song, isCurrent: entry.song.id == player.state.currentSong?.id, actions: songActions) {
-                            actions.play(songs, startIndex: index, origin: origin, slots: slots)
-                        }
-                    }
+                    CollectionTransitionTrackList(collection: origin,
+                        tracks: entries.map { StudioTrack(song: $0.song, occurrence: TrackOccurrence($0.song.id, $0.position)) },
+                        songActions: songActions)
                 }
             } else {
                 EmptyState(message: "This playlist no longer exists.", systemImage: "music.note.list")

@@ -97,6 +97,9 @@ jobs:
             -only-testing:ErhuTests/TransferNetworkTests \
             -only-testing:ErhuTests/RadioHeroTests \
             -only-testing:ErhuTests/ArtworkThemeScopeTests \
+            -only-testing:ErhuTests/ArtworkUpgradeTests \
+            -only-testing:ErhuTests/TransitionResolverTests \
+            -only-testing:ErhuTests/TransitionEditingTests \
             -only-testing:ErhuTests/BulkMetadataSelectionTests \
             -only-testing:ErhuTests/BulkMetadataApplyTests \
             -only-testing:ErhuTests/MetadataEnrichmentTests \

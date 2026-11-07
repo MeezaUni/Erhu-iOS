@@ -33,7 +33,9 @@ compression tools exist only in `with-animated-art`.
 - Artwork Fetcher has **Find same image in higher resolution** in both tabs. It checks
   existing images in a cancellable batch, compares whole-image colours/edges and
   lists likely matches with a meaningful resolution increase after the save limit
-  (1440 px). Full preview and Apply remain required. Different covers/portraits are
+  (1440 px). Review shows the actual current and replacement images, both resolutions and the
+  replacement source before **Use higher-resolution image** / **Keep current**. Changed originals
+  or provider images must be reviewed again. Explicit Apply remains required. Different covers/portraits are
   excluded conservatively; the individual picker remains available.
 - Transition preview publishes actual rendered positions to the waveform overlay;
   it never advances the playhead from elapsed wall-clock time alone.
