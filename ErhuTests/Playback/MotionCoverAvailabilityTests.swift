@@ -48,6 +48,62 @@ final class MotionCoverAvailabilityTests: XCTestCase {
     }
 
     @MainActor
+    func testCheckpointSurvivesRelaunchAndFindsNewAndRenamedAlbums() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        let history = AvailabilityHistory()
+        let first = MotionCoverAvailability(pause: .zero, checkpointURL: file) { album in try await history.find(album) }
+        first.check(albums)
+        for _ in 0..<200 {
+            if !first.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertEqual(first.checked, 1)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: file.path))
+        let reopened = MotionCoverAvailability(pause: .zero, checkpointURL: file) { album in try await history.find(album) }
+        XCTAssertTrue(reopened.hasChecked)
+        XCTAssertEqual(reopened.checked, 1)
+        let added = Album(id: 4, title: "New album", artist: "Artist", artistId: 1, songCount: 1, year: 2026)
+        XCTAssertEqual(reopened.remaining(in: albums + [added]), 3)
+        reopened.check(Array((albums + [added]).reversed()))
+        for _ in 0..<200 {
+            if !reopened.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertEqual(reopened.total, 4)
+        XCTAssertEqual(reopened.checked, 4)
+        let calls = await history.requests
+        XCTAssertEqual(calls, [1, 2, 4, 3, 2], "Completed negative results survive restarts and reordering")
+        var renamed = albums[0]; renamed.title = "New edition"
+        XCTAssertEqual(reopened.remaining(in: [renamed] + Array(albums.dropFirst()) + [added]), 1)
+    }
+
+    @MainActor
+    func testFoundCoversRestoreButExpiredDownloadURLsAreRefreshed() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        let scanner = MotionCoverAvailability(pause: .zero, checkpointURL: file) { album in
+            AppleMotionMatch(catalogId: 22, title: album.title, artist: album.artist, storefront: "us", master: URL(string: "https://example.com/cover.m3u8")!)
+        }
+        scanner.check([albums[0]])
+        for _ in 0..<100 {
+            if !scanner.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertNotNil(scanner.freshMatch(for: albums[0]))
+        let restored = MotionCoverAvailability(checkpointURL: file) { _ in nil }
+        XCTAssertEqual(restored.match(for: albums[0]), scanner.match(for: albums[0]))
+        XCTAssertNil(restored.freshMatch(for: albums[0]), "A saved availability result must not reuse an expired stream URL for downloading")
+        XCTAssertEqual(restored.remaining(in: [albums[0]]), 0)
+        restored.check([albums[0]], restart: true)
+        for _ in 0..<100 {
+            if !restored.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertNil(restored.match(for: albums[0]))
+    }
+
+    @MainActor
     func testCancellationPreventsLateResultsAndStopsFurtherLookups() async throws {
         let gate = AvailabilityGate()
         let scanner = MotionCoverAvailability(pause: .zero) { album in

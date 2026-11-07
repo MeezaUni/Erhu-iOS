@@ -27,10 +27,10 @@ struct AnimatedArtworkView: View {
                     Text("Checked \(store.availability.checked) of \(store.availability.total) albums").font(.caption)
                     Button("Stop checking", role: .cancel) { store.availability.cancel() }
                 } else {
-                    Button(store.availability.hasChecked && store.availability.checked < store.availability.total
-                           ? "Continue checking albums" : "Check all albums for motion covers") { store.availability.check(library.albums) }
+                    Button(store.availability.hasChecked && store.availability.remaining(in: library.albums) > 0
+                           ? "Continue checking albums" : store.availability.hasChecked ? "Check for new albums" : "Check all albums for motion covers") { store.availability.check(library.albums) }
                         .disabled(store.availability.checking || store.isBusy)
-                    if store.availability.hasChecked && store.availability.checked < store.availability.total {
+                    if store.availability.hasChecked {
                         Button("Start a new check") { store.availability.check(library.albums, restart: true) }
                             .font(.footnote)
                             .disabled(store.isBusy)
@@ -38,7 +38,7 @@ struct AnimatedArtworkView: View {
                 }
                 if let message = store.availability.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
             } footer: {
-                Text("Checks availability only. Videos download when you tap Download.")
+                Text("Progress is saved after every album, including albums without motion covers. Continue skips completed albums and includes new ones. Videos download when you tap Download.")
             }.toolSectionAppearance()
             downloadSection
             Section("Lock Screen") {

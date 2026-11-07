@@ -47,7 +47,7 @@ final class AnimatedArtworkStore {
     init() {
         let service = AppleMotionService()
         self.service = service
-        availability = MotionCoverAvailability { album in
+        availability = MotionCoverAvailability(checkpointURL: LibraryPaths.supportFolder.appendingPathComponent("motion-scan-progress.json")) { album in
             try await service.find(album: album.title, artist: album.artist, country: Locale.current.region?.identifier ?? "us")
         }
         saved = persistence.load() ?? Saved()
@@ -116,7 +116,7 @@ final class AnimatedArtworkStore {
             try Task.checkCancellation()
             let country = Locale.current.region?.identifier ?? "us"
             let found: AppleMotionMatch?
-            if !retrying, let cached = availability.match(for: album) { found = cached }
+            if !retrying, let cached = availability.freshMatch(for: album) { found = cached }
             else { found = try await service.find(album: album.title, artist: album.artist, country: country) }
             try Task.checkCancellation()
             guard let match = found else {

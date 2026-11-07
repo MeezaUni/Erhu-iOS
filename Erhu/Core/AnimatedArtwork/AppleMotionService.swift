@@ -1,7 +1,7 @@
 import Foundation
 import AVFoundation
 
-struct AppleMotionMatch: Equatable, Sendable {
+struct AppleMotionMatch: Codable, Equatable, Sendable {
     let catalogId: Int64
     let title: String
     let artist: String
