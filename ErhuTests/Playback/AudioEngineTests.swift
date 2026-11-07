@@ -3,6 +3,43 @@ import XCTest
 @testable import Erhu
 
 final class AudioEngineTests: XCTestCase {
+    /// Production playback/preview activates its requested route before opening the I/O node.
+    @MainActor
+    private func readyEngine() async throws -> AudioEngine {
+        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+        try AVAudioSession.sharedInstance().setActive(true)
+        let engine = AudioEngine()
+        await engine.setUp()
+        return engine
+    }
+
+    @MainActor
+    func testIdleEngineControlsDoNotImplicitlyOpenAudioOutput() {
+        let engine = AudioEngine()
+        engine.pause()
+        engine.stopAll()
+        engine.cancelCrossfade()
+        XCTAssertFalse(engine.isReady)
+        XCTAssertNil(engine.outputFormat)
+        XCTAssertEqual(engine.outputSampleRate, 0)
+        XCTAssertThrowsError(try engine.resume()) { error in
+            guard case AudioEngine.EngineError.notReady = error else { return XCTFail("Unexpected error: \(error)") }
+        }
+    }
+
+    @MainActor
+    func testRestoringThePlayerDoesNotPrepareAnAudioOutputForBrowsing() async throws {
+        let database = try LibraryDatabase.inMemory()
+        let controller = PlayerController(database: database, transitions: TransitionSettingsStore())
+        for _ in 0..<200 {
+            if controller.restoreFinished { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertTrue(controller.restoreFinished)
+        XCTAssertFalse(controller.engine.isReady)
+        XCTAssertNil(controller.engine.outputFormat)
+    }
+
     @MainActor
     func testPausedAlternatingFormatsReuseTheirDecksAndResumeTheSelectedTrack() async throws {
         let urls = (0..<2).map { _ in FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".caf") }
@@ -17,8 +54,7 @@ final class AudioEngineTests: XCTestCase {
             let file = try AVAudioFile(forWriting: urls[index], settings: format.settings)
             try file.write(from: buffer)
         }
-        let engine = AudioEngine()
-        await engine.setUp()
+        let engine = try await readyEngine()
         defer { engine.stopAll() }
         await engine.warmFiles(urls)
         let first = UUID(), second = UUID()
@@ -70,8 +106,7 @@ final class AudioEngineTests: XCTestCase {
         spec.outgoingCutMs = 500
         spec.incomingStartMs = 500
         let timing = try XCTUnwrap(PairTransitionTiming(spec: spec, outgoingMs: 3000, incomingMs: 3000))
-        let engine = AudioEngine()
-        await engine.setUp()
+        let engine = try await readyEngine()
         defer { engine.stopAll() }
         try engine.previewTransition(outgoing: url, incoming: incomingURL, timing: timing)
         let out = try XCTUnwrap(engine.other.segments.first)
@@ -125,8 +160,7 @@ final class AudioEngineTests: XCTestCase {
             for frame in 0..<Int(buffer.frameLength) { buffer.floatChannelData![channel][frame] = 0.1 }
         }
         do { let file = try AVAudioFile(forWriting: url, settings: format.settings); try file.write(from: buffer) }
-        let engine = AudioEngine()
-        await engine.setUp()
+        let engine = try await readyEngine()
         defer { engine.stopAll() }
         let firstID = UUID(), secondID = UUID()
         try engine.play(entryId: firstID, url: url, positionMs: 0, startPlaying: true)
@@ -160,8 +194,7 @@ final class AudioEngineTests: XCTestCase {
             let file = try AVAudioFile(forWriting: url, settings: format.settings)
             try file.write(from: buffer)
         }
-        let engine = AudioEngine()
-        await engine.setUp()
+        let engine = try await readyEngine()
         defer { engine.stopAll() }
         let id = UUID()
         try engine.play(entryId: id, url: url, positionMs: 1_000, startPlaying: true)

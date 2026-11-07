@@ -214,6 +214,7 @@ final class AudioEngine {
     }
 
     func pause() {
+        guard isReady else { return }
         for deck in decks where deck.player.isPlaying {
             deck.pausedFrame = playedFrames(deck)
             deck.player.pause()
@@ -224,12 +225,14 @@ final class AudioEngine {
 
     /// Resumes the active deck (and an outgoing crossfade deck that is still sounding).
     func resume() throws {
+        guard isReady else { throw EngineError.notReady }
         try startEngineIfNeeded()
         if active.segments.isEmpty == false { active.player.play() }
         if other.stage.isEngaged, !other.stage.isSilent, !other.segments.isEmpty { other.player.play() }
     }
 
     func stopAll() {
+        guard isReady else { return }
         previewSchedule = nil
         stop(other)
         stop(active)
@@ -346,6 +349,7 @@ final class AudioEngine {
 
     /// Abandons a running crossfade: the outgoing deck stops, the incoming one plays unshaped.
     func cancelCrossfade() {
+        guard isReady else { return }
         stop(other)
         other.stage.cancel()
         active.stage.cancel()
@@ -387,7 +391,7 @@ final class AudioEngine {
         return session.outputLatency + session.ioBufferDuration
     }
 
-    var outputSampleRate: Double { engine.outputNode.outputFormat(forBus: 0).sampleRate }
+    var outputSampleRate: Double { isReady ? engine.outputNode.outputFormat(forBus: 0).sampleRate : 0 }
 
     // MARK: Internals
 
