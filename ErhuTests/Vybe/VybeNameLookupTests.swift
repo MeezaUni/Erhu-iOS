@@ -45,6 +45,14 @@ final class VybeNameLookupTests: XCTestCase {
         VybeDiscovery(embedder: NameTestEmbedder(), vectors: NameTestVectors(ids: songs.map(\.songId)), names: VybeNameIndex(songs: songs))
     }
 
+    func testTyposInQualifiedArtistAndTitleStayInsideThatArtistsSongs() {
+        for query in ["like boudn 2 by Kanyee", "like Kanye boudn 2", "like blcak skinhead by Kanyee"] {
+            guard case .named(.title, _, let ids, _) = VybeQueryRouter.route(query, songs: library) else { return XCTFail(query) }
+            XCTAssertEqual(ids, query.contains("blcak") ? [2] : [1], query)
+        }
+        guard case .unknownName = VybeQueryRouter.route("like boudn 3 by Kanyee", songs: library) else { return XCTFail("Numeric titles must never be corrected to another song") }
+    }
+
     func testLikeBoundUsesBound2AsItsSeedWithoutEmbeddingTheName() throws {
         guard case .named(.title, let name, let ids, let similar) = try discovery(library).search("like bound", songs: library, limit: 5) else {
             return XCTFail("A shortened library title must not become an unknown-name description")

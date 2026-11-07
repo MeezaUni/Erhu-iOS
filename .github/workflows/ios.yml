@@ -112,6 +112,8 @@ jobs:
             -only-testing:ErhuTests/DiscogsGenresTests \
             -only-testing:ErhuTests/MotionCoverAvailabilityTests \
             -only-testing:ErhuTests/ReleaseAndDiscoveryTests \
+            -only-testing:ErhuTests/LibrarySearchTests \
+            -only-testing:ErhuTests/VybeNameLookupTests \
             -only-testing:ErhuTests/MetadataCompletenessTests \
             -only-testing:ErhuTests/LibraryBrowseTests \
             -only-testing:ErhuTests/LibraryBrowseHistoryTests \

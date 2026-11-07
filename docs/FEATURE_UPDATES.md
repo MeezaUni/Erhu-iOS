@@ -160,3 +160,9 @@ iOS Actions artifact for current development code.
 ### Motion scan progress (animated variant)
 
 Availability checks save an atomic checkpoint in Application Support after each album, including negative results. Reopening restores completed identities and available covers. Continue compares album IDs and exact title/artist values, so reordered albums are skipped and new/retagged albums are checked; removed albums are pruned on resume. Start a new check explicitly clears the checkpoint. Restored streaming addresses are refreshed before downloading, because catalogue URLs can expire. A failed checkpoint write pauses the scan with an error rather than promising progress was saved.
+
+## Library search and pull-down search
+
+Unicode names stay intact and empty normalized strings never count as matches. Search ranks exact names before prefixes and bounded typo correction (including swapped adjacent letters); numbers remain exact. An album query returns matching albums and their own tracklists; an artist query returns matching artists and their credited songs/albums; a song query returns matching songs plus their albums without expanding unrelated album tracks. Exact artist/album names lead ambiguous same-name song matches. A supplied artist qualifier narrows a title query. Processing is cancellable and runs off the main thread.
+
+Global and section search share a floating Liquid Glass field (material fallback before iOS 26), a clear-text control and a circular close X. Section headers use the page background instead of a separate bar. Pull once to reveal, pull again or use X to close and clear the local query. Artists have pull-down search without sorting/filter controls. VYBE's existing spelling correction now also handles misspelled artist qualifiers and short words adjacent to a longer typo, preserving its ambiguity choices and exact numeric matching.

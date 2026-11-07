@@ -1,0 +1,66 @@
+import Foundation
+
+/// Results belong to the entity named by the query; related rows come from library relationships.
+struct LibrarySearchResults: Sendable {
+    var artists: [Artist] = []
+    var albums: [Album] = []
+    var songs: [Song] = []
+}
+
+enum LibrarySearch {
+    static func results(_ query: String, songs: [Song], albums: [Album], artists: [Artist]) -> LibrarySearchResults {
+        guard !SearchNormalizer.normalize(query).isEmpty else { return LibrarySearchResults() }
+        let tokens = SearchNormalizer.normalizeWords(query).split(separator: " ").map(String.init)
+        func qualifiedScore(_ name: String, _ artist: String) -> Int {
+            guard tokens.count >= 2, tokens.indices.contains(where: { index in
+                SearchNormalizer.matches(name, tokens[index]) && tokens.indices.contains {
+                    $0 != index && SearchNormalizer.matches(artist, tokens[$0])
+                }
+            }) else { return 0 }
+            return SearchNormalizer.score(name + " " + artist, query)
+        }
+        func scoreAlbum(_ album: Album) -> Int {
+            let name = SearchNormalizer.score(album.title, query)
+            let base = album.title.replacingOccurrences(of: #"\s*[(\[][^)\]]*(?:deluxe|expanded|anniversary|edition)[^)\]]*[)\]]"#, with: "", options: [.regularExpression, .caseInsensitive])
+            let edition = base != album.title && SearchNormalizer.score(base, query) == 100 ? 98 : 0
+            let qualified = qualifiedScore(album.title, album.artist)
+            return max(name, edition, qualified == 100 ? 97 : qualified == 75 ? 85 : qualified == 60 ? 55 : 0)
+        }
+        let rankedArtists = artists.map { ($0, SearchNormalizer.score($0.name, query)) }.filter { $0.1 > 0 }.sorted { $0.1 == $1.1 ? $0.0.id < $1.0.id : $0.1 > $1.1 }
+        let rankedAlbums = albums.map { ($0, scoreAlbum($0)) }.filter { $0.1 > 0 }.sorted { $0.1 == $1.1 ? $0.0.id < $1.0.id : $0.1 > $1.1 }
+        let rankedSongs = songs.map { song -> (Song, Int) in
+            let direct = SearchNormalizer.score(song.title, query)
+            let qualified = qualifiedScore(song.title, song.artist)
+            return (song, max(direct, qualified == 100 ? 98 : qualified == 75 ? 88 : qualified == 60 ? 55 : 0))
+        }.filter { $0.1 > 0 }.sorted { $0.1 == $1.1 ? $0.0.id < $1.0.id : $0.1 > $1.1 }
+        let artistScore = rankedArtists.first?.1 ?? 0, albumScore = rankedAlbums.first?.1 ?? 0, songScore = rankedSongs.first?.1 ?? 0
+        guard max(artistScore, albumScore, songScore) > 0 else { return LibrarySearchResults() }
+        func ordered(_ songs: [Song]) -> [Song] {
+            songs.sorted {
+                if $0.albumId != $1.albumId { return $0.albumId < $1.albumId }
+                if $0.discNumber != $1.discNumber { return $0.discNumber < $1.discNumber }
+                if $0.trackNumber != $1.trackNumber { return $0.trackNumber < $1.trackNumber }
+                return $0.id < $1.id
+            }
+        }
+        // Exact artist names, then exact album names (including a marked deluxe edition).
+        // A song-title match otherwise supplies its albums without expanding to their other songs.
+        if artistScore == 100 || (albumScore < 98 && artistScore >= max(albumScore, songScore)) {
+            let found = rankedArtists.filter { $0.1 == artistScore }.map { $0.0 }
+            let ids = Set(found.map(\.id)), names = Set(found.map { SearchNormalizer.normalize($0.name) })
+            let related = songs.filter { song in
+                ids.contains(song.artistId) || MusicQueryIntent.artists(song.artist).contains { names.contains(SearchNormalizer.normalize($0)) }
+            }
+            let albumIDs = Set(related.map(\.albumId))
+            return LibrarySearchResults(artists: found, albums: albums.filter { albumIDs.contains($0.id) }, songs: ordered(related))
+        }
+        if albumScore >= 98 || albumScore >= songScore {
+            let found = rankedAlbums.filter { $0.1 == albumScore }.map { $0.0 }
+            let ids = Set(found.map(\.id))
+            return LibrarySearchResults(albums: found, songs: ordered(songs.filter { ids.contains($0.albumId) }))
+        }
+        let found = rankedSongs.filter { $0.1 == songScore }.map { $0.0 }
+        let ids = Set(found.map(\.albumId))
+        return LibrarySearchResults(albums: albums.filter { ids.contains($0.id) }, songs: found)
+    }
+}
