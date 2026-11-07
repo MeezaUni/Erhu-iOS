@@ -62,6 +62,10 @@ struct TransitionEditorView: View {
                 Text("Automatic crossfades are off in Transition Studio. Preview is available; enable crossfades there to hear saved transitions in your queue.")
                     .font(.caption2).foregroundStyle(palette.onSurfaceVariant)
             }
+            if transitions.config.disabledCollections.contains(pair.key.collection) {
+                Text("Transitions are paused for this \(noun). Enable them on its page to hear saved transitions during playback.")
+                    .font(.caption2).foregroundStyle(palette.onSurfaceVariant)
+            }
         }
         .popover(isPresented: $showsBassControls) { bassControls(current) }
     }

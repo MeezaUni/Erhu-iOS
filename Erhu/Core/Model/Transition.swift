@@ -558,9 +558,26 @@ struct TransitionConfig: Equatable {
     var global = GlobalTransitionSettings()
     var collections: [CollectionRef: TransitionChoice] = [:]
     var pairs: [TransitionPairKey: TransitionChoice] = [:]
+    /// A collection can pause all transitions without discarding its default or pair edits.
+    var disabledCollections: Set<CollectionRef> = []
 
     func collection(_ ref: CollectionRef) -> TransitionChoice { collections[ref] ?? .inherit }
     func pair(_ key: TransitionPairKey) -> TransitionChoice { pairs[key] ?? .inherit }
+
+    func collectionEnabled(_ ref: CollectionRef) -> Bool {
+        guard !disabledCollections.contains(ref) else { return false }
+        return collection(ref).specOrNil != nil
+            || (collection(ref) == .inherit && global.defaultChoice.specOrNil != nil)
+            || pairs.contains { $0.key.collection == ref && $0.value.specOrNil != nil }
+    }
+
+    func withCollectionEnabled(_ ref: CollectionRef, _ enabled: Bool) -> TransitionConfig {
+        var next = self
+        if !enabled { next.disabledCollections.insert(ref); return next }
+        next.disabledCollections.remove(ref)
+        if !next.collectionEnabled(ref) { next.collections[ref] = .custom(TransitionSpec()) }
+        return next
+    }
 }
 
 /// Which level decided a boundary.
@@ -585,6 +602,7 @@ enum TransitionResolver {
         guard config.global.masterEnabled else { return ResolvedTransition(spec: nil, source: .masterOff) }
         if let outgoing, let incoming, outgoing.collection == incoming.collection {
             let collection = outgoing.collection
+            guard !config.disabledCollections.contains(collection) else { return ResolvedTransition(spec: nil, source: .collection) }
             let pair = config.pair(TransitionPairKey(collection: collection, from: outgoing.occurrence, to: incoming.occurrence))
             if pair != .inherit { return ResolvedTransition(spec: pair.specOrNil, source: .pair) }
             let own = config.collection(collection)
@@ -595,7 +613,7 @@ enum TransitionResolver {
 
     /// What a collection's pairs inherit: its own choice, or the global default.
     static func collectionDefault(_ config: TransitionConfig, collection: CollectionRef) -> TransitionSpec? {
-        guard config.global.masterEnabled else { return nil }
+        guard config.global.masterEnabled, !config.disabledCollections.contains(collection) else { return nil }
         let own = config.collection(collection)
         return own == .inherit ? config.global.defaultChoice.specOrNil : own.specOrNil
     }

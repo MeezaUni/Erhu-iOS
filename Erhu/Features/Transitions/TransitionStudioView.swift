@@ -20,8 +20,9 @@ struct TransitionStudioRow: View {
         let config = transitions.config
         let choice = config.collection(collection)
         let custom = config.pairs.keys.filter { $0.collection == collection }.count
-        Button { router.open(.transitionStudio(collection)) } label: {
-            HStack(spacing: Spacing.md) {
+        HStack(spacing: Spacing.sm) {
+            Button { router.open(.transitionStudio(collection)) } label: {
+              HStack(spacing: Spacing.md) {
                 Image(systemName: "slider.horizontal.3").foregroundStyle(palette.onSurfaceVariant)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Transition Studio").font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface)
@@ -29,17 +30,26 @@ struct TransitionStudioRow: View {
                         .font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(palette.onSurfaceVariant)
+              }
+              .contentShape(Rectangle())
             }
-            .padding(.horizontal, Spacing.lg)
-            .padding(.vertical, Spacing.sm)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens Transition Studio")
+            Toggle("Enable transitions for this \(noun(collection))", isOn: Binding(
+                get: { transitions.config.collectionEnabled(collection) },
+                set: { transitions.setCollectionEnabled(collection, $0) }))
+                .labelsHidden().tint(AutomationColors.volume)
+            Button { router.open(.transitionStudio(collection)) } label: {
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+                    .foregroundStyle(palette.onSurfaceVariant).frame(width: 32, height: 44)
+            }.buttonStyle(.plain).accessibilityHidden(true)
         }
-        .buttonStyle(.plain)
-        .accessibilityHint("Opens Transition Studio")
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.sm)
     }
 
     private func summary(_ config: TransitionConfig, _ choice: TransitionChoice) -> String {
+        if !config.collectionEnabled(collection) { return "Off for this \(noun(collection))" }
         if !config.global.masterEnabled { return "Automatic crossfades are off" }
         switch choice {
         case .off: return "Off for this \(noun(collection))"
@@ -137,6 +147,7 @@ struct TransitionStudioView: View {
                         .font(.caption).foregroundStyle(palette.onSurfaceVariant)
                 }
             }
+            .tint(AutomationColors.volume)
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Default for all music").font(.subheadline)
@@ -152,7 +163,14 @@ struct TransitionStudioView: View {
         let choice = config.collection(collection)
         let isPlaying = player.state.currentCollection == collection
         return StudioPanel {
-            Text("This \(noun(collection))").font(.subheadline.weight(.semibold))
+            Toggle("This \(noun(collection))", isOn: Binding(
+                get: { transitions.config.collectionEnabled(collection) },
+                set: { transitions.setCollectionEnabled(collection, $0) }))
+                .font(.subheadline.weight(.semibold)).tint(AutomationColors.volume)
+            if config.disabledCollections.contains(collection) {
+                Text("Transitions are paused for this \(noun(collection)). Saved defaults and pair edits are kept.")
+                    .font(.caption).foregroundStyle(palette.onSurfaceVariant)
+            }
             Picker("This \(noun(collection))", selection: Binding(get: { segment(choice) }, set: { picked in
                 switch picked {
                 case 0: transitions.setCollection(collection, .inherit)

@@ -5,11 +5,11 @@ struct ArtworkUpgradeView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(ArtworkFetcherStore.self) private var fetcher
     @State private var store = ArtworkUpgradeStore()
-    @State private var preview: ArtworkPreview?
-    @State private var selected: ArtworkUpgrade?
+    @State private var review: ArtworkUpgradeReview?
     @State private var loading = false
     @State private var saving = false
     @State private var message: String?
+    @State private var reviewError: String?
 
     var body: some View {
         List {
@@ -25,6 +25,7 @@ struct ArtworkUpgradeView: View {
                         message = nil
                         store.scan(kind, library: library, search: fetcher.search)
                     }
+                    .disabled(loading || saving)
                     if store.finished {
                         Text("Checked \(store.checked). \(store.results.count) upgrade\(store.results.count == 1 ? "" : "s") to review. Some sources may have no matching larger image.")
                             .font(.caption).foregroundStyle(.secondary)
@@ -58,20 +59,9 @@ struct ArtworkUpgradeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .overlay { if loading { ProgressView("Loading full image…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12)) } }
         .onDisappear { store.cancel() }
-        .sheet(item: $preview) { item in
-            ArtworkPreviewView(preview: item, saving: saving) {
-                Task {
-                    guard let result = selected, let candidate = item.candidate else { return }
-                    saving = true
-                    let success: Bool
-                    switch result.target {
-                    case .album(let album): success = await fetcher.applyCover(candidate, image: item.data, to: album)
-                    case .artist(let artist): success = await fetcher.applyPhoto(candidate, image: item.data, to: artist)
-                    }
-                    saving = false
-                    if success { store.remove(result); preview = nil; message = "Higher-resolution artwork saved." }
-                    else { preview = nil; message = "Couldn’t save the artwork. Try again." }
-                }
+        .sheet(item: $review) { item in
+            ArtworkUpgradeReviewView(review: item, saving: saving, error: reviewError) {
+                Task { await apply(item) }
             }
         }
     }
@@ -86,8 +76,31 @@ struct ArtworkUpgradeView: View {
                 message = "The provider’s image changed. Search again to review the latest match."
                 return
             }
-            selected = result
-            preview = ArtworkPreview(candidate: result.candidate, data: data)
+            guard let current = await ArtworkUpgradeStore.currentArtwork(result.target, library: library),
+                  let comparison = ArtworkUpgradeReview(upgrade: result, original: current, replacement: data) else {
+                message = "The current artwork or replacement changed. Search again to compare the latest images."
+                return
+            }
+            reviewError = nil
+            review = comparison
         } catch { message = "The full image couldn’t be loaded. Please try again." }
+    }
+
+    private func apply(_ item: ArtworkUpgradeReview) async {
+        guard !saving else { return }
+        saving = true
+        reviewError = nil
+        defer { saving = false }
+        guard item.matchesCurrentArtwork(await ArtworkUpgradeStore.currentArtwork(item.upgrade.target, library: library)) else {
+            reviewError = "Your current artwork changed after opening this comparison. Keep current, then search again."
+            return
+        }
+        let success: Bool
+        switch item.upgrade.target {
+        case .album(let album): success = await fetcher.applyCover(item.upgrade.candidate, image: item.replacement, to: album)
+        case .artist(let artist): success = await fetcher.applyPhoto(item.upgrade.candidate, image: item.replacement, to: artist)
+        }
+        if success { store.remove(item.upgrade); review = nil; message = "Higher-resolution artwork saved." }
+        else { reviewError = "Couldn’t save the artwork. Try again." }
     }
 }
