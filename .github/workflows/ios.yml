@@ -118,6 +118,10 @@ jobs:
             -only-testing:ErhuTests/LibraryBrowseTests \
             -only-testing:ErhuTests/LibraryBrowseHistoryTests \
             -only-testing:ErhuTests/LibraryBrowseViewTests \
+            -only-testing:ErhuTests/FeaturedSetlistsTests \
+            -only-testing:ErhuTests/PlayerDragStateTests \
+            -only-testing:ErhuTests/LibraryChromeTests \
+            -only-testing:ErhuInteractionTests -parallel-testing-enabled NO \
             -only-testing:ErhuTests/LibraryModelBuilderTests "${MOTION_TESTS[@]}" > build/regression-tests.log 2>&1; then
             python3 - <<'PYREGRESSION'
           import os, re
@@ -136,7 +140,7 @@ jobs:
         run: |
           set -o pipefail
           if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
-            -destination "id=$SIMULATOR_ID" -resultBundlePath build/TestResults.xcresult CODE_SIGNING_ALLOWED=NO \
+            -destination "id=$SIMULATOR_ID" -resultBundlePath build/TestResults.xcresult CODE_SIGNING_ALLOWED=NO -skip-testing:ErhuInteractionTests \
             > build/tests.log 2>&1; then
             python3 - <<'PY'
           import json

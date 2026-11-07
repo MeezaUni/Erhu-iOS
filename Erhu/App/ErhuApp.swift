@@ -6,7 +6,7 @@ struct ErhuApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ThemedRoot { RootView() }
+            ThemedRoot { appContent }
                 .environment(services.library)
                 .environment(services.player)
                 .environment(services.actions)
@@ -25,4 +25,16 @@ struct ErhuApp: App {
                 .preferredColorScheme(services.settings.colorScheme)
         }
     }
+
+    @ViewBuilder private var appContent: some View {
+        #if DEBUG
+        if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--erhu-interaction-probe=") }),
+           let page = argument.split(separator: "=").last {
+            InteractionProbeView(page: String(page))
+        } else { RootView() }
+        #else
+        RootView()
+        #endif
+    }
+
 }

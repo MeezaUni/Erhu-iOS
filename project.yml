@@ -42,9 +42,13 @@ targets:
         INFOPLIST_FILE: Support/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DEBUG"
     scheme:
       testTargets:
         - ErhuTests
+        - ErhuInteractionTests
   ErhuTests:
     type: bundle.unit-test
     platform: iOS
@@ -54,3 +58,14 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+
+  ErhuInteractionTests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [ErhuInteractionTests]
+    dependencies:
+      - target: Erhu
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Erhu

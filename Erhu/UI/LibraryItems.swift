@@ -268,14 +268,19 @@ struct SectionHeading: View {
 struct Shelf<Content: View>: View {
     let title: String
     var onMore: (() -> Void)?
+    var lazy = true
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeading(title: title, onMore: onMore)
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: Spacing.md) { content() }
-                    .padding(.horizontal, Spacing.gutter)
+                Group {
+                    if lazy { LazyHStack(alignment: .top, spacing: Spacing.md) { content() } }
+                    else { HStack(alignment: .top, spacing: Spacing.md) { content() } }
+                }
+                .padding(.horizontal, Spacing.gutter)
+                .padding(.vertical, Spacing.xs)
             }
         }
     }
