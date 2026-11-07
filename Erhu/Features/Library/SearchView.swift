@@ -35,6 +35,7 @@ final class SearchStore {
 
     private let library: LibraryStore
     @ObservationIgnored private var pending: Task<Void, Never>?
+    @ObservationIgnored private var generation: UInt64 = 0
 
     init(library: LibraryStore) { self.library = library }
 
@@ -42,24 +43,20 @@ final class SearchStore {
         pending?.cancel()
         pending = Task {
             try? await Task.sleep(for: .milliseconds(150))
-            if !Task.isCancelled { run() }
+            if !Task.isCancelled { await run() }
         }
     }
 
-    func run() {
+    func run() async {
+        generation &+= 1
+        let request = generation
         let text = query.trimmed
-        if text.isEmpty {
-            songs = []
-            albums = []
-            artists = []
-            return
-        }
-        songs = library.songs.filter {
-            SearchNormalizer.matches($0.title, text) || SearchNormalizer.matches($0.artist, text) || SearchNormalizer.matches($0.album, text)
-        }
-        albums = Array(library.albums.filter { SearchNormalizer.matches($0.title, text) || SearchNormalizer.matches($0.artist, text) }
-            .prefix(Self.sectionLimit))
-        artists = Array(library.artists.filter { SearchNormalizer.matches($0.name, text) }.prefix(Self.sectionLimit))
+        let songs = library.songs, albums = library.albums, artists = library.artists
+        let result = await Task.detached(priority: .userInitiated) {
+            LibrarySearch.results(text, songs: songs, albums: albums, artists: artists)
+        }.value
+        guard !Task.isCancelled, request == generation, text == query.trimmed else { return }
+        self.songs = result.songs; self.albums = result.albums; self.artists = result.artists
     }
 
     func remember(_ item: RecentSearchItem) {
@@ -76,6 +73,7 @@ final class SearchStore {
 /// Search over the library: artists, albums and songs as you type, recent items before you do.
 struct SearchView: View {
     @Environment(SearchStore.self) private var search
+    @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
     @Environment(PlayerController.self) private var player
     @Environment(AppRouter.self) private var router
@@ -99,10 +97,13 @@ struct SearchView: View {
                 .padding(.bottom, Spacing.lg)
             }
             .scrollDismissesKeyboard(.interactively)
-            .searchable(text: $search.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Songs, albums, artists")
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { Button("Done") { dismiss() } }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                GlassSearchField(text: $search.query, prompt: "Songs, albums, artists", focused: $focused, close: { dismiss() })
+                    .padding(.horizontal, Spacing.gutter).padding(.vertical, Spacing.sm)
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .onAppear { focused = true }
+            .task(id: library.songs) { await search.run() }
             .modifier(ToolPageAppearance())
         }
     }

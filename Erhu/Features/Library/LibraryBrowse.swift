@@ -140,7 +140,7 @@ struct SectionSearch {
     func matches(_ fields: [String]) -> Bool {
         guard !tokens.isEmpty else { return true }
         let haystack = fields.map(Self.key).joined(separator: "\n")
-        return tokens.allSatisfy { haystack.contains($0) }
+        return SearchNormalizer.matches(haystack, tokens.joined(separator: " "))
     }
 }
 

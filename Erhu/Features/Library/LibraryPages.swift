@@ -118,24 +118,29 @@ struct LibraryShelfView: View {
     @Environment(PlayerController.self) private var player
     @Environment(AppRouter.self) private var router
 
+    @State private var query = ""
+    @State private var showsSearch = false
+
     var body: some View {
-        ScrollView {
+        LibraryBrowseScrollView(title: shelf.label, showsControls: false, query: $query, showsSearch: $showsSearch) {
+            EmptyView()
+        } content: {
             switch shelf {
             case .playlists:
                 LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
                     NewPlaylistTile { router.showsNewPlaylist = true }
-                    ForEach(library.playlists) { playlist in
+                    ForEach(library.playlists.filter { query.isBlank || SearchNormalizer.matches($0.name, query) }) { playlist in
                         PlaylistTile(playlist: playlist) { router.open(.playlist(playlist.id)) }
                     }
                 }
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.sm)
             case .favorites:
-                SongList(songs: library.favorites, emptyMessage: "No favorites yet. Tap the heart on any song to add it here.",
+                SongList(songs: library.favorites.filter { query.isBlank || SearchNormalizer.matches($0.title + " " + $0.artist + " " + $0.album, query) }, emptyMessage: "No favorites yet. Tap the heart on any song to add it here.",
                          emptyIcon: "heart", source: .favorites)
             case .artists:
                 LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
-                    ForEach(library.artists) { artist in
+                    ForEach(library.artists.filter { query.isBlank || SearchNormalizer.matches($0.name, query) }) { artist in
                         ArtistTile(artist: artist) { router.open(.artist(artist.id)) }
                     }
                 }
@@ -143,8 +148,7 @@ struct LibraryShelfView: View {
                 .padding(.vertical, Spacing.sm)
             }
         }
-        .tracksLibraryScrolling()
-        .navigationTitle(shelf.label)
+        .navigationTitle("")
     }
 }
 

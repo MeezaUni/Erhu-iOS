@@ -5,6 +5,7 @@ import UIKit
 struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
     let title: String
     var isTabRoot = false
+    var showsControls = true
     @Binding var query: String
     @Binding var showsSearch: Bool
     @ViewBuilder let controls: Controls
@@ -14,53 +15,36 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
 
     var body: some View {
         scroll
-            .modifier(RevealSectionSearch { revealSearch() })
+            .modifier(RevealSectionSearch {
+                if showsSearch { closeSearch() } else { revealSearch() }
+            })
             .scrollBounceBehavior(.always)
             .scrollDismissesKeyboard(.interactively)
             .tracksLibraryScrolling()
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .top, spacing: 0) {
-                VStack(spacing: 10) {
-                    if showsSearch {
-                        HStack(spacing: 10) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                                TextField("Search \(title.lowercased())", text: $query)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .focused($searchFocused)
-                                    .submitLabel(.search)
-                                    .onSubmit { searchFocused = false }
-                                    .accessibilityIdentifier("sectionSearchField")
-                                if !query.isEmpty {
-                                    Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
-                                        .foregroundStyle(.secondary).accessibilityLabel("Clear search")
+                if showsSearch || showsControls {
+                    VStack(spacing: 10) {
+                        if showsSearch {
+                            GlassSearchField(text: $query, prompt: "Search \(title.lowercased())", focused: $searchFocused,
+                                             close: { closeSearch() }, identifier: "sectionSearchField")
+                                .gesture(DragGesture(minimumDistance: 16).onEnded { value in
+                                    if value.translation.height > 24 { closeSearch() }
+                                })
+                        }
+                        if showsControls {
+                            HStack(alignment: .top, spacing: 10) {
+                                BrowseControlFlow { controls }
+                                if !showsSearch {
+                                    Button { revealSearch(); searchFocused = true } label: {
+                                        Image(systemName: "magnifyingglass").frame(width: 44, height: 44)
+                                    }.accessibilityLabel("Search \(title.lowercased())")
                                 }
                             }
-                            .padding(10)
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
-                            Button("Cancel") {
-                                searchFocused = false
-                                query = ""
-                                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { showsSearch = false }
-                            }
                         }
                     }
-                    HStack(alignment: .top, spacing: 10) {
-                        BrowseControlFlow { controls }
-                        Button {
-                            revealSearch()
-                            searchFocused = true
-                        } label: {
-                            Image(systemName: "magnifyingglass").frame(width: 44, height: 44)
-                        }
-                        .accessibilityLabel("Search \(title.lowercased())")
-                        .accessibilityHint("You can also pull down at the top to reveal search")
-                    }
+                    .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
                 }
-                .padding(.horizontal, Spacing.gutter)
-                .padding(.vertical, 8)
-                .background(.bar)
             }
     }
 
@@ -75,7 +59,7 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
     private var pageContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             if #unavailable(iOS 18.0) {
-                LegacySearchPullProbe { revealSearch() }.frame(height: 0)
+                LegacySearchPullProbe { if showsSearch { closeSearch() } else { revealSearch() } }.frame(height: 0)
             }
             Text(title).font(.largeTitle.bold())
                 .padding(.horizontal, Spacing.gutter)
@@ -84,6 +68,11 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 8)
+    }
+
+    private func closeSearch() {
+        searchFocused = false; query = ""
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { showsSearch = false }
     }
 
     private func revealSearch() {
@@ -164,13 +153,15 @@ enum LibrarySearchReveal {
 
 private struct RevealSectionSearch: ViewModifier {
     var reveal: () -> Void
+    @State private var triggered = false
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
             content.onScrollGeometryChange(for: Bool.self) { geometry in
                 LibrarySearchReveal.shouldReveal(offset: geometry.contentOffset.y, topInset: geometry.contentInsets.top)
             } action: { _, pulled in
-                if pulled { reveal() }
+                if pulled && !triggered { triggered = true; reveal() }
             }
+            .onScrollPhaseChange { _, phase in if phase == .idle { triggered = false } }
         } else {
             content
         }
@@ -187,6 +178,7 @@ private struct LegacySearchPullProbe: UIViewRepresentable {
     final class ProbeView: UIView {
         var reveal: (() -> Void)?
         var observation: NSKeyValueObservation?
+        private var triggered = false
         private weak var observedScroll: UIScrollView?
 
         override func didMoveToWindow() {
@@ -202,10 +194,14 @@ private struct LegacySearchPullProbe: UIViewRepresentable {
                     guard observedScroll !== scroll else { return }
                     observedScroll = scroll
                     observation = scroll.observe(\.contentOffset, options: [.new]) { [weak self] scroll, _ in
-                        guard scroll.isDragging,
+                        if !scroll.isDragging { self?.triggered = false; return }
+                        guard self?.triggered == false,
                               LibrarySearchReveal.shouldReveal(offset: scroll.contentOffset.y, topInset: scroll.adjustedContentInset.top)
                         else { return }
-                        DispatchQueue.main.async { [weak self] in self?.reveal?() }
+                        DispatchQueue.main.async { [weak self] in
+                            guard let self, !self.triggered else { return }
+                            self.triggered = true; self.reveal?()
+                        }
                     }
                     return
                 }

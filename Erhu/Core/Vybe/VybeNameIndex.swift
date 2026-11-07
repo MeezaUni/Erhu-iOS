@@ -150,8 +150,7 @@ struct VybeNameIndex {
         // Every query word must match the same name form, avoiding unrelated word fragments.
         // Short numeric tokens still match exactly (allowedEdits is zero for numbers).
         // They must not disable correction of a neighboring word, e.g. "boudn 2".
-        guard words.allSatisfy({ $0.count >= 3 || $0.allSatisfy(\.isNumber) }),
-              words.contains(where: { $0.count >= 4 }) else { return [] }
+        guard words.contains(where: { $0.count >= 4 }) else { return [] }
         var fuzzy: Set<Int>?
         for word in words {
             var ids = postings[word] ?? []
@@ -176,6 +175,8 @@ struct VybeNameIndex {
                     guard words.indices.allSatisfy({ offset in
                         let value = query[start + offset], word = words[offset]
                         if Self.normalize(value) == word { return true }
+                        let limit = Self.allowedEdits(word)
+                        if limit > 0 && Self.editDistance(Self.normalize(value), word, limit: limit) <= limit { return true }
                         guard offset == words.count - 1 else { return false }
                         if value.hasSuffix("'s") || value.hasSuffix("’s") {
                             return Self.normalize(String(value.dropLast(2))) == word
@@ -247,7 +248,7 @@ struct VybeNameIndex {
         return word.count >= 8 ? 2 : (word.count >= 4 ? 1 : 0)
     }
 
-    private static let nonWord = Regex16(#"[^\p{L}\p{N}]+"#)
+    private static let nonWord = Regex16(#"[^\p{L}\p{M}\p{N}]+"#)
     private static let queryWord = Regex16(#"\p{L}+(?:['’]s\b)?|\p{N}+"#)
     private static let letterNumberBoundary = Regex16(#"(?<=\p{L})(?=\p{N})|(?<=\p{N})(?=\p{L})"#)
     static func normalize(_ text: String) -> String {
