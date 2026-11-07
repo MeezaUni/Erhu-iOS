@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The Home destination: the Smart Playlists as a hero banner (whenever the library has songs),
-/// Featured Albums, Recently Played albums and playlists, then every track. The shelves scroll
+/// Featured Setlists, Recently Played albums and playlists, then every track. The shelves scroll
 /// away with the tracks; each shelf scrolls sideways on its own.
 struct HomeView: View {
     @State private var releases = ReleaseChecker.shared
@@ -37,7 +37,7 @@ struct HomeView: View {
                         .padding(.top, Spacing.xs)
                         .padding(.bottom, Spacing.lg)
                 }
-                if vybeEnabled { RadioStationShelf() }
+                FeaturedSetlistsShelf(includesRadio: vybeEnabled)
                 shelves(showsRecentNote: hasSongs)
                 if hasShelves { SectionHeading(title: "Tracks") }
                 if songs.isEmpty {
@@ -61,14 +61,6 @@ struct HomeView: View {
 
     @ViewBuilder
     private func shelves(showsRecentNote: Bool) -> some View {
-        if !library.featuredAlbums.isEmpty {
-            Shelf(title: "Featured Albums") {
-                ForEach(library.featuredAlbums) { album in
-                    AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: ArtworkSize.shelf)
-                }
-            }
-            .padding(.bottom, Spacing.lg)
-        }
         if !library.recentAlbums.isEmpty {
             Shelf(title: "Recently played albums") {
                 ForEach(library.recentAlbums) { album in
@@ -116,7 +108,7 @@ struct SmartMixHero: View {
     let onOpen: (String) -> Void
     let onPlay: (String) -> Void
     @Environment(\.palette) private var palette
-    @State private var page = 0
+    @State private var page = 1
     @State private var visible = false
     @State private var interaction: UInt64 = 0
     @GestureState private var dragging = false
@@ -146,7 +138,8 @@ struct SmartMixHero: View {
         VStack(spacing: Spacing.sm) {
             if count > 0 {
                 TabView(selection: $page) {
-                    ForEach(0..<count, id: \.self) { index in
+                    ForEach(Array(LoopingPages.indices(count: count)), id: \.self) { slot in
+                        let index = LoopingPages.logical(slot, count: count)
                         Group {
                             if index < featured.count {
                                 MixBanner(mix: featured[index], aspect: Float(bannerWidth / height),
@@ -157,26 +150,37 @@ struct SmartMixHero: View {
                             }
                         }
                         .frame(width: bannerWidth, height: height)
-                        .tag(index)
+                        .tag(slot)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: height)
                 .simultaneousGesture(DragGesture(minimumDistance: 10)
                     .updating($dragging) { _, active, _ in active = true })
-                if count > 1 { PageDots(count: count, current: page) }
+                if count > 1 { PageDots(count: count, current: LoopingPages.logical(page, count: count)) }
             }
         }
         .frame(maxWidth: .infinity)
         .onAppear { visible = true }
         .onDisappear { visible = false }
         .reportsScrollVisibility { visible = $0 }
-        .onChange(of: count, initial: true) { _, count in page = min(page, max(count - 1, 0)) }
+        .onChange(of: count, initial: true) { _, count in page = count > 1 ? 1 : 0 }
+        .onChange(of: page) { _, slot in
+            let settled = LoopingPages.settled(slot, count: count)
+            guard settled != slot else { return }
+            // Let the swipe settle before moving to the identical real page, without animation.
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(400))
+                guard page == slot else { return }
+                var transaction = Transaction(); transaction.disablesAnimations = true
+                withTransaction(transaction) { page = settled }
+            }
+        }
         .task(id: rotation) {
             guard rotation.active, rotation.count > 1 else { return }
             do { try await Task.sleep(for: .seconds(5)) } catch { return }
             guard !Task.isCancelled else { return }
-            withAnimation(.smooth(duration: 0.45)) { page = (rotation.page + 1) % rotation.count }
+            withAnimation(.smooth(duration: 0.45)) { page = min(rotation.page + 1, rotation.count + 1) }
         }
         .background(GeometryReader { geometry in
             Color.clear
@@ -268,7 +272,8 @@ private struct PageDots: View {
 
     var body: some View {
         HStack(spacing: Spacing.xs) {
-            ForEach(0..<count, id: \.self) { index in
+            ForEach(Array(LoopingPages.indices(count: count)), id: \.self) { slot in
+                        let index = LoopingPages.logical(slot, count: count)
                 Capsule()
                     .fill(index == current ? palette.primary : palette.onSurface.opacity(0.32))
                     .frame(width: index == current ? 18 : 6, height: 6)

@@ -176,6 +176,23 @@ final class BulkMetadataApplyTests: XCTestCase {
         for file in files { XCTAssertEqual(try Data(contentsOf: file), original) }
     }
 
+    @MainActor
+    func testInPlaceRepairNeverProcessesOtherQueuedSongs() async throws {
+        let database = try LibraryDatabase.inMemory()
+        let library = LibraryStore(database: database)
+        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()))
+        let unrelated = Song(id: 9101, title: "Other", artist: "Artist", album: "Other album", durationMs: 180_000, path: "absent-other.mp3")
+        let requested = Song(id: 9102, title: "Requested", artist: "Artist", album: "Album", durationMs: 180_000, path: "absent-requested.mp3")
+        store.enqueue([unrelated])
+        XCTAssertTrue(store.fixInPlace([requested, requested]))
+        try await waitUntil { !store.isRunning }
+        XCTAssertEqual(store.queue.count, 2)
+        XCTAssertEqual(store.queue.first(where: { $0.id == unrelated.id })?.status, .pending)
+        XCTAssertEqual(store.queue.first(where: { $0.id == requested.id })?.status, .failed)
+        XCTAssertEqual(store.inPlaceScope, [requested.id])
+        store.clear()
+    }
+
     @MainActor private func waitUntil(_ finished: () -> Bool) async throws {
         for _ in 0..<1500 {
             if finished() { return }

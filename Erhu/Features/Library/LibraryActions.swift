@@ -32,6 +32,11 @@ final class LibraryActions {
         message = text
     }
 
+    func fixTags(_ songs: [Song]) {
+        let started = AppServices.shared.fixTags.fixInPlace(songs)
+        show(started ? "Fixing tags for these songs. You can keep browsing." : "A tag repair is already running, or no songs are available.")
+    }
+
     func dismissMessage(id: UUID) {
         if messageID == id { message = nil }
     }

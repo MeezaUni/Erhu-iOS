@@ -159,10 +159,7 @@ final class AppRouter {
             addToPlaylist: { [weak self] song in self?.songsForPlaylist = [song] },
             viewDetails: { [weak self] song in self?.songForDetails = song },
             editTags: { [weak self] song in self?.songForTagEdit = song },
-            fixTags: { [weak self] song in
-                AppServices.shared.fixTags.enqueue([song])
-                self?.open(.autoFixTags)
-            },
+            fixTags: { song in actions.fixTags([song]) },
             hideFromMixes: hideFromMixes
         )
     }

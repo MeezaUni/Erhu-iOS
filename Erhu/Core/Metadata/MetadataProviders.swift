@@ -138,10 +138,10 @@ struct ITunesProvider: MetadataProvider {
     }
 
     func searchTrack(title: String, artist: String?, album: String?) async throws -> [MetadataCandidate] {
-        let term = [artist.flatMap { $0.isBlank || $0 == "Unknown Artist" ? nil : $0 }, title.isBlank ? nil : title]
+        let term = [artist.flatMap { $0.isBlank || $0 == "Unknown Artist" ? nil : $0 }, title.isBlank ? nil : title, album?.nonBlank]
             .compactMap { $0 }.joined(separator: " ").trimmed
         guard !term.isEmpty else { return [] }
-        let response = try await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search", [("term", term), ("entity", "song"), ("limit", "10")]), client: client)
+        let response = try await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search", [("term", term), ("entity", "song"), ("limit", "25"), ("country", Self.storefronts[0])]), client: client)
         return Self.candidates(response)
     }
 
@@ -160,12 +160,26 @@ struct ITunesProvider: MetadataProvider {
         }
     }
 
+    static var storefronts: [String] {
+        let local = Locale.current.region?.identifier.lowercased() ?? "us"
+        return local.count == 2 && local != "us" ? [local, "us"] : ["us"]
+    }
+
     /// A bounded field-recovery search, independent of the initial winner's album penalty.
     func enrichmentCandidates(_ match: MetadataCandidate, album: String? = nil) async throws -> [MetadataCandidate] {
         let term = [primaryArtist(match.artist), stripFeaturing(match.title), album ?? ""].filter { !$0.isBlank }.joined(separator: " ")
-        let response = try await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search",
-            [("term", term), ("entity", "song"), ("limit", "25")]), client: client)
-        return Self.candidates(response)
+        var found: [MetadataCandidate] = []
+        var seen = Set<String>()
+        var lastError: Error?
+        for country in Self.storefronts {
+            do {
+                let response = try await fetchJSON(Response.self, requestURL("https://itunes.apple.com/search",
+                    [("term", term), ("entity", "song"), ("limit", "25"), ("country", country)]), client: client)
+                found += Self.candidates(response).filter { seen.insert($0.id).inserted }
+            } catch { lastError = error }
+        }
+        if found.isEmpty, let lastError { throw lastError }
+        return found
     }
 
     /// The 1000 px version of an iTunes artwork URL.
@@ -373,6 +387,31 @@ actor MusicBrainzProvider: MetadataProvider {
         if linkedEntities.count >= 500 { linkedEntities.removeAll() }
         linkedEntities[key] = Array(Set(ids)).sorted()
         return linkedEntities[key] ?? []
+    }
+
+    private struct DiscogsLinks: Decodable {
+        struct Relation: Decodable {
+            struct Address: Decodable { var resource: String }
+            var type: String
+            var url: Address?
+        }
+        var relations: [Relation]?
+    }
+    private var discogsByEntity: [String: [DiscogsReference]] = [:]
+
+    func discogsLinks(entity: String, id: String) async throws -> [DiscogsReference] {
+        guard ["release", "release-group"].contains(entity), UUID(uuidString: id) != nil else { return [] }
+        let key = entity + "/" + id
+        if let cached = discogsByEntity[key] { return cached }
+        let response = try await throttled {
+            try await fetchJSON(DiscogsLinks.self, requestURL("https://musicbrainz.org/ws/2/\(entity)/\(id)",
+                [("inc", "url-rels"), ("fmt", "json")]), client: self.client)
+        }
+        let refs = Array(Set((response.relations ?? []).filter { $0.type == "discogs" }
+            .compactMap { $0.url.flatMap { DiscogsReference($0.resource) } })).sorted { $0.key < $1.key }
+        if discogsByEntity.count >= 500 { discogsByEntity.removeAll() }
+        discogsByEntity[key] = refs
+        return refs
     }
 
     /// Recording genres are more specific than an album's shared genres.

@@ -5,7 +5,7 @@ import Foundation
 // flattened by a downloader ("Tyler/ The Creator/Frank Ocean/ Steve Lacy") never matches as a
 // phrase while its words do.
 
-private let featuringNote = Regex16("\\s*[(\\[]\\s*(?:feat\\.?|ft\\.?|featuring)\\s[^)\\]]*[)\\]]?", ignoreCase: true)
+private let featuringNote = Regex16("\\s*[(\\[]\\s*(?:feat\\.?|ft\\.?|featuring|with)\\s[^)\\]]*[)\\]]?", ignoreCase: true)
 private let trailingFeaturing = Regex16("\\s+(?:feat\\.?|ft\\.?|featuring)\\s.*$", ignoreCase: true)
 
 /// [title] without its featured-artist note: "911 / Mr. Lonely (feat. Frank Ocean & Steve Lacy)" -> "911 / Mr. Lonely".

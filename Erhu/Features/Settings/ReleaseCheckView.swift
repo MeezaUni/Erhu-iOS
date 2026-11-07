@@ -22,6 +22,9 @@ struct ReleaseCheckView: View {
             .padding(Spacing.lg)
             if case .available(let release) = checker.state {
                 Divider().padding(.leading, Spacing.lg)
+                if let notes = release.body?.nonBlank {
+                    Text(LocalizedStringKey(notes)).font(.footnote).padding(Spacing.lg)
+                }
                 Link(destination: release.html_url) {
                     SettingsActionLabel(title: "Release notes", icon: "doc.text", accessory: "arrow.up.right")
                 }

@@ -59,41 +59,65 @@ struct RadioStationView: View {
     }
 }
 
-struct RadioStationShelf: View {
+/// One shelf of album and radio destinations, interleaved rather than duplicated sections.
+struct FeaturedSetlistsShelf: View {
+    let includesRadio: Bool
     @Environment(LibraryStore.self) private var library
     @Environment(AppRouter.self) private var router
-    private struct Station: Identifiable {
-        let seed: RadioSeed
-        let title: String
-        let subtitle: String
-        let cover: Song
-        var id: String { seed.key }
-    }
-    private var stations: [Station] {
-        let albumStations = library.featuredAlbums.prefix(3).compactMap { album -> Station? in
-            guard let song = library.albumCoverSong[album.id] else { return nil }
-            return Station(seed: .album(album.id), title: album.title, subtitle: "Album radio", cover: song)
-        }
-        let songStations = (library.favorites.isEmpty ? Array(library.songs.prefix(3)) : Array(library.favorites.prefix(3))).map {
-            Station(seed: .song($0.id), title: $0.title, subtitle: "\($0.artist) · Song radio", cover: $0)
-        }
-        return albumStations + songStations
-    }
+
     var body: some View {
-        if !stations.isEmpty {
-            Shelf(title: "Featured Radio Stations") {
-                ForEach(stations) { station in
-                    Button { router.open(.radio(station.seed)) } label: {
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            SongArtworkView(song: station.cover, maxPixels: 350)
-                                .frame(width: ArtworkSize.shelf, height: ArtworkSize.shelf)
-                                .clipShape(RoundedRectangle(cornerRadius: Radius.large))
-                            Text(station.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                            Text(station.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        }.frame(width: ArtworkSize.shelf, alignment: .leading).contentShape(Rectangle())
-                    }.buttonStyle(.plain)
+        if !library.featuredAlbums.isEmpty || (includesRadio && !library.favorites.isEmpty) {
+            Shelf(title: "Featured Setlists") {
+                ForEach(library.featuredAlbums) { album in
+                    AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: ArtworkSize.shelf)
+                    if includesRadio, let cover = library.albumCoverSong[album.id] {
+                        radioTile(cover: cover, title: album.title, subtitle: "Album radio", seed: .album(album.id))
+                    }
+                }
+                if includesRadio {
+                    ForEach(Array(library.favorites.prefix(3))) { song in
+                        radioTile(cover: song, title: song.artist, subtitle: "Based on " + song.title, seed: .song(song.id))
+                    }
                 }
             }.padding(.bottom, Spacing.lg)
         }
+    }
+
+    private func radioTile(cover: Song, title: String, subtitle: String, seed: RadioSeed) -> some View {
+        Button { router.open(.radio(seed)) } label: {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                RadioSetlistArtwork(cover: cover, title: title)
+                    .frame(width: ArtworkSize.shelf, height: ArtworkSize.shelf)
+                    .collectionArtworkTheme(.track(cover.url), alwaysFollowArtwork: true)
+                Text(title + " Radio").font(.subheadline.weight(.semibold)).lineLimit(1)
+                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            }.frame(width: ArtworkSize.shelf, alignment: .leading).contentShape(Rectangle())
+        }.buttonStyle(.plain)
+    }
+}
+
+private struct RadioSetlistArtwork: View {
+    let cover: Song
+    let title: String
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                Image(systemName: "waveform")
+                Spacer()
+                Text("RADIO").tracking(2).font(.caption2.bold())
+            }
+            SongArtworkView(song: cover, maxPixels: 350)
+                .aspectRatio(1, contentMode: .fit).clipShape(Circle()).padding(.horizontal, 18)
+            Text(title).font(.subheadline.bold()).lineLimit(1)
+        }
+        .padding(Spacing.md)
+        .foregroundStyle(palette.onSurface)
+        .background {
+            ZStack { palette.surfaceVariant; palette.primary.opacity(0.15) }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: Radius.large))
+        .accessibilityElement(children: .ignore).accessibilityLabel(title + " Radio")
     }
 }

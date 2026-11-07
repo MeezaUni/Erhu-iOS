@@ -42,6 +42,7 @@ struct AppRelease: Codable, Equatable, Sendable, Identifiable {
     let html_url: URL
     let draft: Bool
     let prerelease: Bool
+    var published_at: String? = nil
     let assets: [Asset]
 
     func download(animated: Bool) -> URL? {
@@ -71,6 +72,31 @@ final class ReleaseChecker {
     private let defaults: UserDefaults
     private let animated: Bool
     private var cooldown: Date?
+    private var openedAt: Date?
+    private var offeredThisSession: Set<String> = []
+    private(set) var prompt: AppRelease?
+
+    /// Revalidate with ETag on each app opening, while coalescing launch/scene callbacks.
+    func checkOnOpen() async {
+        let now = Date()
+        if let openedAt, now.timeIntervalSince(openedAt) < 10 { return }
+        openedAt = now
+        await check(manual: true)
+        guard case .available(let release) = state,
+              !offeredThisSession.contains(release.tag_name),
+              !(defaults.stringArray(forKey: Self.prefix + "ignored") ?? []).contains(release.tag_name) else { return }
+        offeredThisSession.insert(release.tag_name)
+        prompt = release
+    }
+
+    func dismissPrompt(ignore: Bool = false) {
+        if ignore, let prompt {
+            var ignored = Set(defaults.stringArray(forKey: Self.prefix + "ignored") ?? [])
+            ignored.insert(prompt.tag_name)
+            defaults.set(Array(ignored).sorted(), forKey: Self.prefix + "ignored")
+        }
+        prompt = nil
+    }
     private static let prefix = "erhu.releases."
 
     init(client: any HTTPClient = URLSessionHTTPClient(cachePolicy: .reloadIgnoringLocalCacheData),
