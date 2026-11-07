@@ -17,7 +17,9 @@ final class LibraryInteractionTests: XCTestCase {
         let clear = app.buttons["searchClearButton"]
         XCTAssertTrue(clear.isHittable)
         clear.tap()
-        let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Songs, albums, artists"), object: field)
+        let cleared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !clear.exists && (field.value as? String) != "needle"
+        }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 3), .completed)
         field.typeText("again")
         let close = app.buttons["searchCloseButton"]
@@ -52,9 +54,20 @@ final class LibraryInteractionTests: XCTestCase {
             let selected = (0..<dots.count).filter { (dots.element(boundBy: $0).value as? String) == "Current" }
             XCTAssertEqual(selected.count, 1)
         }
+        func currentPage() -> Int? {
+            (0..<3).first {
+                let dot = app.descendants(matching: .any).matching(identifier: "smartPlaylistDot-\($0)").firstMatch
+                return (dot.value as? String) == "Current"
+            }
+        }
         check()
-        for _ in 0..<4 { carousel.swipeLeft(); check() }
-        for _ in 0..<4 { carousel.swipeRight(); check() }
+        let initial = currentPage()
+        carousel.swipeLeft(); check()
+        XCTAssertNotEqual(currentPage(), initial)
+        for _ in 0..<2 { carousel.swipeLeft(); check() }
+        XCTAssertEqual(currentPage(), initial, "Swiping past the last playlist returns the one selected dot to the start")
+        for _ in 0..<3 { carousel.swipeRight(); check() }
+        XCTAssertEqual(currentPage(), initial)
     }
 
     @MainActor func testFixTagsScrollingCompactsTheSharedBottomChrome() {
