@@ -83,6 +83,7 @@ struct AlbumDetailView: View {
                         MotionCoverView(song: library.albumCoverSong[albumId], playing: true, maxPixels: 1200, videoSession: motionCover)
                     }
                     TransitionStudioRow(collection: origin).padding(.bottom, Spacing.sm)
+                    ScopedTagRepairSummary(songs: songs)
                     CollectionTransitionTrackList(collection: origin,
                                                   tracks: songs.map { StudioTrack(song: $0, occurrence: TrackOccurrence($0.id)) },
                                                   showTrackNumbers: true)
@@ -102,7 +103,7 @@ struct AlbumDetailView: View {
                 Button { songs.forEach { actions.addToQueue($0) } } label: { Label("Add to queue", systemImage: "text.badge.plus") }
                 if vybeEnabled { Button { router.open(.radio(.album(albumId))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
                 Button { router.songsForPlaylist = songs } label: { Label("Add to playlist", systemImage: "music.note.list") }
-                Button { AppServices.shared.fixTags.enqueue(songs); router.open(.autoFixTags) } label: {
+                Button { actions.fixTags(songs) } label: {
                     Label("Fix tags online", systemImage: "wand.and.stars")
                 }
                 if let album = library.album(albumId) {
@@ -145,6 +146,7 @@ struct ArtistDetailView: View {
                                      onShuffle: { actions.playShuffled(all, source: .artist(artistId)) }) {
                         ArtistArtworkView(artist: artist, fontSize: 96, maxPixels: 1200)
                     }
+                    ScopedTagRepairSummary(songs: primary + featured + unverified)
                     albumRow("Albums", albums.filter { $0.songCount >= 7 })
                     albumRow("EPs", albums.filter { (3...6).contains($0.songCount) })
                     albumRow("Singles", albums.filter { (1...2).contains($0.songCount) })
@@ -168,6 +170,7 @@ struct ArtistDetailView: View {
             Menu {
                 Button { primary.reversed().forEach { actions.playNext($0) } } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
                 Button { primary.forEach { actions.addToQueue($0) } } label: { Label("Add to queue", systemImage: "text.badge.plus") }
+                Button { actions.fixTags(primary + featured + unverified) } label: { Label("Fix tags online", systemImage: "wand.and.stars") }
                 if vybeEnabled { Button { router.open(.radio(.artist(artistId))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
                 if let artist = library.artist(artistId) {
                     Button { artworkTarget = .artist(artist) } label: { Label("Find a photo", systemImage: "person.crop.square") }
@@ -248,6 +251,7 @@ struct PlaylistDetailView: View {
                     if songs.isEmpty {
                         EmptyState(message: "This playlist is empty. Add songs from any song's menu.", systemImage: "music.note.list")
                     }
+                    ScopedTagRepairSummary(songs: songs)
                     CollectionTransitionTrackList(collection: origin,
                         tracks: entries.map { StudioTrack(song: $0.song, occurrence: TrackOccurrence($0.song.id, $0.position)) },
                         songActions: songActions)
@@ -268,6 +272,7 @@ struct PlaylistDetailView: View {
                     newName = library.playlist(playlistId)?.name ?? ""
                     renaming = true
                 } label: { Label("Rename", systemImage: "pencil") }
+                Button { actions.fixTags(songs) } label: { Label("Fix tags online", systemImage: "wand.and.stars") }
                 Button { choosingCover = true } label: { Label("Choose cover", systemImage: "photo") }
                 if let playlist = library.playlist(playlistId), playlist.artworkPath != nil {
                     Button { AppServices.shared.artwork.removePlaylistCover(playlist) } label: { Label("Remove cover", systemImage: "photo.badge.minus") }

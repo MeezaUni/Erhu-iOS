@@ -85,6 +85,7 @@ final class FixTagsStore {
     }
 
     private(set) var queue: [RepairItem] = []
+    private(set) var inPlaceScope = Set<Int64>()
     private(set) var isRunning = false
     private(set) var isCheckingMissing = false
     private(set) var missingScanMessage: String?
@@ -138,8 +139,23 @@ final class FixTagsStore {
     var autoCandidateCount: Int { queue.filter { BulkMetadataSelection.canResolve($0) }.count }
 
     func enqueue(_ songs: [Song]) {
-        let present = Set(queue.map(\.id))
-        queue += songs.filter { !present.contains($0.id) }.map { RepairItem(song: $0) }
+        var present = Set(queue.map(\.id))
+        queue += songs.filter { present.insert($0.id).inserted }.map { RepairItem(song: $0) }
+    }
+
+    /// An in-place action owns only these songs; existing unrelated queue entries stay untouched.
+    @discardableResult
+    func fixInPlace(_ songs: [Song]) -> Bool {
+        guard !isRunning, !isCheckingMissing, !songs.isEmpty else { return false }
+        enqueue(songs)
+        let ids = Set(songs.map(\.id))
+        for index in queue.indices where ids.contains(queue[index].id) {
+            queue[index].status = .pending
+            queue[index].reason = nil
+        }
+        inPlaceScope = ids
+        start(scope: ids)
+        return isRunning
     }
 
     /// Cached scan for callers that already have complete Song metadata. The UI reads actual tags.
@@ -195,6 +211,7 @@ final class FixTagsStore {
     func clear() {
         guard !isRunning, !isCheckingMissing else { return }
         queue = []
+        inPlaceScope = []
         autoSelectionProgress = nil
         autoSelectionMessage = nil
         isAutoSelectionPaused = false
@@ -204,8 +221,9 @@ final class FixTagsStore {
 
     func pause() { pauseRequested = true }
 
-    func start() {
+    func start(scope: Set<Int64>? = nil) {
         guard !isRunning, !isCheckingMissing, hasWork else { return }
+        if scope == nil { inPlaceScope = [] }
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else {
             pauseReason = "Choose at least one field to fix"
@@ -220,13 +238,13 @@ final class FixTagsStore {
         let source = settings.source
         let acceptAt = settings.acceptAt
         task = Task { [weak self] in
-            await self?.run(selection: selection, source: source, acceptAt: acceptAt)
+            await self?.run(selection: selection, source: source, acceptAt: acceptAt, scope: scope)
         }
     }
 
-    private func run(selection: FieldSelection, source: String, acceptAt: Float) async {
+    private func run(selection: FieldSelection, source: String, acceptAt: Float, scope: Set<Int64>? = nil) async {
         var wroteAny = false
-        for index in queue.indices where queue[index].status.toProcess {
+        for index in queue.indices where queue[index].status.toProcess && (scope == nil || scope!.contains(queue[index].id)) {
             if pauseRequested {
                 pauseReason = "Paused"
                 break

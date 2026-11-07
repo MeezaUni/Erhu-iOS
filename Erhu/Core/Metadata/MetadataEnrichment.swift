@@ -2,7 +2,7 @@ import Foundation
 
 /// A high scoring search result is not by itself proof that two catalogues describe one recording.
 enum MetadataEnrichment {
-    private static let featuredNotes = Regex16("\\s*[(\\[]\\s*(?:feat\\.?|ft\\.?|featuring)\\s+([^)\\]]+)[)\\]]", ignoreCase: true)
+    private static let featuredNotes = Regex16("\\s*[(\\[]\\s*(?:feat\\.?|ft\\.?|featuring|with)\\s+([^)\\]]+)[)\\]]", ignoreCase: true)
     private static let trailingCredit = Regex16("\\s+(?:feat\\.?|ft\\.?|featuring)\\s+(.+)$", ignoreCase: true)
 
     /// Catalogues put featured performers either in artistName or a title annotation. Keep that
@@ -13,6 +13,10 @@ enum MetadataEnrichment {
         let trailing = trailingCredit.firstMatch(in: plain).map { $0.group(1, in: plain) }
         return ([candidate.artist] + bracketed + [trailing].compactMap { $0 }).joined(separator: " ")
     }
+    static func sameCredit(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {
+        creditWords(recordingCredit(a)) == creditWords(recordingCredit(b))
+    }
+
     static func verified(_ match: MetadataCandidate, candidates: [MetadataCandidate], acceptAt: Float) -> [MetadataCandidate] {
         var seen = Set([match.id])
         return [match] + candidates.filter {
@@ -46,7 +50,7 @@ enum MetadataEnrichment {
 
     /// Storefront "- Single"/"- EP" suffixes describe the same release type, not a new edition.
     static func releaseKey(_ title: String) -> String {
-        var key = albumPositionTitle(title)
+        var key = albumPositionTitle(stripFeaturing(title))
         for suffix in [" - single", " - ep"] where key.hasSuffix(suffix) { key = String(key.dropLast(suffix.count)).trimmed }
         let folded = foldForMatch(key)
         return folded.isEmpty ? key : folded

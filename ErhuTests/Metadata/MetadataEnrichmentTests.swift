@@ -16,6 +16,24 @@ final class MetadataEnrichmentTests: XCTestCase {
         return value
     }
 
+    func testFeaturedCreditSpellingDoesNotCreateFalseRecordingOrReleaseTies() {
+        var first = match()
+        first.title = "10,000 Hours (with Justin Bieber)"
+        first.artist = "Dan + Shay"
+        first.album = "10,000 Hours (with Justin Bieber) - Single"
+        var second = first
+        second.id = "mb_other"; second.title = "10,000 Hours"; second.artist = "Dan & Shay & Justin Bieber"
+        second.album = "10,000 Hours"
+        first.confidenceScore = 0.98; second.confidenceScore = 0.98
+        XCTAssertTrue(MetadataEnrichment.sameRecording(first, second))
+        XCTAssertTrue(MetadataEnrichment.sameRelease(first, second))
+        let identity = TrackIdentity(title: first.title, artist: first.artist, album: first.album, durationMs: first.durationMs)
+        guard case .confident = TrackMatcher.decide([first, second], identity) else { return XCTFail("Equivalent credit formatting should not need manual selection") }
+        second.title += " (Live)"
+        XCTAssertFalse(MetadataEnrichment.sameRecording(first, second))
+        XCTAssertNotEqual(MetadataEnrichment.releaseKey("Album (Deluxe)"), MetadataEnrichment.releaseKey("Album"))
+    }
+
     func testITunesPrimaryGenreIsDecoded() throws {
         let data = Data(#"{"results":[{"trackId":1,"trackName":"Yellow","artistName":"Coldplay","collectionName":"Parachutes","primaryGenreName":"Alternative"}]}"#.utf8)
         let response = try JSONDecoder().decode(ITunesProvider.Response.self, from: data)

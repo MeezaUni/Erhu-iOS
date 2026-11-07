@@ -240,7 +240,7 @@ private struct StatusBadge: View {
 
 /// What one lookup saw: the track's identity, each query and every provider's answer, the best
 /// candidates and the changes made (or why none were).
-private struct RepairItemDetail: View {
+struct RepairItemDetail: View {
     private var currentItem: RepairItem { store.queue.first { $0.id == item.id } ?? item }
     private var canChoose: Bool { BulkMetadataSelection.canResolve(currentItem) }
 

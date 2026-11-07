@@ -47,6 +47,7 @@ actor MetadataService {
     private let musicBrainz: MusicBrainzProvider
     private let deezer: DeezerProvider
     private let wikidata: WikidataGenres
+    private let discogs: DiscogsGenres
     private let retry: RetryPolicy
     private var unusable: [String: ProviderAvailability] = [:]
     private var deezerDetails: [Int64: DeezerProvider.Track] = [:]
@@ -59,6 +60,7 @@ actor MetadataService {
         musicBrainz = MusicBrainzProvider(client: client)
         deezer = DeezerProvider(client: client)
         wikidata = WikidataGenres(client: client)
+        discogs = DiscogsGenres(client: client)
     }
 
     private var providers: [MetadataProvider] { [iTunes, musicBrainz, deezer] }
@@ -321,6 +323,19 @@ actor MetadataService {
                         if !genres.isEmpty { return .found(genres, source: "Wikidata (MusicBrainz-linked \(entity == "recording" ? "recording" : "album"))") }
                     }
                 } catch { failed = true; reasons.append("Wikidata genre: \(classifyProviderFailure(error).message)") }
+            }
+        }
+        // Discogs is a keyless fallback through curated MusicBrainz release links only.
+        for brainz in verified.filter({ $0.sourceName == MetadataSources.musicBrainz && ($0.id == match.id || MetadataEnrichment.sameRelease(match, $0)) }).prefix(2) {
+            let targets = [("release", brainz.releaseId), ("release-group", brainz.releaseGroupId)]
+            for (entity, id) in targets {
+                guard let id else { continue }
+                do {
+                    for link in try await musicBrainz.discogsLinks(entity: entity, id: id).prefix(2) {
+                        let genres = try await discogs.genres(link, album: brainz.album, artist: brainz.artist)
+                        if !genres.isEmpty { return .found(genres, source: "Discogs (MusicBrainz-linked album)") }
+                    }
+                } catch { failed = true; reasons.append("Discogs genre: " + classifyProviderFailure(error).message) }
             }
         }
         let reason = reasons.isEmpty ? "No genre available from the verified matches" : reasons.joined(separator: "; ")

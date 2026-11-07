@@ -11,12 +11,14 @@ struct RootView: View {
     @Environment(LibraryActions.self) private var actions
     @Environment(AppRouter.self) private var router
     @Environment(SoundStore.self) private var sound
+    @Environment(FixTagsStore.self) private var fixTags
     @Environment(WifiTransferStore.self) private var transfer
     @Environment(AnimatedArtworkStore.self) private var motionArtwork
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsImporter = false
+    @State private var releases = ReleaseChecker.shared
     @State private var chrome = LibraryChromeState()
     @State private var playerMotion = PlayerDragState()
     @State private var artworkFrames = PlayerArtworkFrames()
@@ -99,10 +101,22 @@ struct RootView: View {
             router.section = settings.visibleSection(router.section)
             if !enabled { router.paths[.vybe] = NavigationPath() }
         }
+        .onChange(of: fixTags.isRunning) { wasRunning, running in
+            guard wasRunning, !running, !fixTags.inPlaceScope.isEmpty else { return }
+            let items = fixTags.queue.filter { fixTags.inPlaceScope.contains($0.id) }
+            let fixed = items.filter { $0.status == .done }.count
+            let review = items.filter { $0.status != .done && $0.status != .unchanged }.count
+            actions.show("Tag repair: \(fixed) fixed, \(review) need review. Results are available on the collection page.")
+        }
         .onChange(of: player.playbackError) { _, message in if let message { library.report(message) } }
-        .onAppear { library.scan(); Task { await ReleaseChecker.shared.check() } }
+        .sheet(item: Binding(get: {
+            settings.introductionCompleted && !router.showsNowPlaying && !router.showsSearch && !router.showsDrawer ? releases.prompt : nil
+        }, set: { if $0 == nil { releases.dismissPrompt() } })) { release in
+            AppUpdatePrompt(release: release, checker: releases)
+        }
+        .onAppear { library.scan(); Task { await releases.checkOnOpen() } }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { library.scan(); Task { await ReleaseChecker.shared.check() } }
+            if phase == .active { library.scan(); Task { await releases.checkOnOpen() } }
             if phase == .background {
                 transfer.stop(.backgrounded)
                 motionArtwork.downloads.stop()

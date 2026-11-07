@@ -57,6 +57,50 @@ final class ReleaseAndDiscoveryTests: XCTestCase {
         XCTAssertFalse(IntroductionPage.pages(vybe: false).contains { $0.id == "vybe" })
     }
 
+    func testLoopingPagesWrapInBothDirectionsWithoutExtraDots() {
+        XCTAssertEqual(Array(LoopingPages.indices(count: 3)), [0, 1, 2, 3, 4])
+        XCTAssertEqual(LoopingPages.logical(0, count: 3), 2)
+        XCTAssertEqual(LoopingPages.settled(0, count: 3), 3)
+        XCTAssertEqual(LoopingPages.logical(4, count: 3), 0)
+        XCTAssertEqual(LoopingPages.settled(4, count: 3), 1)
+        XCTAssertEqual(Array(LoopingPages.indices(count: 1)), [0])
+        XCTAssertTrue(LoopingPages.indices(count: 0).isEmpty)
+    }
+
+    @MainActor func testLaunchRevalidatesCachedReleaseAndIgnoreSurvivesRelaunch() async throws {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let update = release("v1.0-beta.2")
+        let client = ReleaseHTTP(status: 200, payload: try JSONEncoder().encode([update]))
+        let checker = ReleaseChecker(client: client, installed: "v1.0-beta", defaults: defaults, animated: false)
+        await checker.checkOnOpen()
+        XCTAssertEqual(checker.prompt, update)
+        checker.dismissPrompt(ignore: true)
+        let reopened = ReleaseChecker(client: client, installed: "v1.0-beta", defaults: defaults, animated: false)
+        await reopened.checkOnOpen()
+        XCTAssertNil(reopened.prompt)
+        XCTAssertEqual(reopened.state, .available(update), "Manual settings still show ignored updates")
+        let requests = await client.count
+        XCTAssertEqual(requests, 2, "A new opening revalidates even a fresh persisted cache")
+        let newer = release("v1.0-beta.3")
+        let next = ReleaseChecker(client: ReleaseHTTP(status: 200, payload: try JSONEncoder().encode([newer])), installed: "v1.0-beta", defaults: defaults, animated: false)
+        await next.checkOnOpen()
+        XCTAssertEqual(next.prompt, newer, "Ignoring one version must not hide future versions")
+    }
+
+    @MainActor func testSkipOnlyLastsForThisSessionAndCurrentBuildStaysSilent() async throws {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let client = ReleaseHTTP(status: 200, payload: try JSONEncoder().encode([release("v1.0-beta.2")]))
+        let first = ReleaseChecker(client: client, installed: "v1.0-beta", defaults: defaults, animated: false)
+        await first.checkOnOpen(); first.dismissPrompt()
+        XCTAssertNil(first.prompt)
+        let reopened = ReleaseChecker(client: client, installed: "v1.0-beta", defaults: defaults, animated: false)
+        await reopened.checkOnOpen()
+        XCTAssertNotNil(reopened.prompt)
+        let current = ReleaseChecker(client: client, installed: "v1.0-beta.2", defaults: defaults, animated: false)
+        await current.checkOnOpen()
+        XCTAssertNil(current.prompt)
+    }
+
     private func release(_ tag: String, draft: Bool = false) -> AppRelease {
         AppRelease(id: 1, tag_name: tag, name: tag, body: "Notes",
                    html_url: URL(string: "https://github.com/MeezaUni/Erhu-iOS/releases/tag/\(tag)")!, draft: draft, prerelease: true,

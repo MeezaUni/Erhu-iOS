@@ -144,3 +144,14 @@ from the numeric bundle version. Update it when preparing a new tagged release;
 do not compare the historical `0.1.0` bundle string directly with `v1.0-beta`.
 The original Beta 1 release assets are retained. Use a successful branch-specific
 iOS Actions artifact for current development code.
+
+
+## Home, scoped repairs and launch updates
+
+- Smart-playlist banners wrap on manual swipes in either direction, with one dot per real page.
+- Featured Setlists combines album and radio destinations. Radio tiles use circular artwork on a lighter artwork-derived surface. Recently played shelves follow it.
+- Fix tags online starts a run limited to the selected album, artist, playlist or song. Other queued songs stay pending. Collection pages show progress and scoped results, with manual review still available in place. Atomic, all-selected-fields tag writes and Revert remain intact.
+- Equivalent explicit guest credits (including parenthesized “with”) and single/EP suffixes no longer cause false same-recording/edition ties. Version markers and different album editions remain protected.
+- iTunes field recovery checks the local storefront and the US storefront and uses primaryGenreName. A final genre fallback reads public Discogs release/master genres and styles only through curated MusicBrainz links, then verifies the album and artist again. No credentials or Deezer availability are required. Discogs rate limits are respected and release responses are cached. Sources are recorded in repair details. See [Discogs API](https://www.discogs.com/developers/) and [MusicBrainz URL relationships](https://musicbrainz.org/doc/Style/Relationships/URLs).
+- BPM remains a verified provider value or a dependable local estimate; ambiguous or changing tempos are not invented to increase completion counts. Disc numbers come from the matched edition rather than assuming every release is disc 1.
+- Every app opening revalidates GitHub Releases in the background using ETag, coalescing duplicate launch callbacks and respecting rate limits. Only newer IPAs matching the installed artwork variant produce a prompt. The prompt includes release notes, publication date when supplied, Download update, Skip for now, and Do not show this version again. Ignoring persists for that tag only; later updates still appear. Manual checks in About remain available.

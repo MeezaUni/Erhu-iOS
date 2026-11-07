@@ -164,6 +164,7 @@ enum TrackMatcher {
 
     /// Whether two candidates are the same underlying song (spelling and "feat." formatting aside).
     private static func sameSong(_ a: MetadataCandidate, _ b: MetadataCandidate) -> Bool {
+        if MetadataEnrichment.sameRelease(a, b), MetadataEnrichment.sameCredit(a, b) { return true }
         let sameTitle = foldForMatch(a.title) == foldForMatch(b.title)
         let sameAlbum = foldForMatch(a.album) == foldForMatch(b.album) || a.album.isBlank || b.album.isBlank
         let sameArtist = foldForMatch(primaryArtist(a.artist)) == foldForMatch(primaryArtist(b.artist))
