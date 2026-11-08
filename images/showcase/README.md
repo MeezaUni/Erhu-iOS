@@ -22,7 +22,9 @@ the README picks it up automatically.
 | `artwork-upgrade.png` | Upgrade album covers (animated build) | Library tools |
 | `transition-studio.png` | An album with Transition Studio and track pairs | Transition Studio |
 | `transition-editor.png` | The transition editor with waveforms and curves | Transition Studio |
-| `lock-screen.gif` | Animated cover playing on the Lock Screen (from a screen recording) | Animated artwork on the Lock Screen |
+| `animated-album.gif` | Animated cover on an album page (from a screen recording) | Animated artwork |
+| `animated-player.gif` | Animated cover in Now Playing (from a screen recording) | Animated artwork |
+| `lock-screen.gif` | Animated cover on the Lock Screen (from a screen recording) | Animated artwork |
 | `lock-screen.png` | Still Lock Screen while a song plays (not shown in the README) | — |
 
 ## Still to add

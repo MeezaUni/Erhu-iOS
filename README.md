@@ -137,11 +137,22 @@ Choose how an album or playlist crossfades, or edit a single track pair. Shape t
 
 The in-app introduction covers these tools. Reopen it from **Settings → About Erhu → Introduction**.
 
-### Animated artwork on the Lock Screen
+### Animated artwork
 
-**Animated-artwork build only.** Downloaded animated covers play in Now Playing and, on iOS 26 and newer, on the Lock Screen. iOS decides when the Lock Screen shows the animation.
+**Animated-artwork build only.** Downloaded animated covers play on album pages, in Now Playing and, on iOS 26 and newer, on the Lock Screen. iOS decides when the Lock Screen shows the animation.
 
-<img src="images/showcase/lock-screen.gif" alt="An animated album cover playing on the iPhone Lock Screen while a song plays" width="320">
+<table>
+  <tr>
+    <th width="33%">Album</th>
+    <th width="33%">Now Playing</th>
+    <th width="33%">Lock Screen</th>
+  </tr>
+  <tr>
+    <td><img src="images/showcase/animated-album.gif" alt="An animated album cover on the erhu album page, recorded on an iPhone" width="260"></td>
+    <td><img src="images/showcase/animated-player.gif" alt="An animated album cover in erhu Now Playing, recorded on an iPhone" width="260"></td>
+    <td><img src="images/showcase/lock-screen.gif" alt="An animated album cover playing on the iPhone Lock Screen, recorded on an iPhone" width="260"></td>
+  </tr>
+</table>
 
 [How animated covers work](https://github.com/MeezaUni/Erhu-iOS/blob/with-animated-art/docs/ANIMATED_COVERS.md)
 
