@@ -166,8 +166,8 @@ final class FixTagsStore {
     }
 
     var hasWork: Bool {
-        if queue.contains(where: { $0.status.toProcess && (inPlaceScope.isEmpty || inPlaceScope.contains($0.id)) }) { return true }
-        return followsLibrary && inPlaceScope.isEmpty && library.songs.contains { libraryChecked[$0.id] != $0.path }
+        if queue.contains(where: { $0.status.toProcess }) { return true }
+        return followsLibrary && library.songs.contains { libraryChecked[$0.id] != $0.path }
     }
 
     private func saveProgress(_ item: RepairItem? = nil, manifest: Bool = true) {
@@ -342,7 +342,7 @@ final class FixTagsStore {
 
     func start(scope: Set<Int64>? = nil) {
         guard !isRunning, !isCheckingMissing, hasWork else { return }
-        let scope = scope ?? (inPlaceScope.isEmpty ? nil : inPlaceScope)
+        if scope == nil { inPlaceScope = [] }
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else {
             pauseReason = "Choose at least one field to fix"
@@ -652,6 +652,7 @@ final class FixTagsStore {
     /// One tap refreshes unresolved tracks and fills selected missing fields from verified sources.
     func autoSelectBestCandidates() {
         guard !isRunning, !isCheckingMissing else { return }
+        inPlaceScope = []
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else { pauseReason = "Choose which fields to fix first."; return }
         let acceptAt = settings.acceptAt
