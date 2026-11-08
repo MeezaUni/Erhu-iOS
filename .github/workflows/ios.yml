@@ -37,14 +37,15 @@ jobs:
       # The ogg, opus and vorbis binary packages download from GitHub release assets. When a
       # download fails (e.g. a 504), SwiftPM keeps the error body in its artifact cache and then
       # refuses to replace it ("already exists in file system"). Resolve with retries, clearing
-      # that cache before each attempt; the build reuses the resolved packages.
+      # that cache before each attempt. Every later xcodebuild reuses build/SourcePackages, so
+      # nothing is downloaded twice.
       - name: Resolve Swift packages
         run: |
           mkdir -p build
           for attempt in 1 2 3 4 5; do
             rm -rf "$HOME/Library/Caches/org.swift.swiftpm/artifacts"
             if xcodebuild -resolvePackageDependencies -project Erhu.xcodeproj -scheme Erhu \
-              -derivedDataPath build > build/resolve.log 2>&1; then
+              -derivedDataPath build -clonedSourcePackagesDirPath build/SourcePackages > build/resolve.log 2>&1; then
               exit 0
             fi
             echo "::warning::Swift package resolution attempt $attempt failed; retrying."
@@ -58,7 +59,7 @@ jobs:
           set -o pipefail
           mkdir -p build
           if ! xcodebuild build -project Erhu.xcodeproj -scheme Erhu -configuration Release \
-            -destination 'generic/platform=iOS' -derivedDataPath build \
+            -destination 'generic/platform=iOS' -derivedDataPath build -clonedSourcePackagesDirPath build/SourcePackages \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" > build/compile.log 2>&1; then
             python3 - <<'PY'
           import os
@@ -120,7 +121,7 @@ jobs:
 
       - name: Run native interaction checks
         run: |
-          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
+          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu -clonedSourcePackagesDirPath build/SourcePackages \
             -destination "id=$UI_SIMULATOR_ID" -resultBundlePath build/InteractionResults.xcresult CODE_SIGNING_ALLOWED=NO \
             -only-testing:ErhuInteractionTests -parallel-testing-enabled NO > build/ui-tests.log 2>&1; then
             echo "::error::Native interaction checks failed; see the test-status report and result bundle."
@@ -141,7 +142,7 @@ jobs:
       - name: Run transfer and library regressions
         run: |
           set -o pipefail
-          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
+          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu -clonedSourcePackagesDirPath build/SourcePackages \
             -destination "id=$SIMULATOR_ID" -resultBundlePath build/RegressionResults.xcresult CODE_SIGNING_ALLOWED=NO \
             -only-testing:ErhuTests/TransferListenerLifecycleTests \
             -only-testing:ErhuTests/TransferNetworkTests \
@@ -191,7 +192,7 @@ jobs:
       - name: Run unit tests
         run: |
           set -o pipefail
-          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
+          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu -clonedSourcePackagesDirPath build/SourcePackages \
             -destination "id=$SIMULATOR_ID" -resultBundlePath build/TestResults.xcresult CODE_SIGNING_ALLOWED=NO -skip-testing:ErhuInteractionTests \
             > build/tests.log 2>&1; then
             python3 - <<'PY'
