@@ -92,4 +92,40 @@ final class AutomaticArtistPhotosTests: XCTestCase {
         await store.scan()
         XCTAssertEqual(store.artists.map(\.id), [1])
     }
+    @MainActor
+    func testNegativeChecksSurviveReopeningAndNewArtistsAreStillMatched() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = root.appendingPathComponent("photos.json")
+        let db = try LibraryDatabase.inMemory()
+        try insert("First Artist", id: 1, into: db)
+        let library = LibraryStore(database: db)
+        let http = EmptyArtistProfiles()
+        let first = ArtworkFetcherStore(library: library, service: MetadataService(client: http),
+                                        search: ArtworkSearch(client: http), checkpointURL: file)
+        first.startAutomaticMatching()
+        try await waitUntil { first.hasArtistProgress }
+        first.stopAutomaticMatching()
+        let reopened = ArtworkFetcherStore(library: library, service: MetadataService(client: http),
+                                           search: ArtworkSearch(client: http), checkpointURL: file)
+        reopened.startAutomaticMatching()
+        defer { reopened.stopAutomaticMatching() }
+        try await Task.sleep(for: .milliseconds(300))
+        var names = await http.names
+        XCTAssertEqual(names, ["First Artist"], "Completed negative results must not restart on every launch")
+        try insert("New Artist", id: 2, into: db)
+        try await waitUntil { await http.names.count == 2 }
+        names = await http.names
+        XCTAssertEqual(names, ["First Artist", "New Artist"])
+    }
+
+}
+
+
+private actor EmptyArtistProfiles: HTTPClient {
+    var names: [String] = []
+    func get(_ url: URL, headers: [String: String]) async throws -> (Data, HTTPURLResponse) {
+        names.append(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "q" }?.value ?? "")
+        return (Data(#"{"data":[]}"#.utf8), HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+    }
 }
