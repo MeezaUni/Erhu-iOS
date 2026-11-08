@@ -2,7 +2,7 @@
 
 An iPhone music player for your own collection.
 
-<img src="images/showcase/hero.png" alt="erhu Home and Now Playing on an iPhone" width="1200">
+<img src="images/showcase/hero.png" alt="erhu Home and Now Playing on an iPhone" width="640">
 
 ## Beta 1
 
@@ -48,17 +48,15 @@ Captured on an iPhone from the current build. They show the real interfaces.
 <table>
   <tr>
     <th width="33%">Home</th>
-    <th width="33%">Radio stations</th>
-    <th width="33%">VYBE</th>
+    <th width="33%">Albums</th>
+    <th width="33%">Library</th>
   </tr>
   <tr>
-    <td><a href="images/showcase/home.png"><img src="images/showcase/home.png" alt="erhu Home with smart playlists, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/radio.png"><img src="images/showcase/radio.png" alt="An erhu radio station, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/vybe.png"><img src="images/showcase/vybe.png" alt="erhu VYBE search results, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/home.png"><img src="images/showcase/home.png" alt="erhu Home with a smart playlist and featured radio stations, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="260"></a></td>
   </tr>
 </table>
-
-[See the radio, featured-album and recently-played shelves](images/showcase/home-discovery.png).
 
 ### The listening experience
 
@@ -75,38 +73,31 @@ Captured on an iPhone from the current build. They show the real interfaces.
   </tr>
 </table>
 
-### Your library and audio controls
+### Moods, menus and audio controls
 
 <table>
   <tr>
-    <th width="33%">Library</th>
-    <th width="33%">Songs and moods</th>
+    <th width="33%">Songs by mood</th>
+    <th width="33%">Track menu</th>
     <th width="33%">Equalizer</th>
   </tr>
   <tr>
-    <td><a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by mood, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="260"></a></td>
   </tr>
 </table>
-
-<details>
-  <summary>Floating album controls</summary>
-  <p><img src="images/showcase/glass.png" alt="Album actions on the translucent floating menu" width="420"></p>
-</details>
 
 ### Library tools
 
 <table>
   <tr>
-    <th width="33%">Artwork Fetcher</th>
-    <th width="33%">Upgrade covers</th>
-    <th width="33%">Auto Fix Tags</th>
+    <th width="50%">Artwork Fetcher</th>
+    <th width="50%">Upgrade covers</th>
   </tr>
   <tr>
-    <td><a href="images/showcase/artwork-fetcher.png"><img src="images/showcase/artwork-fetcher.png" alt="Artwork Fetcher on an iPhone, showing album cover search" width="260"></a></td>
-    <td><a href="images/showcase/artwork-upgrade.png"><img src="images/showcase/artwork-upgrade.png" alt="Upgrade album covers on an iPhone, listing higher-resolution matches" width="260"></a></td>
-    <td><a href="images/showcase/auto-fix-tags.png"><img src="images/showcase/auto-fix-tags.png" alt="Auto Fix Tags on an iPhone, showing the repair queue and metadata fields" width="260"></a></td>
+    <td><a href="images/showcase/artwork-fetcher.png"><img src="images/showcase/artwork-fetcher.png" alt="Artwork Fetcher on an iPhone, showing album and artist-photo checks" width="300"></a></td>
+    <td><a href="images/showcase/artwork-upgrade.png"><img src="images/showcase/artwork-upgrade.png" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="300"></a></td>
   </tr>
 </table>
 
@@ -137,7 +128,7 @@ The in-app introduction covers these tools. Reopen it from **Settings → About 
 
 **Animated-artwork build only.** Downloaded animated covers play in Now Playing and, on iOS 26 and newer, on the Lock Screen. iOS decides when the Lock Screen shows the animation.
 
-<img src="images/showcase/lock-screen-animated.png" alt="An animated album cover playing on the iPhone Lock Screen" width="960">
+<img src="images/showcase/lock-screen.png" alt="An album cover filling the iPhone Lock Screen while a song plays" width="320">
 
 [How animated covers work](https://github.com/MeezaUni/Erhu-iOS/blob/with-animated-art/docs/ANIMATED_COVERS.md)
 
