@@ -63,4 +63,76 @@ final class ArtworkUpgradeTests: XCTestCase {
         XCTAssertNil(ArtworkUpgradeReview(upgrade: ArtworkUpgrade(target: target, thumbnail: nil, originalFacts: old, candidate: candidate),
                                         original: original, replacement: different))
     }
+    @MainActor
+    func testApplyAllRestoresMatchesAndKeepsArtworkThatChangedAfterTheScan() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let files = (1...2).map { _ in LibraryPaths.musicFolder.appendingPathComponent(UUID().uuidString + ".mp3") }
+        defer { for file in files { try? FileManager.default.removeItem(at: file) } }
+        let database = try LibraryDatabase.inMemory()
+        for (offset, file) in files.enumerated() {
+            let id = Int64(offset + 1)
+            try TagFixtures.mp3(v4: true).write(to: file)
+            var edit = TagWriteRequest()
+            edit.title = "Song \(id)"; edit.album = "Album \(id)"; edit.artist = "Artist"; edit.artwork = image(size: 150)
+            try TagWriter.write(edit, to: file)
+            try database.db.execute("INSERT INTO albums (id, title, artist, artist_id, song_count, year) VALUES (?, ?, 'Artist', 1, 1, 2026)", [id, "Album \(id)"])
+            try database.db.execute("""
+                INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, year, date_modified)
+                VALUES (?, ?, 'Artist', ?, 1, ?, 180000, ?, ?, 2026, 0)
+                """, [id, "Song \(id)", "Album \(id)", id, file.lastPathComponent, file.lastPathComponent])
+        }
+        let library = LibraryStore(database: database)
+        let client = UpgradeBatchHTTP(image: image(size: 1000))
+        let search = ArtworkSearch(client: client, cache: ArtworkCandidateCache(root: root.appendingPathComponent("cache")))
+        let checkpoint = root.appendingPathComponent("progress")
+        let first = ArtworkUpgradeStore(checkpointFolder: checkpoint)
+        first.scan(.albums, library: library, search: search)
+        for _ in 0..<500 {
+            if !first.scanning { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertFalse(first.scanning)
+        XCTAssertEqual(first.results.count, 2)
+        let reopened = ArtworkUpgradeStore(checkpointFolder: checkpoint)
+        reopened.restore(.albums, library: library)
+        XCTAssertEqual(reopened.results.count, 2, "Pending upgrades must survive leaving the page and reopening the app")
+        var changed = TagWriteRequest(); changed.artwork = image(size: 150, variant: true)
+        try TagWriter.write(changed, to: files[1])
+        let kept = try XCTUnwrap(TagReader.artwork(files[1]))
+        let fetcher = ArtworkFetcherStore(library: library, service: MetadataService(client: client), search: search, checkpointURL: nil)
+        reopened.applyAll(library: library, fetcher: fetcher)
+        for _ in 0..<500 {
+            if !reopened.applying && !library.isScanning { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertFalse(reopened.applying)
+        XCTAssertEqual(ArtworkImageFacts.inspect(try XCTUnwrap(TagReader.artwork(files[0])))?.width, 1000)
+        XCTAssertEqual(TagReader.artwork(files[1]), kept, "A changed original must never be overwritten by Apply to all")
+        XCTAssertEqual(reopened.results.map(\.id), ["album:2"])
+        let saved = try Data(contentsOf: checkpoint.appendingPathComponent("albums/album-1.json"))
+        XCTAssertNil((try JSONSerialization.jsonObject(with: saved) as? [String: Any])?["candidate"], "An applied upgrade must not return after relaunch")
+    }
+
+}
+
+
+private struct UpgradeBatchHTTP: HTTPClient {
+    let image: Data
+    func get(_ url: URL, headers: [String: String]) async throws -> (Data, HTTPURLResponse) {
+        let bytes: Data
+        let type: String
+        if url.host == "images.example" { bytes = image; type = "image/jpeg" }
+        else {
+            type = "application/json"
+            let rows: [[String: Any]] = (1...2).map {
+                ["collectionName": "Album \($0)", "artistName": "Artist", "releaseDate": "2026-01-01T00:00:00Z",
+                 "artworkUrl100": "https://images.example/\($0)/100x100bb.jpg"]
+            }
+            let body: [String: Any] = url.host == "itunes.apple.com" ? ["results": rows]
+                : ["data": [], "releases": [], "release-groups": [], "artists": [], "query": ["pages": [:]]]
+            bytes = try JSONSerialization.data(withJSONObject: body)
+        }
+        return (bytes, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": type])!)
+    }
 }

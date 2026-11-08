@@ -3,7 +3,7 @@ import Foundation
 /// What is known about a local track. [title], [artist] and [album] come from the file's own tags
 /// (nil when missing, a placeholder or unreadable); [fileTitles] are titles read from the file
 /// name, a fallback only: downloaders shorten names ("THANK YOU.mp3" for "GONE, GONE / THANK YOU").
-struct TrackIdentity: Equatable, Sendable {
+struct TrackIdentity: Equatable, Codable, Sendable {
     var title: String?
     var artist: String?
     var album: String?

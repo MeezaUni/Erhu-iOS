@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 /// A tag edit for one audio file. Nil fields are left exactly as they are in the file; only
 /// non-nil fields are written, and the clear flags remove a field.
-struct TagWriteRequest: Equatable, Sendable {
+struct TagWriteRequest: Equatable, Codable, Sendable {
     var title: String?
     var artist: String?
     var album: String?

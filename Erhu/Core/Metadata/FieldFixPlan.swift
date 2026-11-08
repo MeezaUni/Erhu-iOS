@@ -1,7 +1,7 @@
 import Foundation
 
 /// A tag a metadata fix can change.
-enum FixField: String, CaseIterable, Sendable {
+enum FixField: String, CaseIterable, Codable, Sendable {
     case title, artist, album, year, genre, artwork, bpm, trackNumber, discNumber
 
     var displayName: String {
@@ -14,7 +14,7 @@ enum FixField: String, CaseIterable, Sendable {
 }
 
 /// The fields offered in Fix Tags. Artwork is managed by the Artwork Fetcher, as on Android.
-enum MetadataField: String, CaseIterable, Identifiable, Sendable {
+enum MetadataField: String, CaseIterable, Identifiable, Codable, Sendable {
     case title = "TITLE"
     case artist = "ARTIST"
     case album = "ALBUM"
@@ -103,7 +103,7 @@ struct FoundBpm: Equatable, Sendable {
 /// A planned fix: [request] is nil when nothing should be written; [notes] say why a field was
 /// left alone; [unfilled] are the reasons a selected field the file needs could not be found.
 struct FieldFixPlan: Equatable, Sendable {
-    struct Change: Equatable, Sendable {
+    struct Change: Equatable, Codable, Sendable {
         let field: FixField
         let oldValue: String?
         let newValue: String

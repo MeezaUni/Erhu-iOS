@@ -55,7 +55,7 @@ final class AutomaticArtistPhotosTests: XCTestCase {
         let db = try LibraryDatabase.inMemory()
         let library = LibraryStore(database: db)
         let http = PhotoHTTP(image: try photo())
-        let store = ArtworkFetcherStore(library: library, service: MetadataService(client: http), search: ArtworkSearch(client: http))
+        let store = ArtworkFetcherStore(library: library, service: MetadataService(client: http), search: ArtworkSearch(client: http), checkpointURL: nil)
         store.startAutomaticMatching()
         defer { store.stopAutomaticMatching() }
         try insert("Imported Artist", id: 1, into: db)
@@ -76,7 +76,7 @@ final class AutomaticArtistPhotosTests: XCTestCase {
         try insert("Artist", id: 1, into: db)
         let library = LibraryStore(database: db)
         let http = PhotoHTTP(image: try photo(), gated: true)
-        let store = ArtworkFetcherStore(library: library, service: MetadataService(client: http), search: ArtworkSearch(client: http))
+        let store = ArtworkFetcherStore(library: library, service: MetadataService(client: http), search: ArtworkSearch(client: http), checkpointURL: nil)
         store.startAutomaticMatching()
         defer { store.stopAutomaticMatching() }
         try await waitUntil { await http.imageRequested }

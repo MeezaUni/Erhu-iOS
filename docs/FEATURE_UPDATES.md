@@ -175,3 +175,9 @@ Tool/settings/Transition Studio destinations now use the same vertical-scroll ch
 ## Search drawer behavior
 
 Albums, Songs, Artists, Playlists and Favorites share a scroll-linked search drawer. The title stays above the search field while it is revealed or tucked away; sort/filter controls remain below it and scroll away with the page. The drawer keeps a constant amount of scroll space, so hiding it never removes a row midway through a gesture. Returning to a page preserves its scroll position, and larger text sizes preserve the visible results.
+
+## Saved tool progress and batch artwork upgrades
+
+Fix Tags saves its queue, lookup diagnostics, held repair values, unfinished auto-fill IDs and originals for Revert across relaunches. An interrupted lookup returns to Pending; completed tracks stay completed. Missing-tag checks also checkpoint each file. Continue includes new imports without silently retrying completed tracks. Clearing the queue explicitly removes its saved progress and originals.
+
+Artwork Fetcher checkpoints each album, including albums that already have artwork. File paths, sizes and modification dates invalidate checks when files change; newly imported albums are included. Artist-photo matching retains completed and negative checks, while transient errors remain retryable. Start a new check discards the corresponding scan history. Higher-resolution searches retain pending comparisons and negative results across reopening. Apply to all revalidates each original and replacement with the individual comparison safeguards and leaves failed or changed images for review.
