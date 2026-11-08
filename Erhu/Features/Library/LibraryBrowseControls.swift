@@ -91,8 +91,11 @@ private struct LibraryBrowseHeader<Controls: View>: View {
                              close: close, identifier: "sectionSearchField")
                 .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
                 .frame(height: height)
+                // Clip only the drawing. A content shape here is merged into the close button's
+                // accessibility frame, so it spans the whole row and covers the text field: taps
+                // and hit tests at the field land on "Close search" instead. The field is not
+                // hittable while collapsed anyway, and partial states settle at once.
                 .clipShape(SearchDrawerClip(hiddenHeight: drawer.pinnedOffset))
-                .contentShape(SearchDrawerClip(hiddenHeight: drawer.pinnedOffset))
                 .allowsHitTesting(!drawer.collapsed)
                 .accessibilityHidden(drawer.collapsed)
             if showsControls {

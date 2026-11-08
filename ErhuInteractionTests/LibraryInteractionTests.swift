@@ -65,7 +65,9 @@ final class LibraryInteractionTests: XCTestCase {
         XCTAssertTrue(searchButton.waitForExistence(timeout: 10))
         let field = app.textFields["sectionSearchField"]
         let pageReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            searchButton.isHittable && !field.isHittable
+            // A collapsed field leaves the accessibility tree; checking `exists` first avoids the
+            // multi-second lookup retries of `isHittable` on a missing element.
+            searchButton.isHittable && !(field.exists && field.isHittable)
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [pageReady], timeout: 3), .completed)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
@@ -74,7 +76,7 @@ final class LibraryInteractionTests: XCTestCase {
         // The accessibility element exists before the scroll/bounce animation has
         // finished. Require a usable hit target before checking its final layout.
         let revealed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            field.isHittable
+            field.exists && field.isHittable
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [revealed], timeout: 3), .completed)
         XCTAssertLessThan(app.staticTexts["sectionBrowseTitle"].frame.maxY, field.frame.minY)
@@ -83,7 +85,7 @@ final class LibraryInteractionTests: XCTestCase {
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65))
             .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)))
         let hidden = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            !field.isHittable
+            !(field.exists && field.isHittable)
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 3), .completed)
     }
