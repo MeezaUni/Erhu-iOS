@@ -1,4 +1,4 @@
-<h1><img src="docs/branding/erhu-cube.png" alt="erhu app icon" width="64"> <img src="docs/branding/erhu-wordmark.png" alt="erhu" width="160"> <sub>for iOS</sub></h1>
+<h1><img src="docs/branding/erhu-cube.png" alt="erhu app icon" width="64"> <img src="docs/branding/erhu-wordmark-on-dark.png#gh-dark-mode-only" alt="erhu" width="95"><img src="docs/branding/erhu-wordmark-on-light.png#gh-light-mode-only" alt="erhu" width="95"> <sub>for iOS</sub></h1>
 
 An iPhone music player for your own collection.
 
