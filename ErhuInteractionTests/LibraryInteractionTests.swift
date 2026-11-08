@@ -154,8 +154,13 @@ final class LibraryInteractionTests: XCTestCase {
         let app = launch("transitions")
         XCTAssertTrue(app.buttons["transitionStudioOpen"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["Enable transitions for this album"].exists)
-        let toggle = app.switches.matching(identifier: "collectionTransitionToggle").firstMatch
-        XCTAssertTrue(toggle.exists)
+        let wrapper = app.switches.matching(identifier: "collectionTransitionToggle").firstMatch
+        XCTAssertTrue(wrapper.exists)
+        // SwiftUI puts the identifier on an accessibility wrapper around the platform switch (the
+        // inner element is reported as "not actually a child"). Tap and read the control itself:
+        // a tap at the wrapper's centre can miss the switch, leaving its value unchanged.
+        let inner = wrapper.switches.firstMatch
+        let toggle = inner.exists ? inner : wrapper
         XCTAssertTrue(toggle.isHittable)
         let before = toggle.value as? String
         toggle.tap()
