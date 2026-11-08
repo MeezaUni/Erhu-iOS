@@ -66,6 +66,7 @@ final class ArtworkUpgradeTests: XCTestCase {
     @MainActor
     func testApplyAllRestoresMatchesAndKeepsArtworkThatChangedAfterTheScan() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let files = (1...2).map { _ in LibraryPaths.musicFolder.appendingPathComponent(UUID().uuidString + ".mp3") }
         defer { for file in files { try? FileManager.default.removeItem(at: file) } }
@@ -78,8 +79,8 @@ final class ArtworkUpgradeTests: XCTestCase {
             try TagWriter.write(edit, to: file)
             try database.db.execute("INSERT INTO albums (id, title, artist, artist_id, song_count, year) VALUES (?, ?, 'Artist', 1, 1, 2026)", [id, "Album \(id)"])
             try database.db.execute("""
-                INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, year, date_modified)
-                VALUES (?, ?, 'Artist', ?, 1, ?, 180000, ?, ?, 2026, 0)
+                INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, track_number, year, date_modified)
+                VALUES (?, ?, 'Artist', ?, 1, ?, 180000, ?, ?, 1, 2026, 0)
                 """, [id, "Song \(id)", "Album \(id)", id, file.lastPathComponent, file.lastPathComponent])
         }
         let library = LibraryStore(database: database)
