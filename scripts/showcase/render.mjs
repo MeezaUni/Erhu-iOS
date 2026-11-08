@@ -31,6 +31,7 @@ const shots = {
   equalizer: ['Audio controls and Transition Studio', 'Tune the sound.', 'An 8-band equalizer with presets.'],
   'artwork-fetcher': ['Library tools', 'Find the right cover.', 'Album covers and artist photos, online or from your files.'],
   'artwork-upgrade': ['Library tools', 'Sharper covers.', 'Higher-resolution matches, checked before saving.'],
+  'auto-fix-tags': ['Library tools', 'Repair your tags.', 'Review uncertain matches, and revert any change.'],
   'transition-studio': ['Audio controls and Transition Studio', 'Shape every handoff.', 'Album, playlist and track-pair crossfades.'],
   'transition-editor': ['Audio controls and Transition Studio', 'Draw the crossfade.', 'Volume, EQ and filter curves over the waveforms.'],
 };
