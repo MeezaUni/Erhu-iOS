@@ -29,7 +29,7 @@ It needs Node, Playwright with Chromium, and the Inter font. `animated-artwork.w
 | `lyrics.png` | Full-screen synced lyrics | The listening experience |
 | `queue.png` | Queue | The listening experience |
 | `songs-moods.png` | Songs filtered by the Late night mood | Your library |
-| `equalizer.png` | Equalizer with a preset | Audio controls and Transition Studio |
+| `audio-controls.png` | Equalizer with a preset | Audio controls and Transition Studio |
 | `artwork-fetcher.png` | Artwork Fetcher | Library tools |
 | `auto-fix-tags.png` | Auto Fix Tags with matched and uncertain tracks | Library tools |
 | `artwork-upgrade.png` | Upgrade album covers (animated build) | Library tools |
