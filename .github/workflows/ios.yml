@@ -124,9 +124,15 @@ jobs:
           import os, re
           from pathlib import Path
           lines = Path('build/regression-tests.log').read_text(errors='replace').splitlines()
-          failures = [line for line in lines if re.search(r'error:|XCTAssert.*failed|Test [Cc]ase .* failed|Testing failed:|\*\* TEST FAILED', line)]
-          for line in (failures or lines[-30:])[:24]:
-              print('::error::' + line[-2000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          failures = []
+          for index, line in enumerate(lines):
+              if re.search(r'error:|XCTAssert.*failed|Test [Cc]ase .* failed|Testing failed:|\*\* TEST FAILED', line):
+                  detail = [line]
+                  if 'caught error:' in line:
+                      detail += lines[index + 1:index + 7]
+                  failures.append('\n'.join(detail))
+          for line in (failures or lines[-30:])[:60]:
+              print('::error::' + line[-5000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
               summary.write('## Transfer/library regressions\n\n```text\n' + '\n'.join((failures + lines[-50:]))[-24000:] + '\n```\n')
           PYREGRESSION

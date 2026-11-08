@@ -11,8 +11,8 @@ final class ToolProgressTests: XCTestCase {
     private func insert(_ id: Int64, path: String, database: LibraryDatabase) throws {
         try database.db.execute("INSERT INTO albums (id, title, artist, artist_id, song_count, year) VALUES (?, ?, 'Artist', 1, 1, 2026)", [id, "Album \(id)"])
         try database.db.execute("""
-            INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, year, date_modified)
-            VALUES (?, ?, 'Artist', ?, 1, ?, 180000, ?, ?, 2026, 0)
+            INSERT INTO songs (id, title, artist, album, artist_id, album_id, duration_ms, uri, file_path, track_number, year, date_modified)
+            VALUES (?, ?, 'Artist', ?, 1, ?, 180000, ?, ?, 1, 2026, 0)
             """, [id, "Song \(id)", "Album \(id)", id, path, path])
     }
     @MainActor private func wait(_ complete: () -> Bool) async throws {
