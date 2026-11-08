@@ -68,7 +68,7 @@ struct SectionSearchDrawerProbe: UIViewRepresentable {
     func makeUIView(context: Context) -> Probe { Probe() }
     func updateUIView(_ view: Probe, context: Context) {
         view.state = state; view.height = height; view.initiallyRevealed = initiallyRevealed
-        view.focused = focused; view.reduceMotion = reduceMotion; view.visibilityChanged = visibilityChanged
+        view.searchHasFocus = focused; view.reduceMotion = reduceMotion; view.visibilityChanged = visibilityChanged
         view.setNeedsLayout()
     }
     static func dismantleUIView(_ view: Probe, coordinator: ()) { view.detach() }
@@ -77,7 +77,7 @@ struct SectionSearchDrawerProbe: UIViewRepresentable {
         var state: SectionSearchDrawerState?
         var height: CGFloat = 64
         var initiallyRevealed = false
-        var focused: (() -> Bool)?
+        var searchHasFocus: (() -> Bool)?
         var reduceMotion = false
         var visibilityChanged: ((Bool) -> Void)?
         private weak var scroll: UIScrollView?
@@ -148,7 +148,7 @@ struct SectionSearchDrawerProbe: UIViewRepresentable {
             guard let scroll else { stopDisplayLink(); return }
             if !scroll.isTracking && !scroll.isDragging && !scroll.isDecelerating {
                 stopDisplayLink()
-                state?.settle(focused: focused?() == true, animated: !reduceMotion)
+                state?.settle(focused: searchHasFocus?() == true, animated: !reduceMotion)
             }
         }
         private func stopDisplayLink() { displayLink?.invalidate(); displayLink = nil }
