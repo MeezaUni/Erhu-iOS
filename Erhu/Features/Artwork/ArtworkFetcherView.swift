@@ -7,7 +7,7 @@ import UIKit
 struct ArtworkFetcherView: View {
     @Environment(ArtworkFetcherStore.self) private var store
     @Environment(\.palette) private var palette
-    @State private var tab = 0
+    @AppStorage("artwork.fetcher.tab") private var tab = 0
     @State private var target: ArtworkTarget?
 
     var body: some View {
@@ -24,7 +24,17 @@ struct ArtworkFetcherView: View {
                     Label("Find same image in higher resolution", systemImage: "arrow.up.left.and.arrow.down.right")
                 }
                 if store.isScanning {
-                    HStack { ProgressView(); Text("Looking for missing artwork…") }
+                    ProgressView(value: Double(store.checked), total: Double(max(store.total, 1)))
+                    Text("Checked \(store.checked) of \(store.total) albums").font(.caption)
+                    Button("Stop checking", role: .cancel) { store.stopScan() }
+                } else {
+                    Button(store.hasScanProgress ? (store.checked == store.total ? "Check for new albums" : "Continue checking artwork") : "Check for missing artwork") {
+                        Task { await store.scan() }
+                    }
+                    if store.hasScanProgress {
+                        Button("Start a new artwork check") { Task { await store.scan(restart: true) } }
+                            .font(.footnote)
+                    }
                 }
                 if let message = store.message {
                     Text(message).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
@@ -54,11 +64,15 @@ struct ArtworkFetcherView: View {
                         Task { await store.autoMatchArtists() }
                     } label: {
                         HStack {
-                            Label("Match photos automatically", systemImage: "sparkles")
+                            Label(store.hasArtistProgress ? "Continue matching photos" : "Match photos automatically", systemImage: "sparkles")
                             if store.isAutoMatching { Spacer(); ProgressView() }
                         }
                     }
-                    .disabled(store.isAutoMatching || !store.artists.contains(where: { $0.artworkPath == nil }))
+                    .disabled(store.isAutoMatching || store.remainingArtists == 0)
+                    if store.hasArtistProgress {
+                        Button("Start a new artist-photo check") { Task { await store.autoMatchArtists(restart: true) } }
+                            .disabled(store.isAutoMatching)
+                    }
                     ForEach(store.artists) { artist in
                         Button { target = .artist(artist) } label: {
                             TargetRow(title: artist.name, subtitle: countLabel(artist.songCount, "song"), status: store.artistStatus[artist.id]) {
@@ -76,7 +90,7 @@ struct ArtworkFetcherView: View {
                 .accessibilityLabel("Find missing artwork")
                 .disabled(store.isScanning)
         }
-        .task { if store.albums.isEmpty && store.artists.isEmpty { await store.scan() } }
+        .task { if !store.hasScanProgress && store.albums.isEmpty && store.artists.isEmpty { await store.scan() } }
         .sheet(item: $target) { ArtworkPickerSheet(target: $0) }
     }
 }
@@ -104,7 +118,7 @@ private struct TargetRow<Art: View>: View {
 }
 
 /// What artwork is being chosen for.
-enum ArtworkTarget: Identifiable, Sendable {
+enum ArtworkTarget: Identifiable, Codable, Sendable {
     case album(Album)
     case artist(Artist)
 

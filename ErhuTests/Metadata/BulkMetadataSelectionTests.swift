@@ -57,7 +57,7 @@ final class BulkMetadataApplyTests: XCTestCase {
             VALUES (9091, 'IGOR’S THEME', 'Tyler/ The Creator', 'IGOR', 1, 1, 180000, ?, ?, 3, 2019, 0)
             """, [file.lastPathComponent, file.lastPathComponent])
         let library = LibraryStore(database: database)
-        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()))
+        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()), checkpointURL: nil)
         let previous = store.settings
         defer { store.update { $0 = previous }; store.clear() }
         store.update { $0.fields = [MetadataField.genre.rawValue, MetadataField.discNumber.rawValue] }
@@ -111,7 +111,7 @@ final class BulkMetadataApplyTests: XCTestCase {
             VALUES (9090, ?, ?, ?, 1, 1, 243000, ?, ?, 1, 2006, 0)
             """, [prepare.title!, prepare.artist!, prepare.album!, file.lastPathComponent, file.lastPathComponent])
         let library = LibraryStore(database: database)
-        let store = FixTagsStore(library: library, service: MetadataService(client: MixedFieldsHTTP()))
+        let store = FixTagsStore(library: library, service: MetadataService(client: MixedFieldsHTTP()), checkpointURL: nil)
         let previous = store.settings
         defer { store.update { $0 = previous }; store.clear() }
         store.update { $0.fields = [MetadataField.genre.rawValue, MetadataField.discNumber.rawValue]; $0.source = MetadataSources.musicBrainz }
@@ -145,7 +145,7 @@ final class BulkMetadataApplyTests: XCTestCase {
                 """, [id, file.lastPathComponent, file.lastPathComponent])
         }
         let library = LibraryStore(database: database)
-        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()))
+        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()), checkpointURL: nil)
         let previous = store.settings
         defer { store.update { $0 = previous }; store.clear() }
         store.update { $0.fields = [MetadataField.genre.rawValue]; $0.source = MetadataSources.iTunes; $0.acceptAt = 0.85 }
@@ -180,7 +180,7 @@ final class BulkMetadataApplyTests: XCTestCase {
     func testInPlaceRepairNeverProcessesOtherQueuedSongs() async throws {
         let database = try LibraryDatabase.inMemory()
         let library = LibraryStore(database: database)
-        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()))
+        let store = FixTagsStore(library: library, service: MetadataService(client: BulkHTTP()), checkpointURL: nil)
         let unrelated = Song(id: 9101, title: "Other", artist: "Artist", album: "Other album", durationMs: 180_000, path: "absent-other.mp3")
         let requested = Song(id: 9102, title: "Requested", artist: "Artist", album: "Album", durationMs: 180_000, path: "absent-requested.mp3")
         store.enqueue([unrelated])

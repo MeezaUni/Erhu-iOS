@@ -25,7 +25,7 @@ enum RepairStatus: String, Codable, Sendable {
 }
 
 /// What a lookup saw, kept as separate fields so the screen never has to piece text back together.
-struct RepairDiagnostics: Sendable {
+struct RepairDiagnostics: Codable, Sendable {
     var fileName: String
     var identity: TrackIdentity
     var outcomes: [ProviderOutcome] = []
@@ -36,7 +36,7 @@ struct RepairDiagnostics: Sendable {
 }
 
 /// One track in the queue.
-struct RepairItem: Identifiable, Sendable {
+struct RepairItem: Identifiable, Codable, Sendable {
     var song: Song
     var status: RepairStatus = .pending
     var reason: String?
@@ -89,6 +89,9 @@ final class FixTagsStore {
     private(set) var isRunning = false
     private(set) var isCheckingMissing = false
     private(set) var missingScanMessage: String?
+    private(set) var hasMissingScanProgress = false
+    private(set) var missingScanProgress: (completed: Int, total: Int)?
+    @ObservationIgnored private var stopMissingScanRequested = false
     private(set) var pauseReason: String?
     private(set) var settings: Settings
     private(set) var autoSelectionProgress: (completed: Int, total: Int)?
@@ -99,6 +102,11 @@ final class FixTagsStore {
     @ObservationIgnored let service: MetadataService
     @ObservationIgnored private let bpmFinder: BpmFinder
     @ObservationIgnored private let settingsStore = JSONStore<Settings>(name: "fix_tags.json")
+    @ObservationIgnored private let progress: FixTagsProgress
+    @ObservationIgnored private var libraryChecked: [Int64: String] = [:]
+    @ObservationIgnored private var followsLibrary = false
+    @ObservationIgnored private var autoFillRemaining: [Int64]?
+    private(set) var hasSavedProgress = false
     @ObservationIgnored private var pauseRequested = false
     @ObservationIgnored private var task: Task<Void, Never>?
 
@@ -109,15 +117,38 @@ final class FixTagsStore {
         return url
     }
 
-    init(library: LibraryStore, service: MetadataService = MetadataService(), bpmFinder: BpmFinder = BpmFinder()) {
+    init(library: LibraryStore, service: MetadataService = MetadataService(), bpmFinder: BpmFinder = BpmFinder(), checkpointURL: URL? = LibraryPaths.supportFolder.appendingPathComponent("fix-tags-progress.json")) {
         self.library = library
+        progress = FixTagsProgress(manifest: ProgressFile(url: checkpointURL))
         self.service = service
         self.bpmFinder = bpmFinder
         settings = Settings()
         settings = settingsStore.load() ?? Settings()
         settingsStore.save(settings)
-        // Backups of an earlier session belong to a queue that no longer exists.
-        try? FileManager.default.removeItem(at: Self.backupFolder)
+        if let saved = progress.manifest.load(), saved.version == 1 {
+            libraryChecked = saved.libraryChecked
+            followsLibrary = saved.followsLibrary
+            hasSavedProgress = saved.started
+            autoFillRemaining = saved.autoFillRemaining
+            inPlaceScope = saved.scope
+            hasMissingScanProgress = saved.missingScanInProgress
+            missingScanProgress = (saved.missingChecked, saved.missingTotal)
+            queue = saved.songs.map { song in
+                var item = progress.item(song.id).load() ?? RepairItem(song: song)
+                if let current = try? library.database.song(id: song.id) {
+                    if current.path != song.path { return RepairItem(song: current) }
+                    item.song = current
+                }
+                if item.status == .fixing { item.status = .pending }
+                if let backup = item.backup {
+                    let local = Self.backupFolder.appendingPathComponent(backup.lastPathComponent)
+                    item.backup = FileManager.default.fileExists(atPath: local.path) ? local : nil
+                }
+                return item
+            }
+            isAutoSelectionPaused = !(autoFillRemaining?.isEmpty ?? true)
+            if hasSavedProgress { pauseReason = "Saved progress restored. Continue with the remaining tracks; completed tracks are skipped." }
+        }
     }
 
     var selectedFields: Set<MetadataField> { Set(settings.fields.compactMap(MetadataField.init(rawValue:))) }
@@ -134,13 +165,34 @@ final class FixTagsStore {
         missingScanMessage = nil
     }
 
-    var hasWork: Bool { queue.contains { $0.status.toProcess } }
+    var hasWork: Bool {
+        if queue.contains(where: { $0.status.toProcess && (inPlaceScope.isEmpty || inPlaceScope.contains($0.id)) }) { return true }
+        return followsLibrary && inPlaceScope.isEmpty && library.songs.contains { libraryChecked[$0.id] != $0.path }
+    }
+
+    private func saveProgress(_ item: RepairItem? = nil, manifest: Bool = true) {
+        do {
+            if let item { try progress.item(item.id).save(item) }
+            if manifest {
+                try progress.manifest.save(.init(songs: queue.map(\.song), libraryChecked: libraryChecked, followsLibrary: followsLibrary,
+                                                 started: hasSavedProgress, autoFillRemaining: autoFillRemaining, scope: inPlaceScope,
+                                                 missingScanInProgress: hasMissingScanProgress,
+                                                 missingChecked: missingScanProgress?.completed ?? 0, missingTotal: missingScanProgress?.total ?? 0))
+            }
+        } catch {
+            pauseRequested = true
+            pauseReason = "Couldn’t save progress: \(error.localizedDescription). The run will pause."
+        }
+    }
     var revertible: [RepairItem] { queue.filter { $0.backup != nil } }
     var autoCandidateCount: Int { queue.filter { BulkMetadataSelection.canResolve($0) }.count }
 
     func enqueue(_ songs: [Song]) {
         var present = Set(queue.map(\.id))
-        queue += songs.filter { present.insert($0.id).inserted }.map { RepairItem(song: $0) }
+        let added = songs.filter { present.insert($0.id).inserted }.map { RepairItem(song: $0) }
+        queue += added
+        saveProgress()
+        for item in added { saveProgress(item, manifest: false) }
     }
 
     /// An in-place action owns only these songs; existing unrelated queue entries stay untouched.
@@ -152,6 +204,7 @@ final class FixTagsStore {
         for index in queue.indices where ids.contains(queue[index].id) {
             queue[index].status = .pending
             queue[index].reason = nil
+            saveProgress(queue[index], manifest: false)
         }
         inPlaceScope = ids
         start(scope: ids)
@@ -175,36 +228,62 @@ final class FixTagsStore {
             missingScanMessage = "Choose which tags to check first."
             return
         }
-        isCheckingMissing = true
+        followsLibrary = true; inPlaceScope = []; hasSavedProgress = true
+        isCheckingMissing = true; hasMissingScanProgress = true; stopMissingScanRequested = false
         defer { isCheckingMissing = false }
         let songs = library.songs
-        let found = await Task.detached(priority: .utility) {
-            songs.compactMap { song -> (Song, [MetadataField])? in
-                let missing = MetadataCompleteness.missing(TagReader.read(song.url), fields: fields)
-                return missing.isEmpty ? nil : (song, missing)
-            }
-        }.value
-        enqueue(found.map { $0.0 })
-        for (song, missing) in found {
-            if let index = queue.firstIndex(where: { $0.id == song.id }) {
+        let keys = fields.map(\.rawValue).sorted()
+        missingScanProgress = (0, songs.count)
+        saveProgress()
+        var found: [(Song, [MetadataField])] = []
+        for (offset, song) in songs.enumerated() {
+            guard !Task.isCancelled, !stopMissingScanRequested else { break }
+            let file = progress.missing(song.id)
+            let check = await Task.detached(priority: .utility) {
+                let stamp = ProgressFileStamp(song)
+                if let cached = file.load(), cached.song.path == song.path, cached.stamp == stamp, cached.fields == keys { return cached }
+                return FixTagsProgress.MissingCheck(song: song, stamp: stamp, fields: keys,
+                                                   missing: MetadataCompleteness.missing(TagReader.read(song.url), fields: fields))
+            }.value
+            guard !Task.isCancelled, !stopMissingScanRequested else { break }
+            do { try file.save(check) }
+            catch { missingScanMessage = "Couldn’t save tag-check progress: \(error.localizedDescription)"; return }
+            libraryChecked[song.id] = song.path
+            if !check.missing.isEmpty {
+                found.append((song, check.missing))
+                let index: Int
+                if let existing = queue.firstIndex(where: { $0.id == song.id }) { index = existing }
+                else { queue.append(RepairItem(song: song)); index = queue.count - 1 }
                 queue[index].status = .pending
-                queue[index].reason = "Missing: " + missing.map(\.displayName).joined(separator: ", ")
+                queue[index].reason = "Missing: " + check.missing.map(\.displayName).joined(separator: ", ")
+                saveProgress(queue[index], manifest: false)
             }
+            missingScanProgress = (offset + 1, songs.count)
+            saveProgress()
         }
+        hasMissingScanProgress = (missingScanProgress?.completed ?? 0) < songs.count
+        saveProgress()
         let labels = MetadataField.allCases.filter { field in found.contains { $0.1.contains(field) } }.map(\.displayName)
-        missingScanMessage = found.isEmpty ? "No missing selected tags found." : "Found \(countLabel(found.count, "track")) needing: " + labels.joined(separator: ", ") + "."
+        missingScanMessage = hasMissingScanProgress ? "Check stopped. Continue checking missing tags to skip completed files and include new songs."
+            : found.isEmpty ? "No missing selected tags found." : "Found \(countLabel(found.count, "track")) needing: " + labels.joined(separator: ", ") + "."
     }
+
+    func stopMissingScan() { stopMissingScanRequested = true }
 
     func remove(_ item: RepairItem) {
         guard !isRunning, !isCheckingMissing else { return }
         if let backup = item.backup { try? FileManager.default.removeItem(at: backup) }
         queue.removeAll { $0.id == item.id }
+        autoFillRemaining?.removeAll { $0 == item.id }
+        saveProgress()
+        progress.item(item.id).remove()
     }
 
     func retry(_ item: RepairItem) {
         guard let index = queue.firstIndex(where: { $0.id == item.id }), !isRunning, !isCheckingMissing else { return }
         queue[index].status = .pending
         queue[index].reason = nil
+        saveProgress(queue[index])
     }
 
     /// Empties the queue and deletes the kept originals (changes can no longer be reverted).
@@ -212,6 +291,13 @@ final class FixTagsStore {
         guard !isRunning, !isCheckingMissing else { return }
         queue = []
         inPlaceScope = []
+        followsLibrary = false
+        libraryChecked = [:]
+        hasMissingScanProgress = false
+        missingScanProgress = nil
+        hasSavedProgress = false
+        autoFillRemaining = nil
+        progress.clear()
         autoSelectionProgress = nil
         autoSelectionMessage = nil
         isAutoSelectionPaused = false
@@ -223,7 +309,7 @@ final class FixTagsStore {
 
     func start(scope: Set<Int64>? = nil) {
         guard !isRunning, !isCheckingMissing, hasWork else { return }
-        if scope == nil { inPlaceScope = [] }
+        let scope = scope ?? (inPlaceScope.isEmpty ? nil : inPlaceScope)
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else {
             pauseReason = "Choose at least one field to fix"
@@ -237,16 +323,31 @@ final class FixTagsStore {
         pauseReason = nil
         let source = settings.source
         let acceptAt = settings.acceptAt
+        hasSavedProgress = true
+        saveProgress()
         task = Task { [weak self] in
             await self?.run(selection: selection, source: source, acceptAt: acceptAt, scope: scope)
         }
     }
 
+    private func appendNewLibrarySongs() async {
+        let newSongs = library.songs.filter { libraryChecked[$0.id] != $0.path }
+        let fields = selectedFields
+        let missing = await Task.detached(priority: .utility) {
+            newSongs.filter { !MetadataCompleteness.missing(TagReader.read($0.url), fields: fields).isEmpty }
+        }.value
+        for song in newSongs { libraryChecked[song.id] = song.path }
+        enqueue(missing)
+        hasMissingScanProgress = false
+        saveProgress()
+    }
+
     private func run(selection: FieldSelection, source: String, acceptAt: Float, scope: Set<Int64>? = nil) async {
+        if scope == nil, followsLibrary { await appendNewLibrarySongs() }
         var wroteAny = false
         for index in queue.indices where queue[index].status.toProcess && (scope == nil || scope!.contains(queue[index].id)) {
             if pauseRequested {
-                pauseReason = "Paused"
+                pauseReason = pauseReason ?? "Paused"
                 break
             }
             queue[index].status = .fixing
@@ -267,6 +368,7 @@ final class FixTagsStore {
                     wroteAny = wroteAny || updated.status == .done
                 }
                 queue[index] = updated
+                saveProgress(updated, manifest: false)
             }
             try? await Task.sleep(nanoseconds: 600_000_000)
         }
@@ -472,8 +574,13 @@ final class FixTagsStore {
         let previousBackup = item.backup
         let backup = previousBackup ?? Self.backupFolder.appendingPathComponent("\(UUID().uuidString).\(url.pathExtension)")
         do {
+            if previousBackup == nil {
+                try await Task.detached(priority: .utility) { try FileManager.default.copyItem(at: url, to: backup) }.value
+                item.backup = backup
+                do { try progress.item(item.id).save(item) }
+                catch { try? FileManager.default.removeItem(at: backup); throw error }
+            }
             let written = try await Task.detached(priority: .utility) {
-                if previousBackup == nil { try FileManager.default.copyItem(at: url, to: backup) }
                 do {
                     try TagWriter.write(request, to: url, requiringComplete: plan.checkedFields)
                 } catch {
@@ -490,6 +597,7 @@ final class FixTagsStore {
             item.proposedRequest = nil
             item.proposedFields = []
         } catch {
+            if previousBackup == nil { item.backup = nil }
             item.status = .failed
             item.reason = error.localizedDescription
         }
@@ -510,8 +618,6 @@ final class FixTagsStore {
     /// One tap refreshes unresolved tracks and fills selected missing fields from verified sources.
     func autoSelectBestCandidates() {
         guard !isRunning, !isCheckingMissing else { return }
-        let choices = queue.filter { BulkMetadataSelection.canResolve($0) }.map(\.id)
-        guard !choices.isEmpty else { autoSelectionMessage = "No unresolved tracks in this queue. Find missing tags or add songs first."; return }
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else { pauseReason = "Choose which fields to fix first."; return }
         let acceptAt = settings.acceptAt
@@ -520,9 +626,23 @@ final class FixTagsStore {
         pauseReason = nil
         isAutoSelectionPaused = false
         autoSelectionMessage = nil
-        autoSelectionProgress = (0, choices.count)
+        autoSelectionProgress = nil
+        hasSavedProgress = true
+        saveProgress()
         task = Task { [weak self] in
             guard let self else { return }
+            if followsLibrary, inPlaceScope.isEmpty { await appendNewLibrarySongs() }
+            let resumable = autoFillRemaining.map(Set.init)
+            let choices = queue.filter { BulkMetadataSelection.canResolve($0) &&
+                (resumable == nil || resumable!.contains($0.id) || $0.status == .pending) }.map(\.id)
+            guard !choices.isEmpty else {
+                autoSelectionMessage = "No unresolved tracks in this queue. Find missing tags or add songs first."
+                autoFillRemaining = nil; saveProgress(); isRunning = false
+                return
+            }
+            autoSelectionProgress = (0, choices.count)
+            autoFillRemaining = choices
+            saveProgress()
             var written = 0
             for (index, choice) in choices.enumerated() {
                 if pauseRequested {
@@ -545,8 +665,13 @@ final class FixTagsStore {
                     }
                     queue[row] = updated
                 }
+                if queue[row].status != .networkFailed { autoFillRemaining?.removeAll { $0 == choice } }
+                saveProgress(queue[row])
                 autoSelectionProgress = (index + 1, choices.count)
             }
+            if autoFillRemaining?.isEmpty == true { autoFillRemaining = nil }
+            isAutoSelectionPaused = !(autoFillRemaining?.isEmpty ?? true)
+            saveProgress()
             let remaining = queue.filter { BulkMetadataSelection.canResolve($0) && $0.status != .unchanged }.count
             autoSelectionMessage = written > 0
                 ? "Fully fixed \(countLabel(written, "track")); \(remaining) still need review. Incomplete repairs were not written."
@@ -565,6 +690,7 @@ final class FixTagsStore {
         guard FileManager.default.fileExists(atPath: url.path) else {
             queue[start].status = .failed
             queue[start].reason = "The file no longer exists"
+            saveProgress(queue[start], manifest: false)
             return false
         }
         let embedded = await Task.detached(priority: .utility) { TagReader.read(url) }.value
@@ -579,6 +705,7 @@ final class FixTagsStore {
             item.reason = plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ")
         }
         if let index = queue.firstIndex(where: { $0.id == id }) { queue[index] = item }
+        saveProgress(item, manifest: false)
         return item.status == .done
     }
 
@@ -604,6 +731,7 @@ final class FixTagsStore {
         var updated = await write(combined, plan: plan, item: queue[index])
         updated.notes.append("Known values entered manually")
         queue[index] = updated
+        saveProgress(updated, manifest: false)
         if updated.status == .failed { throw TagWriteError.io(updated.reason ?? "The tags could not be saved") }
         if updated.status == .needsReview { throw TagWriteError.io(updated.reason ?? "Complete the remaining selected tags before saving") }
         library.scan()
@@ -626,6 +754,7 @@ final class FixTagsStore {
                 queue[index].reason = nil
                 queue[index].proposedRequest = nil
                 queue[index].proposedFields = []
+                saveProgress(queue[index], manifest: false)
                 count += 1
             } catch {
                 queue[index].reason = "Couldn't revert: \(error.localizedDescription)"

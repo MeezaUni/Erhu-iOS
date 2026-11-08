@@ -14,18 +14,28 @@ struct ArtworkUpgradeView: View {
     var body: some View {
         List {
             Section {
-                Text("Find a larger version of your existing image. Only likely same-image matches appear here; review before replacing. Your current artwork stays until you apply a match. Saved images fit within \(TagWriter.maxArtworkPixels) pixels.")
+                Text("Find a larger version of your existing image. Review a match individually or apply all matching upgrades. Each replacement is checked again before saving. Saved images fit within \(TagWriter.maxArtworkPixels) pixels.")
                     .font(.footnote).foregroundStyle(.secondary)
-                if store.scanning {
+                if store.applying {
+                    ProgressView(value: Double(store.applied), total: Double(max(store.applyTotal, 1)))
+                    Text("Applying \(store.applied) of \(store.applyTotal) upgrades").font(.caption)
+                    Button("Stop after this image", role: .cancel) { store.cancel() }
+                } else if store.scanning {
                     ProgressView(value: Double(store.checked), total: Double(max(store.total, 1)))
                     Text("Checked \(store.checked) of \(store.total)").font(.caption)
                     Button("Stop search", role: .cancel) { store.cancel() }
                 } else {
-                    Button(store.finished ? "Search again" : "Find higher-resolution matches") {
+                    Button(store.finished ? "Check for new upgrades" : store.checked > 0 ? "Continue checking for upgrades" : "Find higher-resolution matches") {
                         message = nil
                         store.scan(kind, library: library, search: fetcher.search)
                     }
                     .disabled(loading || saving)
+                    if store.checked > 0 {
+                        Button("Start a new search") {
+                            message = nil
+                            store.scan(kind, library: library, search: fetcher.search, restart: true)
+                        }.disabled(loading || saving)
+                    }
                     if store.finished {
                         Text("Checked \(store.checked). \(store.results.count) upgrade\(store.results.count == 1 ? "" : "s") to review. Some sources may have no matching larger image.")
                             .font(.caption).foregroundStyle(.secondary)
@@ -33,8 +43,18 @@ struct ArtworkUpgradeView: View {
                     if store.skipped > 0 { Text("\(store.skipped) images or requests could not be checked.").font(.caption).foregroundStyle(.secondary) }
                 }
                 if let message { Text(message).font(.footnote) }
+                if let message = store.message { Text(message).font(.footnote) }
+                Text("Progress is saved after each image. Continue skips completed checks and includes new albums or artists.")
+                    .font(.caption).foregroundStyle(.secondary)
             }.toolSectionAppearance()
             Section("Higher-resolution matches") {
+                if !store.results.isEmpty {
+                    Button { store.applyAll(library: library, fetcher: fetcher) } label: {
+                        Label("Apply to all (\(store.results.count))", systemImage: "checkmark.circle")
+                    }
+                    .disabled(store.scanning || store.applying || loading || saving)
+                    .accessibilityIdentifier("artwork-upgrade-apply-all")
+                }
                 ForEach(store.results) { result in
                     Button { Task { await open(result) } } label: {
                         HStack(spacing: Spacing.md) {
@@ -49,7 +69,7 @@ struct ArtworkUpgradeView: View {
                                 Text("Likely same image · Review").font(.caption)
                             }
                         }
-                    }.buttonStyle(.plain).disabled(loading || saving)
+                    }.buttonStyle(.plain).disabled(loading || saving || store.applying || store.scanning)
                 }
                 if store.finished && store.results.isEmpty { Text("No larger same-image matches to review.").foregroundStyle(.secondary) }
             }.toolSectionAppearance()
@@ -59,6 +79,7 @@ struct ArtworkUpgradeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .overlay { if loading { ProgressView("Loading full image…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12)) } }
         .onDisappear { store.cancel() }
+        .task { store.restore(kind, library: library) }
         .sheet(item: $review) { item in
             ArtworkUpgradeReviewView(review: item, saving: saving, error: reviewError) {
                 Task { await apply(item) }

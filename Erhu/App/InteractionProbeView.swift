@@ -31,6 +31,10 @@ struct InteractionProbeView: View {
                             Text(String(format: "%.2f", Double(chrome.fraction))).accessibilityIdentifier("chromeFraction")
                         }
                 }.environment(chrome).environment(\.artworkSection, router.section)
+            } else if page == "animated-covers" {
+                #if ERHU_ANIMATED_ART
+                NavigationStack { AnimatedArtworkView() }
+                #endif
             } else if page == "carousel" {
                 ScrollView {
                     SmartMixHero(mixes: [MixKind.chill, .lateNight, .throwbacks].map {

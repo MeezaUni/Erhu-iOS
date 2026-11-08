@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// Where an album or artist is in the Artwork Fetcher.
-enum ArtworkStatus: Equatable {
+enum ArtworkStatus: Equatable, Codable, Sendable {
     case missing
     case searching
     case found(Int)
@@ -35,6 +35,9 @@ final class ArtworkFetcherStore {
     private(set) var artists: [Artist] = []
     private(set) var albumStatus: [Int64: ArtworkStatus] = [:]
     private(set) var artistStatus: [Int64: ArtworkStatus] = [:]
+    private(set) var checked = 0
+    private(set) var total = 0
+    private(set) var hasScanProgress = false
     private(set) var isScanning = false
     private(set) var isAutoMatching = false
     private(set) var message: String?
@@ -45,11 +48,38 @@ final class ArtworkFetcherStore {
     @ObservationIgnored private var libraryObserver: NSObjectProtocol?
     @ObservationIgnored private var automaticTask: Task<Void, Never>?
     @ObservationIgnored private var attemptedArtists = Set<String>()
+    @ObservationIgnored private let progress: ArtworkFetchProgress
+    @ObservationIgnored private var completedArtists: [String: ArtworkStatus] = [:]
+    @ObservationIgnored private var stopScanRequested = false
+    @ObservationIgnored private let artworkPresence: @Sendable (URL) -> Bool
 
-    init(library: LibraryStore, service: MetadataService, search: ArtworkSearch = ArtworkSearch()) {
+    init(library: LibraryStore, service: MetadataService, search: ArtworkSearch = ArtworkSearch(),
+         checkpointURL: URL? = LibraryPaths.supportFolder.appendingPathComponent("artwork-fetch-progress.json"),
+         artworkPresence: @escaping @Sendable (URL) -> Bool = { TagReader.read($0).hasArtwork }) {
         self.library = library
         self.service = service
         self.search = search
+        self.artworkPresence = artworkPresence
+        progress = ArtworkFetchProgress(url: checkpointURL)
+        completedArtists = progress.artists.load() ?? [:]
+        attemptedArtists = Set(completedArtists.keys)
+        for artist in library.artists {
+            if artist.artworkPath != nil { artistStatus[artist.id] = .done }
+            else if completedArtists[artist.artistKey] == .done { completedArtists[artist.artistKey] = nil; attemptedArtists.remove(artist.artistKey) }
+            else { artistStatus[artist.id] = completedArtists[artist.artistKey] }
+        }
+        if let saved = progress.manifest.load(), saved.version == 1 {
+            hasScanProgress = true
+            total = library.albums.count
+            for id in saved.ids {
+                guard let entry = progress.album(id).load(), let current = library.album(id),
+                      entry.matches(current, stamp: library.albumCoverSong[id].map(ArtworkFetchProgress.Stamp.init)) else { continue }
+                checked += 1
+                if !entry.hasArtwork { albums.append(current); albumStatus[id] = .missing }
+            }
+            artists = library.artists.filter { !$0.isUnresolved && isUsableTag($0.name) }
+            message = "Saved progress: checked \(checked) of \(total) albums. Continue to include remaining and newly added albums."
+        }
     }
 
     /// Match missing photos on launch and whenever an import or scan adds artists.
@@ -71,7 +101,7 @@ final class ArtworkFetcherStore {
     }
 
     private func scheduleAutomaticMatching() {
-        guard automaticTask == nil else { return }
+        guard automaticTask == nil, !isAutoMatching else { return }
         automaticTask = Task { [weak self] in
             guard let self else { return }
             defer { self.automaticTask = nil }
@@ -101,22 +131,70 @@ final class ArtworkFetcherStore {
         return url
     }
 
-    /// Finds missing album covers and all artists, including photos the listener may replace.
-    func scan() async {
+    /// Resume from file identities, including negative checks, rather than a list index.
+    /// Only changed or newly imported albums need their audio artwork read again.
+    func scan(restart: Bool = false) async {
         guard !isScanning else { return }
-        isScanning = true
-        let covers = library.albumCoverSong
-        let candidates = library.albums
-        let missing = await Task.detached(priority: .utility) {
-            candidates.filter { album in covers[album.id].map { !TagReader.read($0.url).hasArtwork } ?? false }
+        if restart { progress.clearAlbums(); hasScanProgress = false }
+        isScanning = true; stopScanRequested = false; message = nil
+        defer { isScanning = false }
+        let all = library.albums, sources = library.albumCoverSong, progress = self.progress
+        total = all.count
+        let checks = await Task.detached(priority: .utility) {
+            all.map { album -> ArtworkCheck in
+                let song = sources[album.id]
+                let stamp = song.map(ArtworkFetchProgress.Stamp.init)
+                let cached = progress.album(album.id).load().flatMap { $0.matches(album, stamp: stamp) ? $0 : nil }
+                return ArtworkCheck(album: album, song: song, stamp: stamp, cached: cached)
+            }
         }.value
-        albums = missing
-        for album in missing where albumStatus[album.id] == nil { albumStatus[album.id] = .missing }
+        guard !Task.isCancelled, !stopScanRequested else { return }
+        var completed = checks.filter { $0.cached != nil }.map { $0.album.id }
+        checked = completed.count
+        albums = checks.filter { $0.cached?.hasArtwork == false }.map(\.album)
+        for album in albums { albumStatus[album.id] = .missing }
         artists = library.artists.filter { !$0.isUnresolved && isUsableTag($0.name) }
         for artist in artists where artistStatus[artist.id] == nil {
             artistStatus[artist.id] = artist.artworkPath == nil ? .missing : .done
         }
-        isScanning = false
+        do {
+            try progress.manifest.save(.init(ids: completed, total: total))
+            hasScanProgress = true
+            let read = artworkPresence
+            for check in checks where check.cached == nil {
+                guard !Task.isCancelled, !stopScanRequested else { break }
+                let hasArtwork = await Task.detached(priority: .utility) { check.song.map { read($0.url) } ?? true }.value
+                guard !Task.isCancelled, !stopScanRequested else { break }
+                try progress.album(check.album.id).save(.init(album: check.album, stamp: check.stamp, hasArtwork: hasArtwork))
+                completed.append(check.album.id)
+                try progress.manifest.save(.init(ids: completed, total: total))
+                checked = completed.count
+                if !hasArtwork { albums.append(check.album); albumStatus[check.album.id] = .missing }
+            }
+            message = checked < total ? "Check stopped at \(checked) of \(total). Continue to check the remaining albums."
+                : "Checked \(checked) albums. \(albums.count) need a cover."
+        } catch { message = "Couldn’t save artwork progress: \(error.localizedDescription). Continue to retry." }
+    }
+
+    private struct ArtworkCheck: Sendable {
+        let album: Album
+        let song: Song?
+        let stamp: ArtworkFetchProgress.Stamp?
+        let cached: ArtworkFetchProgress.Entry?
+    }
+
+    func stopScan() { stopScanRequested = true }
+
+    var hasArtistProgress: Bool { !completedArtists.isEmpty }
+    var remainingArtists: Int {
+        artists.filter { library.artist($0.id)?.artworkPath == nil && completedArtists[$0.artistKey] == nil }.count
+    }
+    private func finishArtistCheck(_ artist: Artist) {
+        guard let status = artistStatus[artist.id] else { return }
+        completedArtists[artist.artistKey] = status
+        attemptedArtists.insert(artist.artistKey)
+        do { try progress.artists.save(completedArtists) }
+        catch { message = "Couldn’t save artist-photo progress: \(error.localizedDescription)" }
     }
 
     func albumCovers(_ album: Album) async -> [ArtworkCandidate] {
@@ -232,11 +310,13 @@ final class ArtworkFetcherStore {
 
     /// Gives each listed artist the photo of its Deezer profile when one is safely that artist;
     /// doubtful names are left without a photo.
-    func autoMatchArtists() async {
+    func autoMatchArtists(restart: Bool = false) async {
         guard !isAutoMatching else { return }
+        automaticTask?.cancel()
+        if restart { completedArtists = [:]; attemptedArtists = []; progress.artists.remove() }
         isAutoMatching = true
         var matched = 0
-        for artist in artists where library.artist(artist.id)?.artworkPath == nil {
+        for artist in artists where library.artist(artist.id)?.artworkPath == nil && completedArtists[artist.artistKey] == nil {
             guard !Task.isCancelled else { break }
             if await matchPhotoIfMissing(artist) { matched += 1 }
             // Deezer allows about 50 requests per 5 seconds.
@@ -265,12 +345,16 @@ final class ArtworkFetcherStore {
                 }
                 guard current.artworkPath == nil else {
                     artistStatus[artist.id] = .done
+                    finishArtistCheck(artist)
                     return false
                 }
                 try storePhoto(image, for: current, source: "DEEZER", deezerId: id)
                 artistStatus[artist.id] = .done
+                finishArtistCheck(artist)
                 return true
-            case .rejected(let reason): artistStatus[artist.id] = .failed("Not matched automatically: \(reason)")
+            case .rejected(let reason):
+                artistStatus[artist.id] = .failed("Not matched automatically: \(reason)")
+                finishArtistCheck(artist)
             }
         } catch is CancellationError {
             if artistStatus[artist.id] == .searching { artistStatus[artist.id] = .missing }

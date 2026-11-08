@@ -2,7 +2,7 @@ import Foundation
 
 /// A playable track of the library (Android's Song plus what the iOS scanner reads itself).
 /// [path] is relative to the music folder, so the library survives the app container moving.
-struct Song: Identifiable, Hashable, Sendable {
+struct Song: Identifiable, Hashable, Codable, Sendable {
     let id: Int64
     var title: String
     var artist: String
@@ -39,7 +39,7 @@ struct Song: Identifiable, Hashable, Sendable {
     }
 }
 
-struct Album: Identifiable, Hashable, Sendable {
+struct Album: Identifiable, Hashable, Codable, Sendable {
     let id: Int64
     var title: String
     var artist: String
@@ -49,7 +49,7 @@ struct Album: Identifiable, Hashable, Sendable {
     var isCompilation = false
 }
 
-struct Artist: Identifiable, Hashable, Sendable {
+struct Artist: Identifiable, Hashable, Codable, Sendable {
     let id: Int64
     var name: String
     var songCount: Int

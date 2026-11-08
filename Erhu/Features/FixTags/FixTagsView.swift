@@ -96,13 +96,13 @@ struct FixTagsView: View {
                 Button {
                     Task { await store.findMissingTags() }
                 } label: {
-                    Label("Find tracks with missing tags", systemImage: "wand.and.stars")
+                    Label(store.hasMissingScanProgress ? "Continue checking missing tags" : "Find tracks with missing tags", systemImage: "wand.and.stars")
                 }
                 Button { addingSongs = true } label: { Label("Add songs…", systemImage: "plus") }
                 Button {
                     store.start()
                 } label: {
-                    Label(store.queue.contains { $0.status != .pending && $0.status.toProcess } ? "Resume" : "Start", systemImage: "play.fill")
+                    Label(store.hasSavedProgress ? "Continue fixing tags" : "Start", systemImage: "play.fill")
                 }
                 .disabled(!store.hasWork || store.isCheckingMissing)
                 if store.autoCandidateCount > 0 {
@@ -117,7 +117,11 @@ struct FixTagsView: View {
                         .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
                 }
                 if store.isCheckingMissing {
-                    HStack { ProgressView(); Text("Checking the selected tags in your files…") }.font(.footnote)
+                    if let progress = store.missingScanProgress {
+                        ProgressView(value: Double(progress.completed), total: Double(max(progress.total, 1)))
+                        Text("Checked \(progress.completed) of \(progress.total) files").font(.caption)
+                    }
+                    Button("Stop checking", role: .cancel) { store.stopMissingScan() }
                 }
                 if let message = store.missingScanMessage { Text(message).font(.footnote).foregroundStyle(palette.onSurfaceVariant) }
             }

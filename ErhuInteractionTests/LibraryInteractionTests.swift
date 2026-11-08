@@ -107,6 +107,19 @@ final class LibraryInteractionTests: XCTestCase {
         XCTAssertEqual(currentPage(), initial)
     }
 
+    #if ERHU_ANIMATED_ART
+    @MainActor func testAnimatedCoverSearchStaysInTheTopNavigationDrawer() {
+        let app = launch("animated-covers")
+        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 10))
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75)))
+        let field = app.searchFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(field.isHittable)
+        XCTAssertLessThan(field.frame.maxY, app.frame.height / 2, "Animated-cover search belongs above the list, away from bottom playback/navigation controls")
+    }
+    #endif
+
     @MainActor func testFixTagsScrollingCompactsTheSharedBottomChrome() {
         let app = launch("tools")
         let fraction = app.staticTexts["chromeFraction"]

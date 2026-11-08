@@ -1,7 +1,7 @@
 import Foundation
 
 /// A track as one online source describes it.
-struct MetadataCandidate: Equatable, Hashable, Sendable, Identifiable {
+struct MetadataCandidate: Equatable, Hashable, Codable, Sendable, Identifiable {
     var id: String
     var title: String
     var artist: String
@@ -32,7 +32,7 @@ struct MetadataCandidate: Equatable, Hashable, Sendable, Identifiable {
 /// What happened when a provider was (or was not) asked about a track. Skipped and not configured
 /// mean no request was sent; every failure status means one was sent and failed, and none of them
 /// is ever reported as "no results".
-enum ProviderStatus: String, Sendable {
+enum ProviderStatus: String, Codable, Sendable {
     case inProgress = "Searching…"
     case noResults = "No results found"
     case candidatesFound = "Candidates found"
@@ -56,7 +56,7 @@ enum ProviderStatus: String, Sendable {
     var answered: Bool { [.noResults, .candidatesFound, .lowConfidence, .success].contains(self) }
 }
 
-struct ProviderOutcome: Equatable, Sendable {
+struct ProviderOutcome: Equatable, Codable, Sendable {
     var providerName: String
     var candidateCount = 0
     var status: ProviderStatus = .noResults
@@ -64,7 +64,7 @@ struct ProviderOutcome: Equatable, Sendable {
 }
 
 /// One query sent for a track: its parts, where the title came from, and each provider's answer.
-struct QueryAttempt: Equatable, Sendable {
+struct QueryAttempt: Equatable, Codable, Sendable {
     let title: String
     let artist: String?
     let album: String?

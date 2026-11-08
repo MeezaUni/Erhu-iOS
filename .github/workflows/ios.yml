@@ -121,6 +121,7 @@ jobs:
             -only-testing:ErhuTests/FeaturedSetlistsTests \
             -only-testing:ErhuTests/PlayerDragStateTests \
             -only-testing:ErhuTests/LibraryChromeTests \
+            -only-testing:ErhuTests/ToolProgressTests \
             -only-testing:ErhuInteractionTests -parallel-testing-enabled NO \
             -only-testing:ErhuTests/LibraryModelBuilderTests "${MOTION_TESTS[@]}" > build/regression-tests.log 2>&1; then
             python3 - <<'PYREGRESSION'
