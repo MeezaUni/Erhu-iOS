@@ -8,14 +8,16 @@ the README picks it up automatically.
 | --- | --- | --- |
 | `hero.png` | Home and Now Playing side by side | Header |
 | `home.png` | Home with a smart playlist and radio stations | Home and discovery |
-| `albums.png` | Albums, sorted by recently played | Home and discovery |
-| `library.png` | Library: playlists, favourites, artists | Home and discovery |
+| `radio.png` | A radio station page | Home and discovery |
+| `vybe.png` | VYBE search results | Home and discovery |
+| `library.png` | Library: playlists, favourites, artists | Your library |
+| `albums.png` | Albums, sorted by recently played | Your library |
 | `now-playing.png` | Now Playing | The listening experience |
 | `lyrics.png` | Full-screen synced lyrics | The listening experience |
 | `queue.png` | Queue | The listening experience |
-| `songs-moods.png` | Songs filtered by the Late night mood | Moods, menus and audio controls |
-| `glass.png` | The floating track menu in Now Playing | Moods, menus and audio controls |
-| `equalizer.png` | Equalizer with a preset | Moods, menus and audio controls |
+| `songs-moods.png` | Songs filtered by the Late night mood | Your library |
+| `glass.png` | The floating track menu in Now Playing | Menus and audio controls |
+| `equalizer.png` | Equalizer with a preset | Menus and audio controls |
 | `artwork-fetcher.png` | Artwork Fetcher | Library tools |
 | `artwork-upgrade.png` | Upgrade album covers (animated build) | Library tools |
 | `transition-studio.png` | An album with Transition Studio and track pairs | Transition Studio |
@@ -27,5 +29,4 @@ the README picks it up automatically.
 - **Lock Screen video** (animated build): a short screen recording of the Lock Screen while an
   animated cover plays. It will be converted to a GIF so it plays inside the README, replacing
   `lock-screen.png` in that section.
-- Optional, each adds a slot back to the README: a radio station page (`radio.png`), VYBE with
-  search results (`vybe.png`) and Auto Fix Tags with a queue (`auto-fix-tags.png`).
+- Optional: Auto Fix Tags with a queue (`auto-fix-tags.png`), which would add a third Library tools slot.
