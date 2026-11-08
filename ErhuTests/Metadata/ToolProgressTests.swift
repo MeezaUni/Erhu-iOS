@@ -72,6 +72,29 @@ final class ToolProgressTests: XCTestCase {
         XCTAssertFalse(reopened.isRunning)
     }
 
+    @MainActor func testRestoredAlbumScopeDoesNotStrandOtherPendingTracksInTheGlobalQueue() async throws {
+        let root = try folder(); defer { try? FileManager.default.removeItem(at: root) }
+        let database = try LibraryDatabase.inMemory()
+        try insert(1, path: UUID().uuidString + ".mp3", database: database)
+        try insert(2, path: UUID().uuidString + ".mp3", database: database)
+        let library = LibraryStore(database: database)
+        let songs = library.songs.sorted { $0.id < $1.id }
+        let file = root.appendingPathComponent("fix.json")
+        let progress = FixTagsProgress(manifest: ProgressFile(url: file))
+        try progress.item(1).save(RepairItem(song: songs[0], status: .done))
+        try progress.item(2).save(RepairItem(song: songs[1], status: .pending))
+        try progress.manifest.save(.init(songs: songs, libraryChecked: [:], followsLibrary: false, started: true,
+                                         autoFillRemaining: nil, scope: [1], missingScanInProgress: false,
+                                         missingChecked: 0, missingTotal: 0))
+        let reopened = FixTagsStore(library: library, checkpointURL: file)
+        XCTAssertTrue(reopened.hasWork)
+        reopened.start()
+        reopened.pause()
+        XCTAssertTrue(reopened.inPlaceScope.isEmpty, "The global Continue action processes the global queue; album menu actions still pass an explicit scope")
+        try await wait { !reopened.isRunning }
+        XCTAssertEqual(reopened.queue[1].status, .pending)
+    }
+
     @MainActor func testACompletedRepairCanStillBeRevertedAfterReopening() async throws {
         let root = try folder(); defer { try? FileManager.default.removeItem(at: root) }
         let audio = LibraryPaths.musicFolder.appendingPathComponent(UUID().uuidString + ".mp3")
