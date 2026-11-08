@@ -2,7 +2,7 @@
 
 An iPhone music player for your own collection.
 
-<img src="images/showcase/hero.png" alt="erhu Home and Now Playing on an iPhone" width="1200">
+<picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/hero.png"><img src="images/showcase/hero.png" alt="erhu Home and Now Playing on an iPhone" width="1200"></picture>
 
 ## Beta 1
 
@@ -46,46 +46,46 @@ Captured on an iPhone from the current build. They show the real interfaces.
 ### Home and discovery
 
 <p>
-  <a href="images/showcase/home.png"><img src="images/showcase/home.png" alt="erhu Home with a smart playlist and featured radio stations, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/radio.png"><img src="images/showcase/radio.png" alt="An erhu radio station built from A Sky Full of Stars, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/vybe.png"><img src="images/showcase/vybe.png" alt="erhu VYBE search for late night, with the closest songs in the library, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/home.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/home.png"><img src="images/showcase/home.png" alt="erhu Home with a smart playlist and featured radio stations, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/radio.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/radio.png"><img src="images/showcase/radio.png" alt="An erhu radio station built from A Sky Full of Stars, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/vybe.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/vybe.png"><img src="images/showcase/vybe.png" alt="erhu VYBE search for late night, with the closest songs in the library, captured on an iPhone" width="270"></picture></a>
 </p>
 
 ### The listening experience
 
 <p>
-  <a href="images/showcase/now-playing.png"><img src="images/showcase/now-playing.png" alt="erhu Now Playing, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/lyrics.png"><img src="images/showcase/lyrics.png" alt="erhu synced lyrics, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/queue.png"><img src="images/showcase/queue.png" alt="erhu queue, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/now-playing.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/now-playing.png"><img src="images/showcase/now-playing.png" alt="erhu Now Playing, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/lyrics.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/lyrics.png"><img src="images/showcase/lyrics.png" alt="erhu synced lyrics, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/queue.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/queue.png"><img src="images/showcase/queue.png" alt="erhu queue, captured on an iPhone" width="270"></picture></a>
 </p>
 
 ### Your library
 
 <p>
-  <a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/library.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/albums.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/songs-moods.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="270"></picture></a>
 </p>
 
 ### Menus and audio controls
 
 <p>
-  <a href="images/showcase/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/glass.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="270"></picture></a>
+  <a href="images/showcase/equalizer.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></picture></a>
 </p>
 
 ### Library tools
 
 <p>
-  <a href="images/showcase/artwork-fetcher.png"><img src="images/showcase/artwork-fetcher.png" alt="Artwork Fetcher on an iPhone, showing album and artist-photo checks" width="270"></a>
-  <a href="images/showcase/artwork-upgrade.png"><img src="images/showcase/artwork-upgrade.png" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="270"></a>
+  <a href="images/showcase/artwork-fetcher.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/artwork-fetcher.png"><img src="images/showcase/artwork-fetcher.png" alt="Artwork Fetcher on an iPhone, showing album and artist-photo checks" width="270"></picture></a>
+  <a href="images/showcase/artwork-upgrade.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/artwork-upgrade.png"><img src="images/showcase/artwork-upgrade.png" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="270"></picture></a>
 </p>
 
 ### Transition Studio
 
 <p>
-  <a href="images/showcase/transition-studio.png"><img src="images/showcase/transition-studio.png" alt="Transition Studio on an iPhone, showing album settings and track pairs" width="270"></a>
-  <a href="images/showcase/transition-editor.png"><img src="images/showcase/transition-editor.png" alt="The transition editor on an iPhone, showing waveforms and editable curves" width="270"></a>
+  <a href="images/showcase/transition-studio.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/transition-studio.png"><img src="images/showcase/transition-studio.png" alt="Transition Studio on an iPhone, showing album settings and track pairs" width="270"></picture></a>
+  <a href="images/showcase/transition-editor.png"><picture><source media="(prefers-color-scheme: light)" srcset="images/showcase/light/transition-editor.png"><img src="images/showcase/transition-editor.png" alt="The transition editor on an iPhone, showing waveforms and editable curves" width="270"></picture></a>
 </p>
 
 [Album order and transitions](docs/ALBUM_ORDER_AND_TRANSITIONS.md) · The in-app introduction covers these tools; reopen it from **Settings → About Erhu → Introduction**.

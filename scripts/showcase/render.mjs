@@ -2,10 +2,11 @@
 //
 //   node scripts/showcase/render.mjs
 //
-// Reads images/showcase/raw/<name>.png and writes images/showcase/<name>.png.
+// Reads images/showcase/raw/<name>.png and writes images/showcase/<name>.png (dark theme)
+// and images/showcase/light/<name>.png (light theme).
 // Needs Playwright with Chromium and the Inter font installed.
 import { createRequire } from 'node:module';
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { writeFileSync, mkdtempSync, mkdirSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -34,36 +35,44 @@ const shots = {
   'transition-editor': ['Transition Studio', 'Draw the crossfade.', 'Volume, EQ and filter curves over the waveforms.'],
 };
 
-const css = `
+// The cards have a transparent background so the README page colour shows through in every
+// GitHub theme. Dark-theme cards go in images/showcase, light-theme cards in images/showcase/light.
+const themes = {
+  dark: { text: '#f0f6fc', muted: '#9198a1', faint: '#656c76', rule: '#3d444d', frame: '#151b23', edge: '#3d444d' },
+  light: { text: '#1f2328', muted: '#59636e', faint: '#818b98', rule: '#d1d9e0', frame: '#e6eaef', edge: '#c8d1da' },
+};
+
+const css = (t) => `
   * { margin: 0; box-sizing: border-box; }
-  html, body { background: #212830; color: #f2f2f0; font-family: Inter, sans-serif; }
-  .kicker { font-size: 22px; letter-spacing: 0.22em; text-transform: uppercase; color: #9a9b9f; }
-  .rule { height: 1px; background: #353d47; }
-  .foot { font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase; color: #6c6d72; }
-  .phone { border-radius: 64px; padding: 10px; background: #1a1f25; border: 2px solid #3e4652; }
+  html, body { background: transparent; color: ${t.text}; font-family: Inter, sans-serif; }
+  .kicker { font-size: 22px; letter-spacing: 0.22em; text-transform: uppercase; color: ${t.muted}; }
+  .rule { height: 1px; background: ${t.rule}; }
+  .foot { font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase; color: ${t.faint}; }
+  .phone { border-radius: 64px; padding: 10px; background: ${t.frame}; border: 2px solid ${t.edge}; }
   .phone img { display: block; width: 100%; border-radius: 54px; }
+  .sub { color: ${t.muted}; }
 `;
 
-const page = (name, [kicker, title, sub]) => `<!doctype html><html><head><style>${css}
+const page = (t, name, [kicker, title, sub]) => `<!doctype html><html><head><style>${css(t)}
   body { width: 1200px; height: 2200px; position: relative; overflow: hidden; }
   .head { position: absolute; left: 96px; top: 110px; right: 96px; }
   .head h1 { font-family: 'Inter Display', Inter, sans-serif; font-weight: 600; font-size: 76px; letter-spacing: -0.02em; margin-top: 30px; }
-  .head p { font-size: 30px; color: #a9aaae; margin-top: 22px; }
+  .head p { font-size: 30px; margin-top: 22px; }
   .phone { position: absolute; left: 50%; top: 520px; width: 720px; transform: translateX(-50%); }
   .rule { position: absolute; left: 96px; right: 96px; bottom: 120px; }
   .foot { position: absolute; left: 96px; bottom: 62px; }
 </style></head><body>
-  <div class="head"><div class="kicker">${kicker}</div><h1>${title}</h1><p>${sub}</p></div>
+  <div class="head"><div class="kicker">${kicker}</div><h1>${title}</h1><p class="sub">${sub}</p></div>
   <div class="phone"><img src="file://${join(raw, name + '.png')}"></div>
   <div class="rule"></div><div class="foot">erhu &nbsp;/&nbsp; iOS</div>
 </body></html>`;
 
-const hero = `<!doctype html><html><head><style>${css}
+const hero = (t) => `<!doctype html><html><head><style>${css(t)}
   body { width: 2400px; height: 1500px; position: relative; overflow: hidden; }
   .left { position: absolute; left: 120px; top: 120px; width: 760px; }
   .brand { font-family: 'Inter Display', Inter, sans-serif; font-weight: 600; font-size: 200px; letter-spacing: -0.05em; margin-top: 60px; line-height: 1; }
   h1 { font-family: 'Inter Display', Inter, sans-serif; font-weight: 600; font-size: 84px; line-height: 1.08; letter-spacing: -0.02em; margin-top: 110px; }
-  p { font-size: 32px; line-height: 1.5; color: #a9aaae; margin-top: 50px; }
+  p { font-size: 32px; line-height: 1.5; margin-top: 50px; }
   .rule { position: absolute; left: 120px; width: 600px; top: 1130px; }
   .foot { position: absolute; left: 120px; top: 1170px; }
   .phone { position: absolute; }
@@ -72,7 +81,7 @@ const hero = `<!doctype html><html><head><style>${css}
 </style></head><body>
   <div class="left"><div class="kicker">iPhone music player</div><div class="brand">erhu</div>
     <h1>Your music.<br>Played locally.</h1>
-    <p>Albums, lyrics and on-device discovery.<br>Built around your own music.</p></div>
+    <p class="sub">Albums, lyrics and on-device discovery.<br>Built around your own music.</p></div>
   <div class="rule"></div><div class="foot">Beta 1 &nbsp;/&nbsp; iPhone captures</div>
   <div class="phone a"><img src="file://${join(raw, 'home.png')}"></div>
   <div class="phone b"><img src="file://${join(raw, 'now-playing.png')}"></div>
@@ -83,15 +92,18 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ deviceScaleFactor: 1 });
 const tab = await ctx.newPage();
 const only = process.argv.slice(2);
-const jobs = [...Object.entries(shots).map(([n, t]) => [n, page(n, t), 1200, 2200]), ['hero', hero, 2400, 1500]]
+const jobs = Object.entries(themes).flatMap(([theme, t]) =>
+  [...Object.entries(shots).map(([n, c]) => [n, page(t, n, c), 1200, 2200]), ['hero', hero(t), 2400, 1500]]
+    .map(([n, html, w, h]) => [n, html, w, h, theme === 'dark' ? out : join(out, theme)]))
   .filter(([n]) => only.length === 0 || only.includes(n));
-for (const [name, html, width, height] of jobs) {
-  const file = join(dir, name + '.html');
+mkdirSync(join(out, 'light'), { recursive: true });
+for (const [name, html, width, height, folder] of jobs) {
+  const file = join(dir, name + '-' + width + folder.length + '.html');
   writeFileSync(file, html);
   await tab.setViewportSize({ width, height });
   await tab.goto('file://' + file);
   await tab.evaluate(() => Promise.all([...document.images].map(i => i.decode())));
-  await tab.screenshot({ path: join(out, name + '.png') });
-  console.log('wrote', name);
+  await tab.screenshot({ path: join(folder, name + '.png'), omitBackground: true });
+  console.log('wrote', join(folder, name + '.png').slice(root.length + 1));
 }
 await browser.close();
