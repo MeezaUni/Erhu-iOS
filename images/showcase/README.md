@@ -1,7 +1,7 @@
 # README showcase images
 
 The images shown in the main [README](../../README.md). They are plain iPhone screenshots
-(1206 × 2622) for now; replace each file with a styled version under the same filename and
+(1206 × 2457, status bar cropped) for now; replace each file with a styled version under the same filename and
 the README picks it up automatically.
 
 | File | Screen | README section |
