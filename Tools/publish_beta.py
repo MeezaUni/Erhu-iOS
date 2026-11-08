@@ -146,7 +146,8 @@ def prepare_assets(tag, builds, destination):
 
 
 def publish(tag, title, builds, assets, target):
-    notes = (ROOT / "docs/releases/v1.0-beta.md").read_text()
+    notes_file = ROOT / f"docs/releases/{tag}.md"
+    notes = (notes_file if notes_file.exists() else ROOT / "docs/releases/v1.0-beta.md").read_text()
     notes += "\n### Verified build provenance\n\n"
     notes += "These are the original IPAs from successful workflow runs. App code and build configuration match the current variant branches.\n\n"
     notes += "| Variant | App version (build) | Successful workflow | Source commit |\n| --- | --- | --- | --- |\n"
