@@ -12,7 +12,8 @@ final class MixStore {
     private static let tasteLimit = 300
     private static let similarLimit = 500
 
-    /// Nil until the first build.
+    /// The last build, kept on disk so Home shows the banner with everything else at launch; nil
+    /// only before the very first build.
     private(set) var mixes: SmartMixes?
     /// Songs hidden from Smart Playlists: never offered, though their plays still shape the taste.
     private(set) var hidden: Set<Int64>
@@ -20,6 +21,7 @@ final class MixStore {
     private let database: LibraryDatabase
     private let vybe: VybeEngine
     @ObservationIgnored private let store = JSONStore<Set<Int64>>(name: "hidden_from_mixes.json", debounce: .zero)
+    @ObservationIgnored private let cache = JSONStore<SmartMixes>(name: "smart_mixes.json")
     @ObservationIgnored private var observer: NSObjectProtocol?
     @ObservationIgnored private var pending: Task<Void, Never>?
     @ObservationIgnored private var building: Task<Void, Never>?
@@ -29,6 +31,7 @@ final class MixStore {
         self.database = database
         self.vybe = vybe
         hidden = store.load() ?? []
+        mixes = cache.load()
     }
 
     /// Starts keeping the mixes current (the first time they are shown).
@@ -87,7 +90,10 @@ final class MixStore {
         let now = Self.now()
         building = Task {
             let built = await Self.build(database: database, vybe: vybe, hidden: hidden, now: now)
-            if !Task.isCancelled, let built, built != mixes { mixes = built }
+            if !Task.isCancelled, let built, built != mixes {
+                mixes = built
+                cache.save(built)
+            }
         }
     }
 

@@ -119,6 +119,8 @@ struct SmartMixHero: View {
     @State private var page = 1
     @State private var visible = false
     @State private var interaction: UInt64 = 0
+    /// While an automatic advance animates: its own completion settles the loop, not [page]'s change.
+    @State private var autoAdvancing = false
     @GestureState private var dragging = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -174,27 +176,39 @@ struct SmartMixHero: View {
         .reportsScrollVisibility { visible = $0 }
         .onChange(of: count, initial: true) { _, count in page = count > 1 ? 1 : 0 }
         .onChange(of: page) { _, slot in
-            let settled = LoopingPages.settled(slot, count: count)
-            guard settled != slot else { return }
+            guard !autoAdvancing, LoopingPages.settled(slot, count: count) != slot else { return }
             // Let the swipe settle before moving to the identical real page, without animation.
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(400))
-                guard page == slot else { return }
-                var transaction = Transaction(); transaction.disablesAnimations = true
-                withTransaction(transaction) { page = settled }
+                settleLoop(slot, count: count)
             }
         }
         .task(id: rotation) {
             guard rotation.active, rotation.count > 1 else { return }
             do { try await Task.sleep(for: .seconds(5)) } catch { return }
             guard !Task.isCancelled else { return }
-            withAnimation(.smooth(duration: 0.45)) { page = min(rotation.page + 1, rotation.count + 1) }
+            let next = min(rotation.page + 1, rotation.count + 1)
+            autoAdvancing = true
+            // Jump from the copy at either end to the real page only once the slide has finished:
+            // a fixed delay shorter than the animation snapped the banner mid-slide at every wrap.
+            withAnimation(.smooth(duration: 0.45)) { page = next } completion: {
+                autoAdvancing = false
+                settleLoop(next, count: rotation.count)
+            }
         }
         .background(GeometryReader { geometry in
             Color.clear
                 .onAppear { width = geometry.size.width }
                 .onChange(of: geometry.size.width) { _, new in width = new }
         })
+    }
+
+    /// From a looping copy at either end to the identical real page, without animation.
+    private func settleLoop(_ slot: Int, count: Int) {
+        let settled = LoopingPages.settled(slot, count: count)
+        guard settled != slot, page == slot else { return }
+        var transaction = Transaction(); transaction.disablesAnimations = true
+        withTransaction(transaction) { page = settled }
     }
 }
 
