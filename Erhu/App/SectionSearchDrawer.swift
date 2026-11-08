@@ -116,7 +116,7 @@ struct SectionSearchDrawerProbe: UIViewRepresentable {
             var ancestor = superview
             while let view = ancestor {
                 if let found = view as? UIScrollView, found.bounds.height > 0,
-                   found.contentSize.height >= found.bounds.height + height - 2 {
+                   found.contentSize.height + found.adjustedContentInset.top + found.adjustedContentInset.bottom >= found.bounds.height + height - 2 {
                     scroll = found
                     state?.attach(found, height: height, initiallyRevealed: initiallyRevealed)
                     observation = found.observe(\.contentOffset, options: [.new]) { [weak self] view, _ in
