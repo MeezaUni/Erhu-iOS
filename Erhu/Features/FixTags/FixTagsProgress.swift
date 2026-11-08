@@ -2,7 +2,7 @@ import Foundation
 
 /// The small manifest records order and pending work; each track's potentially large lookup
 /// diagnostics are stored separately, so one completion never rewrites the whole library.
-struct FixTagsProgress {
+struct FixTagsProgress: Sendable {
     struct Manifest: Codable {
         var version = 1
         var songs: [Song]
@@ -14,6 +14,11 @@ struct FixTagsProgress {
         var missingScanInProgress: Bool
         var missingChecked: Int
         var missingTotal: Int
+    }
+    struct MissingWork: Sendable {
+        let song: Song
+        let stamp: ProgressFileStamp
+        let cached: MissingCheck?
     }
     struct MissingCheck: Codable, Sendable {
         let song: Song
