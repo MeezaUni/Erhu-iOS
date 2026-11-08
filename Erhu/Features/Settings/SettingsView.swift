@@ -450,6 +450,17 @@ private struct AboutSettingsView: View {
                     SettingsActionLabel(title: "Source code on GitHub", icon: "chevron.left.forwardslash.chevron.right", accessory: "arrow.up.right")
                 }
             }
+            #if !ERHU_APP_STORE
+            // External donation links are fine for sideloaded builds. An App Store build must
+            // hide this (guideline 3.1.1) and offer an In-App Purchase tip jar instead.
+            SettingsGroup("Support") {
+                Link(destination: URL(string: "https://ko-fi.com/erhu")!) {
+                    SettingsActionLabel(title: "Support erhu on Ko-fi", icon: "cup.and.saucer.fill", accessory: "arrow.up.right")
+                }
+                Text("erhu is free. If you'd like to help get it onto the App Store, you can buy me a coffee.")
+                    .font(.footnote).foregroundStyle(.secondary).padding([.horizontal, .bottom], Spacing.lg)
+            }
+            #endif
             SettingsGroup("Updates") { ReleaseCheckView() }
         }
         .navigationTitle("About Erhu")

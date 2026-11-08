@@ -2,6 +2,8 @@
 
 An iPhone music player for your own collection.
 
+<a href="https://ko-fi.com/erhu"><img src="https://img.shields.io/badge/Ko--fi-Support%20erhu-FF5E5B?logo=ko-fi&logoColor=white" alt="Support erhu on Ko-fi"></a>
+
 <img src="images/showcase/hero.png#gh-dark-mode-only" alt="erhu Home and Now Playing on an iPhone" width="1200"><img src="images/showcase/light/hero.png#gh-light-mode-only" alt="erhu Home and Now Playing on an iPhone" width="1200">
 
 ## Beta 1
@@ -119,6 +121,10 @@ The [iOS workflow](.github/workflows/ios.yml) builds an unsigned IPA and runs th
 Report bugs through [GitHub Issues](https://github.com/MeezaUni/Erhu-iOS/issues). Include your iPhone model, iOS version, app version, artwork variant and steps to reproduce the problem.
 
 [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
+
+## Support erhu
+
+erhu is free, with no ads or accounts. If you'd like to help cover the Apple Developer fee so it can go on the App Store, you can [buy me a coffee on Ko-fi](https://ko-fi.com/erhu). The same link is in the app under **Settings → About Erhu**.
 
 ## Contributors
 
