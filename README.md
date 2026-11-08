@@ -2,7 +2,7 @@
 
 An iPhone music player for your own collection.
 
-<img src="images/showcase/hero.png" alt="erhu Home and Now Playing on an iPhone" width="640">
+<img src="images/showcase/hero.png" alt="erhu Home and Now Playing on an iPhone" width="1200">
 
 ## Beta 1
 
