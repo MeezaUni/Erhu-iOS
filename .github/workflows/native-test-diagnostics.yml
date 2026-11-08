@@ -12,7 +12,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for run in 42455309061 42455311392; do
+          for run in 42458697931 42458729627; do
             if ! gh run download "$run" --repo "$GITHUB_REPOSITORY" --name Erhu-test-results --dir "results/$run" > "download-$run.log" 2>&1; then
               echo "Test artifact unavailable for run $run"
             fi
@@ -23,10 +23,10 @@ jobs:
           classes = '(?:LibraryInteractionTests|LibraryBrowseViewTests|ToolProgressTests|ArtworkUpgradeTests|MotionCoverAvailabilityTests|AutomaticArtistPhotosTests)'
           pattern = re.compile(r"Test Case '-\[(?:ErhuTests|ErhuInteractionTests)\.(" + classes + r") (test[A-Za-z0-9_]+)\]' (started|passed|failed)")
           categories = ['SIGABRT', 'SIGSEGV', 'Fatal error', 'Early unexpected exit', 'Testing failed:', 'test runner exited', 'crashed', 'Failed to launch', 'Failed to install', 'timed out', 'Could not cast value', 'Lost connection', 'Unable to boot', 'Simulator device failed', 'Failed to establish communication', 'Failed to bootstrap', 'Unable to launch', 'Unable to install', 'Test runner never began', 'Failed to load test bundle', 'Connection interrupted', 'Failed to prepare', 'Failed to create', 'Cannot test', 'Testing cancelled', 'Failed to initialize', 'Timed out waiting for', 'Booting']
-          for run in ['42455309061', '42455311392']:
+          for run in ['42458697931', '42458729627']:
               records = {}
               flags = []
-              for path in Path('results', run).rglob('regression-tests.log'):
+              for path in Path('results', run).rglob('ui-tests.log'):
                   log = path.read_text(errors='replace')
                   for name, method, state in pattern.findall(log): records[name + '.' + method] = state
                   flags += [category for category in categories if category.lower() in log.lower()]
@@ -34,6 +34,9 @@ jobs:
                   for name, method, state in alternate.findall(log): records[name + '.' + method] = state
                   domains = re.findall(r'Error Domain=([A-Za-z0-9_.]+) Code=(-?[0-9]+)', log)
                   flags += ['Error code ' + domain + ' ' + code for domain, code in sorted(set(domains))]
+                  assertions = re.findall(r'LibraryInteractionTests\.swift:([0-9]+):[^\n]*?\b(XCTAssert[A-Za-z]+)', log)
+                  flags += ['Assertion ' + kind + ' at test source line ' + line for line, kind in sorted(set(assertions))]
+
 
               # Only alphanumeric Swift identifiers, fixed status words and fixed categories
               # leave this job. No raw log lines, paths, URLs, values or artifacts are published.
