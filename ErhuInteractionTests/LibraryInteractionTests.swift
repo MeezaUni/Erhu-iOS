@@ -34,8 +34,12 @@ final class LibraryInteractionTests: XCTestCase {
         let search = app.buttons["sectionSearchButton"]
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
-        XCTAssertTrue(app.textFields["sectionSearchField"].waitForExistence(timeout: 5))
+        let field = app.textFields["sectionSearchField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("Album")
         // Dismiss the keyboard without closing the field, then browse farther down.
+        XCTAssertTrue(app.keyboards.buttons["Search"].isEnabled)
         app.keyboards.buttons["Search"].tap()
         let keyboardDismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             !app.keyboards.firstMatch.exists
@@ -46,7 +50,6 @@ final class LibraryInteractionTests: XCTestCase {
         let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
         start.press(forDuration: 0.05, thenDragTo: end)
         start.press(forDuration: 0.05, thenDragTo: end)
-        let field = app.textFields["sectionSearchField"]
         let sort = app.staticTexts["sortProbe"]
         let details = "search=\(search.frame), field=\(field.frame), sort=\(sort.frame), keyboard=\(app.keyboards.firstMatch.exists)"
         XCTAssertFalse(search.isHittable, details)
