@@ -28,12 +28,12 @@ const shots = {
   library: ['Your library', 'Everything in one place.', 'Playlists, favourites and artists.'],
   albums: ['Your library', 'Pick up where you left off.', 'Albums sorted by what you played last.'],
   'songs-moods': ['Your library', 'Songs for the moment.', 'Filter by genre and ten moods.'],
-  equalizer: ['Audio controls and Transition Studio', 'Tune the sound.', 'An 8-band equalizer with presets.'],
+  'audio-controls': ['Audio controls', 'Tune the sound.', 'An 8-band equalizer with presets.'],
   'artwork-fetcher': ['Library tools', 'Find the right cover.', 'Album covers and artist photos, online or from your files.'],
   'artwork-upgrade': ['Library tools', 'Sharper covers.', 'Higher-resolution matches, checked before saving.'],
   'auto-fix-tags': ['Library tools', 'Repair your tags.', 'Review uncertain matches, and revert any change.'],
-  'transition-studio': ['Audio controls and Transition Studio', 'Shape every handoff.', 'Album, playlist and track-pair crossfades.'],
-  'transition-editor': ['Audio controls and Transition Studio', 'Draw the crossfade.', 'Volume, EQ and filter curves over the waveforms.'],
+  'transition-studio': ['Transition Studio', 'Shape every handoff.', 'Album, playlist and track-pair crossfades.'],
+  'transition-editor': ['Transition Studio', 'Draw the crossfade.', 'Volume, EQ and filter curves over the waveforms.'],
 };
 
 // The cards have a transparent background so the README page colour shows through in every
