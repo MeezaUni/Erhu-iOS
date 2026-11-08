@@ -228,6 +228,7 @@ final class FixTagsStore {
             missingScanMessage = "Choose which tags to check first."
             return
         }
+        settingsStore.saveNow(settings)
         followsLibrary = true; inPlaceScope = []; hasSavedProgress = true
         isCheckingMissing = true; hasMissingScanProgress = true; stopMissingScanRequested = false
         defer { isCheckingMissing = false }
@@ -324,6 +325,7 @@ final class FixTagsStore {
         let source = settings.source
         let acceptAt = settings.acceptAt
         hasSavedProgress = true
+        settingsStore.saveNow(settings)
         saveProgress()
         task = Task { [weak self] in
             await self?.run(selection: selection, source: source, acceptAt: acceptAt, scope: scope)
@@ -628,6 +630,7 @@ final class FixTagsStore {
         autoSelectionMessage = nil
         autoSelectionProgress = nil
         hasSavedProgress = true
+        settingsStore.saveNow(settings)
         saveProgress()
         task = Task { [weak self] in
             guard let self else { return }

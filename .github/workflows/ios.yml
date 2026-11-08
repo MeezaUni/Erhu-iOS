@@ -117,6 +117,7 @@ jobs:
             -only-testing:ErhuTests/PlayerDragStateTests \
             -only-testing:ErhuTests/LibraryChromeTests \
             -only-testing:ErhuTests/ToolProgressTests \
+            -only-testing:ErhuTests/AutomaticArtistPhotosTests \
             -only-testing:ErhuInteractionTests -parallel-testing-enabled NO \
             -only-testing:ErhuTests/LibraryModelBuilderTests > build/regression-tests.log 2>&1; then
             python3 - <<'PYREGRESSION'
