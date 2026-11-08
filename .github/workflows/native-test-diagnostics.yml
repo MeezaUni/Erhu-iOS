@@ -1,4 +1,4 @@
-name: Inspect native test evidence
+name: Inspect native test status
 on: push
 permissions:
   actions: read
@@ -8,27 +8,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Read saved native test logs
+      - name: Read only test identifiers and fixed failure categories
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           for run in 42455309061 42455311392; do
-            gh run download "$run" --repo "$GITHUB_REPOSITORY" --name Erhu-test-results --dir "results/$run" || true
+            if ! gh run download "$run" --repo "$GITHUB_REPOSITORY" --name Erhu-test-results --dir "results/$run" > "download-$run.log" 2>&1; then
+              echo "Test artifact unavailable for run $run"
+            fi
           done
-          python3 - <<'PY'
-          import os, re
+          python3 - <<'PYDIAGNOSTIC'
+          import re
           from pathlib import Path
-          for path in Path('results').rglob('regression-tests.log'):
-              lines = path.read_text(errors='replace').splitlines()
-              selected = [line for line in lines if re.search(r"Test Case .*?(?:LibraryInteractionTests|LibraryBrowseViewTests|ToolProgressTests|ArtworkUpgradeTests|MotionCoverAvailabilityTests|AutomaticArtistPhotosTests).*?(?:passed|failed)", line)]
-              failures = []
-              for index, line in enumerate(lines):
-                  if re.search(r'Testing failed:|crash|unexpected exit|fatal error|signal|XCTAssert.*failed|error:', line, re.I):
-                      failures.extend(lines[max(0,index-2):index+12])
-              detail = str(path) + '\n' + '\n'.join(selected + failures + ['Last output:'] + lines[-90:])
-              print(detail[-42000:])
-              notice = str(path) + '\n' + '\n'.join(selected[-40:] + failures[-40:])
-              print('::notice::' + notice[-18000:].replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
-              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-                  summary.write('```text\n' + detail[-42000:] + '\n```\n')
-          PY
+          classes = '(?:LibraryInteractionTests|LibraryBrowseViewTests|ToolProgressTests|ArtworkUpgradeTests|MotionCoverAvailabilityTests|AutomaticArtistPhotosTests)'
+          pattern = re.compile(r"Test Case '-\[(?:ErhuTests|ErhuInteractionTests)\.(" + classes + r") (test[A-Za-z0-9_]+)\]' (started|passed|failed)")
+          categories = ['SIGABRT', 'SIGSEGV', 'Fatal error', 'Early unexpected exit', 'Testing failed:', 'test runner exited', 'crashed']
+          for run in ['42455309061', '42455311392']:
+              records = []
+              flags = []
+              for path in Path('results', run).rglob('regression-tests.log'):
+                  log = path.read_text(errors='replace')
+                  records += [name + '.' + method + ': ' + state for name, method, state in pattern.findall(log)]
+                  flags += [category for category in categories if category.lower() in log.lower()]
+              # Only alphanumeric Swift identifiers, fixed status words and fixed categories
+              # leave this job. No raw log lines, paths, URLs, values or artifacts are published.
+              summary = 'Run ' + run + '\n' + '\n'.join(records + ['Failure category: ' + flag for flag in sorted(set(flags))])
+              print('::notice::' + summary.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PYDIAGNOSTIC
