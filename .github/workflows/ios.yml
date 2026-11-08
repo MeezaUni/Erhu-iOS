@@ -34,6 +34,11 @@ jobs:
           brew install xcodegen
           xcodegen generate
 
+      # SwiftPM refuses to download a binary package (ogg, opus, vorbis) when a stale copy is
+      # already in the runner's artifact cache ("already exists in file system").
+      - name: Clear stale Swift package artifacts
+        run: rm -rf "$HOME/Library/Caches/org.swift.swiftpm/artifacts"
+
       - name: Build unsigned IPA
         run: |
           set -o pipefail
