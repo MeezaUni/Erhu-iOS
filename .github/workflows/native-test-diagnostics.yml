@@ -22,16 +22,16 @@ jobs:
           from pathlib import Path
           classes = '(?:LibraryInteractionTests|LibraryBrowseViewTests|ToolProgressTests|ArtworkUpgradeTests|MotionCoverAvailabilityTests|AutomaticArtistPhotosTests)'
           pattern = re.compile(r"Test Case '-\[(?:ErhuTests|ErhuInteractionTests)\.(" + classes + r") (test[A-Za-z0-9_]+)\]' (started|passed|failed)")
-          categories = ['SIGABRT', 'SIGSEGV', 'Fatal error', 'Early unexpected exit', 'Testing failed:', 'test runner exited', 'crashed']
+          categories = ['SIGABRT', 'SIGSEGV', 'Fatal error', 'Early unexpected exit', 'Testing failed:', 'test runner exited', 'crashed', 'Failed to launch', 'Failed to install', 'timed out', 'Could not cast value', 'Lost connection', 'Unable to boot', 'Simulator device failed']
           for run in ['42455309061', '42455311392']:
-              records = []
+              records = {}
               flags = []
               for path in Path('results', run).rglob('regression-tests.log'):
                   log = path.read_text(errors='replace')
-                  records += [name + '.' + method + ': ' + state for name, method, state in pattern.findall(log)]
+                  for name, method, state in pattern.findall(log): records[name + '.' + method] = state
                   flags += [category for category in categories if category.lower() in log.lower()]
               # Only alphanumeric Swift identifiers, fixed status words and fixed categories
               # leave this job. No raw log lines, paths, URLs, values or artifacts are published.
-              summary = 'Run ' + run + '\n' + '\n'.join(records + ['Failure category: ' + flag for flag in sorted(set(flags))])
+              summary = 'Run ' + run + '\n' + '\n'.join(['Failure category: ' + flag for flag in sorted(set(flags))] + [name + ': ' + state for name, state in records.items()])
               print('::notice::' + summary.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
           PYDIAGNOSTIC
