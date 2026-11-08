@@ -1,3 +1,6 @@
+> The main README now uses the framed images in [`images/showcase`](../../images/showcase/README.md).
+> The screenshots below are kept for the docs.
+
 # README screenshots
 
 The main [README](../../README.md#screenshots) displays eight screenshots in two rows of four
