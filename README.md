@@ -141,7 +141,7 @@ The in-app introduction covers these tools. Reopen it from **Settings → About 
 
 **Animated-artwork build only.** Downloaded animated covers play in Now Playing and, on iOS 26 and newer, on the Lock Screen. iOS decides when the Lock Screen shows the animation.
 
-<img src="images/showcase/lock-screen.png" alt="An album cover filling the iPhone Lock Screen while a song plays" width="320">
+<img src="images/showcase/lock-screen.gif" alt="An animated album cover playing on the iPhone Lock Screen while a song plays" width="320">
 
 [How animated covers work](https://github.com/MeezaUni/Erhu-iOS/blob/with-animated-art/docs/ANIMATED_COVERS.md)
 
