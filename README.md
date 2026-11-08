@@ -67,13 +67,6 @@ Captured on an iPhone from the current build. They show the real interfaces.
   <a href="images/showcase/songs-moods.png#gh-dark-mode-only"><img src="images/showcase/songs-moods.png#gh-dark-mode-only" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="270"></a><a href="images/showcase/light/songs-moods.png#gh-light-mode-only"><img src="images/showcase/light/songs-moods.png#gh-light-mode-only" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="270"></a>
 </p>
 
-### Menus and audio controls
-
-<p>
-  <a href="images/showcase/glass.png#gh-dark-mode-only"><img src="images/showcase/glass.png#gh-dark-mode-only" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="270"></a><a href="images/showcase/light/glass.png#gh-light-mode-only"><img src="images/showcase/light/glass.png#gh-light-mode-only" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="270"></a>
-  <a href="images/showcase/equalizer.png#gh-dark-mode-only"><img src="images/showcase/equalizer.png#gh-dark-mode-only" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></a><a href="images/showcase/light/equalizer.png#gh-light-mode-only"><img src="images/showcase/light/equalizer.png#gh-light-mode-only" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></a>
-</p>
-
 ### Library tools
 
 <p>
@@ -81,9 +74,10 @@ Captured on an iPhone from the current build. They show the real interfaces.
   <a href="images/showcase/artwork-upgrade.png#gh-dark-mode-only"><img src="images/showcase/artwork-upgrade.png#gh-dark-mode-only" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="270"></a><a href="images/showcase/light/artwork-upgrade.png#gh-light-mode-only"><img src="images/showcase/light/artwork-upgrade.png#gh-light-mode-only" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="270"></a>
 </p>
 
-### Transition Studio
+### Audio controls and Transition Studio
 
 <p>
+  <a href="images/showcase/equalizer.png#gh-dark-mode-only"><img src="images/showcase/equalizer.png#gh-dark-mode-only" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></a><a href="images/showcase/light/equalizer.png#gh-light-mode-only"><img src="images/showcase/light/equalizer.png#gh-light-mode-only" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></a>
   <a href="images/showcase/transition-studio.png#gh-dark-mode-only"><img src="images/showcase/transition-studio.png#gh-dark-mode-only" alt="Transition Studio on an iPhone, showing album settings and track pairs" width="270"></a><a href="images/showcase/light/transition-studio.png#gh-light-mode-only"><img src="images/showcase/light/transition-studio.png#gh-light-mode-only" alt="Transition Studio on an iPhone, showing album settings and track pairs" width="270"></a>
   <a href="images/showcase/transition-editor.png#gh-dark-mode-only"><img src="images/showcase/transition-editor.png#gh-dark-mode-only" alt="The transition editor on an iPhone, showing waveforms and editable curves" width="270"></a><a href="images/showcase/light/transition-editor.png#gh-light-mode-only"><img src="images/showcase/light/transition-editor.png#gh-light-mode-only" alt="The transition editor on an iPhone, showing waveforms and editable curves" width="270"></a>
 </p>
