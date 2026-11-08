@@ -29,12 +29,11 @@ It needs Node, Playwright with Chromium, and the Inter font. `animated-artwork.w
 | `lyrics.png` | Full-screen synced lyrics | The listening experience |
 | `queue.png` | Queue | The listening experience |
 | `songs-moods.png` | Songs filtered by the Late night mood | Your library |
-| `glass.png` | The floating track menu in Now Playing | Menus and audio controls |
-| `equalizer.png` | Equalizer with a preset | Menus and audio controls |
+| `equalizer.png` | Equalizer with a preset | Audio controls and Transition Studio |
 | `artwork-fetcher.png` | Artwork Fetcher | Library tools |
 | `artwork-upgrade.png` | Upgrade album covers (animated build) | Library tools |
-| `transition-studio.png` | An album with Transition Studio and track pairs | Transition Studio |
-| `transition-editor.png` | The transition editor with waveforms and curves | Transition Studio |
+| `transition-studio.png` | An album with Transition Studio and track pairs | Audio controls and Transition Studio |
+| `transition-editor.png` | The transition editor with waveforms and curves | Audio controls and Transition Studio |
 | `animated-artwork.webp` | Album page, Now Playing and Lock Screen with animated covers (from screen recordings) | Animated artwork |
 
 ## Still to add
