@@ -61,19 +61,31 @@ final class LibraryInteractionTests: XCTestCase {
 
     @MainActor func testPullRevealsSearchBetweenTheTitleAndControlsAndUpwardSwipeCollapsesIt() {
         let app = launch("browse")
-        XCTAssertTrue(app.buttons["sectionSearchButton"].waitForExistence(timeout: 10))
+        let searchButton = app.buttons["sectionSearchButton"]
+        XCTAssertTrue(searchButton.waitForExistence(timeout: 10))
         let field = app.textFields["sectionSearchField"]
-        XCTAssertFalse(field.isHittable)
+        let pageReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            searchButton.isHittable && !field.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [pageReady], timeout: 3), .completed)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
             .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75)))
         XCTAssertTrue(field.waitForExistence(timeout: 5))
-        XCTAssertTrue(field.isHittable)
+        // The accessibility element exists before the scroll/bounce animation has
+        // finished. Require a usable hit target before checking its final layout.
+        let revealed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            field.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [revealed], timeout: 3), .completed)
         XCTAssertLessThan(app.staticTexts["sectionBrowseTitle"].frame.maxY, field.frame.minY)
         XCTAssertGreaterThan(app.staticTexts["sortProbe"].frame.minY, field.frame.maxY)
         XCTAssertFalse(app.keyboards.firstMatch.exists, "Pulling reveals search without beginning editing")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65))
             .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)))
-        XCTAssertFalse(field.isHittable)
+        let hidden = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !field.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 3), .completed)
     }
 
     @MainActor func testCarouselWrapKeepsExactlyThreeDotsAndOneHighlight() {
@@ -145,6 +157,9 @@ final class LibraryInteractionTests: XCTestCase {
         XCTAssertTrue(toggle.isHittable)
         let before = toggle.value as? String
         toggle.tap()
-        XCTAssertNotEqual(toggle.value as? String, before)
+        let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            (toggle.value as? String) != before
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 3), .completed)
     }
 }
