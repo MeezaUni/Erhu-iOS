@@ -37,11 +37,21 @@ final class LibraryInteractionTests: XCTestCase {
         XCTAssertTrue(app.textFields["sectionSearchField"].waitForExistence(timeout: 5))
         // Dismiss the keyboard without closing the field, then browse farther down.
         app.keyboards.buttons["Search"].tap()
-        let scroll = app.scrollViews.firstMatch
-        scroll.swipeUp(); scroll.swipeUp()
-        XCTAssertFalse(search.isHittable)
-        XCTAssertFalse(app.textFields["sectionSearchField"].isHittable)
-        XCTAssertFalse(app.staticTexts["sortProbe"].isHittable)
+        let keyboardDismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            !app.keyboards.firstMatch.exists
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [keyboardDismissed], timeout: 5), .completed)
+        // A text field can expose its own scroll view. Drag the page content itself.
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.78))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
+        start.press(forDuration: 0.05, thenDragTo: end)
+        start.press(forDuration: 0.05, thenDragTo: end)
+        let field = app.textFields["sectionSearchField"]
+        let sort = app.staticTexts["sortProbe"]
+        let details = "search=\(search.frame), field=\(field.frame), sort=\(sort.frame), keyboard=\(app.keyboards.firstMatch.exists)"
+        XCTAssertFalse(search.isHittable, details)
+        XCTAssertFalse(field.isHittable, details)
+        XCTAssertFalse(sort.isHittable, details)
     }
 
     @MainActor func testCarouselWrapKeepsExactlyThreeDotsAndOneHighlight() {
