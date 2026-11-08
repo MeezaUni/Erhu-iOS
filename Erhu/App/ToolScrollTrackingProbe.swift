@@ -60,8 +60,13 @@ struct ToolScrollTrackingProbe: UIViewRepresentable {
             }
         }
         private func lists(in view: UIView) -> [UIScrollView] {
-            guard !view.isHidden, !view.accessibilityElementsHidden, view.alpha > 0.01, view.layer.opacity > 0.01 else { return [] }
-            if let scroll = view as? UIScrollView, scroll.bounds.width > 100, scroll.bounds.height > 100 { return [scroll] }
+            // SwiftUI can hide its UIKit containers from accessibility while exposing a
+            // separate accessibility tree. That flag does not mean the list is offscreen.
+            guard !view.isHidden, view.alpha > 0.01, view.layer.opacity > 0.01 else { return [] }
+            if let scroll = view as? UIScrollView, scroll.bounds.width > 100, scroll.bounds.height > 100, let window {
+                let visible = scroll.convert(scroll.bounds, to: window).intersection(window.bounds)
+                return !visible.isNull && visible.width > 100 && visible.height > 100 ? [scroll] : []
+            }
             return view.subviews.flatMap { lists(in: $0) }
         }
         private func offset(_ view: UIScrollView) -> CGFloat {

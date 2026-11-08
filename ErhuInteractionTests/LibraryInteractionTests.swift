@@ -124,11 +124,16 @@ final class LibraryInteractionTests: XCTestCase {
         let app = launch("tools")
         let fraction = app.staticTexts["chromeFraction"]
         XCTAssertTrue(fraction.waitForExistence(timeout: 10))
-        app.swipeUp(); app.swipeUp()
+        // Drag the list gutter so the confidence slider cannot capture the gesture.
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.75))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.22))
+        start.press(forDuration: 0.05, thenDragTo: end)
+        start.press(forDuration: 0.05, thenDragTo: end)
         let compact = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             (Double(fraction.label) ?? 0) > 0.5
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [compact], timeout: 3), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [compact], timeout: 3), .completed,
+                       "Chrome fraction after list scrolling: \(fraction.label)")
     }
 
     @MainActor func testTransitionRowHasOnlyItsTitleSummaryAndSwitch() {
