@@ -161,7 +161,7 @@ iOS Actions artifact for current development code.
 
 Unicode names stay intact and empty normalized strings never count as matches. Search ranks exact names before prefixes and bounded typo correction (including swapped adjacent letters); numbers remain exact. An album query returns matching albums and their own tracklists; an artist query returns matching artists and their credited songs/albums; a song query returns matching songs plus their albums without expanding unrelated album tracks. Exact artist/album names lead ambiguous same-name song matches. A supplied artist qualifier narrows a title query. Processing is cancellable and runs off the main thread.
 
-Global and section search share a floating Liquid Glass field (material fallback before iOS 26), a clear-text control and a circular close X. Section headers use the page background instead of a separate bar. Pull once to reveal, pull again or use X to close and clear the local query. Artists have pull-down search without sorting/filter controls. VYBE's existing spelling correction now also handles misspelled artist qualifiers and short words adjacent to a longer typo, preserving its ambiguity choices and exact numeric matching.
+Global and section search share a floating Liquid Glass field (material fallback before iOS 26), a clear-text control and a circular close X. Section headers use the page background instead of a separate bar. Pull down to reveal search below the title and above the existing controls. Scrolling up tucks the field away while preserving its query; X closes it and clears the query. Artists have pull-down search without sorting/filter controls. VYBE's existing spelling correction now also handles misspelled artist qualifiers and short words adjacent to a longer typo, preserving its ambiguity choices and exact numeric matching.
 
 
 ## Home and interaction corrections
@@ -171,3 +171,7 @@ The carousel draws one dot for each real playlist; wraparound sentinel pages do 
 Sort/filter controls and their search button are part of the page's scrolling header. A top pull reveals local search; scrolling carries it and the controls away without a pinned overlay or a mid-scroll layout reset. The search clear target is 44 points, and decorative glass/borders cannot intercept clear or close taps. The global close button explicitly closes its router sheet. Native tap-and-swipe tests cover search with a visible keyboard, scrolling controls, carousel dots and the label-free transition switch.
 
 Tool/settings/Transition Studio destinations now use the same vertical-scroll chrome tracking as collection pages. Player dismissal finishes artwork ownership at native animation completion, preserving stale-completion guards; the closing overlay retains hit testing until removed so touches cannot reach the mini-player underneath midway through the flight.
+
+## Search drawer behavior
+
+Albums, Songs, Artists, Playlists and Favorites share a scroll-linked search drawer. The title stays above the search field while it is revealed or tucked away; sort/filter controls remain below it and scroll away with the page. The drawer keeps a constant amount of scroll space, so hiding it never removes a row midway through a gesture. Returning to a page preserves its scroll position, and larger text sizes preserve the visible results.
