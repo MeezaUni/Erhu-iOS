@@ -185,3 +185,7 @@ Albums, Songs, Artists, Playlists and Favorites share a scroll-linked search dra
 Fix Tags saves its queue, lookup diagnostics, held repair values, unfinished auto-fill IDs and originals for Revert across relaunches. An interrupted lookup returns to Pending; completed tracks stay completed. Missing-tag checks also checkpoint each file. Continue includes new imports without silently retrying completed tracks. Clearing the queue explicitly removes its saved progress and originals.
 
 Artwork Fetcher checkpoints each album, including albums that already have artwork. File paths, sizes and modification dates invalidate checks when files change; newly imported albums are included. Artist-photo matching retains completed and negative checks, while transient errors remain retryable. Start a new check discards the corresponding scan history. Higher-resolution searches retain pending comparisons and negative results across reopening. Apply to all revalidates each original and replacement with the individual comparison safeguards and leaves failed or changed images for review.
+
+## Album animated-cover checks
+
+Animated covers keeps its search in the top navigation drawer rather than the bottom toolbar. Album options now include Check for animated covers. This refreshes only that album, reports availability without navigating away, and offers an explicit Download when available. The action preserves all other albums and the saved library-wide scan checkpoint.
