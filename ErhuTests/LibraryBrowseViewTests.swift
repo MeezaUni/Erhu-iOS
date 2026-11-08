@@ -6,8 +6,47 @@ import Observation
 
 final class LibraryBrowseViewTests: XCTestCase {
     @MainActor
+    func testAllFiveSectionsCanHideAndRevealSearchEvenWithoutResults() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let previous = scene.windows.first(where: \.isKeyWindow)
+        let window = UIWindow(windowScene: scene)
+        window.frame = CGRect(x: 0, y: 0, width: 350, height: 600)
+        defer { window.isHidden = true; window.rootViewController = nil; previous?.makeKeyAndVisible() }
+        func verticalScroll(_ view: UIView) -> UIScrollView? {
+            if let scroll = view as? UIScrollView { return scroll }
+            return view.subviews.lazy.compactMap { verticalScroll($0) }.first
+        }
+        for title in ["Albums", "Songs", "Artists", "Playlists", "Favorites"] {
+            let search = SearchState()
+            let router = AppRouter()
+            let host = UIHostingController(rootView: NavigationStack {
+                LibraryBrowseScrollView(title: title, isTabRoot: title == "Albums",
+                                        showsControls: title == "Albums" || title == "Songs",
+                                        query: Binding(get: { search.query }, set: { search.query = $0 }),
+                                        showsSearch: Binding(get: { search.revealed }, set: { search.revealed = $0 })) {
+                    Text("Sort")
+                } content: { EmptyView() }
+            }.environment(router).environment(LibraryChromeState()).environment(\.artworkSection, router.section))
+            window.rootViewController = host
+            window.makeKeyAndVisible(); window.layoutIfNeeded()
+            for _ in 0..<100 {
+                if let scroll = verticalScroll(host.view), abs(scroll.contentOffset.y + scroll.adjustedContentInset.top - 64) < 1 { break }
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            let scroll = try XCTUnwrap(verticalScroll(host.view), title)
+            XCTAssertEqual(scroll.contentOffset.y + scroll.adjustedContentInset.top, 64, accuracy: 1, title)
+            XCTAssertFalse(search.revealed, title)
+            scroll.setContentOffset(CGPoint(x: 0, y: -scroll.adjustedContentInset.top), animated: false)
+            try await Task.sleep(for: .milliseconds(50))
+            XCTAssertTrue(search.revealed, title)
+            scroll.setContentOffset(CGPoint(x: 0, y: 64 - scroll.adjustedContentInset.top), animated: false)
+            try await Task.sleep(for: .milliseconds(50))
+            XCTAssertFalse(search.revealed, title)
+        }
+    }
+
+    @MainActor
     func testPullAtTopRevealsSectionSearchInMountedScrollView() async throws {
-        guard #available(iOS 18.0, *) else { throw XCTSkip("Native scroll geometry is available on iOS 18 and later") }
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let previous = scene.windows.first(where: \.isKeyWindow)
         let window = UIWindow(windowScene: scene)
@@ -37,6 +76,11 @@ final class LibraryBrowseViewTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(20))
         }
         let scroll = try XCTUnwrap(verticalScroll(host.view))
+        for _ in 0..<100 {
+            if abs(scroll.contentOffset.y + scroll.adjustedContentInset.top - 64) < 1 { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertEqual(scroll.contentOffset.y + scroll.adjustedContentInset.top, 64, accuracy: 1)
         XCTAssertFalse(search.revealed)
         scroll.setContentOffset(CGPoint(x: 0, y: 400), animated: false)
         try await Task.sleep(for: .milliseconds(100))
@@ -49,8 +93,11 @@ final class LibraryBrowseViewTests: XCTestCase {
         XCTAssertTrue(search.revealed)
         XCTAssertEqual(search.query, "", "Pulling down must not invent or reuse a global query")
         let before = scroll.adjustedContentInset.top
+        search.query = "Album"
         scroll.setContentOffset(CGPoint(x: 0, y: 600), animated: false)
         try await Task.sleep(for: .milliseconds(150))
+        XCTAssertFalse(search.revealed, "Scrolling up collapses the drawer")
+        XCTAssertEqual(search.query, "Album", "Hiding search keeps the active filter")
         XCTAssertEqual(scroll.adjustedContentInset.top, before, accuracy: 1, "The controls are page content, not a changing pinned safe-area inset")
     }
 }

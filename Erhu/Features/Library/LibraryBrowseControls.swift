@@ -1,7 +1,8 @@
 import SwiftUI
 import UIKit
 
-/// Sorts and filters scroll away with the page. Pulling past the top reveals a search for this page only.
+/// The drawer occupies real scroll space: a downward pull reveals it below the title,
+/// and an upward swipe slides it behind the title before the rest of the page scrolls.
 struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
     let title: String
     var isTabRoot = false
@@ -12,90 +13,133 @@ struct LibraryBrowseScrollView<Controls: View, Content: View>: View {
     @ViewBuilder let content: Content
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var searchFocused: Bool
+    @ScaledMetric(relativeTo: .body) private var drawerHeight: CGFloat = 64
+    @State private var drawer = SectionSearchDrawerState()
 
     var body: some View {
-        scroll
-            .modifier(RevealSectionSearch { revealSearch() })
-            .scrollBounceBehavior(.always)
-            .scrollDismissesKeyboard(.interactively)
-            .tracksLibraryScrolling()
-            .navigationBarTitleDisplayMode(.inline)
-    }
-
-    @ViewBuilder private var searchAndControls: some View {
-        if showsSearch || showsControls {
-            VStack(spacing: 10) {
-                if showsSearch {
-                    GlassSearchField(text: $query, prompt: "Search \(title.lowercased())", focused: $searchFocused,
-                                     close: { closeSearch() }, identifier: "sectionSearchField")
-                }
-                if showsControls {
-                    HStack(alignment: .top, spacing: 10) {
-                        BrowseControlFlow { controls }
-                        Button { revealSearch(); searchFocused = true } label: {
-                            Image(systemName: "magnifyingglass").frame(width: 44, height: 44)
-                        }
-                        .accessibilityLabel("Search \(title.lowercased())")
-                        .accessibilityIdentifier("sectionSearchButton")
-                    }
-                }
-            }
-            .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
+        GeometryReader { viewport in
+            scroll(minimumHeight: viewport.size.height + drawerHeight)
+                .opacity(drawer.ready ? 1 : 0)
         }
+        .scrollBounceBehavior(.always)
+        .scrollDismissesKeyboard(.interactively)
+        .tracksLibraryScrolling()
+        .navigationBarTitleDisplayMode(.inline)
     }
 
-    @ViewBuilder private var scroll: some View {
+    @ViewBuilder private func scroll(minimumHeight: CGFloat) -> some View {
         if isTabRoot {
-            LibraryRootScrollView { pageContent }
+            LibraryRootScrollView { pageContent(minimumHeight: minimumHeight) }
         } else {
-            ScrollView { pageContent }
+            ScrollView { pageContent(minimumHeight: minimumHeight) }
         }
     }
 
-    private var pageContent: some View {
+    private func pageContent(minimumHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if #unavailable(iOS 18.0) {
-                LegacySearchPullProbe { revealSearch() }.frame(height: 0)
-            }
-            searchAndControls
-            Text(title).font(.largeTitle.bold())
-                .padding(.horizontal, Spacing.gutter)
-                .accessibilityAddTraits(.isHeader)
+            LibraryBrowseHeader(title: title, showsControls: showsControls, query: $query,
+                                focused: $searchFocused, drawer: drawer, height: drawerHeight,
+                                close: closeSearch, reveal: revealSearch, controls: controls)
             content
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: minimumHeight, alignment: .topLeading)
         .padding(.top, 8)
+        .background {
+            SectionSearchDrawerProbe(state: drawer, height: drawerHeight, initiallyRevealed: showsSearch,
+                                     focused: { searchFocused }, reduceMotion: reduceMotion) { visible in
+                showsSearch = visible
+                if !visible, searchFocused {
+                    searchFocused = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            }.frame(width: 0, height: 0)
+        }
     }
 
     private func closeSearch() {
-        searchFocused = false; query = ""
-        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { showsSearch = false }
+        searchFocused = false
+        query = ""
+        drawer.setRevealed(false, animated: !reduceMotion)
     }
 
     private func revealSearch() {
-        guard !showsSearch else { return }
-        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { showsSearch = true }
+        drawer.setRevealed(true, animated: !reduceMotion)
+        searchFocused = true
+    }
+}
+
+/// Only this small header reads the per-frame drawer position; the library results do not.
+private struct LibraryBrowseHeader<Controls: View>: View {
+    let title: String
+    let showsControls: Bool
+    @Binding var query: String
+    @FocusState.Binding var focused: Bool
+    let drawer: SectionSearchDrawerState
+    let height: CGFloat
+    let close: () -> Void
+    let reveal: () -> Void
+    let controls: Controls
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title).font(.largeTitle.bold())
+                .padding(.horizontal, Spacing.gutter).padding(.bottom, 12)
+                .offset(y: drawer.pinnedOffset).zIndex(1)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("sectionBrowseTitle")
+            GlassSearchField(text: $query, prompt: "Search \(title.lowercased())", focused: $focused,
+                             close: close, identifier: "sectionSearchField")
+                .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
+                .frame(height: height)
+                .clipShape(SearchDrawerClip(hiddenHeight: drawer.pinnedOffset))
+                .contentShape(SearchDrawerClip(hiddenHeight: drawer.pinnedOffset))
+                .allowsHitTesting(!drawer.collapsed)
+                .accessibilityHidden(drawer.collapsed)
+            if showsControls {
+                HStack(alignment: .top, spacing: 10) {
+                    BrowseControlFlow { controls }
+                    Button(action: reveal) {
+                        Image(systemName: "magnifyingglass")
+                            .frame(width: 44, height: 44).contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Search \(title.lowercased())")
+                    .accessibilityIdentifier("sectionSearchButton")
+                    .opacity(drawer.collapsed ? 1 : 0)
+                    .allowsHitTesting(drawer.collapsed)
+                    .accessibilityHidden(!drawer.collapsed)
+                }
+                .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
+            }
+        }
+    }
+}
+
+private struct SearchDrawerClip: Shape {
+    var hiddenHeight: CGFloat
+    var animatableData: CGFloat {
+        get { hiddenHeight }
+        set { hiddenHeight = newValue }
+    }
+    func path(in rect: CGRect) -> Path {
+        let hidden = min(max(hiddenHeight, 0), rect.height)
+        return Path(CGRect(x: rect.minX, y: rect.minY + hidden, width: rect.width, height: rect.height - hidden))
     }
 }
 
 /// Wrap filters on small phones and at large text sizes instead of hiding them offscreen.
 private struct BrowseControlFlow: Layout {
     private let gap: CGFloat = 8
-
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let width = max(proposal.width ?? 320, 1)
         let items = arrangement(width: width, subviews: subviews)
         return CGSize(width: width, height: items.map { $0.maxY }.max() ?? 0)
     }
-
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let items = arrangement(width: bounds.width, subviews: subviews)
-        for (index, frame) in items.enumerated() {
+        for (index, frame) in arrangement(width: bounds.width, subviews: subviews).enumerated() {
             subviews[index].place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
                                  proposal: ProposedViewSize(frame.size))
         }
     }
-
     private func arrangement(width: CGFloat, subviews: Subviews) -> [CGRect] {
         var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
         return subviews.map { view in
@@ -103,8 +147,7 @@ private struct BrowseControlFlow: Layout {
             let size = view.sizeThatFits(ProposedViewSize(width: min(ideal.width, width), height: nil))
             if x > 0 && x + size.width > width { x = 0; y += rowHeight + gap; rowHeight = 0 }
             let frame = CGRect(x: x, y: y, width: size.width, height: size.height)
-            x += size.width + gap
-            rowHeight = max(rowHeight, size.height)
+            x += size.width + gap; rowHeight = max(rowHeight, size.height)
             return frame
         }
     }
@@ -139,71 +182,5 @@ struct BrowseControlLabel: View {
             .foregroundStyle(.primary)
             .background(selected ? Color.accentColor.opacity(0.22) : Color.secondary.opacity(0.12), in: Capsule())
             .overlay(Capsule().strokeBorder(Color.primary.opacity(selected ? 0.35 : 0.15)))
-    }
-}
-
-enum LibrarySearchReveal {
-    static func shouldReveal(offset: Double, topInset: Double) -> Bool {
-        offset.isFinite && topInset.isFinite && offset + topInset < -32
-    }
-}
-
-private struct RevealSectionSearch: ViewModifier {
-    var reveal: () -> Void
-    @State private var triggered = false
-    @ViewBuilder func body(content: Content) -> some View {
-        if #available(iOS 18.0, *) {
-            content.onScrollGeometryChange(for: Bool.self) { geometry in
-                LibrarySearchReveal.shouldReveal(offset: geometry.contentOffset.y, topInset: geometry.contentInsets.top)
-            } action: { _, pulled in
-                if pulled && !triggered { triggered = true; reveal() }
-            }
-            .onScrollPhaseChange { _, phase in if phase == .idle { triggered = false } }
-        } else {
-            content
-        }
-    }
-}
-
-/// iOS 17 fallback observes the enclosing scroll view without replacing its delegate or gestures.
-private struct LegacySearchPullProbe: UIViewRepresentable {
-    var reveal: () -> Void
-    func makeUIView(context: Context) -> ProbeView { let view = ProbeView(); view.reveal = reveal; return view }
-    func updateUIView(_ uiView: ProbeView, context: Context) { uiView.reveal = reveal }
-    static func dismantleUIView(_ uiView: ProbeView, coordinator: ()) { uiView.observation = nil; uiView.reveal = nil }
-
-    final class ProbeView: UIView {
-        var reveal: (() -> Void)?
-        var observation: NSKeyValueObservation?
-        private var triggered = false
-        private weak var observedScroll: UIScrollView?
-
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            DispatchQueue.main.async { [weak self] in self?.attach() }
-        }
-
-        private func attach() {
-            guard window != nil else { observation = nil; observedScroll = nil; return }
-            var ancestor = superview
-            while let view = ancestor {
-                if let scroll = view as? UIScrollView {
-                    guard observedScroll !== scroll else { return }
-                    observedScroll = scroll
-                    observation = scroll.observe(\.contentOffset, options: [.new]) { [weak self] scroll, _ in
-                        if !scroll.isDragging { self?.triggered = false; return }
-                        guard self?.triggered == false,
-                              LibrarySearchReveal.shouldReveal(offset: scroll.contentOffset.y, topInset: scroll.adjustedContentInset.top)
-                        else { return }
-                        DispatchQueue.main.async { [weak self] in
-                            guard let self, !self.triggered else { return }
-                            self.triggered = true; self.reveal?()
-                        }
-                    }
-                    return
-                }
-                ancestor = view.superview
-            }
-        }
     }
 }

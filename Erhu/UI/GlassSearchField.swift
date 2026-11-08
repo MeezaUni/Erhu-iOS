@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// The same floating search control in global search and section-local pull-down search.
 struct GlassSearchField: View {
@@ -14,7 +15,10 @@ struct GlassSearchField: View {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                 TextField(prompt, text: $text)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .focused($focused).submitLabel(.search).onSubmit { focused = false }
+                    .focused($focused).submitLabel(.search).onSubmit {
+                        focused = false
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
                     .accessibilityIdentifier(identifier)
                 if !text.isEmpty {
                     Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)

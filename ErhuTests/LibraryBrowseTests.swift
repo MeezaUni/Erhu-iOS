@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import Erhu
 
 final class LibraryBrowseTests: XCTestCase {
@@ -81,12 +82,24 @@ final class LibraryBrowseTests: XCTestCase {
         XCTAssertEqual(request.results().map(\.id), [2])
     }
 
-    func testPullThresholdUsesAdjustedTopInsetAndRejectsOrdinaryScroll() {
-        XCTAssertFalse(LibrarySearchReveal.shouldReveal(offset: -144, topInset: 144))
-        XCTAssertFalse(LibrarySearchReveal.shouldReveal(offset: -170, topInset: 144))
-        XCTAssertTrue(LibrarySearchReveal.shouldReveal(offset: -180, topInset: 144))
-        XCTAssertFalse(LibrarySearchReveal.shouldReveal(offset: 300, topInset: 144))
-        XCTAssertFalse(LibrarySearchReveal.shouldReveal(offset: .nan, topInset: 0))
+    @MainActor func testSearchDrawerRestoresBrowsingPositionAndPreservesItWhenTextSizeChanges() {
+        let scroll = UIScrollView(frame: CGRect(x: 0, y: 0, width: 350, height: 600))
+        scroll.contentSize = CGSize(width: 350, height: 3000)
+        scroll.contentInset.top = 100
+        let drawer = SectionSearchDrawerState()
+        drawer.attach(scroll, height: 64, initiallyRevealed: false)
+        XCTAssertEqual(scroll.contentOffset.y, -36, accuracy: 0.5)
+        XCTAssertTrue(drawer.collapsed)
+        scroll.contentOffset.y = 290
+        drawer.update(scroll)
+        drawer.attach(scroll, height: 64, initiallyRevealed: false)
+        XCTAssertEqual(scroll.contentOffset.y, 290, accuracy: 0.5, "Returning to a page keeps its browsing position")
+        drawer.resize(to: 128)
+        XCTAssertEqual(scroll.contentOffset.y, 354, accuracy: 0.5, "A larger search row must not displace the visible results")
+        drawer.setRevealed(true, animated: false)
+        drawer.update(scroll)
+        XCTAssertEqual(drawer.pinnedOffset, 0)
+        XCTAssertFalse(drawer.collapsed)
     }
 }
 

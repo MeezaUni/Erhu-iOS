@@ -38,9 +38,10 @@ final class LibraryInteractionTests: XCTestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
         field.typeText("Album")
-        // Dismiss the keyboard without closing the field, then browse farther down.
-        XCTAssertTrue(app.keyboards.buttons["Search"].isEnabled)
-        app.keyboards.buttons["Search"].tap()
+        // Begin on page content above the keyboard: scrolling up collapses search and
+        // dismisses editing while keeping the query, as in the pull-down drawer.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.40))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.17)))
         let keyboardDismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             !app.keyboards.firstMatch.exists
         }, object: nil)
@@ -51,10 +52,28 @@ final class LibraryInteractionTests: XCTestCase {
         start.press(forDuration: 0.05, thenDragTo: end)
         start.press(forDuration: 0.05, thenDragTo: end)
         let sort = app.staticTexts["sortProbe"]
-        let details = "search=\(search.frame), field=\(field.frame), sort=\(sort.frame), keyboard=\(app.keyboards.firstMatch.exists)"
+        func frame(_ element: XCUIElement) -> String { element.exists ? String(describing: element.frame) : "hidden" }
+        let details = "search=\(frame(search)), field=\(frame(field)), sort=\(frame(sort)), keyboard=\(app.keyboards.firstMatch.exists)"
         XCTAssertFalse(search.isHittable, details)
         XCTAssertFalse(field.isHittable, details)
         XCTAssertFalse(sort.isHittable, details)
+    }
+
+    @MainActor func testPullRevealsSearchBetweenTheTitleAndControlsAndUpwardSwipeCollapsesIt() {
+        let app = launch("browse")
+        XCTAssertTrue(app.buttons["sectionSearchButton"].waitForExistence(timeout: 10))
+        let field = app.textFields["sectionSearchField"]
+        XCTAssertFalse(field.isHittable)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75)))
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(field.isHittable)
+        XCTAssertLessThan(app.staticTexts["sectionBrowseTitle"].frame.maxY, field.frame.minY)
+        XCTAssertGreaterThan(app.staticTexts["sortProbe"].frame.minY, field.frame.maxY)
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "Pulling reveals search without beginning editing")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)))
+        XCTAssertFalse(field.isHittable)
     }
 
     @MainActor func testCarouselWrapKeepsExactlyThreeDotsAndOneHighlight() {
