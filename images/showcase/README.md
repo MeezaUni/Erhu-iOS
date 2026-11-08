@@ -4,7 +4,8 @@ The images shown in the main [README](../../README.md).
 
 The PNGs here are styled cards (1200 × 2200, hero 2400 × 1500) with a transparent background, so the page
 colour shows through. The ones in this folder are for GitHub's dark themes and the ones in [`light/`](light) for
-the light theme; the README picks between them with `<picture>`. They are made from the plain iPhone screenshots in
+the light theme; the README tags them with `#gh-dark-mode-only` and `#gh-light-mode-only`,
+which follow the reader's GitHub theme setting. They are made from the plain iPhone screenshots in
 [`raw/`](raw) (1206 × 2457, status bar cropped). To change one, replace its screenshot in `raw/` or edit its
 caption in [`scripts/showcase/render.mjs`](../../scripts/showcase/render.mjs), then run:
 
