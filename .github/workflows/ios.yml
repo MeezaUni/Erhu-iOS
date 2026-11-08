@@ -144,7 +144,6 @@ jobs:
             -only-testing:ErhuTests/LibraryBrowseTests \
             -only-testing:ErhuTests/LibraryBrowseHistoryTests \
             -only-testing:ErhuTests/LibraryBrowseViewTests \
-            -only-testing:ErhuTests/FeaturedSetlistsTests \
             -only-testing:ErhuTests/PlayerDragStateTests \
             -only-testing:ErhuTests/LibraryChromeTests \
             -only-testing:ErhuTests/ToolProgressTests \

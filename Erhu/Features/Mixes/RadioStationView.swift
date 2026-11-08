@@ -59,39 +59,43 @@ struct RadioStationView: View {
     }
 }
 
-/// One shelf of album and radio destinations, interleaved rather than duplicated sections.
-struct FeaturedSetlistsShelf: View {
-    let includesRadio: Bool
+/// Featured stations have their own shelf, above the separate featured album shelf.
+struct RadioStationShelf: View {
     @Environment(LibraryStore.self) private var library
     @Environment(AppRouter.self) private var router
-
+    private struct Station: Identifiable {
+        let seed: RadioSeed
+        let title: String
+        let subtitle: String
+        let cover: Song
+        var id: String { seed.key }
+    }
+    private var stations: [Station] {
+        let albums = library.featuredAlbums.prefix(3).compactMap { album -> Station? in
+            guard let cover = library.albumCoverSong[album.id] else { return nil }
+            return Station(seed: .album(album.id), title: album.title, subtitle: "Album radio", cover: cover)
+        }
+        let songs = (library.favorites.isEmpty ? Array(library.songs.prefix(3)) : Array(library.favorites.prefix(3))).map {
+            Station(seed: .song($0.id), title: $0.title, subtitle: $0.artist + " · Song radio", cover: $0)
+        }
+        return albums + songs
+    }
     var body: some View {
-        let items = FeaturedSetlists.select(albums: library.featuredAlbums, covers: library.albumCoverSong,
-            radioSongs: library.favorites + library.songs, includesRadio: includesRadio)
-        if !items.isEmpty {
-            Shelf(title: "Featured Setlists", lazy: false) {
-                ForEach(items) { item in
-                    switch item {
-                    case .album(let album):
-                        AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: ArtworkSize.shelf)
-                    case .radio(let seed, let title, let subtitle, let cover):
-                        radioTile(cover: cover, title: title, subtitle: subtitle, seed: seed)
-                    }
+        if !stations.isEmpty {
+            Shelf(title: "Featured Radio Stations", lazy: false) {
+                ForEach(stations) { station in
+                    ArtworkTile(title: station.title, subtitle: station.subtitle,
+                                action: { router.open(.radio(station.seed)) }) {
+                        RadioStationTileArtwork(cover: station.cover, title: station.title)
+                            .collectionArtworkTheme(.track(station.cover.url), alwaysFollowArtwork: true)
+                    }.frame(width: ArtworkSize.shelf)
                 }
             }.padding(.bottom, Spacing.lg)
         }
     }
-
-    private func radioTile(cover: Song, title: String, subtitle: String, seed: RadioSeed) -> some View {
-        ArtworkTile(title: title + " Radio", subtitle: subtitle, action: { router.open(.radio(seed)) }) {
-            RadioSetlistArtwork(cover: cover, title: title)
-                .collectionArtworkTheme(.track(cover.url), alwaysFollowArtwork: true)
-        }.frame(width: ArtworkSize.shelf)
-
-    }
 }
 
-private struct RadioSetlistArtwork: View {
+private struct RadioStationTileArtwork: View {
     let cover: Song
     let title: String
     @Environment(\.palette) private var palette

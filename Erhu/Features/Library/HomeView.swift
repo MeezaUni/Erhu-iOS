@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The Home destination: the Smart Playlists as a hero banner (whenever the library has songs),
-/// Featured Setlists, Recently Played albums and playlists, then every track. The shelves scroll
+/// Featured Radio Stations, Featured Albums, recently played albums and playlists, then every track. The shelves scroll
 /// away with the tracks; each shelf scrolls sideways on its own.
 struct HomeView: View {
     @State private var releases = ReleaseChecker.shared
@@ -37,7 +37,7 @@ struct HomeView: View {
                         .padding(.top, Spacing.xs)
                         .padding(.bottom, Spacing.lg)
                 }
-                FeaturedSetlistsShelf(includesRadio: vybeEnabled)
+                if vybeEnabled { RadioStationShelf() }
                 shelves(showsRecentNote: hasSongs)
                 if hasShelves { SectionHeading(title: "Tracks") }
                 if songs.isEmpty {
@@ -61,6 +61,14 @@ struct HomeView: View {
 
     @ViewBuilder
     private func shelves(showsRecentNote: Bool) -> some View {
+        if !library.featuredAlbums.isEmpty {
+            Shelf(title: "Featured Albums") {
+                ForEach(library.featuredAlbums) { album in
+                    AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: ArtworkSize.shelf)
+                }
+            }
+            .padding(.bottom, Spacing.lg)
+        }
         if !library.recentAlbums.isEmpty {
             Shelf(title: "Recently played albums") {
                 ForEach(library.recentAlbums) { album in
