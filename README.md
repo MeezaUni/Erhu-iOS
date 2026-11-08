@@ -2,6 +2,8 @@
 
 An iPhone music player for your own collection.
 
+<a href="https://github.com/MeezaUni/Erhu-iOS/releases"><img src="https://img.shields.io/badge/iOS-Download-0A84FF?logo=apple&logoColor=white" alt="Download erhu for iOS"></a>
+<a href="https://github.com/lochanpthakke/erhu/releases"><img src="https://img.shields.io/badge/Android-Download-3DDC84?logo=android&logoColor=white" alt="Download erhu for Android"></a>
 <a href="https://ko-fi.com/erhu"><img src="https://img.shields.io/badge/Ko--fi-Support%20erhu-FF5E5B?logo=ko-fi&logoColor=white" alt="Support erhu on Ko-fi"></a>
 
 <img src="images/showcase/hero.png#gh-dark-mode-only" alt="erhu Home and Now Playing on an iPhone" width="1200"><img src="images/showcase/light/hero.png#gh-light-mode-only" alt="erhu Home and Now Playing on an iPhone" width="1200">
