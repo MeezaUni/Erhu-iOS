@@ -17,7 +17,7 @@ jobs:
   build:
     if: github.event.deleted != true
     runs-on: macos-15-intel
-    timeout-minutes: 60
+    timeout-minutes: 75
     env:
       HOMEBREW_NO_AUTO_UPDATE: "1"
     steps:
@@ -87,6 +87,37 @@ jobs:
           echo "Creating $DEVICE_TYPE on $RUNTIME"
           DEVICE=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
           echo "SIMULATOR_ID=$DEVICE" >> "$GITHUB_ENV"
+          echo "SIMULATOR_RUNTIME=$RUNTIME" >> "$GITHUB_ENV"
+          echo "SIMULATOR_DEVICE_TYPE=$DEVICE_TYPE" >> "$GITHUB_ENV"
+
+      - name: Boot a clean simulator for native interactions
+        run: |
+          xcrun simctl shutdown "$SIMULATOR_ID" >/dev/null 2>&1 || true
+          DEVICE=$(xcrun simctl create "CI UI iPhone" "$SIMULATOR_DEVICE_TYPE" "$SIMULATOR_RUNTIME")
+          echo "UI_SIMULATOR_ID=$DEVICE" >> "$GITHUB_ENV"
+          defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool NO
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b > build/ui-boot.log 2>&1
+
+      - name: Run native interaction checks
+        run: |
+          if ! xcodebuild test -project Erhu.xcodeproj -scheme Erhu \
+            -destination "id=$UI_SIMULATOR_ID" -resultBundlePath build/InteractionResults.xcresult CODE_SIGNING_ALLOWED=NO \
+            -only-testing:ErhuInteractionTests -parallel-testing-enabled NO > build/ui-tests.log 2>&1; then
+            echo "::error::Native interaction checks failed; see the test-status report and result bundle."
+            exit 1
+          fi
+
+      - name: Report native interaction status
+        if: always()
+        run: python3 Tools/report_native_interactions.py build/ui-tests.log
+
+      - name: Release the UI simulator before unit testing
+        if: always()
+        run: |
+          if [ -n "${UI_SIMULATOR_ID:-}" ]; then
+            xcrun simctl shutdown "$UI_SIMULATOR_ID" >/dev/null 2>&1 || true
+          fi
 
       - name: Run transfer and library regressions
         run: |
@@ -123,7 +154,7 @@ jobs:
             -only-testing:ErhuTests/LibraryChromeTests \
             -only-testing:ErhuTests/ToolProgressTests \
             -only-testing:ErhuTests/AutomaticArtistPhotosTests \
-            -only-testing:ErhuInteractionTests -parallel-testing-enabled NO \
+            -parallel-testing-enabled NO \
             -only-testing:ErhuTests/LibraryModelBuilderTests "${MOTION_TESTS[@]}" > build/regression-tests.log 2>&1; then
             python3 - <<'PYREGRESSION'
           import os, re
@@ -214,6 +245,9 @@ jobs:
           path: |
             build/TestResults.xcresult
             build/RegressionResults.xcresult
+            build/InteractionResults.xcresult
+            build/ui-tests.log
+            build/ui-boot.log
             build/regression-tests.log
             build/tests.log
             build/compile.log
