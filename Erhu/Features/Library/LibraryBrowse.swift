@@ -36,7 +36,7 @@ enum LibrarySort: String, CaseIterable, Sendable {
 }
 
 enum LibraryMood: String, CaseIterable, Sendable {
-    case all, chill, highEnergy, lateNight
+    case all, chill, highEnergy, lateNight, feelGood, party, romantic, sad, dark, focus, throwback
 
     var label: String {
         switch self {
@@ -44,19 +44,34 @@ enum LibraryMood: String, CaseIterable, Sendable {
         case .chill: "Chill"
         case .highEnergy: "High energy"
         case .lateNight: "Late night"
+        case .feelGood: "Feel-good"
+        case .party: "Party"
+        case .romantic: "Love songs"
+        case .sad: "Sad & reflective"
+        case .dark: "Dark"
+        case .focus: "Focus"
+        case .throwback: "Throwback"
         }
     }
 
-    func matches(_ song: Song) -> Bool {
+    func matches(_ song: Song, currentYear: Int = Calendar.current.component(.year, from: Date())) -> Bool {
         guard self != .all else { return true }
         let track = TrackFacts(songId: song.id, title: song.title, artistId: song.artistId, artist: song.artist,
                                albumId: song.albumId, album: song.album, genre: song.genre, bpm: song.bpm,
-                               durationMs: song.durationMs, isFavorite: song.isFavorite, addedAt: song.dateModified)
+                               durationMs: song.durationMs, isFavorite: song.isFavorite, addedAt: song.dateModified,
+                               year: song.year)
         switch self {
         case .all: return true
         case .chill: return Moods.isChill(track)
         case .highEnergy: return Moods.isHighEnergy(track)
         case .lateNight: return Moods.isLateNight(track)
+        case .feelGood: return Moods.isFeelGood(track)
+        case .party: return Moods.isParty(track)
+        case .romantic: return Moods.isRomantic(track)
+        case .sad: return Moods.isSad(track)
+        case .dark: return Moods.isDark(track)
+        case .focus: return Moods.isFocus(track)
+        case .throwback: return Moods.isThrowback(track, currentYear: currentYear)
         }
     }
 }

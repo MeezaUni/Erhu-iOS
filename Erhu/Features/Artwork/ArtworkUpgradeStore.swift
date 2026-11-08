@@ -159,9 +159,11 @@ final class ArtworkUpgradeStore {
 
     /// The explicit batch action uses the same image, resolution, similarity and stale-artwork
     /// checks as an individual comparison, and saves each album before advancing to the next.
-    func applyAll(library: LibraryStore, fetcher: ArtworkFetcherStore) {
+    /// [skipping]: results to leave for individual review (e.g. albums with an animated cover).
+    func applyAll(library: LibraryStore, fetcher: ArtworkFetcherStore, skipping: (ArtworkUpgrade) -> Bool = { _ in false }) {
         guard !scanning, !applying, !results.isEmpty else { return }
-        let batch = results
+        let batch = results.filter { !skipping($0) }
+        guard !batch.isEmpty else { return }
         applying = true; applied = 0; applyTotal = batch.count; message = nil
         task = Task {
             var saved = 0

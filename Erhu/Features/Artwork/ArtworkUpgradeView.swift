@@ -10,6 +10,10 @@ struct ArtworkUpgradeView: View {
     @State private var saving = false
     @State private var message: String?
     @State private var reviewError: String?
+    @State private var confirmingApplyAll = false
+    #if ERHU_ANIMATED_ART
+    @Environment(AnimatedArtworkStore.self) private var motionArtwork
+    #endif
 
     var body: some View {
         List {
@@ -49,7 +53,10 @@ struct ArtworkUpgradeView: View {
             }.toolSectionAppearance()
             Section("Higher-resolution matches") {
                 if !store.results.isEmpty {
-                    Button { store.applyAll(library: library, fetcher: fetcher) } label: {
+                    Button {
+                        if store.results.contains(where: hasDownloadedAnimation) { confirmingApplyAll = true }
+                        else { store.applyAll(library: library, fetcher: fetcher) }
+                    } label: {
                         Label("Apply to all (\(store.results.count))", systemImage: "checkmark.circle")
                     }
                     .disabled(store.scanning || store.applying || loading || saving)
@@ -58,14 +65,15 @@ struct ArtworkUpgradeView: View {
                 ForEach(store.results) { result in
                     Button { Task { await open(result) } } label: {
                         HStack(spacing: Spacing.md) {
-                            if let image = result.thumbnail {
-                                Image(decorative: image, scale: 1).resizable().scaledToFill()
-                                    .frame(width: 48, height: 48).clipped().clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
+                            currentImage(result.target)
                             VStack(alignment: .leading) {
                                 Text(result.target.name).foregroundStyle(.primary)
                                 Text("\(result.originalFacts.resolution) → \(result.candidate.image?.resolution ?? "larger")")
                                     .font(.caption).foregroundStyle(.secondary)
+                                if hasDownloadedAnimation(result) {
+                                    Label("Animated cover downloaded", systemImage: "play.square.stack")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
                                 Text("Likely same image · Review").font(.caption)
                             }
                         }
@@ -80,11 +88,43 @@ struct ArtworkUpgradeView: View {
         .overlay { if loading { ProgressView("Loading full image…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12)) } }
         .onDisappear { store.cancel() }
         .task { store.restore(kind, library: library) }
+        .confirmationDialog("Apply all upgrades?", isPresented: $confirmingApplyAll, titleVisibility: .visible) {
+            let animated = store.results.filter(hasDownloadedAnimation).count
+            Button("Upgrade all \(store.results.count)") { store.applyAll(library: library, fetcher: fetcher) }
+            Button("Upgrade \(store.results.count - animated), skip albums with animated covers") {
+                store.applyAll(library: library, fetcher: fetcher, skipping: hasDownloadedAnimation)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            let animated = store.results.filter(hasDownloadedAnimation).count
+            Text("\(animated) of these albums already \(animated == 1 ? "has" : "have") a downloaded animated cover. Skipped albums stay in the list to review on their own.")
+        }
         .sheet(item: $review) { item in
             ArtworkUpgradeReviewView(review: item, saving: saving, error: reviewError) {
                 Task { await apply(item) }
             }
         }
+    }
+
+    /// The artwork in use now, beside its name.
+    @ViewBuilder
+    private func currentImage(_ target: ArtworkTarget) -> some View {
+        switch target {
+        case .album(let album):
+            AlbumArtworkView(albumId: album.id, maxPixels: 144)
+                .frame(width: 48, height: 48).clipShape(RoundedRectangle(cornerRadius: 8))
+        case .artist(let artist):
+            ArtistArtworkView(artist: library.artist(artist.id) ?? artist, fontSize: 18, maxPixels: 144)
+                .frame(width: 48, height: 48).clipShape(Circle())
+        }
+    }
+
+    /// Whether the album already has an animated cover saved on this device.
+    private func hasDownloadedAnimation(_ result: ArtworkUpgrade) -> Bool {
+        #if ERHU_ANIMATED_ART
+        if case .album(let album) = result.target { return motionArtwork.isDownloaded(album) }
+        #endif
+        return false
     }
 
     private func open(_ result: ArtworkUpgrade) async {

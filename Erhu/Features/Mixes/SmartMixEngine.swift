@@ -2,7 +2,7 @@ import Foundation
 
 /// The kinds of smart mix. [personal] mixes come from the listener's own play history and are only
 /// offered once there is enough of it. Shelf order is declaration order.
-enum MixKind: String, CaseIterable, Sendable {
+enum MixKind: String, CaseIterable, Sendable, Codable {
     case rotation = "rotation"
     case yourSound = "your-sound"
     case forgotten = "forgotten"
@@ -53,7 +53,7 @@ enum MixKind: String, CaseIterable, Sendable {
 }
 
 /// One built mix: its songs in play order, a truthful line about how it was made, and its title.
-struct SmartMix: Equatable, Sendable {
+struct SmartMix: Equatable, Sendable, Codable {
     let kind: MixKind
     let songIds: [Int64]
     let description: String
@@ -68,7 +68,7 @@ struct SmartMix: Equatable, Sendable {
 }
 
 /// Every mix worth showing right now. [needsMoreListening]: the history is too short for personal mixes.
-struct SmartMixes: Equatable, Sendable {
+struct SmartMixes: Equatable, Sendable, Codable {
     let mixes: [SmartMix]
     let needsMoreListening: Bool
 
@@ -189,6 +189,66 @@ enum Moods {
         let genres = genresOf(track)
         let tempo = self.tempo(track)
         return any(genres, night) && !any(genres, energy) && (tempo == nil || tempo! <= slowMax)
+    }
+
+    private static let feelGood = [
+        "pop", "funk", "disco", "motown", "afrobeat", "afrobeats", "afropop", "reggae", "reggaeton", "latin", "k-pop", "kpop",
+        "gospel", "highlife", "amapiano", "ska", "surf", "bubblegum", "boogie",
+    ]
+    private static let party = [
+        "dance", "edm", "house", "disco", "reggaeton", "dancehall", "club", "afrobeats", "amapiano", "electro", "baile",
+        "jersey club", "moombahton", "bounce", "crunk", "party",
+    ]
+    private static let romantic = ["r&b", "rnb", "soul", "slow jam", "quiet storm", "ballad", "love", "bolero", "bachata"]
+    private static let sad = ["emo", "sad", "slowcore", "singer-songwriter", "indie folk", "ballad", "blues", "sadcore", "melancholy"]
+    private static let dark = [
+        "horrorcore", "phonk", "drill", "dark trap", "industrial", "darkwave", "goth", "black metal", "doom", "emo rap",
+        "memphis", "witch house", "death metal", "dark ambient", "horror",
+    ]
+    private static let focus = [
+        "instrumental", "ambient", "classical", "lo-fi", "lofi", "post-rock", "soundtrack", "score", "minimal", "piano",
+        "study", "idm", "modern classical", "neoclassical",
+    ]
+    /// Songs whose release year is at least this many years old count as throwbacks.
+    static let throwbackYears = 15
+
+    /// Upbeat, bright genres at a moderate tempo.
+    static func isFeelGood(_ track: TrackFacts) -> Bool {
+        let genres = genresOf(track)
+        let tempo = self.tempo(track)
+        guard any(genres, feelGood), !any(genres, dark), !any(genres, sad) else { return false }
+        return tempo == nil || (95...140).contains(tempo!)
+    }
+
+    /// Club and dance genres; a trusted slow tempo rules a song out.
+    static func isParty(_ track: TrackFacts) -> Bool {
+        let tempo = self.tempo(track)
+        return any(genresOf(track), party) && (tempo == nil || tempo! >= 100)
+    }
+
+    static func isRomantic(_ track: TrackFacts) -> Bool {
+        let genres = genresOf(track)
+        let tempo = self.tempo(track)
+        return any(genres, romantic) && !any(genres, energy) && !any(genres, dark) && (tempo == nil || tempo! <= slowMax)
+    }
+
+    static func isSad(_ track: TrackFacts) -> Bool {
+        let tempo = self.tempo(track)
+        return any(genresOf(track), sad) && (tempo == nil || tempo! <= 105)
+    }
+
+    static func isDark(_ track: TrackFacts) -> Bool { any(genresOf(track), dark) }
+
+    /// Mostly instrumental, calm genres: never anything tagged with an energetic genre.
+    static func isFocus(_ track: TrackFacts) -> Bool {
+        let genres = genresOf(track)
+        return any(genres, focus) && !any(genres, energy)
+    }
+
+    /// A real year tag (not 0 or the 1970 placeholder) at least [throwbackYears] before [currentYear].
+    static func isThrowback(_ track: TrackFacts, currentYear: Int) -> Bool {
+        guard let year = track.year, year > 1900, year != 1970 else { return false }
+        return year <= currentYear - throwbackYears
     }
 
     /// The BPM when it can be trusted as the song's tempo.

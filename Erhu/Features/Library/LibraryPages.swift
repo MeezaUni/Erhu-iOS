@@ -186,7 +186,8 @@ struct AllSongsView: View {
             }
         } content: {
             if mood != .all {
-                Text("Mood matches use your songs’ genre and tempo tags.")
+                Text(mood == .throwback ? "Throwback uses your songs’ year tags: released \(Moods.throwbackYears) or more years ago."
+                     : "Mood matches use your songs’ genre and tempo tags.")
                     .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.gutter)
             }
             if let results {

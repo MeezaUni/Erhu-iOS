@@ -110,7 +110,7 @@ final class LibraryActions {
         player.setShuffleModeEnabled(shuffled)
         player.playCollection(queue, startIndex: index, origin: nil)
         radio = RadioSession(seed: plan.seed, startSongId: queue[index].id, suggested: Set(queue.map(\.id)))
-        report(plan)
+        // The station page already says what the radio is built from; playing it needs no toast.
     }
 
     /// A radio from the song playing now: it keeps playing and the radio replaces what comes next.
