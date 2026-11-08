@@ -116,6 +116,9 @@ struct FixTagsView: View {
                     Text(store.queue.isEmpty ? "Add songs or find the ones with missing tags first." : "Nothing left to fix in the queue.")
                         .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
                 }
+                if store.hasMissingScanProgress, !store.isCheckingMissing, let progress = store.missingScanProgress {
+                    Text("Saved check: \(progress.completed) of \(progress.total) files").font(.caption)
+                }
                 if store.isCheckingMissing {
                     if let progress = store.missingScanProgress {
                         ProgressView(value: Double(progress.completed), total: Double(max(progress.total, 1)))

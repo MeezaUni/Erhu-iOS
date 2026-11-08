@@ -127,6 +127,34 @@ final class ToolProgressTests: XCTestCase {
         XCTAssertEqual(reopened.checked, 3)
         XCTAssertEqual(reads.count, 4, "Only the new album and the changed file need another read")
     }
+
+    @MainActor func testResumingAMissingTagCheckKeepsAnUnchangedTracksReviewState() async throws {
+        let root = try folder(); defer { try? FileManager.default.removeItem(at: root) }
+        let audio = LibraryPaths.musicFolder.appendingPathComponent(UUID().uuidString + ".mp3")
+        defer { try? FileManager.default.removeItem(at: audio) }
+        var bytes = TagFixtures.mp3(v4: true)
+        if let range = bytes.range(of: Data("TCON".utf8)) { bytes.replaceSubrange(range, with: Data("XCON".utf8)) }
+        try bytes.write(to: audio)
+        let database = try LibraryDatabase.inMemory()
+        try insert(1, path: audio.lastPathComponent, database: database)
+        let library = LibraryStore(database: database)
+        let song = try XCTUnwrap(library.songs.first)
+        let file = root.appendingPathComponent("fix.json")
+        let progress = FixTagsProgress(manifest: ProgressFile(url: file))
+        try progress.missing(1).save(.init(song: song, stamp: ProgressFileStamp(song), fields: [MetadataField.genre.rawValue], missing: [.genre]))
+        try progress.item(1).save(RepairItem(song: song, status: .needsReview, reason: "Reviewed match"))
+        try progress.manifest.save(.init(songs: [song], libraryChecked: [1: song.path], followsLibrary: true, started: true,
+                                         autoFillRemaining: nil, scope: [], missingScanInProgress: true, missingChecked: 1, missingTotal: 2))
+        let reopened = FixTagsStore(library: library, checkpointURL: file)
+        let previous = reopened.settings
+        defer { reopened.update { $0 = previous } }
+        reopened.update { $0.fields = [MetadataField.genre.rawValue] }
+        await reopened.findMissingTags()
+        XCTAssertEqual(reopened.queue.first?.status, .needsReview)
+        XCTAssertEqual(reopened.queue.first?.reason, "Reviewed match")
+        XCTAssertEqual(reopened.missingScanProgress?.completed, 1)
+        XCTAssertFalse(reopened.hasMissingScanProgress)
+    }
 }
 
 private final class ArtworkReads: @unchecked Sendable {

@@ -234,20 +234,46 @@ final class FixTagsStore {
         defer { isCheckingMissing = false }
         let songs = library.songs
         let keys = fields.map(\.rawValue).sorted()
-        missingScanProgress = (0, songs.count)
+        missingScanProgress = (missingScanProgress?.completed ?? 0, songs.count)
         saveProgress()
-        var found: [(Song, [MetadataField])] = []
-        for (offset, song) in songs.enumerated() {
-            guard !Task.isCancelled, !stopMissingScanRequested else { break }
-            let file = progress.missing(song.id)
-            let check = await Task.detached(priority: .utility) {
+        let progress = self.progress
+        let work = await Task.detached(priority: .utility) {
+            songs.map { song -> FixTagsProgress.MissingWork in
                 let stamp = ProgressFileStamp(song)
-                if let cached = file.load(), cached.song.path == song.path, cached.stamp == stamp, cached.fields == keys { return cached }
-                return FixTagsProgress.MissingCheck(song: song, stamp: stamp, fields: keys,
-                                                   missing: MetadataCompleteness.missing(TagReader.read(song.url), fields: fields))
+                let cached = progress.missing(song.id).load().flatMap {
+                    $0.song.path == song.path && $0.stamp == stamp && $0.fields == keys ? $0 : nil
+                }
+                return FixTagsProgress.MissingWork(song: song, stamp: stamp, cached: cached)
+            }
+        }.value
+        guard !Task.isCancelled, !stopMissingScanRequested else { return }
+        var found: [(Song, [MetadataField])] = []
+        for entry in work where entry.cached != nil {
+            let song = entry.song, check = entry.cached!
+            libraryChecked[song.id] = song.path
+            if !check.missing.isEmpty {
+                found.append((song, check.missing))
+                // Recover a result saved just before a force-quit, but never reset an
+                // existing completed/reviewed queue item while resuming the file check.
+                if !queue.contains(where: { $0.id == song.id }) {
+                    let item = RepairItem(song: song, reason: "Missing: " + check.missing.map(\.displayName).joined(separator: ", "))
+                    queue.append(item)
+                    saveProgress(item, manifest: false)
+                }
+            }
+        }
+        var completed = work.filter { $0.cached != nil }.count
+        missingScanProgress = (completed, songs.count)
+        saveProgress()
+        for entry in work where entry.cached == nil {
+            guard !Task.isCancelled, !stopMissingScanRequested else { break }
+            let song = entry.song
+            let check = await Task.detached(priority: .utility) {
+                FixTagsProgress.MissingCheck(song: song, stamp: entry.stamp, fields: keys,
+                                             missing: MetadataCompleteness.missing(TagReader.read(song.url), fields: fields))
             }.value
             guard !Task.isCancelled, !stopMissingScanRequested else { break }
-            do { try file.save(check) }
+            do { try progress.missing(song.id).save(check) }
             catch { missingScanMessage = "Couldn’t save tag-check progress: \(error.localizedDescription)"; return }
             libraryChecked[song.id] = song.path
             if !check.missing.isEmpty {
@@ -255,11 +281,17 @@ final class FixTagsStore {
                 let index: Int
                 if let existing = queue.firstIndex(where: { $0.id == song.id }) { index = existing }
                 else { queue.append(RepairItem(song: song)); index = queue.count - 1 }
+                queue[index].diagnostics = nil
+                queue[index].proposedRequest = nil
+                queue[index].proposedFields = []
+                queue[index].changes = []
+                queue[index].notes = []
                 queue[index].status = .pending
                 queue[index].reason = "Missing: " + check.missing.map(\.displayName).joined(separator: ", ")
                 saveProgress(queue[index], manifest: false)
             }
-            missingScanProgress = (offset + 1, songs.count)
+            completed += 1
+            missingScanProgress = (completed, songs.count)
             saveProgress()
         }
         hasMissingScanProgress = (missingScanProgress?.completed ?? 0) < songs.count
