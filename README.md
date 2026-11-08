@@ -48,13 +48,13 @@ Captured on an iPhone from the current build. They show the real interfaces.
 <table>
   <tr>
     <th width="33%">Home</th>
-    <th width="33%">Albums</th>
-    <th width="33%">Library</th>
+    <th width="33%">Radio stations</th>
+    <th width="33%">VYBE</th>
   </tr>
   <tr>
     <td><a href="images/showcase/home.png"><img src="images/showcase/home.png" alt="erhu Home with a smart playlist and featured radio stations, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/radio.png"><img src="images/showcase/radio.png" alt="An erhu radio station built from A Sky Full of Stars, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/vybe.png"><img src="images/showcase/vybe.png" alt="erhu VYBE search for late night, with the closest songs in the library, captured on an iPhone" width="260"></a></td>
   </tr>
 </table>
 
@@ -73,18 +73,31 @@ Captured on an iPhone from the current build. They show the real interfaces.
   </tr>
 </table>
 
-### Moods, menus and audio controls
+### Your library
 
 <table>
   <tr>
+    <th width="33%">Library</th>
+    <th width="33%">Albums</th>
     <th width="33%">Songs by mood</th>
-    <th width="33%">Track menu</th>
-    <th width="33%">Equalizer</th>
   </tr>
   <tr>
+    <td><a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="260"></a></td>
+    <td><a href="images/showcase/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="260"></a></td>
     <td><a href="images/showcase/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="260"></a></td>
+  </tr>
+</table>
+
+### Menus and audio controls
+
+<table>
+  <tr>
+    <th width="50%">Track menu</th>
+    <th width="50%">Equalizer</th>
+  </tr>
+  <tr>
+    <td><a href="images/showcase/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="300"></a></td>
+    <td><a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="300"></a></td>
   </tr>
 </table>
 
