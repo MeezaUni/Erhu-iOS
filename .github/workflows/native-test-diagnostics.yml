@@ -22,7 +22,7 @@ jobs:
           from pathlib import Path
           classes = '(?:LibraryInteractionTests|LibraryBrowseViewTests|ToolProgressTests|ArtworkUpgradeTests|MotionCoverAvailabilityTests|AutomaticArtistPhotosTests)'
           pattern = re.compile(r"Test Case '-\[(?:ErhuTests|ErhuInteractionTests)\.(" + classes + r") (test[A-Za-z0-9_]+)\]' (started|passed|failed)")
-          categories = ['SIGABRT', 'SIGSEGV', 'Fatal error', 'Early unexpected exit', 'Testing failed:', 'test runner exited', 'crashed', 'Failed to launch', 'Failed to install', 'timed out', 'Could not cast value', 'Lost connection', 'Unable to boot', 'Simulator device failed']
+          categories = ['SIGABRT', 'SIGSEGV', 'Fatal error', 'Early unexpected exit', 'Testing failed:', 'test runner exited', 'crashed', 'Failed to launch', 'Failed to install', 'timed out', 'Could not cast value', 'Lost connection', 'Unable to boot', 'Simulator device failed', 'Failed to establish communication', 'Failed to bootstrap', 'Unable to launch', 'Unable to install', 'Test runner never began', 'Failed to load test bundle', 'Connection interrupted', 'Failed to prepare', 'Failed to create', 'Cannot test', 'Testing cancelled', 'Failed to initialize', 'Timed out waiting for', 'Booting']
           for run in ['42455309061', '42455311392']:
               records = {}
               flags = []
@@ -30,6 +30,11 @@ jobs:
                   log = path.read_text(errors='replace')
                   for name, method, state in pattern.findall(log): records[name + '.' + method] = state
                   flags += [category for category in categories if category.lower() in log.lower()]
+                  alternate = re.compile(r"Test case '(" + classes + r")\.(test[A-Za-z0-9_]+)\(\)' (passed|failed)")
+                  for name, method, state in alternate.findall(log): records[name + '.' + method] = state
+                  domains = re.findall(r'Error Domain=([A-Za-z0-9_.]+) Code=(-?[0-9]+)', log)
+                  flags += ['Error code ' + domain + ' ' + code for domain, code in sorted(set(domains))]
+
               # Only alphanumeric Swift identifiers, fixed status words and fixed categories
               # leave this job. No raw log lines, paths, URLs, values or artifacts are published.
               summary = 'Run ' + run + '\n' + '\n'.join(['Failure category: ' + flag for flag in sorted(set(flags))] + [name + ': ' + state for name, state in records.items()])
