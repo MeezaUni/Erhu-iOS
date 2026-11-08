@@ -36,12 +36,11 @@ const shots = {
 
 const css = `
   * { margin: 0; box-sizing: border-box; }
-  html, body { background: #22282f; color: #f2f2f0; font-family: Inter, sans-serif; }
+  html, body { background: #212830; color: #f2f2f0; font-family: Inter, sans-serif; }
   .kicker { font-size: 22px; letter-spacing: 0.22em; text-transform: uppercase; color: #9a9b9f; }
   .rule { height: 1px; background: #353d47; }
   .foot { font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase; color: #6c6d72; }
-  .phone { border-radius: 64px; padding: 10px; background: #1a1f25; border: 2px solid #3e4652;
-           box-shadow: 0 40px 120px rgba(0,0,0,0.45); }
+  .phone { border-radius: 64px; padding: 10px; background: #1a1f25; border: 2px solid #3e4652; }
   .phone img { display: block; width: 100%; border-radius: 54px; }
 `;
 
