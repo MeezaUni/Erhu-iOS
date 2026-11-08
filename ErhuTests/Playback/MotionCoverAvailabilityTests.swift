@@ -104,6 +104,35 @@ final class MotionCoverAvailabilityTests: XCTestCase {
     }
 
     @MainActor
+    func testAlbumMenuRecheckRetainsOtherAlbumsAndTheLibraryCheckpoint() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        let history = ScopedAvailabilityRequests()
+        let scanner = MotionCoverAvailability(pause: .zero, checkpointURL: file) { album in
+            await history.record(album.id)
+            return AppleMotionMatch(catalogId: album.id, title: album.title, artist: album.artist,
+                                    storefront: "us", master: URL(string: "https://example.com/cover.m3u8")!)
+        }
+        scanner.check(albums)
+        for _ in 0..<100 {
+            if !scanner.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        scanner.checkAlbum(albums[1])
+        for _ in 0..<100 {
+            if !scanner.checking { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let calls = await history.calls
+        XCTAssertEqual(calls, [1, 2, 3, 2], "The menu action refreshes only its selected album")
+        let reopened = MotionCoverAvailability(checkpointURL: file) { _ in nil }
+        XCTAssertEqual(reopened.remaining(in: albums), 0)
+        XCTAssertEqual(reopened.results.count, 3)
+        XCTAssertEqual(reopened.checked, 3)
+        XCTAssertEqual(reopened.total, 3)
+    }
+
+    @MainActor
     func testCancellationPreventsLateResultsAndStopsFurtherLookups() async throws {
         let gate = AvailabilityGate()
         let scanner = MotionCoverAvailability(pause: .zero) { album in
@@ -141,4 +170,9 @@ private actor AvailabilityHistory {
 private actor AvailabilityGate {
     var calls = 0
     func enter() { calls += 1 }
+}
+
+private actor ScopedAvailabilityRequests {
+    var calls: [Int64] = []
+    func record(_ id: Int64) { calls.append(id) }
 }

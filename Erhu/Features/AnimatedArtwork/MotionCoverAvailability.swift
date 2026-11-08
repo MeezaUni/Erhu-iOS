@@ -71,18 +71,34 @@ final class MotionCoverAvailability {
     }
 
     func check(_ albums: [Album], restart: Bool = false) {
+        beginCheck(albums, restart: restart, singleAlbum: false)
+    }
+
+    /// A menu check refreshes only this album and retains the library scan's checkpoint.
+    func checkAlbum(_ album: Album, completion: (@MainActor (String) -> Void)? = nil) {
+        beginCheck([album], restart: false, singleAlbum: true, completion: completion)
+    }
+
+    private func beginCheck(_ albums: [Album], restart: Bool, singleAlbum: Bool, completion: (@MainActor (String) -> Void)? = nil) {
         guard !checking else { return }
         if restart { completed = [:]; results = [:]; freshMatches = [] }
-        completed = completed.filter { key, previous in
-            albums.contains { $0.id == key && previous.matches($0) }
+        if !singleAlbum {
+            completed = completed.filter { key, previous in
+                albums.contains { $0.id == key && previous.matches($0) }
+            }
+            results = results.filter { key, result in albums.contains { $0.id == key && $0.title == result.album.title && $0.artist == result.album.artist } }
         }
-        checked = completed.count; total = albums.count; checking = true; message = nil; hasChecked = true
-        results = results.filter { key, result in albums.contains { $0.id == key && $0.title == result.album.title && $0.artist == result.album.artist } }
+        checked = completed.count
+        total = singleAlbum ? max(total, completed.count + albums.filter { completed[$0.id] == nil }.count) : albums.count
+        checking = true; message = nil; hasChecked = true
         task = Task {
-            do { try saveProgress() } catch { checking = false; message = "Couldn’t save scan progress: \(error.localizedDescription)"; task = nil; return }
-            defer { checking = false; task = nil }
+            defer {
+                checking = false; task = nil
+                if let completion { completion(message ?? "The animated-cover check finished.") }
+            }
+            do { try saveProgress() } catch { message = "Couldn’t save scan progress: \(error.localizedDescription)"; return }
             for album in albums {
-                if completed[album.id] != nil { continue }
+                if !singleAlbum, completed[album.id] != nil { continue }
                 do {
                     try Task.checkCancellation()
                     let match = try await find(album)
@@ -93,14 +109,19 @@ final class MotionCoverAvailability {
                     freshMatches.insert(album.id)
                     checked = completed.count
                     try saveProgress()
-                    if checked < total { try await Task.sleep(for: pause) }
+                    if !singleAlbum, checked < total { try await Task.sleep(for: pause) }
                 } catch {
                     message = Task.isCancelled ? "Check stopped. Continue to check the remaining albums."
                         : "Check paused: \(error.localizedDescription) Continue later to check the remaining albums."
                     return
                 }
             }
-            message = "Checked \(checked) albums. \(results.count) motion cover\(results.count == 1 ? "" : "s") available."
+            if singleAlbum, let album = albums.first {
+                message = match(for: album) == nil ? "No matching animated cover found for \(album.title)."
+                    : "An animated cover is available for \(album.title)."
+            } else {
+                message = "Checked \(checked) albums. \(results.count) motion cover\(results.count == 1 ? "" : "s") available."
+            }
         }
     }
 

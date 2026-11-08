@@ -60,6 +60,7 @@ func collectionFacts(year: Int? = nil, songs: [Song]) -> String {
 
 /// An album: cover, facts (and "Lossless" when any track is), Play / Shuffle, its tracks by number.
 struct AlbumDetailView: View {
+    @Environment(AnimatedArtworkStore.self) private var animatedArtwork
     @Environment(\.vybeEnabled) private var vybeEnabled
     let albumId: Int64
     @Environment(LibraryStore.self) private var library
@@ -68,6 +69,7 @@ struct AlbumDetailView: View {
     @State private var songs: [Song] = []
     @State private var artworkTarget: ArtworkTarget?
     @State private var motionCover = MotionVideoSession()
+    @State private var motionCheckMessage: String?
 
     var body: some View {
         let origin = CollectionRef.album(albumId)
@@ -108,11 +110,26 @@ struct AlbumDetailView: View {
                 }
                 if let album = library.album(albumId) {
                     Button { artworkTarget = .album(album) } label: { Label("Find a cover", systemImage: "photo") }
+                    Button {
+                        animatedArtwork.availability.checkAlbum(album) { message in
+                            motionCheckMessage = message
+                        }
+                    } label: {
+                        Label("Check for animated covers", systemImage: "photo.badge.checkmark")
+                    }
+                    .disabled(animatedArtwork.availability.checking || animatedArtwork.isBusy)
                 }
             } label: { Image(systemName: "ellipsis.circle") }
             .accessibilityLabel("Album options")
         }
         .sheet(item: $artworkTarget) { ArtworkPickerSheet(target: $0) }
+        .alert("Animated cover", isPresented: Binding(get: { motionCheckMessage != nil }, set: { if !$0 { motionCheckMessage = nil } })) {
+            if let album = library.album(albumId), animatedArtwork.availability.match(for: album) != nil {
+                Button("Download animated cover") { animatedArtwork.download(album) }
+                    .disabled(animatedArtwork.isBusy)
+            }
+            Button("Done", role: .cancel) { motionCheckMessage = nil }
+        } message: { Text(motionCheckMessage ?? "") }
         .task(id: library.songs) { songs = (try? library.database.songsOfAlbum(albumId)) ?? [] }
         .onDisappear { motionCover.pause() }
         .background { CollectionPageBackground() }

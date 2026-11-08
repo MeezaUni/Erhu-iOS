@@ -96,7 +96,7 @@ struct AnimatedArtworkView: View {
                 }
             }.toolSectionAppearance()
         }.modifier(ToolPageAppearance())
-        .searchable(text: $query, prompt: "Album or artist")
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Album or artist")
         .navigationTitle("Animated covers")
         .onDisappear { store.availability.cancel() }
         .sheet(item: Binding(get: { store.compressionPreview }, set: { if $0 == nil { store.discardCompression() } }), onDismiss: { store.discardCompression() }) { preview in
