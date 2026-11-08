@@ -122,7 +122,7 @@ Report bugs through [GitHub Issues](https://github.com/MeezaUni/Erhu-iOS/issues)
 
 ## Contributors
 
-- [Mohammed Azeem](https://github.com/MeezaUni) (iOS)
+- [Azeem](https://github.com/MeezaUni) (iOS)
 - [Lochan Thakke](https://github.com/lochanpthakke) and [Kshitij Kekunnaya](https://github.com/Kshitij1425), authors of [erhu for Android](https://github.com/lochanpthakke/erhu)
 
 ## License
