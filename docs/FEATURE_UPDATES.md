@@ -189,3 +189,7 @@ Artwork Fetcher checkpoints each album, including albums that already have artwo
 ## Album animated-cover checks
 
 Animated covers keeps its search in the top navigation drawer rather than the bottom toolbar. Album options now include Check for animated covers. This refreshes only that album, reports availability without navigating away, and offers an explicit Download when available. The action preserves all other albums and the saved library-wide scan checkpoint.
+
+## Separate featured sections
+
+Home again shows Featured Radio Stations and Featured Albums as separate shelves, followed by Recently played albums. Radio cards retain their circular artwork and artwork-derived backgrounds.
