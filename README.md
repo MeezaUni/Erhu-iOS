@@ -45,114 +45,60 @@ Captured on an iPhone from the current build. They show the real interfaces.
 
 ### Home and discovery
 
-<table>
-  <tr>
-    <th width="33%">Home</th>
-    <th width="33%">Radio stations</th>
-    <th width="33%">VYBE</th>
-  </tr>
-  <tr>
-    <td><a href="images/showcase/home.png"><img src="images/showcase/home.png" alt="erhu Home with a smart playlist and featured radio stations, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/radio.png"><img src="images/showcase/radio.png" alt="An erhu radio station built from A Sky Full of Stars, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/vybe.png"><img src="images/showcase/vybe.png" alt="erhu VYBE search for late night, with the closest songs in the library, captured on an iPhone" width="260"></a></td>
-  </tr>
-</table>
+<p>
+  <a href="images/showcase/home.png"><img src="images/showcase/home.png" alt="erhu Home with a smart playlist and featured radio stations, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/radio.png"><img src="images/showcase/radio.png" alt="An erhu radio station built from A Sky Full of Stars, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/vybe.png"><img src="images/showcase/vybe.png" alt="erhu VYBE search for late night, with the closest songs in the library, captured on an iPhone" width="270"></a>
+</p>
 
 ### The listening experience
 
-<table>
-  <tr>
-    <th width="33%">Now Playing</th>
-    <th width="33%">Synced lyrics</th>
-    <th width="33%">Queue</th>
-  </tr>
-  <tr>
-    <td><a href="images/showcase/now-playing.png"><img src="images/showcase/now-playing.png" alt="erhu Now Playing, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/lyrics.png"><img src="images/showcase/lyrics.png" alt="erhu synced lyrics, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/queue.png"><img src="images/showcase/queue.png" alt="erhu queue, captured on an iPhone" width="260"></a></td>
-  </tr>
-</table>
+<p>
+  <a href="images/showcase/now-playing.png"><img src="images/showcase/now-playing.png" alt="erhu Now Playing, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/lyrics.png"><img src="images/showcase/lyrics.png" alt="erhu synced lyrics, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/queue.png"><img src="images/showcase/queue.png" alt="erhu queue, captured on an iPhone" width="270"></a>
+</p>
 
 ### Your library
 
-<table>
-  <tr>
-    <th width="33%">Library</th>
-    <th width="33%">Albums</th>
-    <th width="33%">Songs by mood</th>
-  </tr>
-  <tr>
-    <td><a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="260"></a></td>
-    <td><a href="images/showcase/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="260"></a></td>
-  </tr>
-</table>
+<p>
+  <a href="images/showcase/library.png"><img src="images/showcase/library.png" alt="erhu library with playlists, favourites and artists, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/albums.png"><img src="images/showcase/albums.png" alt="erhu albums sorted by recently played, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/songs-moods.png"><img src="images/showcase/songs-moods.png" alt="erhu songs filtered by the Late night mood, captured on an iPhone" width="270"></a>
+</p>
 
 ### Menus and audio controls
 
-<table>
-  <tr>
-    <th width="50%">Track menu</th>
-    <th width="50%">Equalizer</th>
-  </tr>
-  <tr>
-    <td><a href="images/showcase/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="300"></a></td>
-    <td><a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="300"></a></td>
-  </tr>
-</table>
+<p>
+  <a href="images/showcase/glass.png"><img src="images/showcase/glass.png" alt="The floating glass track menu in Now Playing, captured on an iPhone" width="270"></a>
+  <a href="images/showcase/equalizer.png"><img src="images/showcase/equalizer.png" alt="erhu equalizer with the Bass Booster preset, captured on an iPhone" width="270"></a>
+</p>
 
 ### Library tools
 
-<table>
-  <tr>
-    <th width="50%">Artwork Fetcher</th>
-    <th width="50%">Upgrade covers</th>
-  </tr>
-  <tr>
-    <td><a href="images/showcase/artwork-fetcher.png"><img src="images/showcase/artwork-fetcher.png" alt="Artwork Fetcher on an iPhone, showing album and artist-photo checks" width="300"></a></td>
-    <td><a href="images/showcase/artwork-upgrade.png"><img src="images/showcase/artwork-upgrade.png" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="300"></a></td>
-  </tr>
-</table>
-
-- **Artwork Fetcher:** find album covers and artist photos, inspect candidates and apply your selection. Album menus also accept an image from Photos or Files.
-- **Upgrade covers:** search for larger versions of your current covers and artist photos. Review each match or apply them all; every replacement is checked again before saving. In the animated-artwork build, albums with a downloaded animated cover are marked and can be skipped.
-- **Auto Fix Tags:** add tracks, albums or artists to a repair queue, choose the metadata fields to change, and review uncertain matches. The original file is kept so every change can be reverted.
+<p>
+  <a href="images/showcase/artwork-fetcher.png"><img src="images/showcase/artwork-fetcher.png" alt="Artwork Fetcher on an iPhone, showing album and artist-photo checks" width="270"></a>
+  <a href="images/showcase/artwork-upgrade.png"><img src="images/showcase/artwork-upgrade.png" alt="Upgrade album covers on an iPhone, listing higher-resolution matches with an animated cover marked" width="270"></a>
+</p>
 
 ### Transition Studio
 
-Choose how an album or playlist crossfades, or edit a single track pair. Shape the volume, EQ and filter curves over the source waveforms, preview the transition, then save it.
+<p>
+  <a href="images/showcase/transition-studio.png"><img src="images/showcase/transition-studio.png" alt="Transition Studio on an iPhone, showing album settings and track pairs" width="270"></a>
+  <a href="images/showcase/transition-editor.png"><img src="images/showcase/transition-editor.png" alt="The transition editor on an iPhone, showing waveforms and editable curves" width="270"></a>
+</p>
 
-<table>
-  <tr>
-    <th width="50%">Album and playlist transitions</th>
-    <th width="50%">Track-pair editor</th>
-  </tr>
-  <tr>
-    <td><a href="images/showcase/transition-studio.png"><img src="images/showcase/transition-studio.png" alt="Transition Studio on an iPhone, showing album settings and track pairs" width="340"></a></td>
-    <td><a href="images/showcase/transition-editor.png"><img src="images/showcase/transition-editor.png" alt="The transition editor on an iPhone, showing waveforms and editable curves" width="340"></a></td>
-  </tr>
-</table>
-
-[Album order and transitions](docs/ALBUM_ORDER_AND_TRANSITIONS.md)
-
-The in-app introduction covers these tools. Reopen it from **Settings → About Erhu → Introduction**.
+[Album order and transitions](docs/ALBUM_ORDER_AND_TRANSITIONS.md) · The in-app introduction covers these tools; reopen it from **Settings → About Erhu → Introduction**.
 
 ### Animated artwork
 
 **Animated-artwork build only.** Downloaded animated covers play on album pages, in Now Playing and, on iOS 26 and newer, on the Lock Screen. iOS decides when the Lock Screen shows the animation.
 
-<table>
-  <tr>
-    <th width="33%">Album</th>
-    <th width="33%">Now Playing</th>
-    <th width="33%">Lock Screen</th>
-  </tr>
-  <tr>
-    <td><img src="images/showcase/animated-album.gif" alt="An animated album cover on the erhu album page, recorded on an iPhone" width="260"></td>
-    <td><img src="images/showcase/animated-player.gif" alt="An animated album cover in erhu Now Playing, recorded on an iPhone" width="260"></td>
-    <td><img src="images/showcase/lock-screen.gif" alt="An animated album cover playing on the iPhone Lock Screen, recorded on an iPhone" width="260"></td>
-  </tr>
-</table>
+<p>
+  <a href="images/showcase/animated-album.gif"><img src="images/showcase/animated-album.gif" alt="An animated album cover on the erhu album page, recorded on an iPhone" width="270"></a>
+  <a href="images/showcase/animated-player.gif"><img src="images/showcase/animated-player.gif" alt="An animated album cover in erhu Now Playing, recorded on an iPhone" width="270"></a>
+  <a href="images/showcase/lock-screen.gif"><img src="images/showcase/lock-screen.gif" alt="An animated album cover playing on the iPhone Lock Screen, recorded on an iPhone" width="270"></a>
+</p>
 
 [How animated covers work](https://github.com/MeezaUni/Erhu-iOS/blob/with-animated-art/docs/ANIMATED_COVERS.md)
 
