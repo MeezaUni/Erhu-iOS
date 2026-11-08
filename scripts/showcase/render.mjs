@@ -7,6 +7,7 @@
 // Needs Playwright with Chromium and the Inter font installed.
 import { createRequire } from 'node:module';
 import { writeFileSync, mkdtempSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -106,4 +107,54 @@ for (const [name, html, width, height, folder] of jobs) {
   await tab.screenshot({ path: join(folder, name + '.png'), omitBackground: true });
   console.log('wrote', join(folder, name + '.png').slice(root.length + 1));
 }
+// The animated-artwork card: text and three phone frames rendered transparent, then the clips in
+// raw/animated-*.mp4 looped into the screens with ffmpeg and saved as an animated WebP, which keeps
+// the soft transparent edges a GIF cannot.
+const clips = [['animated-album', 'Album'], ['animated-player', 'Now Playing'], ['animated-lock-screen', 'Lock Screen &nbsp;/&nbsp; iOS 26']];
+const animated = (t) => `<!doctype html><html><head><style>${css(t)}
+  body { width: 1600px; height: 1400px; position: relative; overflow: hidden; }
+  .head { position: absolute; left: 72px; top: 72px; }
+  .head h1 { font-family: 'Inter Display', Inter, sans-serif; font-weight: 600; font-size: 64px; letter-spacing: -0.02em; margin-top: 24px; }
+  .head p { font-size: 26px; margin-top: 18px; }
+  .kicker { font-size: 20px; }
+  .col { position: absolute; top: 330px; width: 440px; }
+  .phone { border-radius: 40px; padding: 10px; }
+  .screen { width: 416px; height: 849px; }
+  .label { margin-top: 28px; font-size: 16px; letter-spacing: 0.22em; text-transform: uppercase; color: ${t.faint}; }
+  .rule { position: absolute; left: 72px; right: 72px; top: 1300px; }
+  .foot { position: absolute; left: 72px; top: 1330px; font-size: 16px; }
+</style></head><body>
+  <div class="head"><div class="kicker">Animated artwork</div><h1>Covers that move.</h1>
+    <p class="sub">Album pages, Now Playing and the Lock Screen. Animated-artwork build only.</p></div>
+  ${clips.map(([, label], i) => `<div class="col" style="left:${72 + i * 508}px"><div class="phone"><div class="screen"></div></div><div class="label">${label}</div></div>`).join('')}
+  <div class="rule"></div><div class="foot">erhu &nbsp;/&nbsp; animated build</div>
+</body></html>`;
+
+if (only.length === 0 || only.includes('animated')) {
+  const mask = join(dir, 'mask.png');
+  writeFileSync(join(dir, 'mask.html'), '<body style="margin:0;background:transparent"><div style="width:416px;height:849px;border-radius:30px;background:#fff"></div>');
+  await tab.setViewportSize({ width: 416, height: 849 });
+  await tab.goto('file://' + join(dir, 'mask.html'));
+  await tab.screenshot({ path: mask, omitBackground: true });
+  for (const [theme, t] of Object.entries(themes)) {
+    const base = join(dir, `animated-${theme}.png`);
+    writeFileSync(join(dir, `animated-${theme}.html`), animated(t));
+    await tab.setViewportSize({ width: 1600, height: 1400 });
+    await tab.goto('file://' + join(dir, `animated-${theme}.html`));
+    const slots = await tab.evaluate(() => [...document.querySelectorAll('.screen')].map(e => {
+      const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y)];
+    }));
+    await tab.screenshot({ path: base, omitBackground: true });
+    const target = join(theme === 'dark' ? out : join(out, theme), 'animated-artwork.webp');
+    const graph = ['[1]alphaextract,split=3[m0][m1][m2]'];
+    clips.forEach((_, i) => graph.push(`[${i + 2}]fps=15,scale=416:849,format=rgba[c${i}]`, `[c${i}][m${i}]alphamerge[r${i}]`));
+    graph.push(`[0][r0]overlay=${slots[0][0]}:${slots[0][1]}[b0]`, `[b0][r1]overlay=${slots[1][0]}:${slots[1][1]}[b1]`,
+      `[b1][r2]overlay=${slots[2][0]}:${slots[2][1]},scale=1200:-1:flags=lanczos,format=yuva420p`);
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-loop', '1', '-i', base, '-loop', '1', '-i', mask,
+      ...clips.flatMap(([n]) => ['-stream_loop', '-1', '-i', join(raw, n + '.mp4')]),
+      '-filter_complex', graph.join(';'), '-t', '6', '-c:v', 'libwebp_anim', '-quality', '70', '-loop', '0', target]);
+    console.log('wrote', target.slice(root.length + 1));
+  }
+}
+
 await browser.close();

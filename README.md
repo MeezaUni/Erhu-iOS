@@ -92,13 +92,9 @@ Captured on an iPhone from the current build. They show the real interfaces.
 
 ### Animated artwork
 
-**Animated-artwork build only.** Downloaded animated covers play on album pages, in Now Playing and, on iOS 26 and newer, on the Lock Screen. iOS decides when the Lock Screen shows the animation.
+<a href="images/showcase/animated-artwork.webp#gh-dark-mode-only"><img src="images/showcase/animated-artwork.webp#gh-dark-mode-only" alt="Animated album covers on an album page, in Now Playing and on the Lock Screen, recorded on an iPhone" width="1200"></a><a href="images/showcase/light/animated-artwork.webp#gh-light-mode-only"><img src="images/showcase/light/animated-artwork.webp#gh-light-mode-only" alt="Animated album covers on an album page, in Now Playing and on the Lock Screen, recorded on an iPhone" width="1200"></a>
 
-<p>
-  <a href="images/showcase/animated-album.gif"><img src="images/showcase/animated-album.gif" alt="An animated album cover on the erhu album page, recorded on an iPhone" width="270"></a>
-  <a href="images/showcase/animated-player.gif"><img src="images/showcase/animated-player.gif" alt="An animated album cover in erhu Now Playing, recorded on an iPhone" width="270"></a>
-  <a href="images/showcase/lock-screen.gif"><img src="images/showcase/lock-screen.gif" alt="An animated album cover playing on the iPhone Lock Screen, recorded on an iPhone" width="270"></a>
-</p>
+Animated covers are in the animated-artwork build only. The Lock Screen needs iOS 26 or newer, and iOS decides when it shows the animation.
 
 [How animated covers work](https://github.com/MeezaUni/Erhu-iOS/blob/with-animated-art/docs/ANIMATED_COVERS.md)
 
