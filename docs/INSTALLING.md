@@ -5,12 +5,12 @@ sideloading installer such as [SideStore](https://sidestore.io/) or
 [AltStore Classic](https://altstore.io/). Follow your installer's setup guide; initial setup can
 require a computer, and its own iOS requirements may differ.
 
-Choose a build from the [v1.0-beta release](https://github.com/MeezaUni/Erhu-iOS/releases/tag/v1.0-beta):
+Choose a build from the [v1.0-beta.2 release](https://github.com/MeezaUni/Erhu-iOS/releases/tag/v1.0-beta.2):
 
 | Variant | Includes | Download |
 | --- | --- | --- |
-| Static artwork | Shared player features with still artwork. | [Static IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta/Erhu-v1.0-beta-static.ipa) |
-| Animated artwork | Shared features plus motion covers. | [Animated IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta/Erhu-v1.0-beta-animated.ipa) |
+| Static artwork | Shared player features with still artwork. | [Static IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta.2/Erhu-v1.0-beta.2-static.ipa) |
+| Animated artwork | Shared features plus motion covers. | [Animated IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta.2/Erhu-v1.0-beta.2-animated.ipa) |
 
 1. Download your chosen `.ipa` directly from the release. Public release downloads do not require a GitHub account.
 2. Open it in your sideloading installer and follow its signing and installation steps.
