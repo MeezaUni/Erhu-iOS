@@ -8,18 +8,18 @@ An iPhone music player for your own collection.
 
 <img src="images/showcase/hero.png#gh-dark-mode-only" alt="erhu Home and Now Playing on an iPhone" width="1200"><img src="images/showcase/light/hero.png#gh-light-mode-only" alt="erhu Home and Now Playing on an iPhone" width="1200">
 
-## Beta 1
+## Beta 2
 
-The first beta is available as an unsigned IPA for iOS 17 and newer, installed with your own Apple ID through a sideloading tool. Compatibility with other iPhones and iOS versions is still being tested.
+The second beta is available as an unsigned IPA for iOS 17 and newer, installed with your own Apple ID through a sideloading tool. Compatibility with other iPhones and iOS versions is still being tested.
 
 It comes in two variants:
 
 | Build | What it adds | Download |
 | --- | --- | --- |
-| **Static artwork** | The full app with still album covers | [Download IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta/Erhu-v1.0-beta-static.ipa) |
-| **Animated artwork** | Everything above, plus downloaded animated album covers in the app and on the Lock Screen | [Download IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta/Erhu-v1.0-beta-animated.ipa) |
+| **Static artwork** | The full app with still album covers | [Download IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta.2/Erhu-v1.0-beta.2-static.ipa) |
+| **Animated artwork** | Everything above, plus downloaded animated album covers in the app and on the Lock Screen | [Download IPA](https://github.com/MeezaUni/Erhu-iOS/releases/download/v1.0-beta.2/Erhu-v1.0-beta.2-animated.ipa) |
 
-[Release notes](https://github.com/MeezaUni/Erhu-iOS/releases/tag/v1.0-beta) · Newer development builds: [Static](https://github.com/MeezaUni/Erhu-iOS/actions?query=workflow%3AiOS+branch%3Awithout-animated-art) · [Animated](https://github.com/MeezaUni/Erhu-iOS/actions?query=workflow%3AiOS+branch%3Awith-animated-art) (open a successful run and download **Erhu-ipa**)
+[Release notes](https://github.com/MeezaUni/Erhu-iOS/releases/tag/v1.0-beta.2) · Newer development builds: [Static](https://github.com/MeezaUni/Erhu-iOS/actions?query=workflow%3AiOS+branch%3Awithout-animated-art) · [Animated](https://github.com/MeezaUni/Erhu-iOS/actions?query=workflow%3AiOS+branch%3Awith-animated-art) (open a successful run and download **Erhu-ipa**)
 
 Install the IPA with [SideStore](https://sidestore.io/) or [AltStore Classic](https://altstore.io/), then add music with **+**, the Files app or **Wi-Fi Transfer**. erhu plays music stored on your iPhone; radio stations and smart playlists select tracks from your own library.
 
