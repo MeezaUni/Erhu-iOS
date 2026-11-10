@@ -14,8 +14,10 @@ The scrolling bottom-controls behavior in `Erhu/App/LibraryChromeState.swift` an
 - feature/library/.../LibraryNavigationBar.kt
 
 Original source: https://github.com/MeezaUni/empee3
-The source repository supplies the GNU General Public License version 3, retained in
-`ANDROID-LICENSE`. The Swift adaptation was added on the `personal` branch in October 2026.
+The Swift adaptation was added on the `personal` branch in October 2026. Kshitij H Kekunnaya and Lochan
+Thakke keep their copyright in this material and have each given written permission for it to be used in the
+proprietary iOS app (see docs/LICENSING-PERMISSIONS.md). It was earlier used under the GNU General Public
+License version 3 (`ANDROID-LICENSE`), which still applies to iOS versions released under that licence.
 
 Upstream Android project: https://github.com/lochanpthakke/empee3
 
@@ -29,6 +31,5 @@ commit `304cd7935e6b72c74168711fb29597d2a033dd4e`:
 - `app/src/main/res/drawable-nodpi/erhu_logo.png` → in-app About logo.
 
 Source: https://github.com/lochanpthakke/erhu/tree/304cd7935e6b72c74168711fb29597d2a033dd4e
-The source repository distributes these assets with its GPL-3.0 project; its
-licence is retained in `ANDROID-LICENSE`. The Android project describes this as
-its temporary app icon. No artwork or logo redesign is included here.
+They are used in the proprietary iOS app with the written permission of Kshitij H Kekunnaya and Lochan
+Thakke (see docs/LICENSING-PERMISSIONS.md). The Android project describes this as its temporary app icon. No artwork or logo redesign is included here.

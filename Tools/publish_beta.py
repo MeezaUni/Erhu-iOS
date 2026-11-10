@@ -127,10 +127,14 @@ def prepare_assets(tag, builds, destination):
         build["source"] = f"Erhu-{tag}-{variant}-source.zip"
         prefix = f"Erhu-{variant}-source/"
         source = destination / build["source"]
-        command(["git", "archive", "--format=zip", f"--prefix={prefix}", f"--output={source}", build["commit"]])
+        # The built commit may predate the current licence, so its LICENSE is replaced by the current one.
+        command(["git", "archive", "--format=zip", f"--prefix={prefix}", f"--output={source}", build["commit"],
+                 "--", ".", ":(exclude)LICENSE"])
         with zipfile.ZipFile(source, "a", compression=zipfile.ZIP_DEFLATED) as archive:
-            if prefix + "LICENSE" not in archive.namelist():
-                archive.write(ROOT / "LICENSE", prefix + "LICENSE")
+            archive.write(ROOT / "LICENSE", prefix + "LICENSE")
+            permissions = ROOT / "docs/LICENSING-PERMISSIONS.md"
+            if permissions.exists() and prefix + "docs/LICENSING-PERMISSIONS.md" not in archive.namelist():
+                archive.write(permissions, prefix + "docs/LICENSING-PERMISSIONS.md")
     shutil.copyfile(ROOT / "LICENSE", destination / "LICENSE.txt")
     with zipfile.ZipFile(destination / "THIRD-PARTY-NOTICES.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in sorted((ROOT / "ThirdParty").rglob("*")):
@@ -138,7 +142,7 @@ def prepare_assets(tag, builds, destination):
                 archive.write(path, path.relative_to(ROOT))
         archive.write(ROOT / "Erhu/Resources/Vybe/vybe-model-license.txt", "vybe-model-license.txt")
     manifest = {"tag": tag, "repository": REPOSITORY, "builds": builds,
-                "source_note": "Each source archive is the built commit, with GPLv3 LICENSE included if absent."}
+                "source_note": "Each source archive is the built commit, with the current LICENSE and permission record."}
     (destination / "build-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     checksums = [f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}"
                  for path in sorted(destination.iterdir()) if path.is_file()]
@@ -155,7 +159,7 @@ def publish(tag, title, builds, assets, target):
         notes += (f"| {build['variant'].title()} | {build['app_version']} ({build['build_number']}) | "
                   f"[Run {build['run_id']}]({build['run_url']}) | "
                   f"[`{build['commit'][:7]}`](https://github.com/{REPOSITORY}/tree/{build['commit']}) |\n")
-    notes += "\nThe GitHub beta label is separate from the embedded app version shown above. Source archives correspond to each binary; GPLv3 text is included if absent from the original source commit.\n"
+    notes += "\nThe GitHub beta label is separate from the embedded app version shown above. Source archives correspond to each binary and carry the current licence.\n"
     release = api(f"repos/{REPOSITORY}/releases", method="POST", data={
         "tag_name": tag, "target_commitish": target, "name": title, "body": notes,
         "draft": True, "prerelease": True, "make_latest": "false"})
