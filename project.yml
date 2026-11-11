@@ -28,8 +28,9 @@ targets:
   Erhu:
     type: application
     platform: iOS
-    sources: [Erhu]
+    sources: [Erhu, Shared]
     dependencies:
+      - target: ErhuWidgets
       - package: Ogg
         product: ogg
       - package: Opus
@@ -43,6 +44,7 @@ targets:
         HEADER_SEARCH_PATHS: "$(inherited) $(SRCROOT)"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: Support/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Support/Erhu.entitlements
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
       configs:
@@ -52,6 +54,22 @@ targets:
       testTargets:
         - ErhuTests
         - ErhuInteractionTests
+  ErhuWidgets:
+    type: app-extension
+    platform: iOS
+    sources: [ErhuWidgets, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.erhu.widgets
+        PRODUCT_NAME: ErhuWidgets
+        INFOPLIST_FILE: Support/ErhuWidgets-Info.plist
+        CODE_SIGN_ENTITLEMENTS: Support/ErhuWidgets.entitlements
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) ERHU_WIDGET"
+        APPLICATION_EXTENSION_API_ONLY: YES
+
   ErhuTests:
     type: bundle.unit-test
     platform: iOS

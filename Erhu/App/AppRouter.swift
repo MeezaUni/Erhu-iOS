@@ -108,6 +108,8 @@ final class AppRouter {
     var songForDetails: Song?
     /// The song whose tags are being edited by hand.
     var songForTagEdit: Song?
+    /// The song waiting for "Delete from device" to be confirmed.
+    var songForDeletion: Song?
     var showsNewPlaylist = false
 
     func open(_ route: Route) {
@@ -162,7 +164,8 @@ final class AppRouter {
             viewDetails: { [weak self] song in self?.songForDetails = song },
             editTags: { [weak self] song in self?.songForTagEdit = song },
             fixTags: { song in actions.fixTags([song]) },
-            hideFromMixes: hideFromMixes
+            hideFromMixes: hideFromMixes,
+            deleteFromDevice: { [weak self] song in self?.songForDeletion = song }
         )
     }
 }

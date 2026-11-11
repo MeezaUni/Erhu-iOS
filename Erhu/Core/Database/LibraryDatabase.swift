@@ -422,6 +422,25 @@ extension LibraryDatabase {
         }
     }
 
+    /// Forgets a song whose file was deleted: its row, its places in playlists, its bookmarks and
+    /// cached waveform. Listening stats stay, so past listening still counts. The next scan rebuilds
+    /// albums and artists without it.
+    func forgetSong(_ songId: Int64) throws {
+        try db.transaction {
+            let playlistIds = try db.query("SELECT DISTINCT playlist_id FROM playlist_song_cross_ref WHERE song_id = ?", [songId]) {
+                $0.int64("playlist_id")
+            }
+            try db.execute("DELETE FROM playlist_song_cross_ref WHERE song_id = ?", [songId])
+            for playlistId in playlistIds {
+                try db.execute("UPDATE playlists SET updated_at = ? WHERE id = ?", [Self.now(), playlistId])
+            }
+            for table in ["library_imports", "song_artist_cross_ref", "unverified_credit_segment", "track_bookmarks", "waveform_cache"] {
+                try db.execute("DELETE FROM \(table) WHERE song_id = ?", [songId])
+            }
+            try db.execute("DELETE FROM songs WHERE id = ?", [songId])
+        }
+    }
+
     func removeSong(_ songId: Int64, fromPlaylist playlistId: Int64) throws {
         try db.execute("DELETE FROM playlist_song_cross_ref WHERE playlist_id = ? AND song_id = ?", [playlistId, songId])
         try db.execute("UPDATE playlists SET updated_at = ? WHERE id = ?", [Self.now(), playlistId])
