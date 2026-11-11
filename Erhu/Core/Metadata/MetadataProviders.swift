@@ -605,7 +605,7 @@ struct DeezerProvider: MetadataProvider {
     static func failure(_ error: DeezerError) -> ProviderError {
         let message = error.message ?? String(localized: "Lookup failed")
         let text = message.lowercased()
-        let regional = text.contains(String(localized: "not available")) && ["country", "region", "territor", "service"].contains(where: text.contains)
+        let regional = text.contains("not available") && ["country", "region", "territor", "service"].contains(where: text.contains)
         return ProviderError(status: regional ? .unavailable : .failed, message: "Deezer: " + message, sessionWide: regional)
     }
 
