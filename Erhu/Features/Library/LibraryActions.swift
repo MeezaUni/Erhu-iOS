@@ -85,6 +85,33 @@ final class LibraryActions {
         } catch { show(String(localized: "Couldn't change the favourite: \(error.localizedDescription)")) }
     }
 
+    /// Deletes [song]'s file from the Erhu folder for good, after the user confirmed: first out of
+    /// the queue (so playback moves on and never reaches it), then the file, then the library and
+    /// playlists. A rescan rebuilds albums and artists without it.
+    func deleteFromDevice(_ song: Song) {
+        let url = song.url
+        guard LibraryPaths.relativePath(of: url) != nil else {
+            show(String(localized: "Couldn't delete “\(song.title)”: it isn't in the Erhu folder."))
+            return
+        }
+        player.removeSong(song.id)
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            show(String(localized: "Couldn't delete “\(song.title)”: \(error.localizedDescription)"))
+            return
+        }
+        do {
+            try database.forgetSong(song.id)
+        } catch {
+            show(String(localized: "The file was deleted, but the library couldn't be updated: \(error.localizedDescription)"))
+        }
+        AppServices.shared.library.scan()
+        show(String(localized: "Deleted “\(song.title)” from this device"))
+    }
+
     /// The library songs with [ids], in that order (missing ones left out).
     func songs(_ ids: [Int64]) -> [Song] {
         let found = (try? database.songs(ids: ids)) ?? []

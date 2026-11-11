@@ -53,6 +53,8 @@ final class PlayerController {
     @ObservationIgnored private var plannedTransition: (entryId: UUID, nextEntryId: UUID, plan: Planned)?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var artwork: MPMediaItemArtwork?
+    /// The cover behind [artwork], for the Home Screen widgets.
+    @ObservationIgnored private var artworkImage: UIImage?
     @ObservationIgnored private var artworkSongId: Int64?
 
     /// Media3's "previous restarts the song after 3 s".
@@ -247,6 +249,29 @@ final class PlayerController {
             startCurrent(at: 0, playing: state.isPlaying)
         } else if index < state.currentIndex {
             state.currentIndex -= 1
+        }
+        queueChanged()
+    }
+
+    /// Takes every entry of [songId] out of the queue, for a song whose file is being deleted. It
+    /// cannot be undone (the undo stack is cleared, so nothing can bring the file back into the
+    /// queue). If the playing entry goes, the next remaining one takes its place.
+    func removeSong(_ songId: Int64) {
+        guard state.queue.contains(where: { $0.song.id == songId }) else { return }
+        removals.clear()
+        let removingCurrent = state.currentSong?.id == songId
+        let removedBefore = state.queue.prefix(max(state.currentIndex, 0)).filter { $0.song.id == songId }.count
+        state.queue.removeAll { $0.song.id == songId }
+        if state.queue.isEmpty {
+            state.currentIndex = -1
+            engine.stopAll()
+            playingChanged(false)
+            currentEntryChanged(sameEntryRepeated: false)
+        } else if removingCurrent {
+            state.currentIndex = min(max(state.currentIndex - removedBefore, 0), state.queue.count - 1)
+            startCurrent(at: 0, playing: state.isPlaying)
+        } else {
+            state.currentIndex -= removedBefore
         }
         queueChanged()
     }
@@ -824,6 +849,7 @@ final class PlayerController {
         guard let song = state.currentSong else {
             MPNowPlayingInfoCenter.default().playbackState = .stopped
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+            WidgetBridge.shared.publish(song: nil, isPlaying: false, positionMs: 0, durationMs: 0, upcoming: [], artwork: nil)
             return
         }
         if artworkSongId != song.id {
@@ -831,6 +857,7 @@ final class PlayerController {
             let exact = ArtworkLoader.shared.cachedImage(for: song.url, maxPixels: 600)
             let cached = exact ?? ArtworkLoader.shared.cachedImage(for: song.url, maxPixels: 600, fallbackSizes: [1200, 400, 300, 150, 120, 80])
             artwork = cached.map(Self.makeArtwork)
+            artworkImage = cached
             if exact == nil { loadArtwork(for: song) }
         }
         var info: [String: Any] = [
@@ -844,6 +871,9 @@ final class PlayerController {
         if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         MPNowPlayingInfoCenter.default().playbackState = state.isPlaying ? .playing : .paused
+        let upcoming = state.queue.indices.contains(state.currentIndex + 1) ? state.queue[(state.currentIndex + 1)...].prefix(4).map(\.song) : []
+        WidgetBridge.shared.publish(song: song, isPlaying: state.isPlaying, positionMs: currentPositionMs(), durationMs: state.durationMs,
+                                    upcoming: Array(upcoming), artwork: artworkImage)
     }
 
     private func loadArtwork(for song: Song) {
@@ -852,6 +882,7 @@ final class PlayerController {
             let image = await ArtworkLoader.shared.image(for: url, maxPixels: 600)
             guard let image, self.state.currentSong?.id == song.id else { return }
             self.artwork = Self.makeArtwork(image)
+            self.artworkImage = image
             self.updateNowPlaying()
         }
     }

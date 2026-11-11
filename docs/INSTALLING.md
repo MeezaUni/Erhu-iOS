@@ -48,4 +48,21 @@ Common supported formats include **MP3, M4A/AAC/ALAC, FLAC, WAV, and AIFF**. For
 also depend on the file's codec; Wi-Fi Transfer accepts MP3, FLAC, M4A, AAC, WAV, AIF, and AIFF.
 Erhu plays your own imported files and does not supply a streaming music catalog.
 
+## Home Screen widgets
+
+Erhu has a **Now Playing** widget in two sizes: a wide, short one (cover, song, progress and
+playback buttons) and a large one that also shows what plays next. Touch and hold the Home Screen,
+tap **Edit → Add Widget**, and choose Erhu. The buttons control Erhu even when it is in the
+background.
+
+The widget gets the playing song through an App Group that your installer creates when it signs
+Erhu. If the widget says to reinstall, install the IPA again with SideStore or AltStore. The
+widget extension also uses one of the App IDs a free Apple ID can register each week.
+
+## Delete a song from your iPhone
+
+In a song's **…** menu, its long-press menu or the Now Playing **…** menu, choose **Delete from
+device** and confirm. This permanently deletes the file from the Erhu folder in Files, removes the
+song from the library and your playlists, and takes it out of the queue.
+
 [Back to the main README](../README.md)

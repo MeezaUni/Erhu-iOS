@@ -77,6 +77,20 @@ jobs:
           fi
           mkdir -p dist/Payload
           cp -R build/Build/Products/Release-iphoneos/Erhu.app dist/Payload/
+          # Ad-hoc signatures that only carry the entitlements: SideStore and AltStore read them when
+          # they sign the app on install, and create the App Group the Home Screen widgets share
+          # with the app. Inner code first, the app last.
+          APP=dist/Payload/Erhu.app
+          test -d "$APP/PlugIns/ErhuWidgets.appex" || { echo "::error::The widget extension is missing from the app"; exit 1; }
+          if [ -d "$APP/Frameworks" ]; then
+            find "$APP/Frameworks" -maxdepth 1 \( -name '*.framework' -o -name '*.dylib' \) -exec codesign --force --sign - --timestamp=none {} \;
+          fi
+          codesign --force --sign - --timestamp=none --entitlements Support/ErhuWidgets.entitlements "$APP/PlugIns/ErhuWidgets.appex"
+          codesign --force --sign - --timestamp=none --entitlements Support/Erhu.entitlements "$APP"
+          for bundle in "$APP/PlugIns/ErhuWidgets.appex" "$APP"; do
+            codesign -d --entitlements - --xml "$bundle" > build/entitlements.xml 2>/dev/null
+            grep -q application-groups build/entitlements.xml || { echo "::error::$bundle has no App Group entitlement"; exit 1; }
+          done
           (cd dist && zip -qry Erhu.ipa Payload)
 
       - name: Report IPA and VYBE model size

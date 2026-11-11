@@ -45587,6 +45587,314 @@
         }
       }
     },
+    "Couldn't delete “%@”: %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر حذف “%@”: %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” মোছা যায়নি: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ konnte nicht gelöscht werden: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo eliminar «%@»: %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف «%@» ممکن نشد: %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi mabura ang “%@”: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de supprimer « %@ » : %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” हटाया नहीं जा सका: %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak dapat menghapus “%@”: %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile eliminare “%@”: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”を削除できません：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”을(를) 삭제할 수 없음: %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan ‘%@’ niet verwijderen: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można usunąć „%@”: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível apagar “%@”: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось удалить «%@»: %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ஐ நீக்க முடியவில்லை: %@"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ను తొలగించలేకపోయాము: %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบ “%@” ไม่ได้: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” silinemedi: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося видалити «%@»: %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” حذف نہ ہو سکا: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể xóa “%@”: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法删除“%@”：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法刪除「%@」：%@"
+          }
+        }
+      }
+    },
+    "Couldn't delete “%@”: it isn't in the Erhu folder." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر حذف “%@”: ليس في مجلد Erhu."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” মোছা যায়নি: এটি Erhu ফোল্ডারে নেই।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ konnte nicht gelöscht werden: Die Datei liegt nicht im Erhu-Ordner."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo eliminar «%@»: no está en la carpeta Erhu."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف «%@» ممکن نشد: در پوشهٔ Erhu نیست."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi mabura ang “%@”: wala ito sa folder ng Erhu."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de supprimer « %@ » : il n’est pas dans le dossier Erhu."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” हटाया नहीं जा सका: यह Erhu फ़ोल्डर में नहीं है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak dapat menghapus “%@”: file tidak ada di folder Erhu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile eliminare “%@”: non è nella cartella Erhu."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”を削除できません：Erhuフォルダにありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”을(를) 삭제할 수 없음: Erhu 폴더에 없습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan ‘%@’ niet verwijderen: het staat niet in de Erhu-map."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można usunąć „%@”: nie ma go w folderze Erhu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível apagar “%@”: ela não está na pasta Erhu."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось удалить «%@»: файла нет в папке Erhu."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ஐ நீக்க முடியவில்லை: அது Erhu கோப்புறையில் இல்லை."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ను తొలగించలేకపోయాము: ఇది Erhu ఫోల్డర్‌లో లేదు."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบ “%@” ไม่ได้: ไม่ได้อยู่ในโฟลเดอร์ Erhu"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” silinemedi: Erhu klasöründe değil."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося видалити «%@»: файлу немає в папці Erhu."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” حذف نہ ہو سکا: یہ Erhu فولڈر میں نہیں ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể xóa “%@”: tệp không nằm trong thư mục Erhu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法删除“%@”：它不在 Erhu 文件夹中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法刪除「%@」：它不在 Erhu 資料夾中。"
+          }
+        }
+      }
+    },
     "Couldn't find \"%@\" in your library." : {
       "localizations" : {
         "ar" : {
@@ -52671,6 +52979,160 @@
         }
       }
     },
+    "Delete from device" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف من الجهاز"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ডিভাইস থেকে মুছুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vom Gerät löschen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar del dispositivo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف از دستگاه"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burahin sa device"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer de l’appareil"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डिवाइस से हटाएँ"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus dari perangkat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elimina dal dispositivo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバイスから削除"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기에서 삭제"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwijderen van apparaat"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń z urządzenia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar do dispositivo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить с устройства"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "சாதனத்திலிருந்து நீக்கு"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "పరికరం నుండి తొలగించు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบออกจากอุปกรณ์"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cihazdan sil"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити з пристрою"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ڈیوائس سے حذف کریں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xóa khỏi thiết bị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从设备中删除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從裝置中刪除"
+          }
+        }
+      }
+    },
     "Delete playlist" : {
       "localizations" : {
         "ar" : {
@@ -52975,6 +53437,314 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除此播放列表？"
+          }
+        }
+      }
+    },
+    "Delete “%@” from this device?" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هل تريد حذف “%@” من هذا الجهاز؟"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই ডিভাইস থেকে “%@” মুছবেন?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ von diesem Gerät löschen?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Eliminar «%@» de este dispositivo?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» از این دستگاه حذف شود؟"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burahin ang “%@” sa device na ito?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer « %@ » de cet appareil ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” को इस डिवाइस से हटाएँ?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus “%@” dari perangkat ini?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminare “%@” da questo dispositivo?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”をこのデバイスから削除しますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”을(를) 이 기기에서 삭제하시겠습니까?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘%@’ van dit apparaat verwijderen?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usunąć „%@” z tego urządzenia?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar “%@” deste dispositivo?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить «%@» с этого устройства?"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ஐ இந்தச் சாதனத்திலிருந்து நீக்கவா?"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ను ఈ పరికరం నుండి తొలగించాలా?"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบ “%@” ออกจากอุปกรณ์นี้ใช่ไหม"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” bu cihazdan silinsin mi?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити «%@» з цього пристрою?"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” کو اس ڈیوائس سے حذف کریں؟"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xóa “%@” khỏi thiết bị này?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要从此设备删除“%@”吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要從此裝置刪除「%@」嗎？"
+          }
+        }
+      }
+    },
+    "Deleted “%@” from this device" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم حذف “%@” من هذا الجهاز"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই ডিভাইস থেকে “%@” মুছে ফেলা হয়েছে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ von diesem Gerät gelöscht"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» eliminada de este dispositivo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» از این دستگاه حذف شد"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Binura ang “%@” sa device na ito"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » supprimé de cet appareil"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” इस डिवाइस से हटाया गया"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” dihapus dari perangkat ini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” eliminato da questo dispositivo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”をこのデバイスから削除しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”을(를) 이 기기에서 삭제했습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘%@’ van dit apparaat verwijderd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usunięto „%@” z tego urządzenia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” apagada deste dispositivo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» удалена с этого устройства"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” இந்தச் சாதனத்திலிருந்து நீக்கப்பட்டது"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ఈ పరికరం నుండి తొలగించబడింది"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบ “%@” ออกจากอุปกรณ์นี้แล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” bu cihazdan silindi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» видалено з цього пристрою"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” اس ڈیوائس سے حذف کر دیا گیا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xóa “%@” khỏi thiết bị này"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已从此设备删除“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已從此裝置刪除「%@」"
           }
         }
       }
@@ -120287,6 +121057,160 @@
         }
       }
     },
+    "Play or pause" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تشغيل أو إيقاف مؤقت"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "চালান বা থামান"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiedergabe oder Pause"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducir o pausar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پخش یا مکث"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I-play o i-pause"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture ou pause"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "चलाएँ या रोकें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Putar atau jeda"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riproduci o metti in pausa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生または一時停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "재생 또는 일시 정지"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afspelen of pauzeren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwarzaj lub wstrzymaj"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir ou pausar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Воспроизвести или приостановить"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இயக்கு அல்லது இடைநிறுத்து"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ప్లే లేదా పాజ్"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เล่นหรือหยุดชั่วคราว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çal veya duraklat"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відтворити або призупинити"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "چلائیں یا روکیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phát hoặc tạm dừng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放或暂停"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放或暫停"
+          }
+        }
+      }
+    },
     "Play preview" : {
       "localizations" : {
         "ar" : {
@@ -163099,6 +164023,160 @@
         }
       }
     },
+    "The file is removed from the Erhu folder in Files for good, and the song leaves your library, your playlists and the queue." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيُحذف الملف نهائيًا من مجلد Erhu في تطبيق الملفات، وستُزال الأغنية من مكتبتك وقوائم التشغيل والطابور."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ফাইলটি Files-এর Erhu ফোল্ডার থেকে চিরতরে মুছে যাবে, আর গানটি আপনার লাইব্রেরি, প্লেলিস্ট ও কিউ থেকে সরে যাবে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei wird endgültig aus dem Erhu-Ordner in „Dateien“ gelöscht, und der Song verschwindet aus deiner Mediathek, deinen Playlists und der Warteschlange."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El archivo se borra para siempre de la carpeta Erhu en Archivos y la canción sale de tu biblioteca, tus listas y la cola."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل برای همیشه از پوشهٔ Erhu در Files حذف می‌شود و آهنگ از کتابخانه، فهرست‌های پخش و صف بیرون می‌رود."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanenteng mabubura ang file sa folder ng Erhu sa Files, at aalis ang kanta sa iyong library, mga playlist at pila."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier est définitivement supprimé du dossier Erhu dans Fichiers, et le morceau quitte votre bibliothèque, vos playlists et la file d’attente."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़ाइल Files में Erhu फ़ोल्डर से हमेशा के लिए हट जाएगी, और गाना आपकी लाइब्रेरी, प्लेलिस्ट और कतार से निकल जाएगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File dihapus permanen dari folder Erhu di File, dan lagu keluar dari pustaka, playlist, dan antrean."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il file viene eliminato definitivamente dalla cartella Erhu in File e il brano esce dalla libreria, dalle playlist e dalla coda."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルは“ファイル”のErhuフォルダから完全に削除され、曲はライブラリ、プレイリスト、キューから消えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일 앱의 Erhu 폴더에서 파일이 영구적으로 삭제되며, 노래가 보관함, 플레이리스트, 대기열에서 사라집니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het bestand wordt definitief verwijderd uit de Erhu-map in Bestanden en het nummer verdwijnt uit je bibliotheek, je playlists en de wachtrij."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik zostanie trwale usunięty z folderu Erhu w aplikacji Pliki, a utwór zniknie z biblioteki, playlist i kolejki."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O arquivo é apagado para sempre da pasta Erhu no app Arquivos, e a música sai da sua biblioteca, das playlists e da fila."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл будет навсегда удалён из папки Erhu в «Файлах», а песня исчезнет из медиатеки, плейлистов и очереди."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "கோப்புகள் பயன்பாட்டின் Erhu கோப்புறையிலிருந்து கோப்பு நிரந்தரமாக நீக்கப்படும்; பாடல் உங்கள் நூலகம், பிளேலிஸ்ட்கள் மற்றும் வரிசையிலிருந்து நீங்கும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఫైల్ Files లోని Erhu ఫోల్డర్ నుండి శాశ్వతంగా తొలగించబడుతుంది, పాట మీ లైబ్రరీ, ప్లేలిస్ట్‌లు మరియు క్యూ నుండి తీసివేయబడుతుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไฟล์จะถูกลบออกจากโฟลเดอร์ Erhu ในแอปไฟล์อย่างถาวร และเพลงจะหายไปจากคลังเพลง เพลย์ลิสต์ และคิว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya Dosyalar’daki Erhu klasöründen kalıcı olarak silinir; şarkı arşivinden, çalma listelerinden ve sıradan çıkar."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл буде назавжди видалено з папки Erhu у «Файлах», а пісня зникне з медіатеки, плейлистів і черги."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فائل Files میں Erhu فولڈر سے ہمیشہ کے لیے حذف ہو جائے گی، اور گانا آپ کی لائبریری، پلے لسٹس اور قطار سے نکل جائے گا۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp sẽ bị xóa vĩnh viễn khỏi thư mục Erhu trong Tệp, và bài hát sẽ rời khỏi thư viện, danh sách phát và hàng đợi."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件将从“文件”App 的 Erhu 文件夹中永久删除，歌曲也会从资料库、播放列表和队列中移除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案將從「檔案」App 的 Erhu 資料夾中永久刪除，歌曲也會從資料庫、播放列表和佇列中移除。"
+          }
+        }
+      }
+    },
     "The file no longer exists" : {
       "localizations" : {
         "ar" : {
@@ -163249,6 +164327,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案已不存在"
+          }
+        }
+      }
+    },
+    "The file was deleted, but the library couldn't be updated: %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم حذف الملف، لكن تعذّر تحديث المكتبة: %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ফাইল মুছে ফেলা হয়েছে, কিন্তু লাইব্রেরি আপডেট করা যায়নি: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei wurde gelöscht, aber die Mediathek konnte nicht aktualisiert werden: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El archivo se eliminó, pero no se pudo actualizar la biblioteca: %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل حذف شد، اما کتابخانه به‌روز نشد: %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nabura ang file, pero hindi ma-update ang library: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier a été supprimé, mais la bibliothèque n’a pas pu être mise à jour : %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़ाइल हट गई, लेकिन लाइब्रेरी अपडेट नहीं हो सकी: %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File telah dihapus, tetapi pustaka tidak dapat diperbarui: %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il file è stato eliminato, ma non è stato possibile aggiornare la libreria: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルは削除されましたが、ライブラリを更新できませんでした：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일은 삭제되었지만 보관함을 업데이트할 수 없습니다: %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het bestand is verwijderd, maar de bibliotheek kon niet worden bijgewerkt: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik został usunięty, ale nie udało się zaktualizować biblioteki: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O arquivo foi apagado, mas não foi possível atualizar a biblioteca: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл удалён, но медиатеку обновить не удалось: %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "கோப்பு நீக்கப்பட்டது, ஆனால் நூலகத்தைப் புதுப்பிக்க முடியவில்லை: %@"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఫైల్ తొలగించబడింది, కానీ లైబ్రరీని నవీకరించలేకపోయాము: %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ลบไฟล์แล้ว แต่อัปเดตคลังเพลงไม่ได้: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya silindi ancak arşiv güncellenemedi: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл видалено, але медіатеку оновити не вдалося: %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فائل حذف ہو گئی، لیکن لائبریری اپ ڈیٹ نہ ہو سکی: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xóa tệp nhưng không thể cập nhật thư viện: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件已删除，但资料库未能更新：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案已刪除，但資料庫未能更新：%@"
           }
         }
       }

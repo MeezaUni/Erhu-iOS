@@ -16,7 +16,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "MeezaUni/Erhu-iOS"
 VARIANTS = {"static": "without-animated-art", "animated": "with-animated-art"}
-BUILD_PATHS = ["Erhu", "Support", "project.yml", ".github/workflows/ios.yml"]
+BUILD_PATHS = ["Erhu", "ErhuWidgets", "Shared", "Support", "project.yml", ".github/workflows/ios.yml"]
 
 
 def command(arguments, *, stdin=None):

@@ -239,6 +239,7 @@ struct NowPlayingView: View {
                     Button { mixes.setHidden(song.id, !hidden) } label: {
                         Label(hidden ? "Show in Smart Playlists again" : "Hide from Smart Playlists", systemImage: hidden ? "eye" : "eye.slash")
                     }
+                    Button(role: .destructive) { router.songForDeletion = song } label: { Label("Delete from device", systemImage: "trash") }
                 }
             }
             Section("Playback") {

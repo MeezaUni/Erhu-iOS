@@ -274,6 +274,7 @@ extension View {
 private struct RouterSheets: ViewModifier {
     let active: Bool
     @Environment(AppRouter.self) private var router
+    @Environment(LibraryActions.self) private var actions
 
     func body(content: Content) -> some View {
         content
@@ -285,6 +286,17 @@ private struct RouterSheets: ViewModifier {
             }
             .sheet(item: Binding(get: { active ? router.songForTagEdit : nil }, set: { router.songForTagEdit = $0 })) { song in
                 EditTagsSheet(song: song)
+            }
+            .confirmationDialog(
+                router.songForDeletion.map { String(localized: "Delete “\($0.title)” from this device?") } ?? "",
+                isPresented: Binding(get: { active && router.songForDeletion != nil }, set: { if !$0 { router.songForDeletion = nil } }),
+                titleVisibility: .visible,
+                presenting: router.songForDeletion
+            ) { song in
+                Button(String(localized: "Delete from device"), role: .destructive) { actions.deleteFromDevice(song) }
+                Button(String(localized: "Cancel"), role: .cancel) {}
+            } message: { _ in
+                Text("The file is removed from the Erhu folder in Files for good, and the song leaves your library, your playlists and the queue.")
             }
     }
 }
