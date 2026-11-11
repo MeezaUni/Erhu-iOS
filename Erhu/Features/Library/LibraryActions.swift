@@ -167,7 +167,7 @@ final class LibraryActions {
         do {
             var added = 0
             for song in songs where try database.appendSong(song.id, toPlaylist: playlist.id) { added += 1 }
-            show(added == 0 ? "Already in \"\(playlist.name)\"" : "Added \(countLabel(added, "song")) to \"\(playlist.name)\"")
+            show(added == 0 ? "Already in \"\(playlist.name)\"" : "Added \(countLabel(added, .song)) to \"\(playlist.name)\"")
         } catch {
             show("Couldn't add to the playlist: \(error.localizedDescription)")
         }

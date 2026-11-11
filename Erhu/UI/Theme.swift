@@ -181,8 +181,16 @@ struct PressScaleStyle: ButtonStyle {
     }
 }
 
-/// "1 song", "12 songs".
-func countLabel(_ count: Int, _ noun: String) -> String { "\(count) \(noun)\(count == 1 ? "" : "s")" }
+enum CountNoun { case song, album, track }
+
+/// "1 song", "12 songs". The catalog holds the plural forms for each language.
+func countLabel(_ count: Int, _ noun: CountNoun) -> String {
+    switch noun {
+    case .song: String(localized: "\(count) songs")
+    case .album: String(localized: "\(count) albums")
+    case .track: String(localized: "\(count) tracks")
+    }
+}
 
 /// m:ss, or h:mm:ss for an hour or more.
 func formatDuration(_ ms: Int64) -> String {

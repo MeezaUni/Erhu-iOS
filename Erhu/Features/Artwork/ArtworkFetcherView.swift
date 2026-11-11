@@ -75,7 +75,7 @@ struct ArtworkFetcherView: View {
                     }
                     ForEach(store.artists) { artist in
                         Button { target = .artist(artist) } label: {
-                            TargetRow(title: artist.name, subtitle: countLabel(artist.songCount, "song"), status: store.artistStatus[artist.id]) {
+                            TargetRow(title: artist.name, subtitle: countLabel(artist.songCount, .song), status: store.artistStatus[artist.id]) {
                                 ArtistArtworkView(artist: artist, fontSize: 18)
                             }
                         }

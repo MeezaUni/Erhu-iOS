@@ -318,13 +318,13 @@ struct AddToPlaylistSheet: View {
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
                             VStack(alignment: .leading) {
                                 Text(playlist.name).foregroundStyle(.primary)
-                                Text(countLabel(playlist.songCount, "song")).font(.caption).foregroundStyle(.secondary)
+                                Text(countLabel(playlist.songCount, .song)).font(.caption).foregroundStyle(.secondary)
                             }
                         }
                     }
                 }
             }
-            .navigationTitle(songs.count == 1 ? "Add \"\(songs[0].title)\"" : "Add \(countLabel(songs.count, "song"))")
+            .navigationTitle(songs.count == 1 ? "Add \"\(songs[0].title)\"" : "Add \(countLabel(songs.count, .song))")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { Button("Cancel") { dismiss() } }
             .alert("New playlist", isPresented: $creating) {

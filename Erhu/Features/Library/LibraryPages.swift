@@ -23,7 +23,7 @@ struct AlbumsView: View {
             if library.albums.isEmpty {
                 EmptyState(message: library.isScanning ? "Scanning your music…" : "No albums yet.", systemImage: "square.stack")
             } else if let results {
-                Text(countLabel(results.count, "album")).font(.caption).foregroundStyle(.secondary)
+                Text(countLabel(results.count, .album)).font(.caption).foregroundStyle(.secondary)
                     .padding(.horizontal, Spacing.gutter)
                 if results.isEmpty {
                     EmptyState(message: "No albums match your search.", systemImage: "magnifyingglass")
@@ -191,7 +191,7 @@ struct AllSongsView: View {
                     .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.gutter)
             }
             if let results {
-                Text(countLabel(results.count, "song")).font(.caption).foregroundStyle(.secondary)
+                Text(countLabel(results.count, .song)).font(.caption).foregroundStyle(.secondary)
                     .padding(.horizontal, Spacing.gutter)
                 SongList(songs: results, emptyMessage: library.songs.isEmpty ? "No songs found." : "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood.", emptyIcon: "music.note")
             } else {

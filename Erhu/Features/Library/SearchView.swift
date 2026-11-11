@@ -203,7 +203,7 @@ struct SearchView: View {
         case .song(let song): "Song · \(song.artist)"
         case .album(let album): "Album · \(album.artist)"
         case .artist: "Artist"
-        case .playlist(let playlist): "Playlist · \(countLabel(playlist.songCount, "song"))"
+        case .playlist(let playlist): "Playlist · \(countLabel(playlist.songCount, .song))"
         }
     }
 
