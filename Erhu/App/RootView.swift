@@ -25,6 +25,7 @@ struct RootView: View {
     @State private var visualBudget = VisualWorkBudget.current
     /// While a finger moves the side menu: how far it has pulled (positive opening, negative closing).
     @State private var drawerDrag: CGFloat?
+    @Environment(\.layoutDirection) private var layoutDirection
     private static let drawerWidth: CGFloat = 300
 
     var body: some View {
@@ -178,7 +179,11 @@ struct RootView: View {
 
     private var chromeHeight: CGFloat { player.state.currentSong == nil ? 72 : 136 }
 
-    /// A swipe in from the left edge opens the side menu (on a section's first page; deeper pages
+    /// A finger's sideways movement measured towards the menu's open side: rightwards normally,
+    /// leftwards in right-to-left languages, where the menu sits on the right.
+    private func drawerPull(_ width: CGFloat) -> CGFloat { layoutDirection == .rightToLeft ? -width : width }
+
+    /// A swipe in from the leading edge (the right edge in right-to-left languages) opens the side menu (on a section's first page; deeper pages
     /// keep the edge for going back).
     private var drawerEdge: some View {
         HStack(spacing: 0) {
@@ -186,8 +191,8 @@ struct RootView: View {
                 .frame(width: 22)
                 .contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 8)
-                    .onChanged { value in drawerDrag = max(value.translation.width, 0) }
-                    .onEnded { value in settleDrawer(open: value.translation.width > 100 || value.predictedEndTranslation.width > 220) })
+                    .onChanged { value in drawerDrag = max(drawerPull(value.translation.width), 0) }
+                    .onEnded { value in settleDrawer(open: drawerPull(value.translation.width) > 100 || drawerPull(value.predictedEndTranslation.width) > 220) })
             Spacer(minLength: 0)
         }
         .frame(maxHeight: .infinity)
@@ -214,7 +219,7 @@ struct RootView: View {
                 .onTapGesture { settleDrawer(open: false) }
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Erhu").font(.largeTitle.weight(.bold)).padding(.horizontal, Spacing.lg).padding(.vertical, Spacing.lg)
-                drawerItem("Library", icon: "books.vertical") {
+                drawerItem(String(localized: "Library"), icon: "books.vertical") {
                     router.showsDrawer = false
                     router.paths[router.section] = NavigationPath()
                 }
@@ -228,8 +233,8 @@ struct RootView: View {
             .background(palette.surface.ignoresSafeArea())
             .offset(x: shown - Self.drawerWidth)
             .gesture(DragGesture(minimumDistance: 8)
-                .onChanged { value in drawerDrag = min(value.translation.width, 0) }
-                .onEnded { value in settleDrawer(open: !(value.translation.width < -100 || value.predictedEndTranslation.width < -220)) })
+                .onChanged { value in drawerDrag = min(drawerPull(value.translation.width), 0) }
+                .onEnded { value in settleDrawer(open: !(drawerPull(value.translation.width) < -100 || drawerPull(value.predictedEndTranslation.width) < -220)) })
         }
         .allowsHitTesting(shown > 0)
         .accessibilityHidden(shown == 0)

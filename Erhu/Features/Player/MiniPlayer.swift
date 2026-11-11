@@ -30,22 +30,26 @@ struct MiniPlayer: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("Opens Now Playing")
-            Button { player.skipPrevious() } label: { Image(systemName: "backward.fill").frame(width: 44, height: 48).contentShape(Rectangle()) }
-                .frame(width: 44 * (1 - compactness)).clipped()
-                .opacity(Double(CGFloat(1) - compactness))
-                .allowsHitTesting(compactness < 0.5)
-                .accessibilityHidden(compactness >= 0.5)
-                .accessibilityLabel("Previous track")
-            Button { player.togglePlayPause() } label: {
-                Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.title2).frame(width: 44, height: 48).contentShape(Rectangle())
+            // Playback controls keep their left-to-right order in right-to-left languages, as on iOS.
+            HStack(spacing: 4) {
+                Button { player.skipPrevious() } label: { Image(systemName: "backward.fill").frame(width: 44, height: 48).contentShape(Rectangle()) }
+                    .frame(width: 44 * (1 - compactness)).clipped()
+                    .opacity(Double(CGFloat(1) - compactness))
+                    .allowsHitTesting(compactness < 0.5)
+                    .accessibilityHidden(compactness >= 0.5)
+                    .accessibilityLabel("Previous track")
+                Button { player.togglePlayPause() } label: {
+                    Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.title2).frame(width: 44, height: 48).contentShape(Rectangle())
+                }
+                .accessibilityLabel(state.isPlaying ? "Pause" : "Play")
+                Button { player.skipNext() } label: { Image(systemName: "forward.fill").frame(width: 44, height: 48).contentShape(Rectangle()) }
+                    .frame(width: 44 * (1 - compactness)).clipped()
+                    .opacity(Double(CGFloat(1) - compactness))
+                    .allowsHitTesting(compactness < 0.5)
+                    .accessibilityHidden(compactness >= 0.5)
+                    .accessibilityLabel("Next track")
             }
-            .accessibilityLabel(state.isPlaying ? "Pause" : "Play")
-            Button { player.skipNext() } label: { Image(systemName: "forward.fill").frame(width: 44, height: 48).contentShape(Rectangle()) }
-                .frame(width: 44 * (1 - compactness)).clipped()
-                .opacity(Double(CGFloat(1) - compactness))
-                .allowsHitTesting(compactness < 0.5)
-                .accessibilityHidden(compactness >= 0.5)
-                .accessibilityLabel("Next track")
+            .environment(\.layoutDirection, .leftToRight)
         }
         .foregroundStyle(palette.onSurface)
         .buttonStyle(.plain)
@@ -56,6 +60,7 @@ struct MiniPlayer: View {
         .overlay(alignment: .bottom) {
             ProgressLine(durationMs: state.durationMs)
                 .frame(height: 3)
+                .environment(\.layoutDirection, .leftToRight)
                 .padding(.horizontal, Spacing.md)
         }
     }

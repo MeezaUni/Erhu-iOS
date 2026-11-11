@@ -109,10 +109,15 @@ private struct LyricsPanelContent: View {
                     .padding(.vertical, Spacing.xs)
             }
             if let lyrics, let parsed = lyrics.parsed {
-                switch parsed {
-                case .synced(let lines): SyncedLyricsView(lyrics: parsed, lines: lines, offsetMs: store.timingPreferences.offset(for: LyricsTimingContext(song: song, lyrics: lyrics)))
-                case .plain(let lines): plain(lines)
+                Group {
+                    switch parsed {
+                    case .synced(let lines): SyncedLyricsView(lyrics: parsed, lines: lines, offsetMs: store.timingPreferences.offset(for: LyricsTimingContext(song: song, lyrics: lyrics)))
+                    case .plain(let lines): plain(lines)
+                    }
                 }
+                // Lyrics follow their own script, whatever the app's language: Arabic, Hebrew,
+                // Persian or Urdu lyrics sit on the right, English and other left-to-right lyrics on the left.
+                .environment(\.layoutDirection, LyricsDirection.of(parsed))
             } else if let onExpand {
                 lookupLine(lyrics?.lookup ?? .idle, onExpand)
             } else {
@@ -204,11 +209,16 @@ private struct LyricsPanelContent: View {
     }
 
     private func origin(_ lyrics: SongLyrics?) -> String {
-        guard let lyrics, lyrics.text != nil else { return "Lyrics" }
+        let plainTitle = String(localized: "Lyrics")
+        guard let lyrics, lyrics.text != nil else { return plainTitle }
         switch lyrics.origin {
-        case .file: return lyrics.parsed.map { if case .plain = $0 { "Lyrics · not synced" } else { "Lyrics" } } ?? "Lyrics"
+        case .file:
+            return lyrics.parsed.map { if case .plain = $0 { String(localized: "Lyrics · not synced") } else { plainTitle } } ?? plainTitle
         case .online, .onlineSaved:
-            return "From \(lyrics.provider ?? "online") · \(lyrics.timing?.label ?? "")" + (store.currentIsDownloaded ? " · downloaded" : (lyrics.origin == .onlineSaved ? " · cached" : ""))
+            let source = String(localized: "From \(lyrics.provider ?? String(localized: "online"))")
+            let state = store.currentIsDownloaded ? String(localized: "downloaded")
+                : lyrics.origin == .onlineSaved ? String(localized: "cached") : nil
+            return [source, lyrics.timing?.label, state].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         }
     }
 
@@ -390,5 +400,34 @@ struct SyncedLyricsView: View {
             .font(compact ? .headline : .title2.weight(.bold))
             .scaleEffect(isCurrent || compact ? 1 : 0.96, anchor: .leading)
             .animation(.easeOut(duration: 0.2), value: isCurrent)
+    }
+}
+
+/// The reading direction of a song's lyrics, from the letters in them.
+enum LyricsDirection {
+    static func of(_ lyrics: Lyrics) -> LayoutDirection {
+        switch lyrics {
+        case .synced(let lines): of(lines.lazy.map(\.text))
+        case .plain(let lines): of(lines)
+        }
+    }
+
+    static func of<S: Sequence>(_ texts: S) -> LayoutDirection where S.Element == String {
+        var rightToLeft = 0, leftToRight = 0
+        for text in texts {
+            for scalar in text.unicodeScalars where scalar.properties.isAlphabetic {
+                if isRightToLeft(scalar) { rightToLeft += 1 } else { leftToRight += 1 }
+            }
+        }
+        return rightToLeft > leftToRight ? .rightToLeft : .leftToRight
+    }
+
+    /// Hebrew, Arabic, Syriac, Thaana, N'Ko and the other right-to-left scripts, with their
+    /// presentation forms.
+    static func isRightToLeft(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.value {
+        case 0x0590...0x08FF, 0xFB1D...0xFDFF, 0xFE70...0xFEFF, 0x10800...0x10FFF, 0x1E800...0x1EFFF: true
+        default: false
+        }
     }
 }

@@ -46,13 +46,13 @@ struct CollectionHeroHeader<Cover: View>: View {
             .clipped()
             HStack(spacing: Spacing.md) {
                 Button(action: onPlay) {
-                    Label("Play", systemImage: "play.fill")
+                    Label("Play", systemImage: "play.fill").lineLimit(1).minimumScaleFactor(0.6)
                         .frame(maxWidth: .infinity).foregroundStyle(palette.onFilledButton)
                 }
                 .modifier(PaletteFilledButton())
                 .tint(palette.filledButton)
                 Button(action: onShuffle) {
-                    Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity)
+                    Label("Shuffle", systemImage: "shuffle").lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
             }

@@ -31,12 +31,12 @@ struct CollectionHeader<Cover: View>: View {
             Text(facts).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
             HStack(spacing: Spacing.sm) {
                 Button(action: onPlay) {
-                    Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity).foregroundStyle(palette.onFilledButton)
+                    Label("Play", systemImage: "play.fill").lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity).foregroundStyle(palette.onFilledButton)
                 }
                 .modifier(PaletteFilledButton())
                 .tint(palette.filledButton)
                 Button(action: onShuffle) {
-                    Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity)
+                    Label("Shuffle", systemImage: "shuffle").lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
             }
@@ -53,7 +53,9 @@ struct CollectionHeader<Cover: View>: View {
 /// "2018 · 12 songs · 43 min"; unknown parts are left out.
 func collectionFacts(year: Int? = nil, songs: [Song]) -> String {
     let minutes = songs.reduce(Int64(0)) { $0 + $1.durationMs } / 60_000
-    let duration: String? = minutes <= 0 ? nil : minutes < 60 ? "\(minutes) min" : "\(minutes / 60) hr \(minutes % 60) min"
+    // Hours and minutes in the phone's language ("3 hr, 5 min", "3 س، 5 د").
+    let duration: String? = minutes <= 0 ? nil
+        : Duration.seconds(minutes * 60).formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))
     let yearText = year.flatMap { (1900...2099).contains($0) ? String($0) : nil }
     return [yearText, countLabel(songs.count, .song), duration].compactMap { $0 }.joined(separator: " · ")
 }
