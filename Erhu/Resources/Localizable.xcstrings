@@ -1,7 +1,7512 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-
+    "" : {},
+    "%@ artwork, %lld by %lld pixels" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okładka %@, %lld na %lld pikseli"
+          }
+        }
+      }
+    },
+    "%@ cover" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okładka: %@"
+          }
+        }
+      }
+    },
+    "%@ is available" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostępna jest wersja %@"
+          }
+        }
+      }
+    },
+    "%@ loaded %@–%@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wczytano %@–%@"
+          }
+        }
+      }
+    },
+    "%@ of %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ z %@"
+          }
+        }
+      }
+    },
+    "%@ · %@" : {},
+    "%@ · %lld ms · %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %lld ms · %@"
+          }
+        }
+      }
+    },
+    "%@ • %@" : {},
+    "%@ → %@" : {},
+    "%@ → %@ out · %@ → %@ in" : {},
+    "%@, return to top" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, powrót na górę"
+          }
+        }
+      }
+    },
+    "%@. %@ seconds visible." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Widoczne sekundy: %@."
+          }
+        }
+      }
+    },
+    "%lld" : {},
+    "%lld %% · %@" : {},
+    "%lld / %lld" : {},
+    "%lld already on phone" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Już w telefonie: %lld"
+          }
+        }
+      }
+    },
+    "%lld images or requests could not be checked." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się sprawdzić obrazów lub zapytań: %lld."
+          }
+        }
+      }
+    },
+    "%lld ms requested" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żądano %lld ms"
+          }
+        }
+      }
+    },
+    "%lld not saved" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niezapisane: %lld"
+          }
+        }
+      }
+    },
+    "%lld of %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld z %lld"
+          }
+        }
+      }
+    },
+    "%lld saved" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisano: %lld"
+          }
+        }
+      }
+    },
+    "%lld songs · Offline search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory: %lld · Wyszukiwanie offline"
+          }
+        }
+      }
+    },
+    "%lld×" : {},
+    "+100 ms" : {},
+    "0 s" : {},
+    "100 ms steps · effective length is limited by both songs and their cue points." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kroki co 100 ms · rzeczywistą długość ograniczają oba utwory i ich punkty."
+          }
+        }
+      }
+    },
+    "16×" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "16×"
+          }
+        }
+      }
+    },
+    "1×" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1×"
+          }
+        }
+      }
+    },
+    "4×" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4×"
+          }
+        }
+      }
+    },
+    "8-band equalizer, presets and audio effects" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8-pasmowy korektor, presety i efekty dźwiękowe"
+          }
+        }
+      }
+    },
+    "A Little Different" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coś innego"
+          }
+        }
+      }
+    },
+    "A source waveform is unavailable. Check that both audio files are readable." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak przebiegu źródłowego. Sprawdź, czy oba pliki audio dają się odczytać."
+          }
+        }
+      }
+    },
+    "A · %@" : {},
+    "About" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informacje"
+          }
+        }
+      }
+    },
+    "About Erhu" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Erhu"
+          }
+        }
+      }
+    },
+    "Active bands: %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktywne pasma: %lld"
+          }
+        }
+      }
+    },
+    "Add \"%@\"" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj „%@”"
+          }
+        }
+      }
+    },
+    "Add %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj %@"
+          }
+        }
+      }
+    },
+    "Add %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj %lld"
+          }
+        }
+      }
+    },
+    "Add all %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj wszystkie (%lld)"
+          }
+        }
+      }
+    },
+    "Add all to queue" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj wszystkie do kolejki"
+          }
+        }
+      }
+    },
+    "Add at %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj w %@"
+          }
+        }
+      }
+    },
+    "Add at least two tracks to set up transitions between them." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj co najmniej dwa utwory, aby ustawić przejścia między nimi."
+          }
+        }
+      }
+    },
+    "Add music" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj muzykę"
+          }
+        }
+      }
+    },
+    "Add music with Files, the + button, or Wi-Fi Transfer." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj muzykę przez Pliki, przycisk + lub Transfer Wi-Fi."
+          }
+        }
+      }
+    },
+    "Add songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj utwory"
+          }
+        }
+      }
+    },
+    "Add songs here, or choose \"Fix tags online\" in any song's menu." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj tu utwory albo wybierz „Popraw tagi online” w menu dowolnego utworu."
+          }
+        }
+      }
+    },
+    "Add songs or find the ones with missing tags first." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj utwory albo najpierw znajdź te z brakującymi tagami."
+          }
+        }
+      }
+    },
+    "Add songs…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj utwory…"
+          }
+        }
+      }
+    },
+    "Add to Liked Songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj do polubionych"
+          }
+        }
+      }
+    },
+    "Add to favorites" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj do ulubionych"
+          }
+        }
+      }
+    },
+    "Add to playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj do playlisty"
+          }
+        }
+      }
+    },
+    "Add to queue" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj do kolejki"
+          }
+        }
+      }
+    },
+    "Added" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodane"
+          }
+        }
+      }
+    },
+    "Adjust bass handover…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostosuj przekazanie basu…"
+          }
+        }
+      }
+    },
+    "Adjust to move the view without moving either cue." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń widok bez przesuwania punktów."
+          }
+        }
+      }
+    },
+    "Album" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        }
+      }
+    },
+    "Album %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album %lld"
+          }
+        }
+      }
+    },
+    "Album artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okładka albumu"
+          }
+        }
+      }
+    },
+    "Album options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje albumu"
+          }
+        }
+      }
+    },
+    "Album · A–Z" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album · A–Z"
+          }
+        }
+      }
+    },
+    "Albums" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumy"
+          }
+        }
+      }
+    },
+    "Albums (%lld)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumy (%lld)"
+          }
+        }
+      }
+    },
+    "Albums whose songs carry no cover. A cover you pick is saved into every song of the album." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumy, których utwory nie mają okładki. Wybrana okładka zostanie zapisana w każdym utworze albumu."
+          }
+        }
+      }
+    },
+    "Albums with a downloaded animated cover: %lld. Skipped albums stay in the list to review on their own." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumy z pobraną animowaną okładką: %lld. Pominięte albumy zostają na liście do osobnego przejrzenia."
+          }
+        }
+      }
+    },
+    "Albums you play show up here." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pojawią się odtwarzane albumy."
+          }
+        }
+      }
+    },
+    "All fields: the title is corrected; existing album, artist and other valid tags stay. Missing track and disc numbers come from the matched album's tracklist. Album pages sort by disc, then track." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wszystkie pola: tytuł zostaje poprawiony; istniejący album, wykonawca i inne poprawne tagi pozostają. Brakujące numery utworów i płyt pochodzą z listy utworów dopasowanego albumu. Strony albumów sortują według płyty, potem utworu."
+          }
+        }
+      }
+    },
+    "All genres" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wszystkie gatunki"
+          }
+        }
+      }
+    },
+    "All moods" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wszystkie nastroje"
+          }
+        }
+      }
+    },
+    "All releases" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wszystkie wydania"
+          }
+        }
+      }
+    },
+    "Already on phone" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Już w telefonie"
+          }
+        }
+      }
+    },
+    "An update is available" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostępna jest aktualizacja"
+          }
+        }
+      }
+    },
+    "Analysis & automation" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analiza i automatyka"
+          }
+        }
+      }
+    },
+    "Animated cover downloaded" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobrano animowaną okładkę"
+          }
+        }
+      }
+    },
+    "Animated covers" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animowane okładki"
+          }
+        }
+      }
+    },
+    "App font" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czcionka aplikacji"
+          }
+        }
+      }
+    },
+    "App theme" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motyw aplikacji"
+          }
+        }
+      }
+    },
+    "Apply" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zastosuj"
+          }
+        }
+      }
+    },
+    "Apply all upgrades?" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zastosować wszystkie ulepszenia?"
+          }
+        }
+      }
+    },
+    "Apply to all (%lld)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zastosuj do wszystkich (%lld)"
+          }
+        }
+      }
+    },
+    "Applying %lld of %lld upgrades" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stosowanie ulepszeń: %lld z %lld"
+          }
+        }
+      }
+    },
+    "Artist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wykonawca"
+          }
+        }
+      }
+    },
+    "Artist options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje wykonawcy"
+          }
+        }
+      }
+    },
+    "Artist photos are matched automatically when music is added. Retry missing photos here, or choose an artist to replace their image." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zdjęcia wykonawców są dopasowywane automatycznie po dodaniu muzyki. Tutaj ponów brakujące zdjęcia lub wybierz wykonawcę, aby zmienić jego zdjęcie."
+          }
+        }
+      }
+    },
+    "Artist · A–Z" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wykonawca · A–Z"
+          }
+        }
+      }
+    },
+    "Artists" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wykonawcy"
+          }
+        }
+      }
+    },
+    "Artists (%lld)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wykonawcy (%lld)"
+          }
+        }
+      }
+    },
+    "Artwork Fetcher" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwarka okładek"
+          }
+        }
+      }
+    },
+    "Attenuation" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłumienie"
+          }
+        }
+      }
+    },
+    "Audio & Equalizer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk i korektor"
+          }
+        }
+      }
+    },
+    "Audio details" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szczegóły dźwięku"
+          }
+        }
+      }
+    },
+    "Audition this transition" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odsłuchaj to przejście"
+          }
+        }
+      }
+    },
+    "Auto" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "Auto Fix Tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatyczna poprawa tagów"
+          }
+        }
+      }
+    },
+    "Auto-fill best available tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatycznie uzupełnij najlepsze dostępne tagi"
+          }
+        }
+      }
+    },
+    "Auto-fill best available tags (%lld)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatycznie uzupełnij najlepsze dostępne tagi (%lld)"
+          }
+        }
+      }
+    },
+    "Automatic crossfades" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatyczne przenikanie"
+          }
+        }
+      }
+    },
+    "Automatic crossfades are off in Transition Studio. Preview is available; enable crossfades there to hear saved transitions in your queue." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatyczne przenikanie jest wyłączone w Studiu przejść. Podgląd jest dostępny; włącz tam przenikanie, aby słyszeć zapisane przejścia w kolejce."
+          }
+        }
+      }
+    },
+    "Automatic crossfades are off, so nothing here plays until the master switch is on." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatyczne przenikanie jest wyłączone, więc nic tu nie zagra, dopóki główny przełącznik nie zostanie włączony."
+          }
+        }
+      }
+    },
+    "Automatic mode combines verified iTunes, MusicBrainz and Deezer matches for different fields. Deezer is optional where available; a single-source choice restricts catalogue matching. MusicBrainz supplies recording and album genres, with catalogue genres and linked Wikidata genres as fallbacks. Repairs are saved only when every selected tag is complete. Missing-tag checks cover every selected field. Your music is never uploaded. Each changed file's original is kept until you clear the queue, so it can be reverted." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryb automatyczny łączy zweryfikowane dopasowania z iTunes, MusicBrainz i Deezer dla różnych pól. Deezer jest opcjonalny tam, gdzie jest dostępny; wybór jednego źródła ogranicza dopasowanie katalogowe. MusicBrainz dostarcza gatunki nagrań i albumów, a gatunki z katalogów i powiązane gatunki z Wikidanych służą jako zapas. Poprawki są zapisywane tylko wtedy, gdy każdy wybrany tag jest kompletny. Sprawdzanie brakujących tagów obejmuje każde wybrane pole. Twoja muzyka nigdy nie jest wysyłana. Oryginał każdego zmienionego pliku jest przechowywany do czasu wyczyszczenia kolejki, więc zmianę można cofnąć."
+          }
+        }
+      }
+    },
+    "Automation overlays" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nakładki automatyki"
+          }
+        }
+      }
+    },
+    "A–B loop" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pętla A–B"
+          }
+        }
+      }
+    },
+    "A–Z" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A–Z"
+          }
+        }
+      }
+    },
+    "B · %@" : {},
+    "BPM" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BPM"
+          }
+        }
+      }
+    },
+    "BPM is read from file tags. Beat grid, musical key analysis, beatmatching, reverb, echo and looping are not available for this transition." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BPM jest odczytywane z tagów pliku. Siatka beatów, analiza tonacji, dopasowanie tempa, pogłos, echo i zapętlanie nie są dostępne dla tego przejścia."
+          }
+        }
+      }
+    },
+    "Balanced" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrównoważone"
+          }
+        }
+      }
+    },
+    "Band" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasmo"
+          }
+        }
+      }
+    },
+    "Band %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasmo %lld"
+          }
+        }
+      }
+    },
+    "Bands" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasma"
+          }
+        }
+      }
+    },
+    "Bars" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Słupki"
+          }
+        }
+      }
+    },
+    "Bass Swap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu"
+          }
+        }
+      }
+    },
+    "Bass handover" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przekazanie basu"
+          }
+        }
+      }
+    },
+    "Bass shelf gain · 200 Hz" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wzmocnienie półki basu · 200 Hz"
+          }
+        }
+      }
+    },
+    "Bass swap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu"
+          }
+        }
+      }
+    },
+    "Bass swap at %lld %%" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu przy %lld %%"
+          }
+        }
+      }
+    },
+    "Bass swap at %lld %% of the transition" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu przy %lld %% przejścia"
+          }
+        }
+      }
+    },
+    "Bell" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dzwonowy"
+          }
+        }
+      }
+    },
+    "Best candidates" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najlepsi kandydaci"
+          }
+        }
+      }
+    },
+    "Bit depth" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Głębia bitowa"
+          }
+        }
+      }
+    },
+    "Bitrate" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przepływność"
+          }
+        }
+      }
+    },
+    "Blend" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przenikanie"
+          }
+        }
+      }
+    },
+    "Bookmark this moment" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodaj zakładkę w tym miejscu"
+          }
+        }
+      }
+    },
+    "Bookmarks" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakładki"
+          }
+        }
+      }
+    },
+    "Bookmarks & A–B loop" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakładki i pętla A–B"
+          }
+        }
+      }
+    },
+    "Bookmarks & A–B loop (on)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakładki i pętla A–B (wł.)"
+          }
+        }
+      }
+    },
+    "Browse radio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeglądaj radio"
+          }
+        }
+      }
+    },
+    "Buffer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bufor"
+          }
+        }
+      }
+    },
+    "Build" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompilacja"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuluj"
+          }
+        }
+      }
+    },
+    "Cancel and discard changes" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuluj i odrzuć zmiany"
+          }
+        }
+      }
+    },
+    "Cancelled" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anulowano"
+          }
+        }
+      }
+    },
+    "Center bass swap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu w środku"
+          }
+        }
+      }
+    },
+    "Center cut" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cięcie w środku"
+          }
+        }
+      }
+    },
+    "Change %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmień %@"
+          }
+        }
+      }
+    },
+    "Changes" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmiany"
+          }
+        }
+      }
+    },
+    "Changes levels only while a transition set up in the Transition Studio plays" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmienia poziomy tylko podczas przejścia ustawionego w Studiu przejść"
+          }
+        }
+      }
+    },
+    "Channels" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanały"
+          }
+        }
+      }
+    },
+    "Check GitHub Releases for a newer build." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź GitHub Releases, czy jest nowsza wersja."
+          }
+        }
+      }
+    },
+    "Check for missing artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź brakujące okładki"
+          }
+        }
+      }
+    },
+    "Check for new albums" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź nowe albumy"
+          }
+        }
+      }
+    },
+    "Check for new upgrades" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź nowe ulepszenia"
+          }
+        }
+      }
+    },
+    "Check for updates" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź aktualizacje"
+          }
+        }
+      }
+    },
+    "Check the complete image and edition. Apply saves this image to your selected album or artist." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź cały obraz i wydanie. Zastosuj zapisuje ten obraz dla wybranego albumu lub wykonawcy."
+          }
+        }
+      }
+    },
+    "Checked %lld of %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzono %lld z %lld"
+          }
+        }
+      }
+    },
+    "Checked %lld of %lld albums" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzono albumy: %lld z %lld"
+          }
+        }
+      }
+    },
+    "Checked %lld of %lld files" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzono pliki: %lld z %lld"
+          }
+        }
+      }
+    },
+    "Checked %lld. %lld upgrade%@ to review. Some sources may have no matching larger image." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzono: %lld. Ulepszenia do przejrzenia: %lld%@. Niektóre źródła mogą nie mieć pasującego większego obrazu."
+          }
+        }
+      }
+    },
+    "Checking releases…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzanie wydań…"
+          }
+        }
+      }
+    },
+    "Checks available sources for each selected missing field. Saves a song only when all selected tags are complete. Unresolved songs stay unchanged for review. Originals remain available for Revert." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdza dostępne źródła dla każdego wybranego brakującego pola. Zapisuje utwór tylko wtedy, gdy wszystkie wybrane tagi są kompletne. Nierozwiązane utwory pozostają bez zmian do przejrzenia. Oryginały pozostają dostępne do przywrócenia."
+          }
+        }
+      }
+    },
+    "Chill" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaks"
+          }
+        }
+      }
+    },
+    "Choose Fade or another preset to blend tracks." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz Wyciszenie lub inny preset, aby łączyć utwory."
+          }
+        }
+      }
+    },
+    "Choose a transition preset to enable cue trimming. Off plays the full outgoing track and the incoming track from its beginning." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz preset przejścia, aby włączyć przycinanie punktów. Wyłączone odtwarza cały utwór wychodzący, a przychodzący od początku."
+          }
+        }
+      }
+    },
+    "Choose cover" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz okładkę"
+          }
+        }
+      }
+    },
+    "Choose from Photos" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz ze Zdjęć"
+          }
+        }
+      }
+    },
+    "Choose how long the tracks overlap. A transition never takes more than half of either track." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz, jak długo utwory się nakładają. Przejście nigdy nie zajmuje więcej niż połowę któregokolwiek utworu."
+          }
+        }
+      }
+    },
+    "Choosing tracks from your library…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybieranie utworów z biblioteki…"
+          }
+        }
+      }
+    },
+    "Circle" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koło"
+          }
+        }
+      }
+    },
+    "Circular spectrum" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widmo kołowe"
+          }
+        }
+      }
+    },
+    "Clear" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyczyść"
+          }
+        }
+      }
+    },
+    "Clear genre and mood filters" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyczyść filtry gatunku i nastroju"
+          }
+        }
+      }
+    },
+    "Clear queue" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyczyść kolejkę"
+          }
+        }
+      }
+    },
+    "Clear search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyczyść wyszukiwanie"
+          }
+        }
+      }
+    },
+    "Clear the queue?" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyczyścić kolejkę?"
+          }
+        }
+      }
+    },
+    "Clipping risk from EQ" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ryzyko przesterowania przez korektor"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij"
+          }
+        }
+      }
+    },
+    "Close lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij tekst"
+          }
+        }
+      }
+    },
+    "Close search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij wyszukiwanie"
+          }
+        }
+      }
+    },
+    "Close visualizer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij wizualizer"
+          }
+        }
+      }
+    },
+    "Codec" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kodek"
+          }
+        }
+      }
+    },
+    "Colours from artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolory z okładki"
+          }
+        }
+      }
+    },
+    "Colours, themes and appearance" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolory, motywy i wygląd"
+          }
+        }
+      }
+    },
+    "Complete the remaining selected tags to save the whole repair together. Unknown fields keep this song in Needs review." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uzupełnij pozostałe wybrane tagi, aby zapisać całą poprawkę naraz. Nieznane pola zostawiają ten utwór w Do sprawdzenia."
+          }
+        }
+      }
+    },
+    "Confirm this is the same image before replacing it. Other tags stay unchanged. Saved artwork fits within %lld pixels." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potwierdź, że to ten sam obraz, zanim go zastąpisz. Inne tagi pozostaną bez zmian. Zapisana okładka mieści się w %lld pikselach."
+          }
+        }
+      }
+    },
+    "Container" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontener"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj"
+          }
+        }
+      }
+    },
+    "Continue checking artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj sprawdzanie okładek"
+          }
+        }
+      }
+    },
+    "Continue checking for upgrades" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj sprawdzanie ulepszeń"
+          }
+        }
+      }
+    },
+    "Continue checking missing tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj sprawdzanie brakujących tagów"
+          }
+        }
+      }
+    },
+    "Continue filling best available tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj uzupełnianie najlepszych dostępnych tagów"
+          }
+        }
+      }
+    },
+    "Continue fixing tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj poprawianie tagów"
+          }
+        }
+      }
+    },
+    "Continue matching photos" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj dopasowywanie zdjęć"
+          }
+        }
+      }
+    },
+    "Copy audio details" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiuj szczegóły dźwięku"
+          }
+        }
+      }
+    },
+    "Correct tags and fill in missing details" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popraw tagi i uzupełnij brakujące dane"
+          }
+        }
+      }
+    },
+    "Couldn't reach the providers" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się połączyć z dostawcami"
+          }
+        }
+      }
+    },
+    "Couldn't search: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się wyszukać: %@"
+          }
+        }
+      }
+    },
+    "Couldn’t save artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się zapisać okładki"
+          }
+        }
+      }
+    },
+    "Create" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwórz"
+          }
+        }
+      }
+    },
+    "Creator and licence information for Commons images selected in Erhu. Images may be displayed resized or cropped. Follow the source licence if you share an image elsewhere." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informacje o autorach i licencjach obrazów z Commons wybranych w Erhu. Obrazy mogą być wyświetlane po zmianie rozmiaru lub przycięciu. Udostępniając obraz gdzie indziej, przestrzegaj licencji źródła."
+          }
+        }
+      }
+    },
+    "Crossfade" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przenikanie"
+          }
+        }
+      }
+    },
+    "Current" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obecna"
+          }
+        }
+      }
+    },
+    "Custom" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Własne"
+          }
+        }
+      }
+    },
+    "Custom curve" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Własna krzywa"
+          }
+        }
+      }
+    },
+    "Customize curve" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostosuj krzywą"
+          }
+        }
+      }
+    },
+    "Customize transition" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostosuj przejście"
+          }
+        }
+      }
+    },
+    "Cut in, fade out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wejście cięciem, wyciszenie"
+          }
+        }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ciemny"
+          }
+        }
+      }
+    },
+    "Decibels" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decybele"
+          }
+        }
+      }
+    },
+    "Decoder" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dekoder"
+          }
+        }
+      }
+    },
+    "Decoder output" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyjście dekodera"
+          }
+        }
+      }
+    },
+    "Deep Cuts" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mniej znane utwory"
+          }
+        }
+      }
+    },
+    "Default" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domyślne"
+          }
+        }
+      }
+    },
+    "Default for all music" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domyślne dla całej muzyki"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń"
+          }
+        }
+      }
+    },
+    "Delete %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń %@"
+          }
+        }
+      }
+    },
+    "Delete a custom preset" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń własny preset"
+          }
+        }
+      }
+    },
+    "Delete playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń playlistę"
+          }
+        }
+      }
+    },
+    "Delete this playlist?" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usunąć tę playlistę?"
+          }
+        }
+      }
+    },
+    "Describe a mood, a sound, or what you're doing. Find the right music in your library, offline." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opisz nastrój, brzmienie lub to, co robisz. Znajdź odpowiednią muzykę w bibliotece, offline."
+          }
+        }
+      }
+    },
+    "Describe what you want to hear" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opisz, czego chcesz posłuchać"
+          }
+        }
+      }
+    },
+    "Deselect" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odznacz"
+          }
+        }
+      }
+    },
+    "Device" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urządzenie"
+          }
+        }
+      }
+    },
+    "Disc number" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numer płyty"
+          }
+        }
+      }
+    },
+    "Do not show this version again" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie pokazuj więcej tej wersji"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gotowe"
+          }
+        }
+      }
+    },
+    "Download lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobierz tekst"
+          }
+        }
+      }
+    },
+    "Download the IPA for your current artwork variant and install it with your usual iOS installer." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobierz plik IPA dla obecnego wariantu okładek i zainstaluj go zwykłym instalatorem iOS."
+          }
+        }
+      }
+    },
+    "Download update" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobierz aktualizację"
+          }
+        }
+      }
+    },
+    "Downloaded · available offline" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobrano · dostępne offline"
+          }
+        }
+      }
+    },
+    "Downloading…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobieranie…"
+          }
+        }
+      }
+    },
+    "Drag each waveform horizontally to move its cue, or touch an automation line to edit it. Pinch to zoom." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeciągnij przebieg w poziomie, aby przesunąć jego punkt, albo dotknij linii automatyki, aby ją edytować. Zsuń palce, aby powiększyć."
+          }
+        }
+      }
+    },
+    "Drag the points · tap the lane to add one · select an inner point to remove it" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeciągaj punkty · stuknij ścieżkę, aby dodać punkt · zaznacz punkt wewnętrzny, aby go usunąć"
+          }
+        }
+      }
+    },
+    "Duration" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas trwania"
+          }
+        }
+      }
+    },
+    "EQ" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korektor"
+          }
+        }
+      }
+    },
+    "Earlier" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wcześniej"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj"
+          }
+        }
+      }
+    },
+    "Edit cue points" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj punkty"
+          }
+        }
+      }
+    },
+    "Edit curves" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj krzywe"
+          }
+        }
+      }
+    },
+    "Edit exact time & gain" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj dokładny czas i wzmocnienie"
+          }
+        }
+      }
+    },
+    "Edit tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj tagi"
+          }
+        }
+      }
+    },
+    "Edit transition from %@ to %@: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj przejście z %@ do %@: %@"
+          }
+        }
+      }
+    },
+    "Edit transition to next" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edytuj przejście do następnego"
+          }
+        }
+      }
+    },
+    "Editing becomes available after the current song finishes." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edycja będzie dostępna po zakończeniu bieżącego utworu."
+          }
+        }
+      }
+    },
+    "Enable transitions for this %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włącz przejścia dla: %@"
+          }
+        }
+      }
+    },
+    "End bass swap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu na końcu"
+          }
+        }
+      }
+    },
+    "Enter remaining tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpisz pozostałe tagi"
+          }
+        }
+      }
+    },
+    "Enter remaining tags manually" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpisz pozostałe tagi ręcznie"
+          }
+        }
+      }
+    },
+    "Equal power" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stała moc"
+          }
+        }
+      }
+    },
+    "Equalizer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korektor"
+          }
+        }
+      }
+    },
+    "Equalizer curve" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krzywa korektora"
+          }
+        }
+      }
+    },
+    "Equalizer settings" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustawienia korektora"
+          }
+        }
+      }
+    },
+    "Erhu" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu"
+          }
+        }
+      }
+    },
+    "Erhu %@ is available" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostępne jest Erhu %@"
+          }
+        }
+      }
+    },
+    "Erhu update" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizacja Erhu"
+          }
+        }
+      }
+    },
+    "Every album has a cover." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Każdy album ma okładkę."
+          }
+        }
+      }
+    },
+    "Exact point values" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokładne wartości punktów"
+          }
+        }
+      }
+    },
+    "Expand lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozwiń tekst"
+          }
+        }
+      }
+    },
+    "Fade" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyciszenie"
+          }
+        }
+      }
+    },
+    "Fade in, cut out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Narastanie, wyjście cięciem"
+          }
+        }
+      }
+    },
+    "Fade out, then in" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyciszenie, potem narastanie"
+          }
+        }
+      }
+    },
+    "Fading" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyciszanie"
+          }
+        }
+      }
+    },
+    "Failed" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niepowodzenie"
+          }
+        }
+      }
+    },
+    "Favorites" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulubione"
+          }
+        }
+      }
+    },
+    "Favourites" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulubione"
+          }
+        }
+      }
+    },
+    "Featured Albums" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polecane albumy"
+          }
+        }
+      }
+    },
+    "Featured Radio Stations" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polecane stacje radiowe"
+          }
+        }
+      }
+    },
+    "Feel-good" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dobry nastrój"
+          }
+        }
+      }
+    },
+    "File" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik"
+          }
+        }
+      }
+    },
+    "File size" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozmiar pliku"
+          }
+        }
+      }
+    },
+    "Filename" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwa pliku"
+          }
+        }
+      }
+    },
+    "Fill from an online match" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uzupełnij z dopasowania online"
+          }
+        }
+      }
+    },
+    "Filling best available tags · %lld/%lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uzupełnianie najlepszych dostępnych tagów · %lld/%lld"
+          }
+        }
+      }
+    },
+    "Filter" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtr"
+          }
+        }
+      }
+    },
+    "Filter cutoff · logarithmic" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odcięcie filtra · logarytmiczne"
+          }
+        }
+      }
+    },
+    "Filter type" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Typ filtra"
+          }
+        }
+      }
+    },
+    "Find a better cover" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź lepszą okładkę"
+          }
+        }
+      }
+    },
+    "Find a cover" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź okładkę"
+          }
+        }
+      }
+    },
+    "Find a larger version of your existing image. Review a match individually or apply all matching upgrades. Each replacement is checked again before saving. Saved images fit within %lld pixels." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź większą wersję istniejącego obrazu. Przejrzyj dopasowanie osobno lub zastosuj wszystkie pasujące ulepszenia. Każda zamiana jest ponownie sprawdzana przed zapisem. Zapisane obrazy mieszczą się w %lld pikselach."
+          }
+        }
+      }
+    },
+    "Find a photo" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź zdjęcie"
+          }
+        }
+      }
+    },
+    "Find album covers or change artist photos" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź okładki albumów lub zmień zdjęcia wykonawców"
+          }
+        }
+      }
+    },
+    "Find higher-resolution matches" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź dopasowania w wyższej rozdzielczości"
+          }
+        }
+      }
+    },
+    "Find missing artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź brakujące okładki"
+          }
+        }
+      }
+    },
+    "Find new, changed and removed music" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź nową, zmienioną i usuniętą muzykę"
+          }
+        }
+      }
+    },
+    "Find same image in higher resolution" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź ten sam obraz w wyższej rozdzielczości"
+          }
+        }
+      }
+    },
+    "Find tracks with missing tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź utwory z brakującymi tagami"
+          }
+        }
+      }
+    },
+    "Fit preview" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopasuj podgląd"
+          }
+        }
+      }
+    },
+    "Fix tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popraw tagi"
+          }
+        }
+      }
+    },
+    "Fix tags online" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popraw tagi online"
+          }
+        }
+      }
+    },
+    "Fixed" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poprawione"
+          }
+        }
+      }
+    },
+    "Fixing tags · %lld of %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poprawianie tagów · %lld z %lld"
+          }
+        }
+      }
+    },
+    "Focus" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skupienie"
+          }
+        }
+      }
+    },
+    "For \"%@\"" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dla „%@”"
+          }
+        }
+      }
+    },
+    "For system appearance and transparency options, open iPhone Settings → Accessibility → Display & Text Size. Liquid Glass options also depend on your iOS version." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje wyglądu systemu i przezroczystości znajdziesz w Ustawieniach iPhone’a → Dostępność → Ekran i wielkość tekstu. Opcje Liquid Glass zależą też od wersji iOS."
+          }
+        }
+      }
+    },
+    "Forgotten Favourites" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapomniane ulubione"
+          }
+        }
+      }
+    },
+    "Found online values are held for you. All selected tags must be complete before anything is saved. Blank fields stay unresolved." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartości znalezione online są dla ciebie zachowane. Wszystkie wybrane tagi muszą być kompletne, zanim cokolwiek zostanie zapisane. Puste pola pozostają nierozwiązane."
+          }
+        }
+      }
+    },
+    "Fresh in Your Library" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nowości w bibliotece"
+          }
+        }
+      }
+    },
+    "From the file name" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Z nazwy pliku"
+          }
+        }
+      }
+    },
+    "Gain · dB" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wzmocnienie · dB"
+          }
+        }
+      }
+    },
+    "Genre" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gatunek"
+          }
+        }
+      }
+    },
+    "Genre (separate several with ;)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gatunek (kilka oddziel średnikiem ;)"
+          }
+        }
+      }
+    },
+    "Handover time" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas przekazania"
+          }
+        }
+      }
+    },
+    "Hands over at %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przekazanie w %@"
+          }
+        }
+      }
+    },
+    "Headroom" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapas głośności"
+          }
+        }
+      }
+    },
+    "Hide from Smart Playlists" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukryj w inteligentnych playlistach"
+          }
+        }
+      }
+    },
+    "High" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wysoki"
+          }
+        }
+      }
+    },
+    "High Energy" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pełna energia"
+          }
+        }
+      }
+    },
+    "High energy" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energetyczne"
+          }
+        }
+      }
+    },
+    "High-pass in" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Górnoprzepustowy na wejściu"
+          }
+        }
+      }
+    },
+    "High-pass in, high-pass out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Górnoprzepustowy na wejściu i wyjściu"
+          }
+        }
+      }
+    },
+    "High-pass in, low-pass out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Górnoprzepustowy na wejściu, dolnoprzepustowy na wyjściu"
+          }
+        }
+      }
+    },
+    "High-pass out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Górnoprzepustowy na wyjściu"
+          }
+        }
+      }
+    },
+    "Higher-resolution matches" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopasowania w wyższej rozdzielczości"
+          }
+        }
+      }
+    },
+    "History" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historia"
+          }
+        }
+      }
+    },
+    "Home" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "How to connect" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jak się połączyć"
+          }
+        }
+      }
+    },
+    "Idle" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezczynny"
+          }
+        }
+      }
+    },
+    "If the page does not load" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeśli strona się nie wczytuje"
+          }
+        }
+      }
+    },
+    "Image credits" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorzy obrazów"
+          }
+        }
+      }
+    },
+    "Image source" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Źródło obrazu"
+          }
+        }
+      }
+    },
+    "Import a theme…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importuj motyw…"
+          }
+        }
+      }
+    },
+    "Import colours from an Android theme ZIP or its manifest.json." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importuj kolory z pliku ZIP motywu Androida lub jego manifest.json."
+          }
+        }
+      }
+    },
+    "In" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wejście"
+          }
+        }
+      }
+    },
+    "In Your Rotation" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W twojej rotacji"
+          }
+        }
+      }
+    },
+    "Incoming volume point" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punkt głośności utworu przychodzącego"
+          }
+        }
+      }
+    },
+    "Inspect automation" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź automatykę"
+          }
+        }
+      }
+    },
+    "Inspecting the file…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzanie pliku…"
+          }
+        }
+      }
+    },
+    "Inspection position in the overlap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozycja kontrolna w nakładaniu"
+          }
+        }
+      }
+    },
+    "Install the IPA using SideStore or AltStore. Erhu cannot install itself." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zainstaluj plik IPA przez SideStore lub AltStore. Erhu nie może zainstalować się samo."
+          }
+        }
+      }
+    },
+    "Introduction & tool guide" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wprowadzenie i przewodnik po narzędziach"
+          }
+        }
+      }
+    },
+    "Keep current" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zachowaj obecne"
+          }
+        }
+      }
+    },
+    "Keep listening and Erhu will build mixes from your plays." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Słuchaj dalej, a Erhu zbuduje miksy z twoich odtworzeń."
+          }
+        }
+      }
+    },
+    "Last checked %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnio sprawdzono: %@"
+          }
+        }
+      }
+    },
+    "Late Night" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Późna noc"
+          }
+        }
+      }
+    },
+    "Late night" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Późna noc"
+          }
+        }
+      }
+    },
+    "Later" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Później"
+          }
+        }
+      }
+    },
+    "Lead-in" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstęp"
+          }
+        }
+      }
+    },
+    "Library" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteka"
+          }
+        }
+      }
+    },
+    "Library Builder" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porządkowanie biblioteki"
+          }
+        }
+      }
+    },
+    "Licence" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Licencja"
+          }
+        }
+      }
+    },
+    "Light" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jasny"
+          }
+        }
+      }
+    },
+    "Likely same image · Review" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prawdopodobnie ten sam obraz · Sprawdź"
+          }
+        }
+      }
+    },
+    "Linear" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liniowe"
+          }
+        }
+      }
+    },
+    "Linear crossfade" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liniowe przenikanie"
+          }
+        }
+      }
+    },
+    "Loading full image…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wczytywanie pełnego obrazu…"
+          }
+        }
+      }
+    },
+    "Loading preview…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wczytywanie podglądu…"
+          }
+        }
+      }
+    },
+    "Long Listens" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Długie utwory"
+          }
+        }
+      }
+    },
+    "Looking up %@…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie: %@…"
+          }
+        }
+      }
+    },
+    "Looking up…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie…"
+          }
+        }
+      }
+    },
+    "Lookup details" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szczegóły wyszukiwania"
+          }
+        }
+      }
+    },
+    "Loop" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pętla"
+          }
+        }
+      }
+    },
+    "Love songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piosenki o miłości"
+          }
+        }
+      }
+    },
+    "Low" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niski"
+          }
+        }
+      }
+    },
+    "Low shelf" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Półka niska"
+          }
+        }
+      }
+    },
+    "Low-pass out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dolnoprzepustowy na wyjściu"
+          }
+        }
+      }
+    },
+    "Lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekst"
+          }
+        }
+      }
+    },
+    "Lyrics options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje tekstu"
+          }
+        }
+      }
+    },
+    "Lyrics timing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizacja tekstu"
+          }
+        }
+      }
+    },
+    "Lyrics · not synced" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekst · niesynchronizowany"
+          }
+        }
+      }
+    },
+    "Manage your downloaded album covers" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zarządzaj pobranymi okładkami albumów"
+          }
+        }
+      }
+    },
+    "Master switch for every transition in the app. Off keeps all settings but plays tracks back to back." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Główny przełącznik wszystkich przejść w aplikacji. Wyłączony zachowuje ustawienia, ale odtwarza utwory jeden po drugim."
+          }
+        }
+      }
+    },
+    "Match photos automatically" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopasowuj zdjęcia automatycznie"
+          }
+        }
+      }
+    },
+    "Measured while music plays with this screen open" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mierzone podczas odtwarzania muzyki przy otwartym ekranie"
+          }
+        }
+      }
+    },
+    "Melt" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopienie"
+          }
+        }
+      }
+    },
+    "Menu" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu"
+          }
+        }
+      }
+    },
+    "Metadata & Artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metadane i okładki"
+          }
+        }
+      }
+    },
+    "Metadata and artwork searches use keyless iTunes Search, MusicBrainz, Deezer, Wikidata and Wikimedia Commons. No API keys are needed." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie metadanych i okładek korzysta z iTunes Search, MusicBrainz, Deezer, Wikidanych i Wikimedia Commons bez kluczy. Klucze API nie są potrzebne."
+          }
+        }
+      }
+    },
+    "Milliseconds" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milisekundy"
+          }
+        }
+      }
+    },
+    "Mixing, possible resampling, system effects" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miksowanie, możliwy resampling, efekty systemowe"
+          }
+        }
+      }
+    },
+    "Mode" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryb"
+          }
+        }
+      }
+    },
+    "Mood" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastrój"
+          }
+        }
+      }
+    },
+    "Mood matches use your songs’ genre and tempo tags." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopasowanie nastroju korzysta z tagów gatunku i tempa twoich utworów."
+          }
+        }
+      }
+    },
+    "More" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej"
+          }
+        }
+      }
+    },
+    "More %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej: %@"
+          }
+        }
+      }
+    },
+    "More actions" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej działań"
+          }
+        }
+      }
+    },
+    "More for %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej dla: %@"
+          }
+        }
+      }
+    },
+    "More mixes are on the way" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolejne miksy w drodze"
+          }
+        }
+      }
+    },
+    "More options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej opcji"
+          }
+        }
+      }
+    },
+    "Most played" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najczęściej odtwarzane"
+          }
+        }
+      }
+    },
+    "Move audio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń dźwięk"
+          }
+        }
+      }
+    },
+    "Move incoming cue earlier" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń punkt przychodzący wcześniej"
+          }
+        }
+      }
+    },
+    "Move incoming cue later" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń punkt przychodzący później"
+          }
+        }
+      }
+    },
+    "Move lyrics earlier if they arrive late, or later if they arrive too soon." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń tekst wcześniej, jeśli się spóźnia, albo później, jeśli pojawia się za wcześnie."
+          }
+        }
+      }
+    },
+    "Move outgoing cue earlier" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń punkt wychodzący wcześniej"
+          }
+        }
+      }
+    },
+    "Move outgoing cue later" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuń punkt wychodzący później"
+          }
+        }
+      }
+    },
+    "Music Library" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteka muzyczna"
+          }
+        }
+      }
+    },
+    "Music folder" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder z muzyką"
+          }
+        }
+      }
+    },
+    "Music folder, scanning and your collection" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder z muzyką, skanowanie i twoja kolekcja"
+          }
+        }
+      }
+    },
+    "Music information" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informacje o utworze"
+          }
+        }
+      }
+    },
+    "Music stays on your iPhone" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muzyka zostaje na twoim iPhonie"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwa"
+          }
+        }
+      }
+    },
+    "Name bookmark" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwij zakładkę"
+          }
+        }
+      }
+    },
+    "Needs review" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do sprawdzenia"
+          }
+        }
+      }
+    },
+    "New playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nowa playlista"
+          }
+        }
+      }
+    },
+    "New radio picks" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nowe propozycje radia"
+          }
+        }
+      }
+    },
+    "Newest" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najnowsze"
+          }
+        }
+      }
+    },
+    "Next" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dalej"
+          }
+        }
+      }
+    },
+    "Next month" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Następny miesiąc"
+          }
+        }
+      }
+    },
+    "Next track" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Następny utwór"
+          }
+        }
+      }
+    },
+    "No Commons images have been saved yet." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie zapisano jeszcze żadnych obrazów z Commons."
+          }
+        }
+      }
+    },
+    "No albums match your search." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żaden album nie pasuje do wyszukiwania."
+          }
+        }
+      }
+    },
+    "No albums yet." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak albumów."
+          }
+        }
+      }
+    },
+    "No artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak okładki"
+          }
+        }
+      }
+    },
+    "No available songs for this station. Add more music and reopen it." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dostępnych utworów dla tej stacji. Dodaj więcej muzyki i otwórz ją ponownie."
+          }
+        }
+      }
+    },
+    "No bass swap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez zamiany basu"
+          }
+        }
+      }
+    },
+    "No bookmarks for this track yet." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten utwór nie ma jeszcze zakładek."
+          }
+        }
+      }
+    },
+    "No crossfade" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez przenikania"
+          }
+        }
+      }
+    },
+    "No filter" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez filtra"
+          }
+        }
+      }
+    },
+    "No larger same-image matches to review." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak większych dopasowań tego samego obrazu do przejrzenia."
+          }
+        }
+      }
+    },
+    "No match" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dopasowania"
+          }
+        }
+      }
+    },
+    "No matches in your library. Try a broader style or fewer filters." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dopasowań w bibliotece. Spróbuj szerszego stylu lub mniejszej liczby filtrów."
+          }
+        }
+      }
+    },
+    "No matching motion cover found" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono pasującej animowanej okładki"
+          }
+        }
+      }
+    },
+    "No playable overlap. Adjust the cue points or choose a shorter transition." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak odtwarzalnego nakładania. Dostosuj punkty lub wybierz krótsze przejście."
+          }
+        }
+      }
+    },
+    "No results." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak wyników."
+          }
+        }
+      }
+    },
+    "No songs yet. Add music with the Files app, Wi-Fi Transfer or the + button." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak utworów. Dodaj muzykę przez aplikację Pliki, Transfer Wi-Fi lub przycisk +."
+          }
+        }
+      }
+    },
+    "No track playing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic nie jest odtwarzane"
+          }
+        }
+      }
+    },
+    "No tracks found for this artist." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono utworów tego wykonawcy."
+          }
+        }
+      }
+    },
+    "None" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak"
+          }
+        }
+      }
+    },
+    "Normal" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normalne"
+          }
+        }
+      }
+    },
+    "Not synced? Adjust timing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niesynchronizowane? Dostosuj czas"
+          }
+        }
+      }
+    },
+    "Not visible" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niewidoczne"
+          }
+        }
+      }
+    },
+    "Nothing found" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic nie znaleziono"
+          }
+        }
+      }
+    },
+    "Nothing found online." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic nie znaleziono online."
+          }
+        }
+      }
+    },
+    "Nothing is playing." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic nie jest odtwarzane."
+          }
+        }
+      }
+    },
+    "Nothing is playing. Pick a song from your library." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic nie jest odtwarzane. Wybierz utwór z biblioteki."
+          }
+        }
+      }
+    },
+    "Nothing left to fix in the queue." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W kolejce nie ma już nic do poprawienia."
+          }
+        }
+      }
+    },
+    "Nothing played in %@ yet" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nic jeszcze nie odtworzono w: %@"
+          }
+        }
+      }
+    },
+    "Now Playing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teraz odtwarzane"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wył."
+          }
+        }
+      }
+    },
+    "Offset" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesunięcie"
+          }
+        }
+      }
+    },
+    "Oldest" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najstarsze"
+          }
+        }
+      }
+    },
+    "On" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wł."
+          }
+        }
+      }
+    },
+    "On My iPhone › Erhu" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na moim iPhonie › Erhu"
+          }
+        }
+      }
+    },
+    "Open %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz %@"
+          }
+        }
+      }
+    },
+    "Open search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz wyszukiwanie"
+          }
+        }
+      }
+    },
+    "Open visualizer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz wizualizer"
+          }
+        }
+      }
+    },
+    "Opens Now Playing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwiera Teraz odtwarzane"
+          }
+        }
+      }
+    },
+    "Opens Transition Studio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwiera Studio przejść"
+          }
+        }
+      }
+    },
+    "Opens in your browser." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwiera się w przeglądarce."
+          }
+        }
+      }
+    },
+    "Opens preview and settings for this pair" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwiera podgląd i ustawienia tej pary"
+          }
+        }
+      }
+    },
+    "Opens where this music was started" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwiera miejsce, z którego uruchomiono tę muzykę"
+          }
+        }
+      }
+    },
+    "Original image & creator" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oryginalny obraz i autor"
+          }
+        }
+      }
+    },
+    "Oscilloscope" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oscyloskop"
+          }
+        }
+      }
+    },
+    "Out" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyjście"
+          }
+        }
+      }
+    },
+    "Outgoing and incoming audio waveforms" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przebiegi dźwięku wychodzącego i przychodzącego"
+          }
+        }
+      }
+    },
+    "Outgoing volume point" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punkt głośności utworu wychodzącego"
+          }
+        }
+      }
+    },
+    "Output" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyjście"
+          }
+        }
+      }
+    },
+    "Output channels" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kanały wyjściowe"
+          }
+        }
+      }
+    },
+    "Output latency" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opóźnienie wyjścia"
+          }
+        }
+      }
+    },
+    "Overlap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nakładanie"
+          }
+        }
+      }
+    },
+    "Overlap duration, %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas nakładania, %@"
+          }
+        }
+      }
+    },
+    "Page" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strona"
+          }
+        }
+      }
+    },
+    "Page %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strona %lld"
+          }
+        }
+      }
+    },
+    "Pairing code %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kod parowania %@"
+          }
+        }
+      }
+    },
+    "Party" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impreza"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauza"
+          }
+        }
+      }
+    },
+    "Pause preview" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstrzymaj podgląd"
+          }
+        }
+      }
+    },
+    "Pause repairs to edit" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstrzymaj poprawki, aby edytować"
+          }
+        }
+      }
+    },
+    "Peak/RMS measure the loaded source audio before processing, including nearby audio for dragging. Wave height changes only the display. Gain, shelf and cutoff are the engine's automation targets at the inspection point. BPM is the file's tag; beatmatching and key analysis are unavailable." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szczyt/RMS mierzą wczytany dźwięk źródłowy przed przetwarzaniem, w tym pobliski dźwięk do przeciągania. Wysokość przebiegu zmienia tylko wyświetlanie. Wzmocnienie, półka i odcięcie to cele automatyki silnika w punkcie kontrolnym. BPM pochodzi z tagu pliku; dopasowanie tempa i analiza tonacji są niedostępne."
+          }
+        }
+      }
+    },
+    "Personalize" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizacja"
+          }
+        }
+      }
+    },
+    "Pick the right one to write it, with the fields chosen on the Fix tags page. The original is kept for Revert." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz właściwy, aby go zapisać, z polami wybranymi na stronie Popraw tagi. Oryginał zostaje zachowany do przywrócenia."
+          }
+        }
+      }
+    },
+    "Play" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz"
+          }
+        }
+      }
+    },
+    "Play %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz %@"
+          }
+        }
+      }
+    },
+    "Play %@ again" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz ponownie %@"
+          }
+        }
+      }
+    },
+    "Play %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz %lld"
+          }
+        }
+      }
+    },
+    "Play an album with a downloaded motion cover." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz album z pobraną animowaną okładką."
+          }
+        }
+      }
+    },
+    "Play next" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz następne"
+          }
+        }
+      }
+    },
+    "Play preview" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz podgląd"
+          }
+        }
+      }
+    },
+    "Play station" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwórz stację"
+          }
+        }
+      }
+    },
+    "Playback" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwarzanie"
+          }
+        }
+      }
+    },
+    "Played" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtworzone"
+          }
+        }
+      }
+    },
+    "Playlist options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje playlisty"
+          }
+        }
+      }
+    },
+    "Playlists" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlisty"
+          }
+        }
+      }
+    },
+    "Plays from %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwarza z: %@"
+          }
+        }
+      }
+    },
+    "Plays the month's top songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwarza najlepsze utwory miesiąca"
+          }
+        }
+      }
+    },
+    "Plays this track" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odtwarza ten utwór"
+          }
+        }
+      }
+    },
+    "Precise source cues" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokładne punkty źródłowe"
+          }
+        }
+      }
+    },
+    "Preparing Lock Screen artwork…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przygotowywanie okładki na ekran blokady…"
+          }
+        }
+      }
+    },
+    "Preparing preview…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przygotowywanie podglądu…"
+          }
+        }
+      }
+    },
+    "Preset" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset"
+          }
+        }
+      }
+    },
+    "Preset & curve" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset i krzywa"
+          }
+        }
+      }
+    },
+    "Preset name" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwa presetu"
+          }
+        }
+      }
+    },
+    "Presets" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presety"
+          }
+        }
+      }
+    },
+    "Preview" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podgląd"
+          }
+        }
+      }
+    },
+    "Preview artwork" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podgląd okładki"
+          }
+        }
+      }
+    },
+    "Preview image from %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podgląd obrazu z: %@"
+          }
+        }
+      }
+    },
+    "Preview timing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas podglądu"
+          }
+        }
+      }
+    },
+    "Preview uses the current equalizer and saved audio files; it pauses your music and resumes it afterward." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podgląd używa bieżącego korektora i zapisanych plików; wstrzymuje muzykę i potem ją wznawia."
+          }
+        }
+      }
+    },
+    "Previous" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wstecz"
+          }
+        }
+      }
+    },
+    "Previous month" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poprzedni miesiąc"
+          }
+        }
+      }
+    },
+    "Previous track" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poprzedni utwór"
+          }
+        }
+      }
+    },
+    "Privacy" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prywatność"
+          }
+        }
+      }
+    },
+    "Privacy: the page works only on your local network, only while this screen shows it as on, and only with this session's code. It uses plain HTTP, so on a shared or untrusted Wi-Fi others on the network could see what is sent." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prywatność: strona działa tylko w sieci lokalnej, tylko gdy ten ekran pokazuje ją jako włączoną, i tylko z kodem tej sesji. Używa zwykłego HTTP, więc w udostępnionej lub niezaufanej sieci Wi-Fi inni mogą zobaczyć, co jest wysyłane."
+          }
+        }
+      }
+    },
+    "Processing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przetwarzanie"
+          }
+        }
+      }
+    },
+    "Progress is saved after each image. Continue skips completed checks and includes new albums or artists." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Postęp jest zapisywany po każdym obrazie. Kontynuacja pomija ukończone sprawdzenia i obejmuje nowe albumy lub wykonawców."
+          }
+        }
+      }
+    },
+    "Project" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projekt"
+          }
+        }
+      }
+    },
+    "QR code for the transfer page" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kod QR strony transferu"
+          }
+        }
+      }
+    },
+    "Queue" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolejka"
+          }
+        }
+      }
+    },
+    "Queue (%lld)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolejka (%lld)"
+          }
+        }
+      }
+    },
+    "Queue options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje kolejki"
+          }
+        }
+      }
+    },
+    "Quick Hits" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szybkie hity"
+          }
+        }
+      }
+    },
+    "RADIO" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RADIO"
+          }
+        }
+      }
+    },
+    "Radio station" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stacja radiowa"
+          }
+        }
+      }
+    },
+    "Ramp length" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Długość narastania"
+          }
+        }
+      }
+    },
+    "Read from the file itself without decoding it. \"File header\" values come from the audio header and are exact; \"Container\" values are what the file/container reader reports for the file (estimates for some formats); \"Library index\" values were recorded when the library was scanned. Bit depth exists only for lossless formats that store it." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odczytane z samego pliku bez dekodowania. Wartości „Nagłówek pliku” pochodzą z nagłówka audio i są dokładne; wartości „Kontener” to dane podawane przez czytnik pliku/kontenera (dla niektórych formatów szacunkowe); wartości „Indeks biblioteki” zapisano podczas skanowania biblioteki. Głębia bitowa istnieje tylko dla formatów bezstratnych, które ją przechowują."
+          }
+        }
+      }
+    },
+    "Read-only copy for the visualizer and the peak meter below; never changes the audio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopia tylko do odczytu dla wizualizera i miernika szczytów poniżej; nigdy nie zmienia dźwięku"
+          }
+        }
+      }
+    },
+    "Reading" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odczyt"
+          }
+        }
+      }
+    },
+    "Reading the audio route…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odczytywanie ścieżki dźwięku…"
+          }
+        }
+      }
+    },
+    "Ready for the Lock Screen. Tap the cover there to expand it." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gotowe na ekran blokady. Stuknij tam okładkę, aby ją powiększyć."
+          }
+        }
+      }
+    },
+    "Recent" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnie"
+          }
+        }
+      }
+    },
+    "Recently added" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnio dodane"
+          }
+        }
+      }
+    },
+    "Recently played" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnio odtwarzane"
+          }
+        }
+      }
+    },
+    "Recently played albums" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnio odtwarzane albumy"
+          }
+        }
+      }
+    },
+    "Recently played playlists" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnio odtwarzane playlisty"
+          }
+        }
+      }
+    },
+    "Reduce motion" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogranicz ruch"
+          }
+        }
+      }
+    },
+    "Refresh online lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odśwież tekst online"
+          }
+        }
+      }
+    },
+    "Release notes" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informacje o wydaniu"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń"
+          }
+        }
+      }
+    },
+    "Remove chosen photo" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń wybrane zdjęcie"
+          }
+        }
+      }
+    },
+    "Remove cover" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń okładkę"
+          }
+        }
+      }
+    },
+    "Remove downloaded lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń pobrany tekst"
+          }
+        }
+      }
+    },
+    "Remove from Liked Songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń z polubionych"
+          }
+        }
+      }
+    },
+    "Remove from favorites" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń z ulubionych"
+          }
+        }
+      }
+    },
+    "Remove from playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń z playlisty"
+          }
+        }
+      }
+    },
+    "Remove from recent" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń z ostatnich"
+          }
+        }
+      }
+    },
+    "Remove point" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń punkt"
+          }
+        }
+      }
+    },
+    "Remove previously saved lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń wcześniej zapisany tekst"
+          }
+        }
+      }
+    },
+    "Rename" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmień nazwę"
+          }
+        }
+      }
+    },
+    "Rename playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmień nazwę playlisty"
+          }
+        }
+      }
+    },
+    "Repeat %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powtarzanie: %@"
+          }
+        }
+      }
+    },
+    "Reported once audio output starts" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podawane po uruchomieniu wyjścia dźwięku"
+          }
+        }
+      }
+    },
+    "Reported when a track starts" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podawane po rozpoczęciu utworu"
+          }
+        }
+      }
+    },
+    "Rescan library now" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeskanuj bibliotekę teraz"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetuj"
+          }
+        }
+      }
+    },
+    "Reset both cue points" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetuj oba punkty"
+          }
+        }
+      }
+    },
+    "Reset cue points" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetuj punkty"
+          }
+        }
+      }
+    },
+    "Reset measurement" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetuj pomiar"
+          }
+        }
+      }
+    },
+    "Reset to default" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przywróć domyślne"
+          }
+        }
+      }
+    },
+    "Reset to flat" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przywróć płaską"
+          }
+        }
+      }
+    },
+    "Reset to preset" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przywróć preset"
+          }
+        }
+      }
+    },
+    "Reset transition to Auto" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przywróć przejście Auto"
+          }
+        }
+      }
+    },
+    "Response" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charakterystyka"
+          }
+        }
+      }
+    },
+    "Responsive" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szybka reakcja"
+          }
+        }
+      }
+    },
+    "Result" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wynik"
+          }
+        }
+      }
+    },
+    "Retry" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ponów"
+          }
+        }
+      }
+    },
+    "Revert %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przywróć %lld"
+          }
+        }
+      }
+    },
+    "Revert all changes" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofnij wszystkie zmiany"
+          }
+        }
+      }
+    },
+    "Reverted" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przywrócone"
+          }
+        }
+      }
+    },
+    "Review artwork upgrade" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przejrzyj ulepszenie okładki"
+          }
+        }
+      }
+    },
+    "Rise" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Narastanie"
+          }
+        }
+      }
+    },
+    "Route" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ścieżka"
+          }
+        }
+      }
+    },
+    "Route not reported" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ścieżka nieznana"
+          }
+        }
+      }
+    },
+    "Running" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Działa"
+          }
+        }
+      }
+    },
+    "SMART PLAYLIST" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "INTELIGENTNA PLAYLISTA"
+          }
+        }
+      }
+    },
+    "Sad & reflective" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smutne i refleksyjne"
+          }
+        }
+      }
+    },
+    "Sample peak after EQ" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szczyt próbki po korektorze"
+          }
+        }
+      }
+    },
+    "Sample rate" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Częstotliwość próbkowania"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisz"
+          }
+        }
+      }
+    },
+    "Save as playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisz jako playlistę"
+          }
+        }
+      }
+    },
+    "Save custom preset" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisz własny preset"
+          }
+        }
+      }
+    },
+    "Save queue as playlist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisz kolejkę jako playlistę"
+          }
+        }
+      }
+    },
+    "Saved" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisano"
+          }
+        }
+      }
+    },
+    "Saved check: %lld of %lld files" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisane sprawdzenie: %lld z %lld plików"
+          }
+        }
+      }
+    },
+    "Saved into the file itself (%@). Blank fields keep the file's values." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisywane w samym pliku (%@). Puste pola zachowują wartości pliku."
+          }
+        }
+      }
+    },
+    "Saving…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisywanie…"
+          }
+        }
+      }
+    },
+    "Scan" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skanuj"
+          }
+        }
+      }
+    },
+    "Scan with your computer's camera app, or open:" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeskanuj aplikacją aparatu w komputerze lub otwórz:"
+          }
+        }
+      }
+    },
+    "Scanning %lld of %lld…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skanowanie %lld z %lld…"
+          }
+        }
+      }
+    },
+    "Scanning your music…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skanowanie muzyki…"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj"
+          }
+        }
+      }
+    },
+    "Search %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj: %@"
+          }
+        }
+      }
+    },
+    "Search %lld (%@)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj %lld (%@)"
+          }
+        }
+      }
+    },
+    "Search images in browser" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj obrazów w przeglądarce"
+          }
+        }
+      }
+    },
+    "Search lyrics online" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj tekstu online"
+          }
+        }
+      }
+    },
+    "Search online" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj online"
+          }
+        }
+      }
+    },
+    "Search online…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj online…"
+          }
+        }
+      }
+    },
+    "Search the web" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj w internecie"
+          }
+        }
+      }
+    },
+    "Search your library" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj w bibliotece"
+          }
+        }
+      }
+    },
+    "Search your songs, albums and artists." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj utworów, albumów i wykonawców."
+          }
+        }
+      }
+    },
+    "Searching iTunes, MusicBrainz, Deezer and Wikimedia…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeszukiwanie iTunes, MusicBrainz, Deezer i Wikimedia…"
+          }
+        }
+      }
+    },
+    "Searching on this phone… %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie w tym telefonie… %@"
+          }
+        }
+      }
+    },
+    "Searching…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyszukiwanie…"
+          }
+        }
+      }
+    },
+    "Seek" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przewiń"
+          }
+        }
+      }
+    },
+    "Select for revert" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaznacz do przywrócenia"
+          }
+        }
+      }
+    },
+    "Selected fields replace the file's tags. Track and disc numbers must belong to the same album edition; unknown positions are left alone. BPM estimates never replace a tagged tempo." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybrane pola zastępują tagi pliku. Numery utworu i płyty muszą należeć do tego samego wydania albumu; nieznane pozycje pozostają bez zmian. Szacowane BPM nigdy nie zastępuje otagowanego tempa."
+          }
+        }
+      }
+    },
+    "Selected for revert" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaznaczono do przywrócenia"
+          }
+        }
+      }
+    },
+    "Selected from your library. Browse first, then choose what to play." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybrane z twojej biblioteki. Najpierw przeglądaj, potem wybierz, co odtworzyć."
+          }
+        }
+      }
+    },
+    "Selected volume point" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybrany punkt głośności"
+          }
+        }
+      }
+    },
+    "Sends only the title, artist, album and length. Tap a match to copy its values into the fields above, then check them before saving." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wysyła tylko tytuł, wykonawcę, album i długość. Stuknij dopasowanie, aby skopiować jego wartości do pól powyżej, a potem sprawdź je przed zapisem."
+          }
+        }
+      }
+    },
+    "Sensitivity" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czułość"
+          }
+        }
+      }
+    },
+    "Sent to iOS audio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wysyłane do dźwięku iOS"
+          }
+        }
+      }
+    },
+    "Session sample rate" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Częstotliwość próbkowania sesji"
+          }
+        }
+      }
+    },
+    "Set A" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustaw A"
+          }
+        }
+      }
+    },
+    "Set A and B while listening. Looping jumps back to A each time playback reaches B." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustaw A i B podczas słuchania. Pętla wraca do A za każdym razem, gdy odtwarzanie dojdzie do B."
+          }
+        }
+      }
+    },
+    "Set B" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustaw B"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustawienia"
+          }
+        }
+      }
+    },
+    "Share audio details" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Udostępnij szczegóły dźwięku"
+          }
+        }
+      }
+    },
+    "Shelf" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Półka"
+          }
+        }
+      }
+    },
+    "Shortened to %@ for these tracks" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skrócone do %@ dla tych utworów"
+          }
+        }
+      }
+    },
+    "Show" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż"
+          }
+        }
+      }
+    },
+    "Show VYBE and radio discovery" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż VYBE i odkrywanie radia"
+          }
+        }
+      }
+    },
+    "Show albums side by side" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż albumy obok siebie"
+          }
+        }
+      }
+    },
+    "Show all selected fields" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż wszystkie wybrane pola"
+          }
+        }
+      }
+    },
+    "Show in Smart Playlists again" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuj znów w inteligentnych playlistach"
+          }
+        }
+      }
+    },
+    "Shuffle" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Losowo"
+          }
+        }
+      }
+    },
+    "Shuffle off" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Losowanie wył."
+          }
+        }
+      }
+    },
+    "Shuffle on" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Losowanie wł."
+          }
+        }
+      }
+    },
+    "Shuffle upcoming" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wymieszaj następne"
+          }
+        }
+      }
+    },
+    "Silence · −∞ dB" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cisza · −∞ dB"
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomiń"
+          }
+        }
+      }
+    },
+    "Skip for now" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na razie pomiń"
+          }
+        }
+      }
+    },
+    "Slam" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uderzenie"
+          }
+        }
+      }
+    },
+    "Smooth" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Płynne"
+          }
+        }
+      }
+    },
+    "Smoothing" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wygładzanie"
+          }
+        }
+      }
+    },
+    "Something went wrong" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coś poszło nie tak"
+          }
+        }
+      }
+    },
+    "Songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory"
+          }
+        }
+      }
+    },
+    "Songs you play this month show up here: your top songs, albums and artists." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pojawią się utwory odtwarzane w tym miesiącu: twoje najlepsze utwory, albumy i wykonawcy."
+          }
+        }
+      }
+    },
+    "Songs you play this session show up here." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pojawią się utwory odtwarzane w tej sesji."
+          }
+        }
+      }
+    },
+    "Songs, albums, artists" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory, albumy, wykonawcy"
+          }
+        }
+      }
+    },
+    "Sort by" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortuj według"
+          }
+        }
+      }
+    },
+    "Sort by %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortuj według: %@"
+          }
+        }
+      }
+    },
+    "Sort by title" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortuj według tytułu"
+          }
+        }
+      }
+    },
+    "Sound" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk"
+          }
+        }
+      }
+    },
+    "Sound Capsule" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapsuła dźwięku"
+          }
+        }
+      }
+    },
+    "Source" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Źródło"
+          }
+        }
+      }
+    },
+    "Source code on GitHub" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kod źródłowy na GitHubie"
+          }
+        }
+      }
+    },
+    "Source cues" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punkty źródłowe"
+          }
+        }
+      }
+    },
+    "Source file" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik źródłowy"
+          }
+        }
+      }
+    },
+    "Source waveform unavailable" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przebieg źródłowy niedostępny"
+          }
+        }
+      }
+    },
+    "Spatial audio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk przestrzenny"
+          }
+        }
+      }
+    },
+    "Spectrum bars" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Słupki widma"
+          }
+        }
+      }
+    },
+    "Spotlight" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W centrum uwagi"
+          }
+        }
+      }
+    },
+    "Stack background albums" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Układaj albumy w tle w stos"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozpocznij"
+          }
+        }
+      }
+    },
+    "Start a new artist-photo check" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozpocznij nowe sprawdzanie zdjęć wykonawców"
+          }
+        }
+      }
+    },
+    "Start a new artwork check" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozpocznij nowe sprawdzanie okładek"
+          }
+        }
+      }
+    },
+    "Start a new search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozpocznij nowe wyszukiwanie"
+          }
+        }
+      }
+    },
+    "Start bass swap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamiana basu na początku"
+          }
+        }
+      }
+    },
+    "Start listening" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zacznij słuchać"
+          }
+        }
+      }
+    },
+    "Start transfer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozpocznij transfer"
+          }
+        }
+      }
+    },
+    "Starting preview…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchamianie podglądu…"
+          }
+        }
+      }
+    },
+    "Starting…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchamianie…"
+          }
+        }
+      }
+    },
+    "Starts at %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaczyna się w %@"
+          }
+        }
+      }
+    },
+    "State" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stan"
+          }
+        }
+      }
+    },
+    "Status" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stan"
+          }
+        }
+      }
+    },
+    "Stop after this image" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj po tym obrazie"
+          }
+        }
+      }
+    },
+    "Stop checking" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj sprawdzanie"
+          }
+        }
+      }
+    },
+    "Stop preview" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj podgląd"
+          }
+        }
+      }
+    },
+    "Stop search" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj wyszukiwanie"
+          }
+        }
+      }
+    },
+    "Stop transfer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj transfer"
+          }
+        }
+      }
+    },
+    "Stop transition preview" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymaj podgląd przejścia"
+          }
+        }
+      }
+    },
+    "Style" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Styl"
+          }
+        }
+      }
+    },
+    "Style and feel of the Now Playing visualizer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Styl i charakter wizualizera w Teraz odtwarzane"
+          }
+        }
+      }
+    },
+    "Suggested changes · not saved" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proponowane zmiany · niezapisane"
+          }
+        }
+      }
+    },
+    "Support" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wsparcie"
+          }
+        }
+      }
+    },
+    "Support erhu on Ko-fi" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wesprzyj erhu na Ko-fi"
+          }
+        }
+      }
+    },
+    "System default" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domyślny systemowy"
+          }
+        }
+      }
+    },
+    "Tag repair results" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyniki poprawiania tagów"
+          }
+        }
+      }
+    },
+    "Tag repair results · %lld songs" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyniki poprawiania tagów · utwory: %lld"
+          }
+        }
+      }
+    },
+    "Tags" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tagi"
+          }
+        }
+      }
+    },
+    "Tags & cover art" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tagi i okładki"
+          }
+        }
+      }
+    },
+    "Tags, cover art and online sources" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tagi, okładki i źródła online"
+          }
+        }
+      }
+    },
+    "Tail" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakończenie"
+          }
+        }
+      }
+    },
+    "Tap Start to open a private transfer page on this Wi-Fi. It stays on until you tap Stop, leave Erhu or lose this network. You can use other pages in Erhu while it runs." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stuknij Rozpocznij, aby otworzyć prywatną stronę transferu w tej sieci Wi-Fi. Działa, dopóki nie stukniesz Zatrzymaj, nie opuścisz Erhu lub nie stracisz połączenia z siecią. W tym czasie możesz korzystać z innych stron Erhu."
+          }
+        }
+      }
+    },
+    "Tap a transition to edit that exact pair. With shuffle, a pair's setting applies whenever those two tracks play back to back; Auto follows the %@'s setting." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stuknij przejście, aby edytować tę konkretną parę. Przy losowaniu ustawienie pary działa zawsze, gdy te dwa utwory grają jeden po drugim; Auto stosuje ustawienie: %@."
+          }
+        }
+      }
+    },
+    "The estimate comes from the EQ settings: any boost can push loud music past full scale (0 dBFS), where the EQ clips. The measurement shows the largest sample after the EQ while this screen is open. It cannot see peaks between samples (true peak) or what iOS does afterwards, and full-scale samples may already be in the recording." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szacunek wynika z ustawień korektora: każde wzmocnienie może wypchnąć głośną muzykę poza pełną skalę (0 dBFS), gdzie korektor przesterowuje. Pomiar pokazuje największą próbkę po korektorze, gdy ten ekran jest otwarty. Nie widzi szczytów między próbkami (true peak) ani tego, co iOS robi później, a próbki pełnej skali mogą już być w nagraniu."
+          }
+        }
+      }
+    },
+    "The file" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik"
+          }
+        }
+      }
+    },
+    "The green playhead follows rendered audio samples with output-route latency compensation. Filter lines show cutoff targets on a logarithmic frequency scale, not a measured spectrum." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zielony znacznik odtwarzania śledzi renderowane próbki z kompensacją opóźnienia wyjścia. Linie filtrów pokazują docelowe odcięcia w logarytmicznej skali częstotliwości, a nie zmierzone widmo."
+          }
+        }
+      }
+    },
+    "The incoming track's bass (below %lld Hz) is held down until the swap point, then moves over from the outgoing track. Your equalizer settings are not changed." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bas utworu przychodzącego (poniżej %lld Hz) jest wyciszony do punktu zamiany, a potem przejmuje go od utworu wychodzącego. Ustawienia korektora nie są zmieniane."
+          }
+        }
+      }
+    },
+    "The kept originals are deleted too, so the changes can no longer be reverted." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zachowane oryginały również zostaną usunięte, więc zmian nie będzie można cofnąć."
+          }
+        }
+      }
+    },
+    "The processing the app itself performs, in its real order. After the app, iOS mixes, may resample, and may apply system effects (and Bluetooth re-encodes); that part is hidden from apps, so it is shown as one step. The app has no preamp, bass boost, virtualizer, loudness or limiter stage." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przetwarzanie wykonywane przez samą aplikację, w rzeczywistej kolejności. Po aplikacji iOS miksuje, może zmienić częstotliwość próbkowania i zastosować efekty systemowe (a Bluetooth koduje ponownie); ta część jest ukryta przed aplikacjami, więc jest pokazana jako jeden krok. Aplikacja nie ma przedwzmacniacza, podbicia basu, wirtualizera, wyrównywania głośności ani limitera."
+          }
+        }
+      }
+    },
+    "The processing units could not be loaded; audio plays without them" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się wczytać modułów przetwarzania; dźwięk jest odtwarzany bez nich"
+          }
+        }
+      }
+    },
+    "The songs stay in your library." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory zostaną w bibliotece."
+          }
+        }
+      }
+    },
+    "Themes & Appearance" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motywy i wygląd"
+          }
+        }
+      }
+    },
+    "This %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten element: %@"
+          }
+        }
+      }
+    },
+    "This album is no longer in your library." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tego albumu nie ma już w bibliotece."
+          }
+        }
+      }
+    },
+    "This artist is no longer in your library." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tego wykonawcy nie ma już w bibliotece."
+          }
+        }
+      }
+    },
+    "This mix isn't available right now. It comes back as your listening and library grow." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten miks jest teraz niedostępny. Wróci, gdy będziesz więcej słuchać i rozbudujesz bibliotekę."
+          }
+        }
+      }
+    },
+    "This playlist is empty. Add songs from any song's menu." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta playlista jest pusta. Dodaj utwory z menu dowolnego utworu."
+          }
+        }
+      }
+    },
+    "This playlist no longer exists." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta playlista już nie istnieje."
+          }
+        }
+      }
+    },
+    "This session" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta sesja"
+          }
+        }
+      }
+    },
+    "Throwback" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powrót do przeszłości"
+          }
+        }
+      }
+    },
+    "Throwback uses your songs’ year tags: released %lld or more years ago." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powrót do przeszłości korzysta z tagów roku: wydane %lld lub więcej lat temu."
+          }
+        }
+      }
+    },
+    "Throwbacks" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wspomnienia"
+          }
+        }
+      }
+    },
+    "Time in overlap · ms" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas w nakładaniu · ms"
+          }
+        }
+      }
+    },
+    "Time is relative to the actual overlap. Points stay between their neighbours. Fixed endpoint times and levels are preserved. Gain is limited to −96…0 dB; use Silence for exact zero." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas jest liczony względem rzeczywistego nakładania. Punkty pozostają między sąsiadami. Stałe czasy i poziomy końców są zachowane. Wzmocnienie jest ograniczone do −96…0 dB; dla dokładnego zera użyj Ciszy."
+          }
+        }
+      }
+    },
+    "Time zoom" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powiększenie czasu"
+          }
+        }
+      }
+    },
+    "Title" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tytuł"
+          }
+        }
+      }
+    },
+    "Title and artist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tytuł i wykonawca"
+          }
+        }
+      }
+    },
+    "Title · A–Z" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tytuł · A–Z"
+          }
+        }
+      }
+    },
+    "Title · Z–A" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tytuł · Z–A"
+          }
+        }
+      }
+    },
+    "Track" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwór"
+          }
+        }
+      }
+    },
+    "Track number" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numer utworu"
+          }
+        }
+      }
+    },
+    "Tracks" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory"
+          }
+        }
+      }
+    },
+    "Transition" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przejście"
+          }
+        }
+      }
+    },
+    "Transition Studio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Studio przejść"
+          }
+        }
+      }
+    },
+    "Transition to %@: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przejście do %@: %@"
+          }
+        }
+      }
+    },
+    "Transitions" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przejścia"
+          }
+        }
+      }
+    },
+    "Transitions are paused for this %@. Enable them on its page to hear saved transitions during playback." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przejścia są wstrzymane dla: %@. Włącz je na jego stronie, aby słyszeć zapisane przejścia podczas odtwarzania."
+          }
+        }
+      }
+    },
+    "Transitions are paused for this %@. Saved defaults and pair edits are kept." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przejścia są wstrzymane dla: %@. Zapisane ustawienia domyślne i edycje par są zachowane."
+          }
+        }
+      }
+    },
+    "Try" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wypróbuj"
+          }
+        }
+      }
+    },
+    "Try again" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spróbuj ponownie"
+          }
+        }
+      }
+    },
+    "Typeface" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krój pisma"
+          }
+        }
+      }
+    },
+    "Unavailable" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niedostępne"
+          }
+        }
+      }
+    },
+    "Unchanged" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez zmian"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofnij"
+          }
+        }
+      }
+    },
+    "Undo removal" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofnij usunięcie"
+          }
+        }
+      }
+    },
+    "Unity" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez zmian"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieznane"
+          }
+        }
+      }
+    },
+    "Untagged" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez tagów"
+          }
+        }
+      }
+    },
+    "Updates" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizacje"
+          }
+        }
+      }
+    },
+    "Upgrade %lld, skip albums with animated covers" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulepsz %lld, pomiń albumy z animowanymi okładkami"
+          }
+        }
+      }
+    },
+    "Upgrade album covers" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulepsz okładki albumów"
+          }
+        }
+      }
+    },
+    "Upgrade all %lld" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulepsz wszystkie (%lld)"
+          }
+        }
+      }
+    },
+    "Upgrade artist photos" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulepsz zdjęcia wykonawców"
+          }
+        }
+      }
+    },
+    "Use" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj"
+          }
+        }
+      }
+    },
+    "Use higher-resolution image" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj obrazu w wyższej rozdzielczości"
+          }
+        }
+      }
+    },
+    "Use the file's lyrics" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj tekstu z pliku"
+          }
+        }
+      }
+    },
+    "Use timing from another source" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj synchronizacji z innego źródła"
+          }
+        }
+      }
+    },
+    "VYBE" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VYBE"
+          }
+        }
+      }
+    },
+    "VYBE sound match" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopasowanie brzmienia VYBE"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wersja"
+          }
+        }
+      }
+    },
+    "Version, privacy and source code" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wersja, prywatność i kod źródłowy"
+          }
+        }
+      }
+    },
+    "View metadata" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż metadane"
+          }
+        }
+      }
+    },
+    "View release on GitHub" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobacz wydanie na GitHubie"
+          }
+        }
+      }
+    },
+    "Visible timeline window" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widoczne okno osi czasu"
+          }
+        }
+      }
+    },
+    "Visualizer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wizualizer"
+          }
+        }
+      }
+    },
+    "Visualizer options" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opcje wizualizera"
+          }
+        }
+      }
+    },
+    "Visualizer tap" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odczep wizualizera"
+          }
+        }
+      }
+    },
+    "Volume" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Głośność"
+          }
+        }
+      }
+    },
+    "Volume curves" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krzywe głośności"
+          }
+        }
+      }
+    },
+    "Waiting" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oczekiwanie"
+          }
+        }
+      }
+    },
+    "Waveform" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przebieg"
+          }
+        }
+      }
+    },
+    "Waveform height · display only" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wysokość przebiegu · tylko wyświetlanie"
+          }
+        }
+      }
+    },
+    "Waveform tool" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Narzędzie przebiegu"
+          }
+        }
+      }
+    },
+    "Web results have their own usage rights. Choose a permitted image and import it from Photos." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyniki z internetu mają własne prawa użytkowania. Wybierz dozwolony obraz i zaimportuj go ze Zdjęć."
+          }
+        }
+      }
+    },
+    "Welcome to Erhu" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witaj w Erhu"
+          }
+        }
+      }
+    },
+    "What iOS reports for the audio session. The session sample rate is what the hardware runs at now; iOS converts the app's output to it when they differ." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co iOS podaje dla sesji audio. Częstotliwość próbkowania sesji to obecna częstotliwość sprzętu; iOS przelicza do niej dźwięk aplikacji, gdy się różnią."
+          }
+        }
+      }
+    },
+    "What the app's audio engine reports for the current track: the format the file is decoded to, and the format it hands to iOS after the app's processing." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co silnik dźwięku aplikacji podaje dla bieżącego utworu: format, do którego plik jest dekodowany, i format przekazywany do iOS po przetworzeniu przez aplikację."
+          }
+        }
+      }
+    },
+    "What to fix" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co poprawić"
+          }
+        }
+      }
+    },
+    "Wi-Fi Transfer" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfer Wi-Fi"
+          }
+        }
+      }
+    },
+    "Write \"%@\" by %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisz „%@” (%@)"
+          }
+        }
+      }
+    },
+    "Write a match from %lld %% confidence" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisuj dopasowanie od %lld %% pewności"
+          }
+        }
+      }
+    },
+    "Write this match?" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisać to dopasowanie?"
+          }
+        }
+      }
+    },
+    "YOUR MONTH" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TWÓJ MIESIĄC"
+          }
+        }
+      }
+    },
+    "Year" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rok"
+          }
+        }
+      }
+    },
+    "Year or date (2019 or 2019-05-17)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rok lub data (2019 lub 2019-05-17)"
+          }
+        }
+      }
+    },
+    "Year · newest first" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rok · od najnowszych"
+          }
+        }
+      }
+    },
+    "Year · oldest first" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rok · od najstarszych"
+          }
+        }
+      }
+    },
+    "Yet to Be Heard" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeszcze nieodsłuchane"
+          }
+        }
+      }
+    },
+    "You have the latest published release for this variant" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masz najnowsze opublikowane wydanie tego wariantu"
+          }
+        }
+      }
+    },
+    "Your Kind of Sound" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoje brzmienie"
+          }
+        }
+      }
+    },
+    "Your collection" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoja kolekcja"
+          }
+        }
+      }
+    },
+    "Your music files, library index and VYBE processing stay on this device. Online lyrics, metadata and artwork searches use the song or artist details needed for the request." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoje pliki muzyczne, indeks biblioteki i przetwarzanie VYBE zostają na tym urządzeniu. Wyszukiwanie tekstów, metadanych i okładek online korzysta z danych utworu lub wykonawcy potrzebnych do zapytania."
+          }
+        }
+      }
+    },
+    "Your music, on your iPhone." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoja muzyka na twoim iPhonie."
+          }
+        }
+      }
+    },
+    "Your themes" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoje motywy"
+          }
+        }
+      }
+    },
+    "Your top song" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój najczęściej słuchany utwór"
+          }
+        }
+      }
+    },
+    "Zoom, overlays & technical controls" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powiększenie, nakładki i sterowanie techniczne"
+          }
+        }
+      }
+    },
+    "Z–A" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Z–A"
+          }
+        }
+      }
+    },
+    "and enter the code" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "i wpisz kod"
+          }
+        }
+      }
+    },
+    "erhu is free. If you'd like to help get it onto the App Store, you can buy me a coffee." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "erhu jest darmowe. Jeśli chcesz pomóc trafić mu do App Store, możesz postawić mi kawę."
+          }
+        }
+      }
+    },
+    "iOS audio system" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System dźwięku iOS"
+          }
+        }
+      }
+    },
+    "line-synced" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "synchronizowane wierszami"
+          }
+        }
+      }
+    },
+    "ms" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ms"
+          }
+        }
+      }
+    },
+    "no text" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "brak tekstu"
+          }
+        }
+      }
+    },
+    "plain text" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "zwykły tekst"
+          }
+        }
+      }
+    },
+    "shared genres" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wspólne gatunki"
+          }
+        }
+      }
+    },
+    "similar tempo" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "podobne tempo"
+          }
+        }
+      }
+    },
+    "the same artist" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ten sam wykonawca"
+          }
+        }
+      }
+    },
+    "word-synced" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "synchronizowane słowami"
+          }
+        }
+      }
+    },
+    "your listening" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "twoje słuchanie"
+          }
+        }
+      }
+    },
+    "←" : {},
+    "→" : {},
+    "−100 ms" : {}
   },
   "version" : "1.0"
 }

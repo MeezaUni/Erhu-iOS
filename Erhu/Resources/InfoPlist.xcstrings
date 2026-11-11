@@ -1,0 +1,26 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSLocalNetworkUsageDescription" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfer Wi-Fi odbiera muzykę z przeglądarki w komputerze przez twoją sieć Wi-Fi. Nic nie przechodzi przez internet."
+          }
+        }
+      }
+    },
+    "Ogg Vorbis or Opus audio" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk Ogg Vorbis lub Opus"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
