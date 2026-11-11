@@ -105,6 +105,7 @@ private struct SectionCapsule: View {
     @Environment(AppSettings.self) private var settings
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
     @GestureState private var draggedPosition: CGFloat?
 
     var body: some View {
@@ -144,11 +145,11 @@ private struct SectionCapsule: View {
                     .updating($draggedPosition) { value, position, transaction in
                         guard position != nil || abs(value.translation.width) > abs(value.translation.height) else { return }
                         transaction.disablesAnimations = true
-                        position = SectionCapsuleGeometry.position(at: value.location.x, width: geometry.size.width, count: sections.count)
+                        position = SectionCapsuleGeometry.position(at: readingX(value.location.x, width: geometry.size.width), width: geometry.size.width, count: sections.count)
                     }
                     .onEnded { value in
                         guard abs(value.translation.width) > abs(value.translation.height) else { return }
-                        let index = SectionCapsuleGeometry.index(at: value.location.x, width: geometry.size.width, count: sections.count)
+                        let index = SectionCapsuleGeometry.index(at: readingX(value.location.x, width: geometry.size.width), width: geometry.size.width, count: sections.count)
                         if sections[index] != router.section { select(sections[index]) }
                     })
                 .animation(reduceMotion ? nil : .smooth(duration: 0.24), value: router.section)
@@ -172,6 +173,10 @@ private struct SectionCapsule: View {
         .frame(height: 56)
         .chromeSurface(enabled: settings.glassEnabled)
     }
+
+    /// The finger's position from the first tab's side: the tabs run right to left in
+    /// right-to-left languages, while touches are measured from the left.
+    private func readingX(_ x: CGFloat, width: CGFloat) -> CGFloat { layoutDirection == .rightToLeft ? width - x : x }
 
     private func select(_ section: LibrarySection) {
         router.select(section)

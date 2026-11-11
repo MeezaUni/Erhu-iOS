@@ -24,6 +24,7 @@ struct TrackCarousel: View {
     var onPullEnd: (CGFloat, CGFloat) -> Void = { _, _ in }
     var onPullCancel: () -> Void = {}
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.playerInMotion) private var playerInMotion
     @State private var scene = CarouselScene()
     @State private var motion = CarouselMotion()
@@ -39,8 +40,12 @@ struct TrackCarousel: View {
                           viewport: geometry.size,
                           cardSize: CGSize(width: metrics.cardWidth, height: metrics.artSide + metrics.metadataHeight + CardMetrics.padding * 2),
                           reduceMotion: reduceMotion, meter: motion.meter) { item in
-                card(item, metrics: metrics)
+                // Each card keeps the app's own reading direction for its text.
+                card(item, metrics: metrics).environment(\.layoutDirection, layoutDirection)
             }
+            // The strip itself runs previous-left, next-right in every language, like the playback
+            // controls, so a swipe always moves the way the finger goes.
+            .environment(\.layoutDirection, .leftToRight)
             .modifier(PlayerCollapseVisibility())
             .contentShape(Rectangle())
             .highPriorityGesture(swipe(page: page))

@@ -21,11 +21,11 @@ struct RadioStationView: View {
                     }
                     HStack(spacing: Spacing.md) {
                         Button { actions.playRadio(plan) } label: {
-                            Label("Play station", systemImage: "play.fill").frame(maxWidth: .infinity)
+                            Label("Play station", systemImage: "play.fill").lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                         }
                         .modifier(PaletteFilledButton())
                         Button { actions.playRadio(plan, shuffled: true) } label: {
-                            Label("Shuffle", systemImage: "shuffle").frame(maxWidth: .infinity)
+                            Label("Shuffle", systemImage: "shuffle").lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
                     }

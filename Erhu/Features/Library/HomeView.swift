@@ -225,7 +225,9 @@ private struct MixBanner: View {
         let quiet = Color(argb: look.text, alpha: BannerLook.secondaryAlpha)
         Button(action: onOpen) {
             ZStack(alignment: .leading) {
-                MixArtCanvas(art: art)
+                // The art is drawn for text on the left; in right-to-left languages it is mirrored
+                // so it stays clear of the text on the right.
+                MixArtCanvas(art: art).flipsForRightToLeftLayoutDirection(true)
                 if look.veilAlpha > 0 {
                     let veil = Color(argb: look.veil)
                     LinearGradient(stops: [

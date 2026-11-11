@@ -77,6 +77,7 @@ struct VisualizerView: View {
             }
             .foregroundStyle(palette.onSurface)
             .padding(.vertical, Spacing.lg)
+            .environment(\.layoutDirection, .leftToRight)
         }
         .padding(.horizontal, Spacing.lg)
         .buttonStyle(.plain)

@@ -60,7 +60,14 @@ struct TrackRow: View {
     let onTap: () -> Void
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var swipe: CGFloat = 0
+
+    /// The finger's movement in reading order: touches are measured left to right, while the row
+    /// (and its offset) is mirrored in right-to-left languages.
+    private func reading(_ translation: CGSize) -> CGSize {
+        layoutDirection == .rightToLeft ? CGSize(width: -translation.width, height: translation.height) : translation
+    }
 
     var body: some View {
         HStack(spacing: Spacing.md) {
@@ -86,11 +93,11 @@ struct TrackRow: View {
                                change: { sample in
                                    var transaction = Transaction()
                                    transaction.disablesAnimations = true
-                                   withTransaction(transaction) { swipe = sample.translation.width.clamped(-112, 112) }
+                                   withTransaction(transaction) { swipe = reading(sample.translation).width.clamped(-112, 112) }
                                },
                                end: { sample in
                                    resetSwipe()
-                                   switch SongSwipeAction.committed(translation: sample.translation, startedHorizontally: true) {
+                                   switch SongSwipeAction.committed(translation: reading(sample.translation), startedHorizontally: true) {
                                    case .queue: actions.addToQueue(song)
                                    case .like: actions.toggleFavorite(song)
                                    case nil: break

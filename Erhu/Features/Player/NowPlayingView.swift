@@ -212,7 +212,7 @@ struct NowPlayingView: View {
         case .playlist(let id): return library.playlist(id)?.name ?? String(localized: "Playlist unavailable")
         case .artist(let id): return library.artist(id)?.name ?? String(localized: "Artist unavailable")
         case .smartPlaylist(let key): return mixes.mix(key)?.title ?? MixKind.fromKey(key)?.title ?? String(localized: "Smart playlist")
-        case .library: return "Library"
+        case .library: return String(localized: "Library")
         case .favorites: return String(localized: "Liked Songs")
         case .vybe: return "VYBE"
         }
@@ -308,6 +308,8 @@ struct NowPlayingView: View {
                         .accessibilityLabel("Repeat \(state.repeatMode == .off ? "off" : state.repeatMode == .one ? "one" : "all")")
                 }
             }
+            // Playback controls keep their left-to-right order in right-to-left languages, as on iOS.
+            .environment(\.layoutDirection, .leftToRight)
             HStack(spacing: 0) {
                 slot {
                     Button { if let song = player.state.currentSong { router.songsForPlaylist = [song] } } label: {
@@ -405,6 +407,8 @@ private struct ProgressSection: View {
                         loop: state.abLoop?.songId == song.id ? state.abLoop : nil, accent: colors.accent,
                         previewMs: $previewMs) { player.seek(to: $0) }
         }
+        // A media timeline runs left to right in every language, as on iOS.
+        .environment(\.layoutDirection, .leftToRight)
         .onReceive(NotificationCenter.default.publisher(for: ArtworkLoader.didChange)) { note in
             if note.object as? String == song.url.path { artworkRevision += 1 }
         }
@@ -468,6 +472,7 @@ private struct ExpandedLyrics: View {
             }
             .foregroundStyle(colors.content)
             .padding(.vertical, Spacing.sm)
+            .environment(\.layoutDirection, .leftToRight)
         }
         .buttonStyle(.plain)
         .background(LinearGradient(colors: colors.gradient, startPoint: .top, endPoint: .bottom).ignoresSafeArea())
