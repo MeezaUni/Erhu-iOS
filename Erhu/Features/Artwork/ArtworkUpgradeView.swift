@@ -97,7 +97,7 @@ struct ArtworkUpgradeView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             let animated = store.results.filter(hasDownloadedAnimation).count
-            Text("\(animated) of these albums already \(animated == 1 ? "has" : "have") a downloaded animated cover. Skipped albums stay in the list to review on their own.")
+            Text("Albums with a downloaded animated cover: \(animated). Skipped albums stay in the list to review on their own.")
         }
         .sheet(item: $review) { item in
             ArtworkUpgradeReviewView(review: item, saving: saving, error: reviewError) {
