@@ -17,7 +17,7 @@ jobs:
   build:
     if: github.event.deleted != true
     runs-on: macos-15-intel
-    timeout-minutes: 75
+    timeout-minutes: 100
     env:
       HOMEBREW_NO_AUTO_UPDATE: "1"
     steps:

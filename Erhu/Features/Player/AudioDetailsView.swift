@@ -15,7 +15,7 @@ struct AudioDetailsView: View {
     @State private var peak: PeakReading?
     @State private var copied = false
     private var decoderName: String {
-        player.state.currentSong.map { DecodedAudioSource.requiresDecoder($0.url) } == true ? "Xiph Ogg decoder → PCM cache → Core Audio" : "Core Audio file reader"
+        player.state.currentSong.map { DecodedAudioSource.requiresDecoder($0.url) } == true ? String(localized: "Xiph Ogg decoder → PCM cache → Core Audio") : String(localized: "Core Audio file reader")
     }
 
     enum SourceState: Equatable {
@@ -90,9 +90,9 @@ struct AudioDetailsView: View {
 
     private var stateText: String {
         switch player.state.status {
-        case .playing: "Playing"
-        case .paused: "Paused"
-        default: player.state.currentSong == nil ? "Idle" : "Stopped"
+        case .playing: String(localized: "Playing")
+        case .paused: String(localized: "Paused")
+        default: player.state.currentSong == nil ? "Idle" : String(localized: "Stopped")
         }
     }
 
@@ -120,7 +120,7 @@ struct AudioDetailsView: View {
         } header: {
             Text("Source file")
         } footer: {
-            Text("Read from the file itself without decoding it. \"File header\" values come from the audio header and are exact; \"Container\" values are what the file/container reader reports for the file (estimates for some formats); \"Library index\" values were recorded when the library was scanned. Bit depth exists only for lossless formats that store it.")
+            Text(String(localized: "Read from the file itself without decoding it. \"File header\" values come from the audio header and are exact; \"Container\" values are what the file/container reader reports for the file (estimates for some formats); \"Library index\" values were recorded when the library was scanned. Bit depth exists only for lossless formats that store it."))
         }
     }
 
@@ -148,8 +148,8 @@ struct AudioDetailsView: View {
             ChainStep(title: "Transition", state: engine.isCrossfading ? "Fading" : "Unity", appControlled: true,
                       detail: "Changes levels only while a transition set up in the Transition Studio plays")
             if engine.hasProcessing {
-                ChainStep(title: "Equalizer", state: eq.status.rawValue, appControlled: true,
-                          detail: eq.reason + (eq.status == .active ? "; samples beyond full scale are clipped" : ""))
+                ChainStep(title: "Equalizer", state: eq.status.label, appControlled: true,
+                          detail: eq.reason + (eq.status == .active ? String(localized: "; samples beyond full scale are clipped") : ""))
             } else {
                 ChainStep(title: "Equalizer", state: "Unavailable", appControlled: true,
                           detail: "The processing units could not be loaded; audio plays without them")
@@ -157,7 +157,7 @@ struct AudioDetailsView: View {
             ChainStep(title: "Visualizer tap", state: engine.tap.isCollecting ? "Reading" : "Idle", appControlled: true,
                       detail: "Read-only copy for the visualizer and the peak meter below; never changes the audio")
             ChainStep(title: "iOS audio system", state: "Not visible", appControlled: false,
-                      detail: "Mixing, possible resampling, system effects" + (spatial ? "; spatial audio on" : ""))
+                      detail: "Mixing, possible resampling, system effects" + (spatial ? String(localized: "; spatial audio on") : ""))
             ChainStep(title: "Output", state: output?.route.first?.typeName ?? "Unknown", appControlled: false,
                       detail: output.map { $0.route.map(\.typeName).joined(separator: ", ") }.flatMap { $0.isEmpty ? nil : $0 } ?? "Route not reported")
             NavigationLink("Equalizer settings") { EqualizerView() }
@@ -193,12 +193,12 @@ struct AudioDetailsView: View {
     private func analysisSection(_ eq: EqStage, _ headroom: HeadroomEstimate) -> some View {
         Section {
             DetailRow("Clipping risk from EQ",
-                      Fact(headroom.risk == .none ? headroom.risk.rawValue
-                           : String(format: "%@ (max boost %+.1f dB)", headroom.risk.rawValue, headroom.maxBoostDb), .player),
+                      Fact(headroom.risk == .none ? headroom.risk.label
+                           : String(format: String(localized: "%@ (max boost %+.1f dB)"), headroom.risk.label, headroom.maxBoostDb), .player),
                       note: headroom.advice)
             let measured = peak.flatMap { $0.frames > 0 ? $0 : nil }
             DetailRow("Sample peak after EQ", measured?.peakDbfs.map { Fact(String(format: "%.1f dBFS", $0), .player) },
-                      note: measured.map { String(format: "Over %.0f s · %lld samples at full scale", $0.secondsMeasured, $0.fullScaleSamples) }
+                      note: measured.map { String(format: String(localized: "Over %.0f s · %lld samples at full scale"), $0.secondsMeasured, $0.fullScaleSamples) }
                           ?? "Measured while music plays with this screen open")
             Button("Reset measurement") {
                 player.engine.tap.resetMeter()
@@ -241,7 +241,7 @@ private struct DetailRow: View {
             }
             .font(.subheadline)
             if let fact {
-                Text(fact.provenance.rawValue).font(.caption2).foregroundStyle(palette.onSurfaceVariant)
+                Text(fact.provenance.label).font(.caption2).foregroundStyle(palette.onSurfaceVariant)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if let note {

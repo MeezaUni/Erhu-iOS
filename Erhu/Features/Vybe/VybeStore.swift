@@ -42,7 +42,7 @@ enum VybeQueryState: Equatable {
 @Observable
 final class VybeStore {
     static let resultLimit = 30
-    private static let weakNote = "These are loose matches. Try a genre or add a little more detail."
+    private static let weakNote = String(localized: "These are loose matches. Try a genre or add a little more detail.")
 
     private(set) var status: VybeStatus = .loadingModel
     private(set) var timings = VybeTimings()
@@ -162,7 +162,7 @@ final class VybeStore {
 
     func addAllToQueue(_ results: [VybeResult]) {
         for result in results { player.addToQueue(result.song) }
-        message = "Added \(results.count) songs to the queue"
+        message = String(localized: "Added \(results.count) songs to the queue")
     }
 
     private func run(_ label: String, _ answer: @escaping () async throws -> VybeAnswer?) {
@@ -174,7 +174,7 @@ final class VybeStore {
                 if let result = try await answer() {
                     state = .done(label, present(result))
                 } else {
-                    state = retryWhenReady == nil ? .error(label, "VYBE isn't ready yet") : .searching(label)
+                    state = retryWhenReady == nil ? .error(label, String(localized: "VYBE isn't ready yet")) : .searching(label)
                 }
             } catch {
                 state = .error(label, error.localizedDescription)
@@ -190,22 +190,22 @@ final class VybeStore {
             let named = songs(songIds.map { VybeHit(songId: $0, score: 1, reasons: ["\(Self.label(kind)) match"]) })
             return VybeResults(
                 title: "\(Self.label(kind)): \(name)",
-                note: similar.isEmpty ? "Found by name in your library."
-                    : "Your matches, followed by similar tracks from your library.",
+                note: similar.isEmpty ? String(localized: "Found by name in your library.")
+                    : String(localized: "Your matches, followed by similar tracks from your library."),
                 songs: named + songs(similar)
             )
         case .described(_, let hits, let weak, let unknownName):
             let note = [
-                unknownName.map { "No close name match for \"\($0)\". Showing matches by description." },
-                "Matched using your library's genres, tempo, artists and saved lyrics.",
+                unknownName.map { String(localized: "No close name match for \"\($0)\". Showing matches by description.") },
+                String(localized: "Matched using your library's genres, tempo, artists and saved lyrics."),
                 weak ? Self.weakNote : nil,
             ].compactMap { $0 }.joined(separator: " ")
-            return VybeResults(title: "Closest in your library", note: note, songs: songs(hits))
+            return VybeResults(title: String(localized: "Closest in your library"), note: note, songs: songs(hits))
         case .similarTo(_, let hits):
-            return VybeResults(title: "Like what's playing", note: "Songs with similar styles and tempo.", songs: songs(hits))
+            return VybeResults(title: String(localized: "Like what's playing"), note: String(localized: "Songs with similar styles and tempo."), songs: songs(hits))
         case .ambiguous(let query, let matches, let wantsSimilar):
-            return VybeResults(title: matches.isEmpty ? "No matches with these filters" : "Which one did you mean?",
-                               note: matches.isEmpty ? nil : "Choose a match, or add more of its name.", songs: [],
+            return VybeResults(title: matches.isEmpty ? String(localized: "No matches with these filters") : String(localized: "Which one did you mean?"),
+                               note: matches.isEmpty ? nil : String(localized: "Choose a match, or add more of its name."), songs: [],
                                choices: matches.map { VybeNameChoice(match: $0, query: query, wantsSimilar: wantsSimilar) })
         case .references(let answer):
             let selected = Dictionary(uniqueKeysWithValues: answer.references.compactMap { reference in
@@ -221,20 +221,20 @@ final class VybeStore {
             }
             var notes = answer.references.compactMap { reference -> String? in
                 guard reference.matches.isEmpty else { return nil }
-                return reference.filteredOut ? "\"\(reference.text)\" has no matches with these filters."
-                    : "Couldn't find \"\(reference.text)\" in your library."
+                return reference.filteredOut ? String(localized: "\"\(reference.text)\" has no matches with these filters.")
+                    : String(localized: "Couldn't find \"\(reference.text)\" in your library.")
             }
-            if !choices.isEmpty { notes.append("Choose a match for each remaining reference.") }
-            else if answer.waitingForIndex { notes.append("Indexing your reference tracks. Results will update when ready.") }
+            if !choices.isEmpty { notes.append(String(localized: "Choose a match for each remaining reference.")) }
+            else if answer.waitingForIndex { notes.append(String(localized: "Indexing your reference tracks. Results will update when ready.")) }
             else if answer.wantsSimilar && !matched.isEmpty {
-                notes.append(matched.count > 1 ? "Using each matched reference equally to find similar tracks."
-                    : "Finding similar tracks using the matched reference.")
-                if answer.similar.isEmpty { notes.append("No other indexed tracks match these filters.") }
+                notes.append(matched.count > 1 ? String(localized: "Using each matched reference equally to find similar tracks.")
+                    : String(localized: "Finding similar tracks using the matched reference."))
+                if answer.similar.isEmpty { notes.append(String(localized: "No other indexed tracks match these filters.")) }
             }
             var ids = Set<Int64>()
             let hits = answer.wantsSimilar ? answer.similar : matched.flatMap(\.songIds).filter { ids.insert($0).inserted }
-                .map { VybeHit(songId: $0, score: 1, reasons: ["Name match"]) }
-            return VybeResults(title: choices.isEmpty ? (answer.wantsSimilar ? "Like your references" : "Your matches") : "Which tracks did you mean?",
+                .map { VybeHit(songId: $0, score: 1, reasons: [String(localized: "Name match")]) }
+            return VybeResults(title: choices.isEmpty ? (answer.wantsSimilar ? String(localized: "Like your references") : String(localized: "Your matches")) : String(localized: "Which tracks did you mean?"),
                                note: notes.joined(separator: " "), songs: songs(hits), choices: choices,
                                matchedReferences: matched, showsEmptySuggestion: false)
         }

@@ -65,7 +65,7 @@ struct FixTagsView: View {
             }
             .disabled(store.isRunning || store.isCheckingMissing)
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("Write a match from \(Int((store.settings.acceptAt * 100).rounded())) % confidence")
+                Text(String(localized: "Write a match from \(Int((store.settings.acceptAt * 100).rounded())) % confidence"))
                 Slider(value: Binding(get: { Double(store.settings.acceptAt) }, set: { value in store.update { $0.acceptAt = Float(value) } }),
                        in: 0.7...0.99, step: 0.01)
             }
@@ -151,7 +151,7 @@ struct FixTagsView: View {
     private var queueSection: some View {
         Section("Queue") {
             if store.queue.isEmpty {
-                Text("Add songs here, or choose \"Fix tags online\" in any song's menu.")
+                Text(String(localized: "Add songs here, or choose \"Fix tags online\" in any song's menu."))
                     .font(.footnote).foregroundStyle(palette.onSurfaceVariant)
             }
             ForEach(store.queue) { item in

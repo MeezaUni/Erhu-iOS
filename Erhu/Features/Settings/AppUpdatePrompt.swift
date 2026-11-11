@@ -16,7 +16,7 @@ struct AppUpdatePrompt: View {
                     if let published = release.published_at, let date = ISO8601DateFormatter().date(from: published) {
                         Text("Released " + date.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
                     }
-                    Text(LocalizedStringKey(release.body?.nonBlank ?? "A newer version of Erhu is ready to download."))
+                    Text(LocalizedStringKey(release.body?.nonBlank ?? String(localized: "A newer version of Erhu is ready to download.")))
                         .textSelection(.enabled)
                     Link("View release on GitHub", destination: release.html_url)
                     Text("Download the IPA for your current artwork variant and install it with your usual iOS installer.")

@@ -19,15 +19,15 @@ func classifyProviderFailure(_ error: Error) -> ProviderError {
     if let error = error as? URLError {
         switch error.code {
         case .timedOut:
-            return ProviderError(status: .timedOut, message: "Request timed out", retryable: true)
+            return ProviderError(status: .timedOut, message: String(localized: "Request timed out"), retryable: true)
         case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed,
              .secureConnectionFailed, .internationalRoamingOff, .dataNotAllowed, .callIsActive:
-            return ProviderError(status: .networkError, message: "Connection failed: \(error.localizedDescription)", retryable: true)
+            return ProviderError(status: .networkError, message: String(localized: "Connection failed: \(error.localizedDescription)"), retryable: true)
         default:
             return ProviderError(status: .failed, message: error.localizedDescription)
         }
     }
-    if error is DecodingError { return ProviderError(status: .failed, message: "The provider's answer couldn't be read") }
+    if error is DecodingError { return ProviderError(status: .failed, message: String(localized: "The provider's answer couldn't be read")) }
     return ProviderError(status: .failed, message: error.localizedDescription)
 }
 
@@ -89,9 +89,9 @@ func checkStatus(_ response: HTTPURLResponse) throws {
     guard !(200..<300).contains(code) else { return }
     let retryAfter = (response.value(forHTTPHeaderField: "Retry-After")).flatMap { parseRetryAfterMs($0) }
     switch code {
-    case 429, 503: throw ProviderError(status: .rateLimited, message: "Rate limited (HTTP \(code))", retryAfterMs: retryAfter, retryable: true)
-    case 401, 403: throw ProviderError(status: .authFailed, message: "Access refused (HTTP \(code))", sessionWide: true)
-    case 500...: throw ProviderError(status: .failed, message: "Server error (HTTP \(code))", retryable: true)
+    case 429, 503: throw ProviderError(status: .rateLimited, message: String(localized: "Rate limited (HTTP \(code))"), retryAfterMs: retryAfter, retryable: true)
+    case 401, 403: throw ProviderError(status: .authFailed, message: String(localized: "Access refused (HTTP \(code))"), sessionWide: true)
+    case 500...: throw ProviderError(status: .failed, message: String(localized: "Server error (HTTP \(code))"), retryable: true)
     default: throw ProviderError(status: .failed, message: "HTTP \(code)")
     }
 }
@@ -487,23 +487,23 @@ actor MusicBrainzProvider: MetadataProvider {
     /// The original release date of [chosen]'s album for this recording, or the reason there is none.
     static func releaseDate(_ recording: MusicBrainzSearchResponse.Recording, chosen: MusicBrainzSearchResponse.Release?,
                             targetAlbum: String?, today: Date) -> (ReleaseDate?, String?) {
-        guard let chosen else { return (nil, "MusicBrainz lists no release for this recording") }
+        guard let chosen else { return (nil, String(localized: "MusicBrainz lists no release for this recording")) }
         guard chosen.status?.lowercased() == "official" else {
-            return (nil, "MusicBrainz lists this recording only on unofficial releases (\(chosen.status ?? "status unknown"))")
+            return (nil, String(localized: "MusicBrainz lists this recording only on unofficial releases (\(chosen.status ?? "status unknown"))"))
         }
         let secondary = chosen.releaseGroup?.secondaryTypes ?? []
         let isTaggedAlbum = targetAlbum.map { chosen.title.trimmed.lowercased() == $0.trimmed.lowercased() } ?? false
         if !secondary.isEmpty && !isTaggedAlbum {
-            return (nil, "MusicBrainz lists this recording only on \(secondary.joined(separator: "/").lowercased()) releases")
+            return (nil, String(localized: "MusicBrainz lists this recording only on \(secondary.joined(separator: "/").lowercased()) releases"))
         }
         let groupId = chosen.releaseGroup?.id
         let raw = recording.releases
             .filter { $0.status?.lowercased() == "official" }
             .filter { groupId == nil ? $0.id == chosen.id : $0.releaseGroup?.id == groupId }
             .compactMap { $0.date?.trimmed.nonBlank }
-        guard let first = raw.first else { return (nil, "MusicBrainz has no release date for \"\(chosen.title)\"") }
+        guard let first = raw.first else { return (nil, String(localized: "MusicBrainz has no release date for \"\(chosen.title)\"")) }
         guard let earliest = ReleaseDate.earliest(raw.compactMap { ReleaseDate.parse($0, today: today) }) else {
-            return (nil, "MusicBrainz's release date isn't a valid date (\"\(first)\")")
+            return (nil, String(localized: "MusicBrainz's release date isn't a valid date (\"\(first)\")"))
         }
         return (earliest, nil)
     }
@@ -603,9 +603,9 @@ struct DeezerProvider: MetadataProvider {
     }
 
     static func failure(_ error: DeezerError) -> ProviderError {
-        let message = error.message ?? "Lookup failed"
+        let message = error.message ?? String(localized: "Lookup failed")
         let text = message.lowercased()
-        let regional = text.contains("not available") && ["country", "region", "territor", "service"].contains(where: text.contains)
+        let regional = text.contains(String(localized: "not available")) && ["country", "region", "territor", "service"].contains(where: text.contains)
         return ProviderError(status: regional ? .unavailable : .failed, message: "Deezer: " + message, sessionWide: regional)
     }
 
@@ -680,7 +680,7 @@ struct DeezerProvider: MetadataProvider {
         if let error = response.error { throw Self.failure(error) }
         if response.data.isEmpty && response.total > 0 {
             throw ProviderError(status: .unavailable,
-                                message: "Deezer found \(response.total) matches but returned none: track search isn't available in this country",
+                                message: String(localized: "Deezer found \(response.total) matches but returned none: track search isn't available in this country"),
                                 sessionWide: true)
         }
         return response.data.map { track in

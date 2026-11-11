@@ -78,7 +78,7 @@ final class ArtworkFetcherStore {
                 if !entry.hasArtwork { albums.append(current); albumStatus[id] = .missing }
             }
             artists = library.artists.filter { !$0.isUnresolved && isUsableTag($0.name) }
-            message = "Saved progress: checked \(checked) of \(total) albums. Continue to include remaining and newly added albums."
+            message = String(localized: "Saved progress: checked \(checked) of \(total) albums. Continue to include remaining and newly added albums.")
         }
     }
 
@@ -171,9 +171,9 @@ final class ArtworkFetcherStore {
                 checked = completed.count
                 if !hasArtwork { albums.append(check.album); albumStatus[check.album.id] = .missing }
             }
-            message = checked < total ? "Check stopped at \(checked) of \(total). Continue to check the remaining albums."
+            message = checked < total ? String(localized: "Check stopped at \(checked) of \(total). Continue to check the remaining albums.")
                 : "Checked \(checked) albums. \(albums.count) need a cover."
-        } catch { message = "Couldn’t save artwork progress: \(error.localizedDescription). Continue to retry." }
+        } catch { message = String(localized: "Couldn’t save artwork progress: \(error.localizedDescription). Continue to retry.") }
     }
 
     private struct ArtworkCheck: Sendable {
@@ -194,7 +194,7 @@ final class ArtworkFetcherStore {
         completedArtists[artist.artistKey] = status
         attemptedArtists.insert(artist.artistKey)
         do { try progress.artists.save(completedArtists) }
-        catch { message = "Couldn’t save artist-photo progress: \(error.localizedDescription)" }
+        catch { message = String(localized: "Couldn’t save artist-photo progress: \(error.localizedDescription)") }
     }
 
     func albumCovers(_ album: Album) async -> [ArtworkCandidate] {
@@ -250,7 +250,7 @@ final class ArtworkFetcherStore {
 
     private func embed(_ image: Data, in album: Album) async throws {
         let songs = try library.database.songsOfAlbum(album.id)
-        guard !songs.isEmpty else { throw ProviderError(status: .failed, message: "The album has no songs") }
+        guard !songs.isEmpty else { throw ProviderError(status: .failed, message: String(localized: "The album has no songs")) }
         let prepared = ArtworkEncoder.prepare(image)
         var failures: [String] = []
         for song in songs {
@@ -265,8 +265,8 @@ final class ArtworkFetcherStore {
             ArtworkLoader.shared.forget(path: url.path)
         }
         library.scan()
-        if failures.count == songs.count { throw ProviderError(status: .failed, message: failures.first ?? "Nothing was saved") }
-        if !failures.isEmpty { message = "Saved to \(songs.count - failures.count) of \(songs.count) songs. \(failures.joined(separator: "; "))" }
+        if failures.count == songs.count { throw ProviderError(status: .failed, message: failures.first ?? String(localized: "Nothing was saved")) }
+        if !failures.isEmpty { message = String(localized: "Saved to \(songs.count - failures.count) of \(songs.count) songs. \(failures.joined(separator: "; "))") }
     }
 
     /// Downloads [candidate] and stores it as [artist]'s photo.
@@ -322,7 +322,7 @@ final class ArtworkFetcherStore {
             // Deezer allows about 50 requests per 5 seconds.
             try? await Task.sleep(nanoseconds: 250_000_000)
         }
-        message = "Matched \(matched) artist\(matched == 1 ? "" : "s"). The rest need a photo picked by hand."
+        message = String(localized: "Artists matched: \(matched). The rest need a photo picked by hand.")
         isAutoMatching = false
     }
 
@@ -353,7 +353,7 @@ final class ArtworkFetcherStore {
                 finishArtistCheck(artist)
                 return true
             case .rejected(let reason):
-                artistStatus[artist.id] = .failed("Not matched automatically: \(reason)")
+                artistStatus[artist.id] = .failed(String(localized: "Not matched automatically: \(reason)"))
                 finishArtistCheck(artist)
             }
         } catch is CancellationError {

@@ -34,7 +34,7 @@ final class LibraryActions {
 
     func fixTags(_ songs: [Song]) {
         let started = AppServices.shared.fixTags.fixInPlace(songs)
-        show(started ? "Fixing tags for these songs. You can keep browsing." : "A tag repair is already running, or no songs are available.")
+        show(started ? String(localized: "Fixing tags for these songs. You can keep browsing.") : String(localized: "A tag repair is already running, or no songs are available."))
     }
 
     func dismissMessage(id: UUID) {
@@ -68,12 +68,12 @@ final class LibraryActions {
 
     func playNext(_ song: Song, source: PlaybackSource? = nil) {
         player.playNext(song, source: source)
-        show("\"\(song.title)\" will play next")
+        show(String(localized: "\"\(song.title)\" will play next"))
     }
 
     func addToQueue(_ song: Song, source: PlaybackSource? = nil) {
         player.addToQueue(song, source: source)
-        show("Added to queue")
+        show(String(localized: "Added to queue"))
     }
 
     func toggleFavorite(_ song: Song) {
@@ -81,8 +81,8 @@ final class LibraryActions {
             try database.toggleFavorite(songId: song.id)
             // Read the database result rather than trusting a potentially older row snapshot.
             guard let updated = try database.song(id: song.id) else { return }
-            show(updated.isFavorite ? "Added to Liked Songs" : "Removed from Liked Songs")
-        } catch { show("Couldn't change the favourite: \(error.localizedDescription)") }
+            show(updated.isFavorite ? String(localized: "Added to Liked Songs") : String(localized: "Removed from Liked Songs"))
+        } catch { show(String(localized: "Couldn't change the favourite: \(error.localizedDescription)")) }
     }
 
     /// The library songs with [ids], in that order (missing ones left out).
@@ -138,16 +138,15 @@ final class LibraryActions {
     }
 
     private func report(_ plan: RadioPlan?) {
-        guard let plan else { return show("No songs to start a radio from") }
-        if plan.songIds.isEmpty { return show("Not enough other songs for a radio from “\(plan.name)”") }
+        guard let plan else { return show(String(localized: "No songs to start a radio from")) }
+        if plan.songIds.isEmpty { return show(String(localized: "Not enough other songs for a radio from “\(plan.name)”")) }
         let basis = plan.basedOn.map(\.label)
         let reasons: String
         switch basis.count {
         case 0: reasons = ""
-        case 1: reasons = " · by \(basis[0])"
-        default: reasons = " · by \(basis.dropLast().joined(separator: ", ")) and \(basis.last!)"
+        default: reasons = " · " + String(localized: "by \(basis.formatted(.list(type: .and)))")
         }
-        show("Radio from “\(plan.name)”: \(plan.songIds.count) songs\(reasons)")
+        show(String(localized: "Radio from “\(plan.name)”: \(countLabel(plan.songIds.count, .song))") + reasons)
     }
 
     // MARK: Playlists
@@ -157,9 +156,9 @@ final class LibraryActions {
         if trimmed.isEmpty { return }
         do {
             _ = try database.createPlaylist(name: trimmed, songIds: songs.map(\.id))
-            show(songs.isEmpty ? "Created \"\(trimmed)\"" : "Added to \"\(trimmed)\"")
+            show(songs.isEmpty ? "Created \"\(trimmed)\"" : String(localized: "Added to \"\(trimmed)\""))
         } catch {
-            show("Couldn't create the playlist: \(error.localizedDescription)")
+            show(String(localized: "Couldn't create the playlist: \(error.localizedDescription)"))
         }
     }
 
@@ -167,9 +166,9 @@ final class LibraryActions {
         do {
             var added = 0
             for song in songs where try database.appendSong(song.id, toPlaylist: playlist.id) { added += 1 }
-            show(added == 0 ? "Already in \"\(playlist.name)\"" : "Added \(countLabel(added, .song)) to \"\(playlist.name)\"")
+            show(added == 0 ? String(localized: "Already in \"\(playlist.name)\"") : "Added \(countLabel(added, .song)) to \"\(playlist.name)\"")
         } catch {
-            show("Couldn't add to the playlist: \(error.localizedDescription)")
+            show(String(localized: "Couldn't add to the playlist: \(error.localizedDescription)"))
         }
     }
 }

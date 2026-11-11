@@ -222,8 +222,8 @@ struct ArtworkSearch: Sendable {
         }
         // The plain name, not artist:"…": Deezer ranks the field query so that the exact artist is often missing.
         let response = try await fetchJSON(Response.self, requestURL("https://api.deezer.com/search/artist", [("q", name.trimmed), ("limit", "100")]), client: client)
-        if let error = response.error { throw ProviderError(status: .failed, message: "Deezer: \(error.message ?? "artist search failed")") }
-        guard let data = response.data else { throw ProviderError(status: .failed, message: "Deezer gave no results field") }
+        if let error = response.error { throw ProviderError(status: .failed, message: String(localized: "Deezer: \(error.message ?? "artist search failed")")) }
+        guard let data = response.data else { throw ProviderError(status: .failed, message: String(localized: "Deezer gave no results field")) }
         return data
     }
 
@@ -311,11 +311,11 @@ struct ArtworkSearch: Sendable {
         let key = normalizeArtistName(artistName)
         let exact = candidates.filter { normalizeArtistName($0.name) == key }.enumerated()
             .sorted { $0.element.nbFan != $1.element.nbFan ? $0.element.nbFan > $1.element.nbFan : $0.offset < $1.offset }.map(\.element)
-        guard let top = exact.first else { return .rejected("no exact-name profile") }
+        guard let top = exact.first else { return .rejected(String(localized: "no exact-name profile")) }
         if exact.count > 1, top.nbFan < dominanceFactor * max(exact[1].nbFan, 1) {
-            return .rejected("ambiguous: \(exact.count) exact-name profiles, \(top.nbFan) vs \(exact[1].nbFan) fans")
+            return .rejected(String(localized: "ambiguous: \(exact.count) exact-name profiles, \(top.nbFan) vs \(exact[1].nbFan) fans"))
         }
-        guard let picture = realPicture(top) else { return .rejected("profile \(top.id) has no photo") }
+        guard let picture = realPicture(top) else { return .rejected(String(localized: "profile \(top.id) has no photo")) }
         return .selected(artistId: top.id, pictureUrl: picture)
     }
 

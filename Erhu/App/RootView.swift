@@ -104,7 +104,7 @@ struct RootView: View {
             let items = fixTags.queue.filter { fixTags.inPlaceScope.contains($0.id) }
             let fixed = items.filter { $0.status == .done }.count
             let review = items.filter { $0.status != .done && $0.status != .unchanged }.count
-            actions.show("Tag repair: \(fixed) fixed, \(review) need review. Results are available on the collection page.")
+            actions.show(String(localized: "Tag repair: \(fixed) fixed, \(review) need review. Results are available on the collection page."))
         }
         .onChange(of: player.playbackError) { _, message in if let message { library.report(message) } }
         .sheet(item: Binding(get: {
@@ -372,20 +372,20 @@ struct SongDetailsSheet: View {
                     row("Artist", song.artist)
                     row("Album", song.album)
                     row("Track", song.trackNumber > 0 ? "\(song.trackNumber)" : nil)
-                    row("Disc", song.discNumber > 0 ? "\(song.discNumber)" : nil)
+                    row(String(localized: "Disc"), song.discNumber > 0 ? "\(song.discNumber)" : nil)
                     row("Year", song.year > 0 ? "\(song.year)" : nil)
                     row("Genre", song.genre)
                     row("BPM", song.bpm.map(String.init))
-                    row("Composer", song.composer)
+                    row(String(localized: "Composer"), song.composer)
                 }
                 Section("File") {
                     row("Duration", formatDuration(song.durationMs))
-                    row("Format", song.codec)
+                    row(String(localized: "Format"), song.codec)
                     row("Sample rate", song.sampleRate > 0 ? String(format: "%.1f kHz", Double(song.sampleRate) / 1000) : nil)
-                    row("Bit rate", song.bitrate > 0 ? "\(song.bitrate / 1000) kbps" : nil)
+                    row(String(localized: "Bit rate"), song.bitrate > 0 ? "\(song.bitrate / 1000) kbps" : nil)
                     row("Channels", song.channels > 0 ? "\(song.channels)" : nil)
-                    row("Size", song.fileSize > 0 ? ByteCountFormatter.string(fromByteCount: song.fileSize, countStyle: .file) : nil)
-                    row("Path", song.path)
+                    row(String(localized: "Size"), song.fileSize > 0 ? ByteCountFormatter.string(fromByteCount: song.fileSize, countStyle: .file) : nil)
+                    row(String(localized: "Path"), song.path)
                 }
             }
             .navigationTitle("Music information")

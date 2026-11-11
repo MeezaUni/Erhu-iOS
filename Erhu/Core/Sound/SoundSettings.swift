@@ -32,14 +32,14 @@ struct EqPreset: Equatable, Codable, Identifiable {
     var filterTypes: [FilterType] = Array(repeating: .peaking, count: Equalizer.bandCount)
     var isCustom = false
 
-    static let flat = EqPreset(id: "preset_flat", name: "Flat", bandGains: [0, 0, 0, 0, 0, 0, 0, 0])
-    static let bassBooster = EqPreset(id: "preset_bass_booster", name: "Bass Booster", bandGains: [6, 5, 3, 1, 0, 0, 0, 0])
-    static let trebleBooster = EqPreset(id: "preset_treble_booster", name: "Treble Booster", bandGains: [0, 0, 0, 0, 1, 3, 5, 6])
-    static let rock = EqPreset(id: "preset_rock", name: "Rock", bandGains: [5, 3, -1, -2, 1, 3, 5, 6])
-    static let pop = EqPreset(id: "preset_pop", name: "Pop", bandGains: [-1, 1, 3, 4, 4, 3, 1, -1])
-    static let jazz = EqPreset(id: "preset_jazz", name: "Jazz", bandGains: [3, 2, 1, 2, -1, -1, 2, 3])
-    static let vocal = EqPreset(id: "preset_vocal", name: "Vocal", bandGains: [-2, -1, 2, 5, 4, 2, 0, -2])
-    static let acoustic = EqPreset(id: "preset_acoustic", name: "Acoustic", bandGains: [4, 3, 1, 2, 2, 3, 3, 2])
+    static let flat = EqPreset(id: "preset_flat", name: String(localized: "Flat"), bandGains: [0, 0, 0, 0, 0, 0, 0, 0])
+    static let bassBooster = EqPreset(id: "preset_bass_booster", name: String(localized: "Bass Booster"), bandGains: [6, 5, 3, 1, 0, 0, 0, 0])
+    static let trebleBooster = EqPreset(id: "preset_treble_booster", name: String(localized: "Treble Booster"), bandGains: [0, 0, 0, 0, 1, 3, 5, 6])
+    static let rock = EqPreset(id: "preset_rock", name: String(localized: "Rock"), bandGains: [5, 3, -1, -2, 1, 3, 5, 6])
+    static let pop = EqPreset(id: "preset_pop", name: String(localized: "Pop"), bandGains: [-1, 1, 3, 4, 4, 3, 1, -1])
+    static let jazz = EqPreset(id: "preset_jazz", name: String(localized: "Jazz"), bandGains: [3, 2, 1, 2, -1, -1, 2, 3])
+    static let vocal = EqPreset(id: "preset_vocal", name: String(localized: "Vocal"), bandGains: [-2, -1, 2, 5, 4, 2, 0, -2])
+    static let acoustic = EqPreset(id: "preset_acoustic", name: String(localized: "Acoustic"), bandGains: [4, 3, 1, 2, 2, 3, 3, 2])
 
     static let defaults = [flat, bassBooster, trebleBooster, rock, pop, jazz, vocal, acoustic]
 }

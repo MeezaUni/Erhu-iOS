@@ -33,7 +33,7 @@ struct EqualizerView: View {
                         HStack {
                             Text("Preset")
                             Spacer()
-                            Text(settings.allPresets.first { $0.id == settings.activePresetId }?.name ?? "Flat").foregroundStyle(.secondary)
+                            Text(settings.allPresets.first { $0.id == settings.activePresetId }?.name ?? String(localized: "Flat")).foregroundStyle(.secondary)
                             Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -71,10 +71,10 @@ struct EqualizerView: View {
                     }
                     .pickerStyle(.segmented)
                 }
-                labeledSlider("Center frequency", value: formatFrequency(band.frequencyHz),
+                labeledSlider(String(localized: "Center frequency"), value: formatFrequency(band.frequencyHz),
                               binding: Binding(get: { frequencyToNormalized(band.frequencyHz) },
                                                set: { sound.setBandFrequency(selected, normalizedToFrequency($0)) }), range: 0...1)
-                labeledSlider("Gain", value: formatGain(band.gainDb),
+                labeledSlider(String(localized: "Gain"), value: formatGain(band.gainDb),
                               binding: Binding(get: { band.gainDb }, set: { sound.setBandGain(selected, $0) }),
                               range: Equalizer.minGainDb...Equalizer.maxGainDb)
                 labeledSlider("Q-factor (sharpness)", value: String(format: "%.2f", band.q),

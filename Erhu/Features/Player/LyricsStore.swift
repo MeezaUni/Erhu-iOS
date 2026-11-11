@@ -52,18 +52,18 @@ struct SongLyrics: Equatable {
         let reason: String
         switch lookup {
         case .failed(let message), .switching(let message), .usingFallback(let message): reason = message
-        case .offline: reason = "Lyrics services couldn’t be reached"
-        case .rateLimited: reason = "LRCLIB is rate-limited"
+        case .offline: reason = String(localized: "Lyrics services couldn’t be reached")
+        case .rateLimited: reason = String(localized: "LRCLIB is rate-limited")
         default: return nil
         }
         if text != nil {
-            let source = provider ?? (origin == .file ? "file lyrics" : "saved lyrics")
-            let kind = (timing ?? .none) >= .line ? "synced" : "not synced"
+            let source = provider ?? (origin == .file ? String(localized: "file lyrics") : String(localized: "saved lyrics"))
+            let kind = (timing ?? .none) >= .line ? "synced" : String(localized: "not synced")
             let saved = origin == .onlineSaved ? "saved " : ""
             return "\(reason). Using \(saved)\(source) · \(kind)."
         }
-        if lookup.isSearching { return "\(reason). Switching lyrics source…" }
-        return reason + ". No alternate lyrics could be loaded."
+        if lookup.isSearching { return String(localized: "\(reason). Switching lyrics source…") }
+        return reason + String(localized: ". No alternate lyrics could be loaded.")
     }
 
 }
@@ -145,7 +145,7 @@ final class LyricsStore {
                 try await repository.download(song.lyricsTrack, candidate: candidate)
                 let saved = await repository.saved(song.lyricsTrack)
                 if self.song?.lyricsTrack == song.lyricsTrack { savedLyrics = saved }
-            } catch { if self.song?.lyricsTrack == song.lyricsTrack { downloadError = "Lyrics could not be saved. Check available storage and retry." } }
+            } catch { if self.song?.lyricsTrack == song.lyricsTrack { downloadError = String(localized: "Lyrics could not be saved. Check available storage and retry.") } }
         }
     }
 
@@ -157,7 +157,7 @@ final class LyricsStore {
             do {
                 try await repository.removeDownload(song.lyricsTrack)
                 if self.song?.lyricsTrack == song.lyricsTrack { savedLyrics = nil }
-            } catch { if self.song?.lyricsTrack == song.lyricsTrack { downloadError = "Saved lyrics could not be removed. Try again." } }
+            } catch { if self.song?.lyricsTrack == song.lyricsTrack { downloadError = String(localized: "Saved lyrics could not be removed. Try again.") } }
         }
     }
 
@@ -176,8 +176,8 @@ final class LyricsStore {
                 if let notice = result.syncedServiceNotice { manual = .resultsWithNotice(result.candidates, notice) }
                 else { manual = .results(result.candidates) }
             case .notFound: manual = .results([])
-            case .offline: manual = .error("You are offline.")
-            case .rateLimited: manual = .error("Lyrics sources are unavailable or rate-limited. No alternate results could be loaded.")
+            case .offline: manual = .error(String(localized: "You are offline."))
+            case .rateLimited: manual = .error(String(localized: "Lyrics sources are unavailable or rate-limited. No alternate results could be loaded."))
             case .failed(let reason): manual = .error(LyricsFailureMessage.text(reason))
             }
             publish()

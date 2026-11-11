@@ -36,16 +36,16 @@ struct WifiTransferView: View {
                 }.toolSectionAppearance()
             }
             Section("How to connect") {
-                help("1. Put the phone and the computer on the same Wi-Fi network.")
-                help("2. Tap Start transfer, then scan the QR code or type the address in the computer's browser.")
-                help("3. Choose files or a folder (or drag them in) and press Send to phone.")
-                help("Music is saved to Erhu's folder (Files › On My iPhone › Erhu) and appears in your library shortly after.")
-                help("Keep Erhu open while sending: iOS pauses the transfer when the app is in the background.")
+                help(String(localized: "1. Put the phone and the computer on the same Wi-Fi network."))
+                help(String(localized: "2. Tap Start transfer, then scan the QR code or type the address in the computer's browser."))
+                help(String(localized: "3. Choose files or a folder (or drag them in) and press Send to phone."))
+                help(String(localized: "Music is saved to Erhu's folder (Files › On My iPhone › Erhu) and appears in your library shortly after."))
+                help(String(localized: "Keep Erhu open while sending: iOS pauses the transfer when the app is in the background."))
             }.toolSectionAppearance()
             Section("If the page does not load") {
-                help("Check both devices use the same network (not a guest network: those often block devices from seeing each other).")
-                help("Allow Erhu to find devices on your local network (Settings › Privacy & Security › Local Network).")
-                help("Turn off a VPN on either device, and type the address exactly, starting with http://.")
+                help(String(localized: "Check both devices use the same network (not a guest network: those often block devices from seeing each other)."))
+                help(String(localized: "Allow Erhu to find devices on your local network (Settings › Privacy & Security › Local Network)."))
+                help(String(localized: "Turn off a VPN on either device, and type the address exactly, starting with http://."))
             }.toolSectionAppearance()
             Section {
                 Text("Privacy: the page works only on your local network, only while this screen shows it as on, and only with this session's code. It uses plain HTTP, so on a shared or untrusted Wi-Fi others on the network could see what is sent.")
@@ -66,22 +66,22 @@ struct WifiTransferView: View {
 
     private var statusText: (String, String) {
         switch transfer.state {
-        case .starting: return ("Starting…", "Opening a private transfer session on this Wi-Fi.")
+        case .starting: return ("Starting…", String(localized: "Opening a private transfer session on this Wi-Fi."))
         case .running:
             if transfer.items.contains(where: { !$0.status.isTerminal }) {
-                return ("Receiving music", "Keep both devices on this Wi-Fi until it finishes.")
+                return (String(localized: "Receiving music"), String(localized: "Keep both devices on this Wi-Fi until it finishes."))
             }
-            if !transfer.items.isEmpty { return ("Transfer finished", "Send more from the browser, or stop when you are done.") }
-            return ("Waiting for a computer", "Open the address below in a browser on the same Wi-Fi.")
+            if !transfer.items.isEmpty { return (String(localized: "Transfer finished"), String(localized: "Send more from the browser, or stop when you are done.")) }
+            return (String(localized: "Waiting for a computer"), String(localized: "Open the address below in a browser on the same Wi-Fi."))
         case .stopped(let reason):
             switch reason {
-            case .noWifi: return ("Not connected to Wi-Fi", "Connect the phone to the same Wi-Fi as your computer, then start again.")
-            case .wifiLost: return ("Wi-Fi disconnected", "Connect the phone to the same Wi-Fi as your computer, then start again.")
-            case .failedToStart(let detail): return ("Could not start", "The transfer server didn't start (\(detail)). Check that Wi-Fi is on, then try again.")
-            case .idleTimeout: return ("Transfer is off", "Stopped after 10 minutes without activity.")
-            case .sessionExpired: return ("Transfer is off", "The session reached its time limit.")
-            case .backgrounded: return ("Transfer is off", "Stopped because Erhu left the screen.")
-            default: return ("Transfer is off", "Send songs and folders from a computer's browser straight to this phone.")
+            case .noWifi: return (String(localized: "Not connected to Wi-Fi"), String(localized: "Connect the phone to the same Wi-Fi as your computer, then start again."))
+            case .wifiLost: return (String(localized: "Wi-Fi disconnected"), String(localized: "Connect the phone to the same Wi-Fi as your computer, then start again."))
+            case .failedToStart(let detail): return (String(localized: "Could not start"), String(localized: "The transfer server didn't start (\(detail)). Check that Wi-Fi is on, then try again."))
+            case .idleTimeout: return (String(localized: "Transfer is off"), String(localized: "Stopped after 10 minutes without activity."))
+            case .sessionExpired: return (String(localized: "Transfer is off"), String(localized: "The session reached its time limit."))
+            case .backgrounded: return (String(localized: "Transfer is off"), String(localized: "Stopped because Erhu left the screen."))
+            default: return (String(localized: "Transfer is off"), String(localized: "Send songs and folders from a computer's browser straight to this phone."))
             }
         }
     }

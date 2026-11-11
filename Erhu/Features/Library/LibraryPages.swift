@@ -72,19 +72,19 @@ struct LibraryOverviewView: View {
                     }
                 }
                 section(LibraryShelf.favorites.label, empty: library.favorites.isEmpty,
-                        message: "No favorites yet. Tap the heart on any song to add it here.", more: { router.open(.shelf(.favorites)) }) {
+                        message: String(localized: "No favorites yet. Tap the heart on any song to add it here."), more: { router.open(.shelf(.favorites)) }) {
                     ForEach(Array(library.favorites.prefix(Self.previewLimit).enumerated()), id: \.element.id) { index, song in
                         SongTile(song: song) { actions.play(library.favorites, startIndex: index, source: .favorites) }.frame(width: 136)
                     }
                 }
                 section(LibraryShelf.artists.label, empty: library.artists.isEmpty,
-                        message: "No artists found. Pull down to rescan.", more: { router.open(.shelf(.artists)) }) {
+                        message: String(localized: "No artists found. Pull down to rescan."), more: { router.open(.shelf(.artists)) }) {
                     ForEach(library.artists) { artist in
                         ArtistTile(artist: artist) { router.open(.artist(artist.id)) }.frame(width: 136)
                     }
                 }
                 section("Songs", empty: library.songs.isEmpty,
-                        message: library.isScanning ? "Scanning your music…" : "No songs found. Pull down to rescan.", more: { router.open(.allSongs) }) {
+                        message: library.isScanning ? "Scanning your music…" : String(localized: "No songs found. Pull down to rescan."), more: { router.open(.allSongs) }) {
                     ForEach(Array(library.songs.prefix(Self.previewLimit).enumerated()), id: \.element.id) { index, song in
                         SongTile(song: song) { actions.play(library.songs, startIndex: index) }.frame(width: 136)
                     }
@@ -136,7 +136,7 @@ struct LibraryShelfView: View {
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.sm)
             case .favorites:
-                SongList(songs: library.favorites.filter { query.isBlank || SearchNormalizer.matches($0.title + " " + $0.artist + " " + $0.album, query) }, emptyMessage: "No favorites yet. Tap the heart on any song to add it here.",
+                SongList(songs: library.favorites.filter { query.isBlank || SearchNormalizer.matches($0.title + " " + $0.artist + " " + $0.album, query) }, emptyMessage: String(localized: "No favorites yet. Tap the heart on any song to add it here."),
                          emptyIcon: "heart", source: .favorites)
             case .artists:
                 LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
@@ -193,7 +193,7 @@ struct AllSongsView: View {
             if let results {
                 Text(countLabel(results.count, .song)).font(.caption).foregroundStyle(.secondary)
                     .padding(.horizontal, Spacing.gutter)
-                SongList(songs: results, emptyMessage: library.songs.isEmpty ? "No songs found." : "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood.", emptyIcon: "music.note")
+                SongList(songs: results, emptyMessage: library.songs.isEmpty ? String(localized: "No songs found.") : String(localized: "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood."), emptyIcon: "music.note")
             } else {
                 ProgressView().frame(maxWidth: .infinity).padding()
             }

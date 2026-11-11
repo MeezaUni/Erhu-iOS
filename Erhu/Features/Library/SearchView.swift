@@ -88,7 +88,7 @@ struct SearchView: View {
                     if search.query.trimmed.isEmpty {
                         recents
                     } else if search.songs.isEmpty && search.albums.isEmpty && search.artists.isEmpty {
-                        EmptyState(message: "Nothing in your library matches \"\(search.query.trimmed)\".", systemImage: "magnifyingglass")
+                        EmptyState(message: String(localized: "Nothing in your library matches \"\(search.query.trimmed)\"."), systemImage: "magnifyingglass")
                     } else {
                         results
                     }

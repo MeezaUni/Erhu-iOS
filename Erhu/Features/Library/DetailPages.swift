@@ -145,9 +145,9 @@ struct ArtistDetailView: View {
                     ScopedTagRepairSummary(songs: primary + featured + unverified)
                     albumRow("Albums", albums.filter { $0.songCount >= 7 })
                     albumRow("EPs", albums.filter { (3...6).contains($0.songCount) })
-                    albumRow("Singles", albums.filter { (1...2).contains($0.songCount) })
-                    songSection("Features", featured)
-                    songSection("Credited", unverified)
+                    albumRow(String(localized: "Singles"), albums.filter { (1...2).contains($0.songCount) })
+                    songSection(String(localized: "Features"), featured)
+                    songSection(String(localized: "Credited"), unverified)
                     songSection("Tracks", primary, numbers: true)
                     if primary.isEmpty && featured.isEmpty {
                         EmptyState(message: "No tracks found for this artist.")
@@ -285,7 +285,7 @@ struct PlaylistDetailView: View {
                     do {
                         try AppServices.shared.artwork.setPlaylistCover(data, playlist: playlist)
                     } catch {
-                        actions.show("Couldn't save the cover: \(error.localizedDescription)")
+                        actions.show(String(localized: "Couldn't save the cover: \(error.localizedDescription)"))
                     }
                 }
                 coverItem = nil
@@ -333,11 +333,11 @@ struct SmartPlaylistDetailView: View {
         let songs = mix.map { actions.songs($0.songIds) } ?? []
         let songActions = router.songActions(actions, hideFromMixes: { song in
             mixes.setHidden(song.id, true)
-            actions.show("\"\(song.title)\" won't be suggested in Smart Playlists")
+            actions.show(String(localized: "\"\(song.title)\" won't be suggested in Smart Playlists"))
         }, source: .smartPlaylist(mixKey))
         ScrollView {
             LazyVStack(spacing: 0) {
-                CollectionHeader(title: mix?.title ?? kind?.title ?? "Smart Playlist", subtitle: nil, facts: collectionFacts(songs: songs),
+                CollectionHeader(title: mix?.title ?? kind?.title ?? String(localized: "Smart Playlist"), subtitle: nil, facts: collectionFacts(songs: songs),
                                  note: mix?.description, canPlay: !songs.isEmpty,
                                  onPlay: { actions.playInOrder(songs, source: .smartPlaylist(mixKey)) },
                                  onShuffle: { actions.playShuffled(songs, source: .smartPlaylist(mixKey)) }) {

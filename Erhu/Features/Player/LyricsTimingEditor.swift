@@ -63,7 +63,7 @@ struct LyricsTimingEditor: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         do { try preferences.save(offset, for: context); dismiss() }
-                        catch { self.error = "Couldn’t save the timing. Check available storage and try again." }
+                        catch { self.error = String(localized: "Couldn’t save the timing. Check available storage and try again.") }
                     }
                 }
             }

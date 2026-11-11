@@ -53,10 +53,10 @@ struct TransitionStudioRow: View {
     }
 
     private func summary(_ config: TransitionConfig, _ choice: TransitionChoice) -> String {
-        if !config.collectionEnabled(collection) { return "Off for this \(noun(collection))" }
-        if !config.global.masterEnabled { return "Automatic crossfades are off" }
+        if !config.collectionEnabled(collection) { return String(localized: "Off for this \(noun(collection))") }
+        if !config.global.masterEnabled { return String(localized: "Automatic crossfades are off") }
         switch choice {
-        case .off: return "Off for this \(noun(collection))"
+        case .off: return String(localized: "Off for this \(noun(collection))")
         case .custom(let spec): return specSummary(spec)
         case .inherit: return "Default · \(specSummary(config.global.defaultChoice.specOrNil))"
         }
@@ -118,7 +118,7 @@ struct TransitionStudioView: View {
     private var title: String {
         switch collection.kind {
         case .album: library.album(collection.id)?.title ?? "Album"
-        case .playlist: library.playlist(collection.id)?.name ?? "Playlist"
+        case .playlist: library.playlist(collection.id)?.name ?? String(localized: "Playlist")
         }
     }
 
@@ -187,7 +187,7 @@ struct TransitionStudioView: View {
                 Text("Custom").tag(2)
             }
             .pickerStyle(.segmented)
-            Text(collectionStatus(config, choice) + (isPlaying ? " Playing now." : ""))
+            Text(collectionStatus(config, choice) + (isPlaying ? " " + String(localized: "Playing now.") : ""))
                 .font(.caption).foregroundStyle(palette.onSurfaceVariant)
             if case .custom = choice {
                 HStack(spacing: Spacing.lg) {
@@ -213,9 +213,9 @@ struct TransitionStudioView: View {
 
     private func collectionStatus(_ config: TransitionConfig, _ choice: TransitionChoice) -> String {
         switch choice {
-        case .inherit: "Uses the default: \(specSummary(config.global.defaultChoice.specOrNil))."
-        case .off: "No crossfades in this \(noun(collection)), whatever the default."
-        case .custom(let spec): "Its own transition: \(specSummary(spec))."
+        case .inherit: String(localized: "Uses the default: \(specSummary(config.global.defaultChoice.specOrNil)).")
+        case .off: String(localized: "No crossfades in this \(noun(collection)), whatever the default.")
+        case .custom(let spec): String(localized: "Its own transition: \(specSummary(spec)).")
         }
     }
 }
@@ -288,7 +288,7 @@ private struct PairConnector: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Transition to \(pair.to.song.title): \(pairLabel(pair.choice))")
-            Text(enabled ? specSummary(pair.resolved) : "Off (master switch)")
+            Text(enabled ? specSummary(pair.resolved) : String(localized: "Off (master switch)"))
                 .font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
         }
     }

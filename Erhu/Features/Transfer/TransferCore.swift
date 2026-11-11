@@ -411,7 +411,7 @@ final class TransferRegistry: @unchecked Sendable {
     func duplicate(_ id: Int64) -> Bool {
         move(id, [.receiving, .finalizing]) {
             $0.status = .duplicate
-            $0.message = "Already on the phone: skipped, nothing was overwritten"
+            $0.message = String(localized: "Already on the phone: skipped, nothing was overwritten")
         }
     }
 
@@ -427,7 +427,7 @@ final class TransferRegistry: @unchecked Sendable {
     func cancelled(_ id: Int64) -> Bool {
         move(id, [.receiving, .finalizing]) {
             $0.status = .cancelled
-            $0.message = "Cancelled before it finished"
+            $0.message = String(localized: "Cancelled before it finished")
         }
     }
 

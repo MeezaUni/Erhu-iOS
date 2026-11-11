@@ -131,10 +131,10 @@ private struct ThemeSwatch: View {
 private extension ThemeChoice {
     var settingsDescription: String {
         switch self {
-        case .system: "Light or dark, following your iPhone"
-        case .light: "A bright, clean appearance"
-        case .dark: "A darker look for your library"
-        case .artwork: "Artwork colours, following light or dark mode"
+        case .system: String(localized: "Light or dark, following your iPhone")
+        case .light: String(localized: "A bright, clean appearance")
+        case .dark: String(localized: "A darker look for your library")
+        case .artwork: String(localized: "Artwork colours, following light or dark mode")
         }
     }
 }
@@ -342,9 +342,9 @@ private struct VisualizerSettingsView: View {
 
     private func description(_ mode: VisualizerMode) -> String {
         switch mode {
-        case .spectrumBars: "Frequency bars that follow the music"
-        case .circularSpectrum: "A spectrum around the album artwork"
-        case .oscilloscope: "A flowing waveform of the audio"
+        case .spectrumBars: String(localized: "Frequency bars that follow the music")
+        case .circularSpectrum: String(localized: "A spectrum around the album artwork")
+        case .oscilloscope: String(localized: "A flowing waveform of the audio")
         }
     }
 }

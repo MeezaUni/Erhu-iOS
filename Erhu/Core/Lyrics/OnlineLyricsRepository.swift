@@ -199,13 +199,13 @@ actor OnlineLyricsRepository {
             case .notFound: break
             case .offline:
                 if failure == nil { failure = .offline }
-                if provider.supportsSyncedLyrics { syncNotice = "Couldn’t reach \(provider.name). Synced lyrics couldn’t be checked." }
+                if provider.supportsSyncedLyrics { syncNotice = String(localized: "Couldn’t reach \(provider.name). Synced lyrics couldn’t be checked.") }
             case .rateLimited(let at):
                 if failure == nil { failure = .rateLimited(retryAtMs: at) }
-                if provider.supportsSyncedLyrics { syncNotice = "\(provider.name) is rate-limited. Showing other available versions." }
+                if provider.supportsSyncedLyrics { syncNotice = String(localized: "\(provider.name) is rate-limited. Showing other available versions.") }
             case .failed(let reason):
                 if failure == nil { failure = .failed("\(provider.name): \(reason)") }
-                if provider.supportsSyncedLyrics { syncNotice = "\(provider.name) unavailable (\(reason)). Showing other available versions." }
+                if provider.supportsSyncedLyrics { syncNotice = String(localized: "\(provider.name) unavailable (\(reason)). Showing other available versions.") }
             }
         }
         if !found.isEmpty {
@@ -273,7 +273,7 @@ actor OnlineLyricsRepository {
         if let saved, let candidate = saved.candidate, candidate.bestText != nil {
             return savedResult(saved, candidate, reason: reason)
         }
-        if failure != nil { return .failed(reason ?? "No lyrics source could be reached") }
+        if failure != nil { return .failed(reason ?? String(localized: "No lyrics source could be reached")) }
         guard !Task.isCancelled else { return .failed("cancelled") }
         if LyricsMatcher.plausible(query, found).isEmpty {
             var missing = CachedLyrics(songId: track.songId, fingerprint: lyricsFingerprint(query), status: .notFound, fetchedAtMs: now())
@@ -287,7 +287,7 @@ actor OnlineLyricsRepository {
         switch result {
         case .failed(let reason): return "\(provider) unavailable (\(reason))"
         case .offline: return "Couldn’t reach \(provider)"
-        case .rateLimited: return "\(provider) is rate-limited"
+        case .rateLimited: return String(localized: "\(provider) is rate-limited")
         default: return nil
         }
     }

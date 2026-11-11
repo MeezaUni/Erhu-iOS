@@ -44,7 +44,7 @@ struct MarksSheet: View {
                         Button { if bookmark.songId == player.state.currentSong?.id { player.seek(to: bookmark.positionMs) } } label: {
                             HStack {
                                 Text(formatDuration(bookmark.positionMs)).monospacedDigit().foregroundStyle(Color.accentColor)
-                                Text(bookmark.label.isBlank ? "Bookmark" : bookmark.label).foregroundStyle(.primary)
+                                Text(bookmark.label.isBlank ? String(localized: "Bookmark") : bookmark.label).foregroundStyle(.primary)
                                 Spacer()
                             }
                         }
@@ -91,7 +91,7 @@ struct MarksSheet: View {
             _ = try library.database.addBookmark(songId: song.id, positionMs: player.currentPositionMs())
             load()
         } catch {
-            actions.show("Couldn't save the bookmark: \(error.localizedDescription)")
+            actions.show(String(localized: "Couldn't save the bookmark: \(error.localizedDescription)"))
         }
     }
 
@@ -103,10 +103,10 @@ struct MarksSheet: View {
     private func report(_ edit: AbLoopEdit) {
         switch edit {
         case .ok: break
-        case .noTrack: actions.show("Nothing is playing")
-        case .aNotBeforeB: actions.show("A must be at least a second before B")
+        case .noTrack: actions.show(String(localized: "Nothing is playing"))
+        case .aNotBeforeB: actions.show(String(localized: "A must be at least a second before B"))
         case .notReady: actions.show("Set A and B first")
-        case .unsupported: actions.show("Looping is not available")
+        case .unsupported: actions.show(String(localized: "Looping is not available"))
         }
     }
 }

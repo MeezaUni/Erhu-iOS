@@ -36,17 +36,17 @@ struct OutputDiagnostics: Equatable {
 
     static func portTypeName(_ type: AVAudioSession.Port) -> String {
         switch type {
-        case .builtInSpeaker: "Speaker"
-        case .builtInReceiver: "Receiver"
-        case .headphones: "Wired headphones"
+        case .builtInSpeaker: String(localized: "Speaker")
+        case .builtInReceiver: String(localized: "Receiver")
+        case .headphones: String(localized: "Wired headphones")
         case .bluetoothA2DP: "Bluetooth (A2DP)"
-        case .bluetoothLE: "Bluetooth LE"
+        case .bluetoothLE: String(localized: "Bluetooth LE")
         case .bluetoothHFP: "Bluetooth (hands-free)"
         case .airPlay: "AirPlay"
-        case .usbAudio: "USB audio"
+        case .usbAudio: String(localized: "USB audio")
         case .HDMI: "HDMI"
         case .carAudio: "CarPlay"
-        case .lineOut: "Line out"
+        case .lineOut: String(localized: "Line out")
         default: type.rawValue
         }
     }
@@ -56,10 +56,10 @@ struct OutputDiagnostics: Equatable {
 func pcmFormatText(_ format: AVAudioFormat?) -> String? {
     guard let format, format.sampleRate > 0 else { return nil }
     let encoding: String? = switch format.commonFormat {
-    case .pcmFormatFloat32: "32-bit float"
-    case .pcmFormatFloat64: "64-bit float"
-    case .pcmFormatInt16: "16-bit integer"
-    case .pcmFormatInt32: "32-bit integer"
+    case .pcmFormatFloat32: String(localized: "32-bit float")
+    case .pcmFormatFloat64: String(localized: "64-bit float")
+    case .pcmFormatInt16: String(localized: "16-bit integer")
+    case .pcmFormatInt32: String(localized: "32-bit integer")
     default: nil
     }
     let parts = [encoding, MediaFormats.sampleRateText(Int(format.sampleRate)), MediaFormats.channelsText(Int(format.channelCount))]
@@ -73,7 +73,7 @@ struct DiagnosticsSnapshot {
     var state: String
     /// The format the playing file is decoded to, before the app's processing.
     var decoderInput: String?
-    var decoderName: String = "Core Audio file reader"
+    var decoderName: String = String(localized: "Core Audio file reader")
     /// The format the app hands to iOS after its processing.
     var sentToSystem: String?
     var eq: EqStage?
@@ -94,7 +94,7 @@ enum DiagnosticsReport {
 
     static func build(_ snapshot: DiagnosticsSnapshot) -> String {
         var out = ReportBuilder()
-        out.append("Erhu audio details")
+        out.append(String(localized: "Erhu audio details"))
         out.section("Track")
         if let source = snapshot.source {
             out.line("Title", clean(source.title))
@@ -109,29 +109,29 @@ enum DiagnosticsReport {
             out.line("Bitrate", fact(source.bitrate))
             out.line("Duration", fact(source.duration))
             out.line("File size", fact(source.fileSize))
-            if let problem = source.problem { out.line("Note", clean(problem)) }
+            if let problem = source.problem { out.line(String(localized: "Note"), clean(problem)) }
         } else {
             out.line("Track", unavailable)
         }
 
-        out.section("Playback (reported by the player)")
+        out.section(String(localized: "Playback (reported by the player)"))
         out.line("State", snapshot.state)
         out.line("Decoder", snapshot.decoderName)
         out.line("Decoder output", snapshot.decoderInput ?? unavailable)
         out.line("Sent to iOS audio", snapshot.sentToSystem ?? unavailable)
 
-        out.section("App processing")
+        out.section(String(localized: "App processing"))
         let fade: String = switch snapshot.transitionFading {
-        case true?: "fading between two tracks (Transition Studio)"
-        case false?: "unity gain (no change)"
+        case true?: String(localized: "fading between two tracks (Transition Studio)")
+        case false?: String(localized: "unity gain (no change)")
         case nil: unavailable
         }
         out.line("Transition", fade)
         if let eq = snapshot.eq {
-            out.line("Equalizer", "\(eq.status.rawValue): \(clean(eq.reason))")
+            out.line("Equalizer", "\(eq.status.label): \(clean(eq.reason))")
             if eq.status == .active {
                 for (i, band) in eq.activeBands.enumerated() {
-                    let skipped = band.skippedAtThisSampleRate ? " (skipped at this sample rate)" : ""
+                    let skipped = band.skippedAtThisSampleRate ? String(localized: " (skipped at this sample rate)") : ""
                     let text = String(format: "%.0f Hz %+.1f dB Q %.2f %@%@", band.frequencyHz, band.gainDb, band.q,
                                       band.type.rawValue.lowercased(), skipped)
                     out.line("  Band \(i + 1)", text)
@@ -140,17 +140,17 @@ enum DiagnosticsReport {
         } else {
             out.line("Equalizer", unavailable)
         }
-        out.line("Preamp, bass boost, virtualizer, loudness, limiter", "not part of this app version")
+        out.line(String(localized: "Preamp, bass boost, virtualizer, loudness, limiter"), String(localized: "not part of this app version"))
         if let headroom = snapshot.headroom {
-            out.line("Clipping risk (estimate)", String(format: "%@, max EQ boost %+.1f dB", headroom.risk.rawValue, headroom.maxBoostDb))
+            out.line(String(localized: "Clipping risk (estimate)"), String(format: String(localized: "%@, max EQ boost %+.1f dB"), headroom.risk.label, headroom.maxBoostDb))
         }
         if let peak = snapshot.peak, peak.frames > 0 {
             let db = peak.peakDbfs.map { String(format: "%.1f", $0) } ?? unavailable
-            out.line("Measured sample peak (after EQ)",
-                     String(format: "%@ dBFS over %.0f s, %lld samples at full scale", db, peak.secondsMeasured, peak.fullScaleSamples))
+            out.line(String(localized: "Measured sample peak (after EQ)"),
+                     String(format: String(localized: "%@ dBFS over %.0f s, %lld samples at full scale"), db, peak.secondsMeasured, peak.fullScaleSamples))
         }
 
-        out.section("Output (reported by iOS)")
+        out.section(String(localized: "Output (reported by iOS)"))
         if let output = snapshot.output {
             let route = output.route.map(\.typeName).joined(separator: ", ")
             out.line("Route", route.isEmpty ? unavailable : route)
@@ -161,9 +161,9 @@ enum DiagnosticsReport {
         } else {
             out.line("Route", unavailable)
         }
-        out.section("Limits")
-        out.append("- iOS mixes, may resample and may process audio after the app (and Bluetooth re-encodes); that part is not visible to the app.")
-        out.append("- Peaks are sample peaks measured after the EQ; peaks between samples are not measured.")
+        out.section(String(localized: "Limits"))
+        out.append(String(localized: "- iOS mixes, may resample and may process audio after the app (and Bluetooth re-encodes); that part is not visible to the app."))
+        out.append(String(localized: "- Peaks are sample peaks measured after the EQ; peaks between samples are not measured."))
         return out.text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
@@ -171,7 +171,7 @@ enum DiagnosticsReport {
         value.map { factText($0) } ?? unavailable
     }
 
-    private static func factText(_ value: Fact) -> String { "\(clean(value.value)) (\(value.provenance.rawValue))" }
+    private static func factText(_ value: Fact) -> String { "\(clean(value.value)) (\(value.provenance.label))" }
 
     /// No control characters or line breaks, and a sane length.
     static func clean(_ text: String) -> String {

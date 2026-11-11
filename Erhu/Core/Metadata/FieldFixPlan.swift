@@ -136,12 +136,12 @@ enum FieldFixPlanner {
         func text(_ field: FixField, _ label: String, current: String, found: String?, keepValidLocal: Bool) -> String? {
             guard fields.contains(field) else { return nil }
             guard let value = found?.trimmed, isUsableTag(value) else {
-                notes.append("No \(label) found online")
+                notes.append(String(localized: "No \(label) found online"))
                 return nil
             }
             if value == current.trimmed { return nil }
             if keepValidLocal && usableIdentityText(current) != nil {
-                notes.append("Kept the existing \(label) \"\(current.trimmed)\"")
+                notes.append(String(localized: "Kept the existing \(label) \"\(current.trimmed)\""))
                 return nil
             }
             changes.append(.init(field: field, oldValue: isUsableTag(current) ? current : nil, newValue: value))
@@ -152,14 +152,14 @@ enum FieldFixPlanner {
         var title: String?
         if fillOnly && fields.contains(.title) && sameTitleSpelling {
             // Same title apart from case or punctuation: the file's spelling stays.
-            if local.title.trimmed != matchTitle.trimmed { notes.append("Kept the existing title \"\(local.title.trimmed)\"") }
+            if local.title.trimmed != matchTitle.trimmed { notes.append(String(localized: "Kept the existing title \"\(local.title.trimmed)\"")) }
         } else {
             title = text(.title, "title", current: local.title, found: matchTitle, keepValidLocal: false)
         }
         var artist: String?
         if fields.contains(.artist) && usableIdentityText(local.artist) != nil && creditContains(local.artist, match.artist) {
             if local.artist.trimmed.lowercased() != match.artist.trimmed.lowercased() {
-                notes.append("Kept the existing artist credit \"\(local.artist.trimmed)\"")
+                notes.append(String(localized: "Kept the existing artist credit \"\(local.artist.trimmed)\""))
             }
         } else {
             artist = text(.artist, "artist", current: local.artist, found: match.artist, keepValidLocal: fillOnly)
@@ -169,7 +169,7 @@ enum FieldFixPlanner {
         var newGenre: String?
         if fields.contains(.genre) {
             if fillOnly && !local.tagsReadable {
-                notes.append("Genre not filled: the file's tags couldn't be read")
+                notes.append(String(localized: "Genre not filled: the file's tags couldn't be read"))
             } else {
                 newGenre = planGenres(local.genre, genre, fillOnly, &changes, &notes)
             }
@@ -178,9 +178,9 @@ enum FieldFixPlanner {
         var newArtwork: Data?
         if fields.contains(.artwork) {
             if artwork == nil || artwork!.isEmpty {
-                notes.append("No artwork found online")
+                notes.append(String(localized: "No artwork found online"))
             } else if fillOnly && (local.hasArtwork || !local.tagsReadable) {
-                notes.append("Kept the existing artwork")
+                notes.append(String(localized: "Kept the existing artwork"))
             } else {
                 newArtwork = artwork
                 changes.append(.init(field: .artwork, oldValue: local.hasArtwork ? "embedded" : nil, newValue: "from \(match.sourceName)"))
@@ -199,14 +199,14 @@ enum FieldFixPlanner {
         for field in [FixField.trackNumber, .discNumber] where fields.contains(field) {
             let existing = field == .trackNumber ? local.trackNumber : local.discNumber
             let found = field == .trackNumber ? match.trackNumber : match.discNumber
-            let label = field == .trackNumber ? "track number" : "disc number"
+            let label = field == .trackNumber ? String(localized: "track number") : String(localized: "disc number")
             if fillOnly && (existing ?? 0) > 0 { continue }
             guard local.tagsReadable, sameReleaseTitle else {
-                notes.append("Kept \(label): the matched album differs from this file's album")
+                notes.append(String(localized: "Kept \(label): the matched album differs from this file's album"))
                 continue
             }
             guard (1...65535).contains(found) else {
-                notes.append("No verified \(label) for this album")
+                notes.append(String(localized: "No verified \(label) for this album"))
                 continue
             }
             if field == .trackNumber {
@@ -214,7 +214,7 @@ enum FieldFixPlanner {
                     && (1...65535).contains(match.discNumber)
                 let destinationDisc = writingDisc ? match.discNumber : max(local.discNumber ?? 1, 1)
                 guard match.discNumber == destinationDisc else {
-                    notes.append("Kept track number: the matched disc does not match the file's disc")
+                    notes.append(String(localized: "Kept track number: the matched disc does not match the file's disc"))
                     continue
                 }
             }
@@ -232,16 +232,16 @@ enum FieldFixPlanner {
         let genres = Genres.join(Genres.parse(found))
         let existing = Genres.join(Genres.parse(current))
         if genres == nil, fillOnly, let existing {
-            notes.append("Kept the existing genre \"\(existing)\"")
+            notes.append(String(localized: "Kept the existing genre \"\(existing)\""))
             return nil
         }
         guard let genres else {
-            notes.append("No genre found online")
+            notes.append(String(localized: "No genre found online"))
             return nil
         }
         if Genres.same(existing, genres) { return nil }
         if fillOnly, let existing {
-            notes.append("Kept the existing genre \"\(existing)\"")
+            notes.append(String(localized: "Kept the existing genre \"\(existing)\""))
             return nil
         }
         changes.append(.init(field: .genre, oldValue: existing, newValue: genres))
@@ -252,28 +252,28 @@ enum FieldFixPlanner {
                                 _ changes: inout [FieldFixPlan.Change], _ notes: inout [String]) -> Int? {
         let current = usableBpm(local.bpm)
         if let current, found == nil {
-            notes.append("Kept the existing BPM \(current)")
+            notes.append(String(localized: "Kept the existing BPM \(current)"))
             return nil
         }
         guard let found else {
-            notes.append("No BPM found")
+            notes.append(String(localized: "No BPM found"))
             return nil
         }
         if !plausibleBpm.contains(found.bpm) {
-            notes.append("BPM \(found.bpm) from \(found.source) is not a plausible tempo")
+            notes.append(String(localized: "BPM \(found.bpm) from \(found.source) is not a plausible tempo"))
             return nil
         }
         if fillOnly && !local.tagsReadable {
-            notes.append("BPM not filled: the file's tags couldn't be read")
+            notes.append(String(localized: "BPM not filled: the file's tags couldn't be read"))
             return nil
         }
         if current == found.bpm { return nil }
         if let current, fillOnly {
-            notes.append("Kept the existing BPM \(current)")
+            notes.append(String(localized: "Kept the existing BPM \(current)"))
             return nil
         }
         if let current, found.estimated {
-            notes.append("Kept the existing BPM \(current): an estimate (\(found.bpm), \(found.source)) doesn't replace it")
+            notes.append(String(localized: "Kept the existing BPM \(current): an estimate (\(found.bpm), \(found.source)) doesn't replace it"))
             return nil
         }
         changes.append(.init(field: .bpm, oldValue: current.map(String.init), newValue: "\(found.bpm) (\(found.source))"))
@@ -287,16 +287,16 @@ enum FieldFixPlanner {
         let current = local.year?.trimmed ?? ""
         var date: ReleaseDate?
         if found == nil {
-            notes.append("No release year found online")
+            notes.append(String(localized: "No release year found online"))
         } else if fillOnly && !local.tagsReadable {
-            notes.append("Year not filled: the file's tags couldn't be read")
+            notes.append(String(localized: "Year not filled: the file's tags couldn't be read"))
         } else if fillOnly && isUsableYearTag(current) {
-            if !current.hasPrefix(String(found!.year)) { notes.append("Kept the existing year \"\(current)\"") }
+            if !current.hasPrefix(String(found!.year)) { notes.append(String(localized: "Kept the existing year \"\(current)\"")) }
         } else if current.count > found!.tagValue.count && current.hasPrefix(found!.tagValue) {
-            notes.append("Kept the existing, more precise date \"\(current)\"")
+            notes.append(String(localized: "Kept the existing, more precise date \"\(current)\""))
         } else if found!.hasMonthOnly && !local.canStoreYearMonth {
             date = found!.yearOnly()
-            notes.append("Saved the year only: this file's tag format can't store a month without a day")
+            notes.append(String(localized: "Saved the year only: this file's tag format can't store a month without a day"))
         } else {
             date = found
         }

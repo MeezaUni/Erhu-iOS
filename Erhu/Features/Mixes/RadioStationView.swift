@@ -16,7 +16,7 @@ struct RadioStationView: View {
                 if let plan {
                     RadioHero(plan: plan)
                     if !plan.basedOn.isEmpty {
-                        Text("Based on " + plan.basedOn.map(\.label).joined(separator: ", ")).font(.footnote).foregroundStyle(.secondary)
+                        Text(String(localized: "Based on \(plan.basedOn.map(\.label).formatted(.list(type: .and)))")).font(.footnote).foregroundStyle(.secondary)
                             .padding(.horizontal, Spacing.heroGutter)
                     }
                     HStack(spacing: Spacing.md) {
@@ -73,10 +73,10 @@ struct RadioStationShelf: View {
     private var stations: [Station] {
         let albums = library.featuredAlbums.prefix(3).compactMap { album -> Station? in
             guard let cover = library.albumCoverSong[album.id] else { return nil }
-            return Station(seed: .album(album.id), title: album.title, subtitle: "Album radio", cover: cover)
+            return Station(seed: .album(album.id), title: album.title, subtitle: String(localized: "Album radio"), cover: cover)
         }
         let songs = (library.favorites.isEmpty ? Array(library.songs.prefix(3)) : Array(library.favorites.prefix(3))).map {
-            Station(seed: .song($0.id), title: $0.title, subtitle: $0.artist + " · Song radio", cover: $0)
+            Station(seed: .song($0.id), title: $0.title, subtitle: $0.artist + " · " + String(localized: "Song radio"), cover: $0)
         }
         return albums + songs
     }

@@ -21,7 +21,7 @@ struct ToolView: View {
         case .wifiTransfer: WifiTransferView()
         case .autoFixTags: FixTagsView()
         case .artworkFetcher: ArtworkFetcherView()
-        default: EmptyState(message: "\(tool.label) isn't available on iOS yet.", systemImage: tool.icon).navigationTitle(tool.label)
+        default: EmptyState(message: String(localized: "\(tool.label) isn't available on iOS yet."), systemImage: tool.icon).navigationTitle(tool.label)
         }
     }
 }

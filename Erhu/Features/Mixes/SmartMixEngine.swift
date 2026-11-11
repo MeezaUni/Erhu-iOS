@@ -343,7 +343,7 @@ enum SmartMixEngine {
         let since = profile.now - 45 * dayMs
         let ranked = profile.songs.filter { $0.value.plays >= 2 && $0.value.lastPlayedAt >= since }
             .map { ($0.key, $0.value.recent + 0.1 * log(1 + Float($0.value.plays))) }
-        return finish(profile, .rotation, ranked, minimum: 5, description: "What you've been playing most lately", perArtist: looseArtistCap)
+        return finish(profile, .rotation, ranked, minimum: 5, description: String(localized: "What you've been playing most lately"), perArtist: looseArtistCap)
     }
 
     // MARK: Forgotten Favourites: played meaningfully before, not for a while.
@@ -352,7 +352,7 @@ enum SmartMixEngine {
         let before = profile.now - 60 * dayMs
         let ranked = profile.songs.filter { $0.value.plays >= 3 && $0.value.lastPlayedAt < before }
             .map { id, h in (id, Float(h.plays) + (profile.tracks[id]?.isFavorite == true ? favouriteWeight : 0)) }
-        return finish(profile, .forgotten, ranked, minimum: 5, description: "Songs you played a lot, not heard for two months or more",
+        return finish(profile, .forgotten, ranked, minimum: 5, description: String(localized: "Songs you played a lot, not heard for two months or more"),
                       perArtist: looseArtistCap)
     }
 
@@ -365,7 +365,7 @@ enum SmartMixEngine {
                 let unheard: Float = profile.history(track.songId).plays == 0 ? 0.1 : 0
                 return (track.songId, 0.6 * profile.artist(track) + 0.4 * profile.album(track) + unheard)
             }
-        return finish(profile, .deepCuts, ranked, minimum: 6, description: "Less-played songs by artists you love", perArtist: 4, perAlbum: 3)
+        return finish(profile, .deepCuts, ranked, minimum: 6, description: String(localized: "Less-played songs by artists you love"), perArtist: 4, perAlbum: 3)
     }
 
     // MARK: Your Kind of Sound: songs that match the established taste.
@@ -386,7 +386,7 @@ enum SmartMixEngine {
                 let score = vybe != nil ? 0.55 * sound + 0.25 * genre + 0.2 * artist : 0.6 * genre + 0.4 * artist
                 return sound > 0 || genre > 0 ? (track.songId, score) : nil
             }
-        let how = vybe != nil ? "Close to the songs you play most, matched by VYBE" : "From the genres and artists you play most"
+        let how = vybe != nil ? String(localized: "Close to the songs you play most, matched by VYBE") : String(localized: "From the genres and artists you play most")
         return finish(profile, .yourSound, ranked, minimum: 10, description: how, perArtist: 3)
     }
 
@@ -413,7 +413,7 @@ enum SmartMixEngine {
             if i < b.count, seen.insert(b[i]).inserted { interleaved.append(b[i]) }
         }
         if a.isEmpty || b.isEmpty || interleaved.count < 8 { return nil }
-        return SmartMix(kind: .aLittleDifferent, songIds: interleaved, description: "Lesser-heard songs near your taste")
+        return SmartMix(kind: .aLittleDifferent, songIds: interleaved, description: String(localized: "Lesser-heard songs near your taste"))
     }
 
     // MARK: Moods
@@ -425,9 +425,9 @@ enum SmartMixEngine {
         }
         let how: String
         switch kind {
-        case .highEnergy: how = "Upbeat songs from your library, by genre and tempo"
-        case .chill: how = "Easy-going songs from your library, by genre"
-        default: how = "After-dark songs from your library, by genre"
+        case .highEnergy: how = String(localized: "Upbeat songs from your library, by genre and tempo")
+        case .chill: how = String(localized: "Easy-going songs from your library, by genre")
+        default: how = String(localized: "After-dark songs from your library, by genre")
         }
         return finish(profile, kind, ranked, minimum: 8, description: how, perArtist: 3)
     }
@@ -436,13 +436,13 @@ enum SmartMixEngine {
 
     static func favourites(_ profile: ListeningProfile) -> SmartMix? {
         let ranked = profile.tracks.values.filter(\.isFavorite).map { ($0.songId, Float(profile.history($0.songId).plays)) }
-        return finish(profile, .favourites, ranked, minimum: 3, description: "Songs you marked with a heart", perArtist: .max)
+        return finish(profile, .favourites, ranked, minimum: 3, description: String(localized: "Songs you marked with a heart"), perArtist: .max)
     }
 
     static func fresh(_ profile: ListeningProfile) -> SmartMix? {
         if profile.tracks.count < 10 { return nil }
         let ranked = profile.tracks.values.map { ($0.songId, Float($0.addedAt)) }
-        return finish(profile, .fresh, ranked, minimum: 3, description: "The newest additions to your library", perArtist: .max)
+        return finish(profile, .fresh, ranked, minimum: 3, description: String(localized: "The newest additions to your library"), perArtist: .max)
     }
 
     // MARK: Ordering and diversity
@@ -507,7 +507,7 @@ enum LibraryMixes {
             .max { a, b in a.value.count != b.value.count ? a.value.count < b.value.count : -a.key < -b.key }?.key
         guard let artistId, let songs = byArtist[artistId] else { return nil }
         let name = songs.sorted { $0.songId < $1.songId }.first!.artist
-        let how = played != nil ? "The artist you play most, every song of theirs you have" : "The artist with the most songs in your library"
+        let how = played != nil ? String(localized: "The artist you play most, every song of theirs you have") : String(localized: "The artist with the most songs in your library")
         let ranked = songs.map { ($0.songId, Float(profile.history($0.songId).plays)) }
         guard var mix = SmartMixEngine.finish(profile, .spotlight, ranked, minimum: 6, description: how, perArtist: .max, perAlbum: .max)
         else { return nil }
@@ -522,15 +522,15 @@ enum LibraryMixes {
             guard let year = track.year else { return false }
             return year >= 1950 && year != 1970 && year <= thisYear - 10
         }.map { ($0.songId, profile.artist($0) + Float(min(profile.history($0.songId).plays, 1))) }
-        return SmartMixEngine.finish(profile, .throwbacks, ranked, minimum: 8, description: "Songs from ten or more years ago, by their year tags")
+        return SmartMixEngine.finish(profile, .throwbacks, ranked, minimum: 8, description: String(localized: "Songs from ten or more years ago, by their year tags"))
     }
 
     static func quickHits(_ profile: ListeningProfile) -> SmartMix? {
-        byLength(profile, .quickHits, 60_000...160_000, "Short songs from your library, all under 2:40")
+        byLength(profile, .quickHits, 60_000...160_000, String(localized: "Short songs from your library, all under 2:40"))
     }
 
     static func longListens(_ profile: ListeningProfile) -> SmartMix? {
-        byLength(profile, .longListens, 300_000...1_200_000, "Songs from your library that run five minutes or more")
+        byLength(profile, .longListens, 300_000...1_200_000, String(localized: "Songs from your library that run five minutes or more"))
     }
 
     private static func byLength(_ profile: ListeningProfile, _ kind: MixKind, _ range: ClosedRange<Int64>, _ how: String) -> SmartMix? {
@@ -546,6 +546,6 @@ enum LibraryMixes {
         let newest = newestAdded > 0 ? newestAdded : 1
         let ranked = profile.tracks.values.filter { profile.history($0.songId).plays == 0 }
             .map { ($0.songId, 2 * profile.artist($0) + Float($0.addedAt) / Float(newest)) }
-        return SmartMixEngine.finish(profile, .yetToHear, ranked, minimum: 8, description: "Songs in your library you haven't played yet")
+        return SmartMixEngine.finish(profile, .yetToHear, ranked, minimum: 8, description: String(localized: "Songs in your library you haven't played yet"))
     }
 }

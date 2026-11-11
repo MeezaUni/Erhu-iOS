@@ -152,14 +152,14 @@ private struct LyricsPanelContent: View {
     /// No lyrics text (yet) in the card: what the lookup is doing, never invented lyrics.
     private func lookupLine(_ lookup: LyricsLookup, _ onExpand: @escaping () -> Void) -> some View {
         let text = switch lookup {
-        case .idle: "Lyrics unavailable"
-        case .searching: "Looking for lyrics…"
-        case .notFound: "No synced lyrics found · search online"
-        case .instrumental: "Instrumental"
-        case .offline: "Offline · synced lyrics couldn’t be checked"
-        case .rateLimited, .failed: "No alternate lyrics available · search online"
-        case .switching: "Checking another lyrics source…"
-        case .usingFallback: "Lyrics unavailable · search online"
+        case .idle: String(localized: "Lyrics unavailable")
+        case .searching: String(localized: "Looking for lyrics…")
+        case .notFound: String(localized: "No synced lyrics found · search online")
+        case .instrumental: String(localized: "Instrumental")
+        case .offline: String(localized: "Offline · synced lyrics couldn’t be checked")
+        case .rateLimited, .failed: String(localized: "No alternate lyrics available · search online")
+        case .switching: String(localized: "Checking another lyrics source…")
+        case .usingFallback: String(localized: "Lyrics unavailable · search online")
         }
         return Button(action: onExpand) {
             Text(text).font(.headline).foregroundStyle(palette.onSurfaceVariant)
@@ -251,14 +251,14 @@ private struct LyricsPanelContent: View {
 
     private func statusText(_ lookup: LyricsLookup) -> (String, Bool) {
         switch lookup {
-        case .searching: return ("Looking for lyrics online…", false)
-        case .notFound: return ("No matching synced lyrics found. Search online for available versions.", false)
-        case .instrumental: return ("This track is instrumental.", false)
-        case .offline: return ("Synced lyrics couldn’t be checked while offline.", true)
-        case .rateLimited, .failed: return ("No alternate lyrics could be loaded. Search online for other versions.", true)
-        case .switching: return ("Looking for lyrics from another source…", false)
-        case .usingFallback: return ("No alternate lyrics could be loaded.", true)
-        case .idle: return ("No synced lyrics available. Search online for other versions.", false)
+        case .searching: return (String(localized: "Looking for lyrics online…"), false)
+        case .notFound: return (String(localized: "No matching synced lyrics found. Search online for available versions."), false)
+        case .instrumental: return (String(localized: "This track is instrumental."), false)
+        case .offline: return (String(localized: "Synced lyrics couldn’t be checked while offline."), true)
+        case .rateLimited, .failed: return (String(localized: "No alternate lyrics could be loaded. Search online for other versions."), true)
+        case .switching: return (String(localized: "Looking for lyrics from another source…"), false)
+        case .usingFallback: return (String(localized: "No alternate lyrics could be loaded."), true)
+        case .idle: return (String(localized: "No synced lyrics available. Search online for other versions."), false)
         }
     }
 

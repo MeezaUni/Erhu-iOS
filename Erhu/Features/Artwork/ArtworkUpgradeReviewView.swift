@@ -15,7 +15,7 @@ struct ArtworkUpgradeReviewView: View {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
                     Text(review.upgrade.target.name).font(.headline)
                     comparisonImage(review.original, label: "Current", facts: review.originalFacts)
-                    comparisonImage(review.replacement, label: "Replacement", facts: review.replacementFacts)
+                    comparisonImage(review.replacement, label: String(localized: "Replacement"), facts: review.replacementFacts)
                     Text(review.upgrade.candidate.source).font(.caption).foregroundStyle(palette.onSurfaceVariant)
                     if let credit = review.upgrade.candidate.credit {
                         Text(credit.author + " · " + credit.license).font(.caption)

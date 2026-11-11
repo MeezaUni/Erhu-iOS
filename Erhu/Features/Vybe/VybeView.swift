@@ -76,9 +76,9 @@ struct VybeView: View {
     @ViewBuilder private var status: some View {
         switch vybe.status {
         case .loadingModel:
-            progress("Getting VYBE ready…", nil)
+            progress(String(localized: "Getting VYBE ready…"), nil)
         case .indexing(let done, let total):
-            progress("Learning your library · \(done) of \(total) songs", Double(done) / Double(max(total, 1)))
+            progress(String(localized: "Learning your library · \(done) of \(total) songs"), Double(done) / Double(max(total, 1)))
         case .ready(let songs):
             Text("\(songs) songs · Offline search")
                 .font(.caption)

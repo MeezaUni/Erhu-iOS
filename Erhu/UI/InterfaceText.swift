@@ -16,3 +16,12 @@ extension String {
         Bundle.main.localizedString(forKey: self, value: self, table: nil)
     }
 }
+
+extension String.LocalizationValue.StringInterpolation {
+    /// Lets translatable interface text include any value (an error, a count of another integer type, an
+    /// enum): it is inserted as text, like a `%@` argument. Strings, integers and floating-point values
+    /// still use their own, more specific overloads.
+    mutating func appendInterpolation<T>(_ value: T) {
+        appendInterpolation(String(describing: value))
+    }
+}

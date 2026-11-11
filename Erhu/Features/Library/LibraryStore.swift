@@ -67,7 +67,7 @@ final class LibraryStore {
             featuredAlbums = FeaturedAlbums.select(albums: albums, tracks: tracks, plays: plays, exclude: Set(recentAlbums.map(\.id)),
                                                    epochDay: epochDay)
         } catch {
-            report("Couldn't read the library: \(error)")
+            report(String(localized: "Couldn't read the library: \(error)"))
         }
     }
 
@@ -86,7 +86,7 @@ final class LibraryStore {
                     Task { @MainActor in store.updateProgress(progress) }
                 }
             } catch {
-                let message = "The library scan failed: \(error)"
+                let message = String(localized: "The library scan failed: \(error)")
                 await store.report(message)
             }
             await store.scanFinished()

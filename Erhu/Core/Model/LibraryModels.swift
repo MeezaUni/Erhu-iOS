@@ -161,7 +161,15 @@ enum SmartPlaylist: String, CaseIterable, Sendable {
     case favorites = "Favorites"
     case neverPlayed = "Never Played"
 
-    var title: String { rawValue }
+    var title: String {
+        switch self {
+        case .mostPlayed: String(localized: "Most Played")
+        case .recentlyAdded: String(localized: "Recently Added")
+        case .recentlyPlayed: String(localized: "Recently Played")
+        case .favorites: String(localized: "Favorites")
+        case .neverPlayed: String(localized: "Never Played")
+        }
+    }
 }
 
 /// Where the app keeps its files.

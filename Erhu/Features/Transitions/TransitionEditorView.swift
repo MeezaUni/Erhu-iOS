@@ -170,16 +170,16 @@ struct TransitionEditorView: View {
 
     private func targetLabel(_ target: EditorTarget) -> String {
         switch target {
-        case .global: "All music"
+        case .global: String(localized: "All music")
         case .collection: "Whole \(noun)"
-        case .pair: "This transition"
+        case .pair: String(localized: "This transition")
         }
     }
 
     private func statusLine(_ current: EditorDraft) -> String {
         switch current.mode {
         case .inherit: "Default · \(specSummary(current.inherited))"
-        case .off: "Off · tracks play back to back"
+        case .off: String(localized: "Off · tracks play back to back")
         case .custom: specSummary(current.spec)
         }
     }
@@ -219,7 +219,7 @@ struct TransitionEditorView: View {
                 }
             } label: {
                 SectionRow(title: "EQ", color: AutomationColors.eq,
-                           value: shown.map { EqMove.of($0)?.label ?? "Bass swap at \(percent($0.bassSwapAt)) %" } ?? "None", compact: current.pair != nil)
+                           value: shown.map { EqMove.of($0)?.label ?? String(localized: "Bass swap at \(percent($0.bassSwapAt)) %") } ?? "None", compact: current.pair != nil)
             }
             .menuStyle(.button).buttonStyle(.plain)
             if base.bassSwap && shown != nil && current.pair == nil {
@@ -281,7 +281,7 @@ private struct BassSwapSlider: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text("Bass swap at \(percent(value)) % of the transition").font(.caption)
+            Text(String(localized: "Bass swap at \(percent(value)) % of the transition")).font(.caption)
             Slider(value: Binding(get: { Double(value) }, set: { change(Float($0)) }),
                    in: Double(TransitionSpec.minBassSwapAt)...Double(TransitionSpec.maxBassSwapAt), step: 0.01) { editing in
                 if editing { begin() }
@@ -315,7 +315,7 @@ struct DurationBlock: View {
                 Text(spec == nil ? "None" : TransitionSpec.durationLabel(requested)).font(.subheadline.monospacedDigit())
             }
             if spec != nil, let effective, effective < requested {
-                Text("Shortened to \(TransitionSpec.durationLabel(max(effective, 0))) for these tracks")
+                Text(String(localized: "Shortened to \(TransitionSpec.durationLabel(max(effective, 0))) for these tracks"))
                     .font(.caption).foregroundStyle(palette.onSurfaceVariant)
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Spacing.sm), count: 3), spacing: Spacing.sm) {
@@ -634,7 +634,7 @@ private struct TransitionLanes: View {
         .background(palette.surfaceVariant.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
         .accessibilityElement()
         .accessibilityLabel("EQ")
-        .accessibilityValue(spec.bassSwap ? "Bass swap at \(percent(spec.bassSwapAt)) %" : "None")
+        .accessibilityValue(spec.bassSwap ? String(localized: "Bass swap at \(percent(spec.bassSwapAt)) %") : "None")
     }
 
     /// How much a filter takes away, 0 (open) to 1 (thinnest or darkest), even in pitch.

@@ -37,9 +37,9 @@ enum ThemeImportError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .notATheme(let detail): "This isn't a theme package (\(detail))."
-        case .skin: "This is a widget skin, not a colour theme. Skins aren't used on iOS."
-        case .tooLarge: "The theme package is too large."
+        case .notATheme(let detail): String(localized: "This isn't a theme package (\(detail)).")
+        case .skin: String(localized: "This is a widget skin, not a colour theme. Skins aren't used on iOS.")
+        case .tooLarge: String(localized: "The theme package is too large.")
         }
     }
 }
@@ -58,7 +58,7 @@ enum ThemeImporter {
     /// Reads the Android ThemeManifest JSON: colours are ARGB numbers ("primary": 4294506490).
     static func parse(_ json: Data) throws -> ImportedTheme {
         guard let object = try? JSONSerialization.jsonObject(with: json) as? [String: Any] else {
-            throw ThemeImportError.notATheme("manifest.json isn't valid JSON")
+            throw ThemeImportError.notATheme(String(localized: "manifest.json isn't valid JSON"))
         }
         guard let colors = object["colors"] as? [String: Any] else { throw ThemeImportError.skin }
         func color(_ key: String) throws -> UInt32 {
@@ -67,7 +67,7 @@ enum ThemeImporter {
         }
         let rawId = (object["id"] as? String)?.trimmed ?? ""
         let id = String(rawId.unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) || $0 == "_" || $0 == "-" }.prefix(64).map(Character.init))
-        guard !id.isEmpty, let name = (object["name"] as? String)?.trimmed.nonBlank else { throw ThemeImportError.notATheme("no id or name") }
+        guard !id.isEmpty, let name = (object["name"] as? String)?.trimmed.nonBlank else { throw ThemeImportError.notATheme(String(localized: "no id or name")) }
         return ImportedTheme(
             id: "imported_\(id)", name: String(name.prefix(60)), author: (object["author"] as? String)?.trimmed.nonBlank ?? "Unknown",
             isDark: object["isDark"] as? Bool ?? true,
@@ -94,7 +94,7 @@ enum ZipReader {
             if bytes[i] == 0x50, bytes[i + 1] == 0x4B, bytes[i + 2] == 0x05, bytes[i + 3] == 0x06 { end = i; break }
             i -= 1
         }
-        guard end >= 0 else { throw ThemeImportError.notATheme("not a zip file") }
+        guard end >= 0 else { throw ThemeImportError.notATheme(String(localized: "not a zip file")) }
         let count = u16(end + 10)
         var entry = u32(end + 16)
         for _ in 0..<count {
@@ -109,14 +109,14 @@ enum ZipReader {
             guard entry + 46 + nameLength <= bytes.count else { break }
             let entryName = String(decoding: bytes[(entry + 46)..<(entry + 46 + nameLength)], as: UTF8.self)
             if entryName == name || entryName.hasSuffix("/" + name) {
-                guard size <= 1024 * 1024, u32(local) == 0x0403_4B50 else { throw ThemeImportError.notATheme("\(name) is unreadable") }
+                guard size <= 1024 * 1024, u32(local) == 0x0403_4B50 else { throw ThemeImportError.notATheme(String(localized: "\(name) is unreadable")) }
                 let start = local + 30 + u16(local + 26) + u16(local + 28)
-                guard start + compressed <= bytes.count else { throw ThemeImportError.notATheme("the zip is cut short") }
+                guard start + compressed <= bytes.count else { throw ThemeImportError.notATheme(String(localized: "the zip is cut short")) }
                 let payload = Data(bytes[start..<(start + compressed)])
                 switch method {
                 case 0: return payload
                 case 8: return try inflate(payload, size: size)
-                default: throw ThemeImportError.notATheme("unsupported compression")
+                default: throw ThemeImportError.notATheme(String(localized: "unsupported compression"))
                 }
             }
             entry += 46 + nameLength + extra + comment
@@ -131,7 +131,7 @@ enum ZipReader {
         let written = data.withUnsafeBytes { source in
             compression_decode_buffer(&output, size, source.bindMemory(to: UInt8.self).baseAddress!, data.count, nil, COMPRESSION_ZLIB)
         }
-        guard written == size else { throw ThemeImportError.notATheme("the zip entry couldn't be decompressed") }
+        guard written == size else { throw ThemeImportError.notATheme(String(localized: "the zip entry couldn't be decompressed")) }
         return Data(output)
     }
 }
