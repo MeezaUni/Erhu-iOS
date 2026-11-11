@@ -16,9 +16,9 @@ enum MotionCoverStatus: Equatable {
     case downloading, saved, notFound, failed(String)
     var label: String {
         switch self {
-        case .downloading: "Downloading…"
-        case .saved: "Downloaded · available offline"
-        case .notFound: "No matching motion cover found"
+        case .downloading: String(localized: "Downloading…")
+        case .saved: String(localized: "Downloaded · available offline")
+        case .notFound: String(localized: "No matching motion cover found")
         case .failed(let message): message
         }
     }

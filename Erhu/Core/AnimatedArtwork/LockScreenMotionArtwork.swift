@@ -97,9 +97,9 @@ final class LockScreenMotionArtwork {
 
         var message: String {
             switch self {
-            case .idle: "Play an album with a downloaded motion cover."
-            case .preparing: "Preparing Lock Screen artwork…"
-            case .ready: "Ready for the Lock Screen. Tap the cover there to expand it."
+            case .idle: String(localized: "Play an album with a downloaded motion cover.")
+            case .preparing: String(localized: "Preparing Lock Screen artwork…")
+            case .ready: String(localized: "Ready for the Lock Screen. Tap the cover there to expand it.")
             case .unavailable(let reason): reason
             }
         }
