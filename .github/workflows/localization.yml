@@ -44,7 +44,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild -exportLocalizations -project Erhu.xcodeproj -localizationPath build/Localizations \
-            -exportLanguage en -sdk iphonesimulator -derivedDataPath build \
+            -exportLanguage en -sdk iphonesimulator \
             -clonedSourcePackagesDirPath build/SourcePackages 2>&1 | tail -40
           find build/Localizations -maxdepth 3 | head -20
 
