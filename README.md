@@ -135,6 +135,4 @@ erhu is free, with no ads or accounts. If you'd like to help cover the Apple Dev
 
 ## License
 
-erhu for iOS is source-visible proprietary software. You can read the code and install official builds, but copying, modification, rebranding and redistribution need permission. See the [licence](LICENSE) and [licensing and permissions](docs/LICENSING-PERMISSIONS.md).
-
-Android-derived code and the erhu branding are used with the written permission of Kshitij Kekunnaya and Lochan Thakke. Versions up to v1.0-beta were released under the [GNU General Public License v3.0](LICENSES/GPL-3.0-historical.txt) and remain available under it. Third-party components keep their own licences ([ThirdParty](ThirdParty/)).
+[GNU General Public License v3.0](LICENSE). Android-derived code and the erhu branding are documented in [licensing and permissions](docs/LICENSING-PERMISSIONS.md). Third-party components keep their own licences ([ThirdParty](ThirdParty/)).

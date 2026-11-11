@@ -28,17 +28,16 @@ ios iphone music-player offline-music local-music swift swiftui avfoundation cor
 
 | GitHub checklist | File |
 | --- | --- |
-| Licence | [LICENSE](../LICENSE), source-visible proprietary licence; earlier GPL text in [LICENSES/GPL-3.0-historical.txt](../LICENSES/GPL-3.0-historical.txt) |
+| Licence | [LICENSE](../LICENSE), full GNU GPL version 3 text |
 | Security policy | [SECURITY.md](../SECURITY.md) |
 | Contributing | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Code of conduct | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) |
 | Issue templates | [Bug report](../.github/ISSUE_TEMPLATE/bug_report.yml) and [feature request](../.github/ISSUE_TEMPLATE/feature_request.yml) |
 | Pull request template | [Pull request template](../.github/pull_request_template.md) |
 
-From v1.0-beta.2 the app uses a source-visible proprietary licence. GitHub shows the root `LICENSE`
-file. Versions up to v1.0-beta remain under the GPL text kept in `LICENSES/`. Permissions for
-Android-derived material are recorded in [LICENSING-PERMISSIONS.md](LICENSING-PERMISSIONS.md). Third-party
-and model notices remain in place.
+GPLv3 does not require buying a licence or registering the project. GitHub detects the root
+`LICENSE` file. Existing Android and model licences/notices remain in place, and the licence history and
+permissions are recorded in [LICENSING-PERMISSIONS.md](LICENSING-PERMISSIONS.md).
 
 Enable **private vulnerability reporting** in the repository's security settings if the
 workflow cannot enable it. The security policy includes a fallback until that channel is available.
@@ -52,7 +51,7 @@ default branch starts publication; the workflow can also be run manually there f
 
 It uses the latest retained successful `iOS` workflow artifact for each variant, verifies that
 the app code/build configuration matches the current branch, and checks the IPA contents. It
-uploads both unchanged IPAs, each build's source archive, the licence, third-party notices, a
+uploads both unchanged IPAs, each build's source archive, GPLv3 text, third-party notices, a
 build manifest, and SHA-256 checksums. All assets are uploaded to a draft before it is published
 as a prerelease. Existing releases/tags are never overwritten. The website field is not changed.
 
