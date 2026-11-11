@@ -45,7 +45,7 @@ struct AnimatedArtworkView: View {
                 if let song = player.state.currentSong {
                     Text(song.title).font(.headline)
                 }
-                Text(store.enabled ? player.lockScreenMotion.status.message : "Turn on downloaded motion covers to enable Lock Screen artwork.")
+                Text(store.enabled ? player.lockScreenMotion.status.message : String(localized: "Turn on downloaded motion covers to enable Lock Screen artwork."))
                     .font(.footnote).foregroundStyle(.secondary)
                 if player.lockScreenMotion.videoRequested {
                     Text("Video supplied to iOS. The system controls whether it animates.")

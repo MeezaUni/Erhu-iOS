@@ -110,9 +110,9 @@ final class ReleaseChecker {
     }
 
     static func result(_ releases: [AppRelease], installed: String, animated: Bool) -> ReleaseCheckState {
-        guard let current = ReleaseVersion(installed) else { return .failed("This build has no valid release version.") }
+        guard let current = ReleaseVersion(installed) else { return .failed(String(localized: "This build has no valid release version.")) }
         let compatible = releases.filter { !$0.draft && AppRelease.official($0.html_url) && $0.download(animated: animated) != nil && ReleaseVersion($0.tag_name) != nil }
-        guard !compatible.isEmpty else { return .failed("No published IPA for this artwork variant was found.") }
+        guard !compatible.isEmpty else { return .failed(String(localized: "No published IPA for this artwork variant was found.")) }
         if let newest = compatible.max(by: { ReleaseVersion($0.tag_name)! < ReleaseVersion($1.tag_name)! }),
            ReleaseVersion(newest.tag_name)! > current { return .available(newest) }
         return .current
@@ -122,7 +122,7 @@ final class ReleaseChecker {
         guard state != .checking else { return }
         let now = Date()
         if let cooldown, cooldown > now {
-            if manual { state = .failed("GitHub is rate-limiting requests. Try again after \(cooldown.formatted(date: .omitted, time: .shortened)).") }
+            if manual { state = .failed(String(localized: "GitHub is rate-limiting requests. Try again after \(cooldown.formatted(date: .omitted, time: .shortened)).")) }
             return
         }
         if !manual, let checkedAt, now.timeIntervalSince(checkedAt) < Self.interval { return }
@@ -134,7 +134,7 @@ final class ReleaseChecker {
             if response.statusCode == 403 || response.statusCode == 429 {
                 let retry = response.value(forHTTPHeaderField: "Retry-After").flatMap(TimeInterval.init) ?? 3600
                 cooldown = response.value(forHTTPHeaderField: "X-RateLimit-Reset").flatMap(TimeInterval.init).map(Date.init(timeIntervalSince1970:)) ?? now.addingTimeInterval(retry)
-                state = .failed("GitHub temporarily limited update checks. Your app and music still work; try later.")
+                state = .failed(String(localized: "GitHub temporarily limited update checks. Your app and music still work; try later."))
                 return
             }
             let releases: [AppRelease]
@@ -151,7 +151,7 @@ final class ReleaseChecker {
             checkedAt = now
             defaults.set(now, forKey: Self.prefix + "checkedAt")
         } catch {
-            state = .failed("Couldn’t check GitHub Releases. Check your connection and try again.")
+            state = .failed(String(localized: "Couldn’t check GitHub Releases. Check your connection and try again."))
             cooldown = now.addingTimeInterval(60)
         }
     }

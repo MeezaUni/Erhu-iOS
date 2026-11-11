@@ -16,7 +16,7 @@ struct LyricsTimingContext: Equatable, Identifiable {
         // A changed provider record or changed lyrics text is a new version. Fetching the
         // same version again (including from the offline download) keeps its adjustment.
         sourceKey = hash(lyrics.sourceID + "\n" + (lyrics.text ?? ""))
-        label = lyrics.origin == .file ? "File lyrics" : (lyrics.provider ?? "Online lyrics")
+        label = lyrics.origin == .file ? String(localized: "File lyrics") : (lyrics.provider ?? String(localized: "Online lyrics"))
     }
 }
 

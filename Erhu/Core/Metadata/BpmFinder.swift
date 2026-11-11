@@ -33,11 +33,11 @@ enum TempoEstimator {
 
     static func estimate(_ samples: [Float], sampleRate: Int) -> TempoEstimate {
         let sectionLength = sectionSeconds * sampleRate
-        guard sectionLength > 0 else { return .uncertain("Too little audio to measure a tempo") }
+        guard sectionLength > 0 else { return .uncertain(String(localized: "Too little audio to measure a tempo")) }
         let sections = stride(from: 0, to: samples.count, by: sectionLength)
             .map { Array(samples[$0..<min(samples.count, $0 + sectionLength)]) }
             .filter { $0.count >= minSectionSeconds * sampleRate }
-        guard !sections.isEmpty else { return .uncertain("Too little audio to measure a tempo") }
+        guard !sections.isEmpty else { return .uncertain(String(localized: "Too little audio to measure a tempo")) }
         let results = sections.map { sectionTempo($0, sampleRate: sampleRate) }
         return consensus(results)
     }
@@ -77,17 +77,17 @@ enum TempoEstimator {
             }
         }
         if let pair = ambiguous.first {
-            return .uncertain("Half-time / double-time ambiguity: \(Int(pair.0.rounded())) or \(Int(pair.1.rounded())) BPM")
+            return .uncertain(String(localized: "Half-time / double-time ambiguity: \(Int(pair.0.rounded())) or \(Int(pair.1.rounded())) BPM"))
         }
-        if tempos.isEmpty { return .uncertain("No steady beat found") }
+        if tempos.isEmpty { return .uncertain(String(localized: "No steady beat found")) }
         if let best, tempos.allSatisfy({ close($0, best) }) {
-            return .uncertain("Only \(tempos.count) of \(results.count) sections had a dependable beat (about \(Int(best.rounded())) BPM)")
+            return .uncertain(String(localized: "Only \(tempos.count) of \(results.count) sections had a dependable beat (about \(Int(best.rounded())) BPM)"))
         }
         let shown = tempos.map { String(Int($0.rounded())) }.joined(separator: ", ")
         let octaveSplit = tempos.contains { a in tempos.contains { b in abs(b / a - 2) < octaveTolerance * 2 } }
         return .uncertain(octaveSplit
-            ? "Half-time / double-time ambiguity between parts of the song (\(shown) BPM)"
-            : "The tempo differs between parts of the song (\(shown) BPM)")
+            ? String(localized: "Half-time / double-time ambiguity between parts of the song (\(shown) BPM)")
+            : String(localized: "The tempo differs between parts of the song (\(shown) BPM)"))
     }
 
     private static func close(_ a: Double, _ b: Double) -> Bool { abs(a - b) <= agreement * b }
@@ -340,18 +340,18 @@ actor BpmFinder {
             let estimate = await Task.detached(priority: .utility) { TempoEstimator.estimate(pcm.samples, sampleRate: pcm.sampleRate) }.value
             switch estimate {
             case .found(let bpm, let agreeing, let sections):
-                return .found(FoundBpm(bpm: bpm, source: "on-device estimate, \(agreeing) of \(sections) sections agree", estimated: true))
-            case .uncertain(let reason): reasons.append("on-device estimate: \(reason)")
+                return .found(FoundBpm(bpm: bpm, source: String(localized: "on-device estimate, \(agreeing) of \(sections) sections agree"), estimated: true))
+            case .uncertain(let reason): reasons.append(String(localized: "on-device estimate: \(reason)"))
             }
         } catch {
             localFailed = true
-            reasons.append("The audio couldn't be analysed (\(error.localizedDescription))")
+            reasons.append(String(localized: "The audio couldn't be analysed (\(error.localizedDescription))"))
         }
         for brainz in verified.filter({ $0.id.hasPrefix("mb_") && UUID(uuidString: String($0.id.dropFirst(3))) != nil }).prefix(3) {
             switch await measured(String(brainz.id.dropFirst(3))) {
             case .success(let bpm): return .found(FoundBpm(bpm: bpm, source: "AcousticBrainz archive", estimated: true))
             case .failure(let error):
-                reasons.append("AcousticBrainz archive: \(error.message)")
+                reasons.append(String(localized: "AcousticBrainz archive: \(error.message)"))
             }
         }
         if !localFailed {
@@ -360,10 +360,10 @@ actor BpmFinder {
                 let estimate = await Task.detached(priority: .utility) { TempoEstimator.estimate(pcm.samples, sampleRate: pcm.sampleRate) }.value
                 switch estimate {
                 case .found(let bpm, let agreeing, let sections):
-                    return .found(FoundBpm(bpm: bpm, source: "extended on-device estimate, \(agreeing) of \(sections) sections support it", estimated: true))
-                case .uncertain(let reason): reasons.append("extended on-device estimate: \(reason)")
+                    return .found(FoundBpm(bpm: bpm, source: String(localized: "extended on-device estimate, \(agreeing) of \(sections) sections support it"), estimated: true))
+                case .uncertain(let reason): reasons.append(String(localized: "extended on-device estimate: \(reason)"))
                 }
-            } catch { reasons.append("Extended audio analysis failed: \(error.localizedDescription)") }
+            } catch { reasons.append(String(localized: "Extended audio analysis failed: \(error.localizedDescription)")) }
         }
         return localFailed ? .failed(reasons.joined(separator: "; ")) : .notFound(reasons.joined(separator: "; "))
     }
@@ -388,14 +388,14 @@ actor BpmFinder {
     /// disagree (often by half / double time) give none, rather than a pick.
     static func bpm(fromAcousticBrainz body: [String: Any], recordingId: String) -> Result<Int, ProviderError> {
         func none(_ reason: String) -> Result<Int, ProviderError> { .failure(ProviderError(status: .noResults, message: reason)) }
-        guard let analyses = body[recordingId] as? [String: Any] else { return none("AcousticBrainz has no analysis of this recording") }
+        guard let analyses = body[recordingId] as? [String: Any] else { return none(String(localized: "AcousticBrainz has no analysis of this recording")) }
         let values = analyses.keys.sorted { (Int($0) ?? 0) < (Int($1) ?? 0) }.compactMap { key -> Double? in
             ((analyses[key] as? [String: Any])?["rhythm"] as? [String: Any])?["bpm"] as? Double
         }.filter { plausibleBpm.contains(Int($0.rounded())) }
-        guard !values.isEmpty else { return none("AcousticBrainz has no usable tempo for this recording") }
+        guard !values.isEmpty else { return none(String(localized: "AcousticBrainz has no usable tempo for this recording")) }
         let median = values.sorted()[values.count / 2]
         if values.contains(where: { abs($0 - median) > 0.03 * median }) {
-            return none("AcousticBrainz's analyses disagree (\(values.map { String(Int($0.rounded())) }.joined(separator: ", ")) BPM)")
+            return none(String(localized: "AcousticBrainz's analyses disagree (\(values.map { String(Int($0.rounded())) }.joined(separator: ", ")) BPM)"))
         }
         return .success(Int(median.rounded()))
     }

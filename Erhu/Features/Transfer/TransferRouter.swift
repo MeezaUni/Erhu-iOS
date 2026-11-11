@@ -71,8 +71,8 @@ final class TransferRouter: @unchecked Sendable {
     static let clientValue = "1"
     private static let bufferBytes = 64 * 1024
     private static let progressStepBytes: Int64 = 256 * 1024
-    private static let duplicateMessage = "Already on the phone: skipped, nothing was overwritten"
-    private static let noSpaceMessage = "Not enough free space on the phone"
+    private static let duplicateMessage = String(localized: "Already on the phone: skipped, nothing was overwritten")
+    private static let noSpaceMessage = String(localized: "Not enough free space on the phone")
 
     private let session: TransferSession
     private let hostPort: String
@@ -122,7 +122,7 @@ final class TransferRouter: @unchecked Sendable {
         if request.header(Self.clientHeader) != Self.clientValue { return .error(HttpStatus.forbidden, "Use the transfer page") }
         if request.path == "/api/pair" { return pair(request) }
         if !session.isAuthorized(request.header(Self.tokenHeader), clock()) {
-            return .error(HttpStatus.unauthorized, "This transfer session has ended or the link is wrong")
+            return .error(HttpStatus.unauthorized, String(localized: "This transfer session has ended or the link is wrong"))
         }
         if request.path == "/api/check" { return check(request) }
         return await upload(request, body)
@@ -131,9 +131,9 @@ final class TransferRouter: @unchecked Sendable {
     private func pair(_ request: HttpRequest) -> HttpResponse {
         switch session.pair(request.header(Self.codeHeader), clock()) {
         case .paired(let token): return .json(HttpStatus.ok, [("status", "ok"), ("token", token)])
-        case .wrongCode: return .error(HttpStatus.forbidden, "Wrong code. Check the code shown on the phone.")
-        case .locked: return .error(HttpStatus.tooManyRequests, "Too many wrong codes. Scan the QR code, or stop and start the transfer on the phone.")
-        case .closed: return .error(HttpStatus.unauthorized, "This transfer session has ended")
+        case .wrongCode: return .error(HttpStatus.forbidden, String(localized: "Wrong code. Check the code shown on the phone."))
+        case .locked: return .error(HttpStatus.tooManyRequests, String(localized: "Too many wrong codes. Scan the QR code, or stop and start the transfer on the phone."))
+        case .closed: return .error(HttpStatus.unauthorized, String(localized: "This transfer session has ended"))
         }
     }
 
@@ -153,14 +153,14 @@ final class TransferRouter: @unchecked Sendable {
     private func upload(_ request: HttpRequest, _ body: BodyReader) async -> HttpResponse? {
         guard let length = request.contentLength else { return .error(HttpStatus.lengthRequired, "Content-Length required") }
         if length > limits.maxFileBytes { return tooLarge() }
-        if length == 0 { return .error(HttpStatus.badRequest, "Empty file") }
+        if length == 0 { return .error(HttpStatus.badRequest, String(localized: "Empty file")) }
         guard let name = TransferFiles.sanitize(decodedName(request)) else { return unsupported() }
         let acquired = lock.withLock { () -> Bool in
             guard uploading < limits.maxConcurrentUploads else { return false }
             uploading += 1
             return true
         }
-        if !acquired { return .error(HttpStatus.tooManyRequests, "Busy: the phone is already receiving files, this one will be retried") }
+        if !acquired { return .error(HttpStatus.tooManyRequests, String(localized: "Busy: the phone is already receiving files, this one will be retried")) }
         events.onUploadStarted()
         defer {
             lock.withLock { uploading -= 1 }
@@ -179,8 +179,8 @@ final class TransferRouter: @unchecked Sendable {
                 return noSpace()
             }
         } catch {
-            registry.failed(registry.begin(name, length), "Could not create the file on the phone: \(error.localizedDescription)")
-            return .error(HttpStatus.internalError, "Could not create the file on the phone")
+            registry.failed(registry.begin(name, length), String(localized: "Could not create the file on the phone: \(error.localizedDescription)"))
+            return .error(HttpStatus.internalError, String(localized: "Could not create the file on the phone"))
         }
     }
 
@@ -196,7 +196,7 @@ final class TransferRouter: @unchecked Sendable {
         }
         if !TransferFiles.looksLikeAudio(upload.savedName, [UInt8](head)) {
             upload.abort()
-            registry.failed(id, "Not a valid \(TransferFiles.extensionOf(upload.savedName).uppercased()) audio file")
+            registry.failed(id, String(localized: "Not a valid \(TransferFiles.extensionOf(upload.savedName).uppercased()) audio file"))
             return await skip(body, length - Int64(head.count)) ? unsupported() : nil
         }
         var received = Int64(head.count)
@@ -221,8 +221,8 @@ final class TransferRouter: @unchecked Sendable {
             return .json(HttpStatus.ok, [("status", "saved"), ("savedName", upload.savedName)])
         } catch {
             upload.abort()
-            registry.failed(id, "Received, but the phone could not finish saving it: \(error.localizedDescription)")
-            return .error(HttpStatus.internalError, "The phone could not finish saving the file")
+            registry.failed(id, String(localized: "Received, but the phone could not finish saving it: \(error.localizedDescription)"))
+            return .error(HttpStatus.internalError, String(localized: "The phone could not finish saving the file"))
         }
     }
 
@@ -232,13 +232,13 @@ final class TransferRouter: @unchecked Sendable {
             return true
         } catch {
             upload.abort()
-            registry.failed(id, "Could not write to the phone's storage (full or unavailable): \(error.localizedDescription)")
+            registry.failed(id, String(localized: "Could not write to the phone's storage (full or unavailable): \(error.localizedDescription)"))
             return false
         }
     }
 
     private func writeFailed(_ body: BodyReader, _ remaining: Int64) async -> HttpResponse? {
-        await skip(body, remaining) ? .error(HttpStatus.insufficientStorage, "The phone could not store the file") : nil
+        await skip(body, remaining) ? .error(HttpStatus.insufficientStorage, String(localized: "The phone could not store the file")) : nil
     }
 
     private func cancelled(_ upload: PendingUpload, _ id: Int64) -> HttpResponse? {
@@ -260,10 +260,10 @@ final class TransferRouter: @unchecked Sendable {
     private func decodedName(_ request: HttpRequest) -> String? { request.header(Self.nameHeader)?.removingPercentEncoding }
 
     private func unsupported() -> HttpResponse {
-        .error(HttpStatus.unsupportedMediaType, "Not a supported audio file (\(TransferFiles.formatsLabel))")
+        .error(HttpStatus.unsupportedMediaType, String(localized: "Not a supported audio file (\(TransferFiles.formatsLabel))"))
     }
 
-    private func tooLarge() -> HttpResponse { .error(HttpStatus.payloadTooLarge, "File is larger than \(limits.maxFileBytes / 1024 / 1024) MB") }
+    private func tooLarge() -> HttpResponse { .error(HttpStatus.payloadTooLarge, String(localized: "File is larger than \(limits.maxFileBytes / 1024 / 1024) MB")) }
 
     private func noSpace() -> HttpResponse { .error(HttpStatus.insufficientStorage, Self.noSpaceMessage) }
 }

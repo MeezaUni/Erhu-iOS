@@ -9,7 +9,7 @@ enum MetadataSources {
 
     /// The choices offered for Fix Tags.
     static let options: [(key: String, label: String)] = [
-        (all, "Automatic (all sources)"), (iTunes, "iTunes only"), (musicBrainz, "MusicBrainz only"), (deezer, "Deezer only (where available)"),
+        (all, String(localized: "Automatic (all sources)")), (iTunes, String(localized: "iTunes only")), (musicBrainz, String(localized: "MusicBrainz only")), (deezer, String(localized: "Deezer only (where available)")),
     ]
 
     static func matches(_ provider: String, _ selection: String) -> Bool {
@@ -103,7 +103,7 @@ actor MetadataService {
             return (result, nil)
         } catch {
             if match.sourceName == MetadataSources.deezer { rememberDeezerFailure(error) }
-            return (result, "Album order lookup failed: \(error.localizedDescription)")
+            return (result, String(localized: "Album order lookup failed: \(error.localizedDescription)"))
         }
     }
 
@@ -123,14 +123,14 @@ actor MetadataService {
             var positioned = match
             positioned.trackNumber = needsTrack ? detail.trackNumber : (localTrack ?? detail.trackNumber)
             positioned.discNumber = detail.discNumber
-            return (positioned, "Track/disc numbers from \(detail.sourceName), \(detail.album)")
+            return (positioned, String(localized: "Track/disc numbers from \(detail.sourceName), \(detail.album)"))
         }
         var unresolved = match
         unresolved.trackNumber = 0
         unresolved.discNumber = 0
         return (unresolved, issues.first ?? (needsTrack
-            ? "No verified track/disc pair for this album edition and the existing numbers"
-            : "No verified disc number for this album edition"))
+            ? String(localized: "No verified track/disc pair for this album edition and the existing numbers")
+            : String(localized: "No verified disc number for this album edition")))
     }
 
     /// Recover the tagged release when the initial search showed only another album/single.
@@ -153,7 +153,7 @@ actor MetadataService {
         try requireDeezer()
         let response = try await fetchJSON(DeezerProvider.TrackDetail.self, URL(string: "https://api.deezer.com/track/\(id)")!, client: client)
         let detail = response.track
-        guard detail.id == id else { throw ProviderError(status: .failed, message: "Deezer returned a different recording") }
+        guard detail.id == id else { throw ProviderError(status: .failed, message: String(localized: "Deezer returned a different recording")) }
         if deezerDetails.count >= 500 { deezerDetails.removeAll() }
         deezerDetails[id] = detail
         return detail
@@ -182,13 +182,13 @@ actor MetadataService {
             let detail = try await deezerTrack(id)
             guard let candidate = try DeezerProvider.candidates(.init(data: [detail], total: 1)).first,
                   candidate.deezerAlbumId == match.deezerAlbumId, MetadataEnrichment.sameRecording(match, candidate)
-            else { return (match, "Deezer tempo detail did not match this recording and album") }
+            else { return (match, String(localized: "Deezer tempo detail did not match this recording and album")) }
             var result = match
             result.bpm = candidate.bpm
             return (result, nil)
         } catch {
             rememberDeezerFailure(error)
-            return (match, "Deezer tempo lookup: " + classifyProviderFailure(error).message)
+            return (match, String(localized: "Deezer tempo lookup: \(classifyProviderFailure(error).message)"))
         }
     }
 
@@ -211,8 +211,8 @@ actor MetadataService {
         }
         for (_, _, outcome) in results {
             switch outcome.status {
-            case .authFailed: if unusable[outcome.providerName] == nil { unusable[outcome.providerName] = .rejected(outcome.errorMessage ?? "Credentials rejected") }
-            case .unavailable: if unusable[outcome.providerName] == nil { unusable[outcome.providerName] = .unavailable(outcome.errorMessage ?? "Not available here") }
+            case .authFailed: if unusable[outcome.providerName] == nil { unusable[outcome.providerName] = .rejected(outcome.errorMessage ?? String(localized: "Credentials rejected")) }
+            case .unavailable: if unusable[outcome.providerName] == nil { unusable[outcome.providerName] = .unavailable(outcome.errorMessage ?? String(localized: "Not available here")) }
             default: break
             }
         }
@@ -229,12 +229,12 @@ actor MetadataService {
                           retry: RetryPolicy) async -> ([MetadataCandidate], ProviderOutcome) {
         let name = provider.providerName
         guard MetadataSources.matches(name, selection) else {
-            return ([], ProviderOutcome(providerName: name, status: .skipped, errorMessage: "Not selected (source: \(selection))"))
+            return ([], ProviderOutcome(providerName: name, status: .skipped, errorMessage: String(localized: "Not selected (source: \(selection))")))
         }
         switch availability {
         case .notConfigured(let reason): return ([], ProviderOutcome(providerName: name, status: .notConfigured, errorMessage: reason))
-        case .rejected(let reason): return ([], ProviderOutcome(providerName: name, status: .authFailed, errorMessage: "\(reason) (not retried)"))
-        case .unavailable(let reason): return ([], ProviderOutcome(providerName: name, status: .unavailable, errorMessage: "\(reason) (not asked again)"))
+        case .rejected(let reason): return ([], ProviderOutcome(providerName: name, status: .authFailed, errorMessage: String(localized: "\(reason) (not retried)")))
+        case .unavailable(let reason): return ([], ProviderOutcome(providerName: name, status: .unavailable, errorMessage: String(localized: "\(reason) (not asked again)")))
         case .available: break
         }
         do {
@@ -260,22 +260,22 @@ actor MetadataService {
             var found: [MusicBrainzGenre] = []
             if brainz.id.hasPrefix("mb_"), UUID(uuidString: String(brainz.id.dropFirst(3))) != nil {
                 do { found += try await musicBrainz.recordingGenres(String(brainz.id.dropFirst(3))) }
-                catch { failed = true; reasons.append("MusicBrainz recording: \(classifyProviderFailure(error).message)") }
+                catch { failed = true; reasons.append(String(localized: "MusicBrainz recording: \(classifyProviderFailure(error).message)")) }
             }
             if let group = brainz.releaseGroupId, UUID(uuidString: group) != nil,
                brainz.id == match.id || MetadataEnrichment.sameRelease(match, brainz) {
                 do { found += try await musicBrainz.releaseGroupGenres(group) }
-                catch { failed = true; reasons.append("MusicBrainz album: \(classifyProviderFailure(error).message)") }
+                catch { failed = true; reasons.append(String(localized: "MusicBrainz album: \(classifyProviderFailure(error).message)")) }
             }
             if found.isEmpty, let release = brainz.releaseId, UUID(uuidString: release) != nil,
                brainz.id == match.id || MetadataEnrichment.sameRelease(match, brainz) {
                 do { found += try await musicBrainz.releaseGenres(release) }
-                catch { failed = true; reasons.append("MusicBrainz release: \(classifyProviderFailure(error).message)") }
+                catch { failed = true; reasons.append(String(localized: "MusicBrainz release: \(classifyProviderFailure(error).message)")) }
             }
             if case .found(let genres, _) = Self.genre(fromMusicBrainz: found) {
                 return .found(genres, source: "MusicBrainz recording / album")
             }
-            reasons.append("MusicBrainz lists no genre for this recording or album")
+            reasons.append(String(localized: "MusicBrainz lists no genre for this recording or album"))
         }
         if let deezerMatch = verified.first(where: { $0.deezerAlbumId != nil && ($0.id == match.id || MetadataEnrichment.sameRelease(match, $0)) }), let albumID = deezerMatch.deezerAlbumId {
             do {
@@ -287,7 +287,7 @@ actor MetadataService {
                     deezerGenres[albumID] = genres
                 }
                 if !genres.isEmpty { return .found(genres, source: "Deezer album") }
-                reasons.append("Deezer lists no genre for this album")
+                reasons.append(String(localized: "Deezer lists no genre for this album"))
             } catch {
                 rememberDeezerFailure(error)
                 failed = true; reasons.append("Deezer: \(classifyProviderFailure(error).message)")
@@ -306,7 +306,7 @@ actor MetadataService {
                     let genres = Genres.parse(candidate.genre)
                     if !genres.isEmpty { return .found(genres, source: "iTunes catalogue (additional verified search)") }
                 }
-            } catch { failed = true; reasons.append("iTunes genre search: \(classifyProviderFailure(error).message)") }
+            } catch { failed = true; reasons.append(String(localized: "iTunes genre search: \(classifyProviderFailure(error).message)")) }
         }
         for brainz in verified.filter({ $0.sourceName == MetadataSources.musicBrainz }).prefix(2) {
             var targets: [(String, String, String)] = []
@@ -322,7 +322,7 @@ actor MetadataService {
                         let genres = try await wikidata.genres(entityID: linked, musicBrainzID: id, property: property)
                         if !genres.isEmpty { return .found(genres, source: "Wikidata (MusicBrainz-linked \(entity == "recording" ? "recording" : "album"))") }
                     }
-                } catch { failed = true; reasons.append("Wikidata genre: \(classifyProviderFailure(error).message)") }
+                } catch { failed = true; reasons.append(String(localized: "Wikidata genre: \(classifyProviderFailure(error).message)")) }
             }
         }
         // Discogs is a keyless fallback through curated MusicBrainz release links only.
@@ -335,10 +335,10 @@ actor MetadataService {
                         let genres = try await discogs.genres(link, album: brainz.album, artist: brainz.artist)
                         if !genres.isEmpty { return .found(genres, source: "Discogs (MusicBrainz-linked album)") }
                     }
-                } catch { failed = true; reasons.append("Discogs genre: " + classifyProviderFailure(error).message) }
+                } catch { failed = true; reasons.append(String(localized: "Discogs genre: \(classifyProviderFailure(error).message)")) }
             }
         }
-        let reason = reasons.isEmpty ? "No genre available from the verified matches" : reasons.joined(separator: "; ")
+        let reason = reasons.isEmpty ? String(localized: "No genre available from the verified matches") : reasons.joined(separator: "; ")
         return failed ? .failed(reason) : .notFound(reason)
     }
 
@@ -348,20 +348,20 @@ actor MetadataService {
             .sorted { $0.element.count != $1.element.count ? $0.element.count > $1.element.count : $0.offset < $1.offset }
             .map { Optional($0.element.name) }
         let usable = Genres.normalize(ranked)
-        return usable.isEmpty ? .notFound("MusicBrainz has no genre for this album") : .found(usable, source: "MusicBrainz release group")
+        return usable.isEmpty ? .notFound(String(localized: "MusicBrainz has no genre for this album")) : .found(usable, source: "MusicBrainz release group")
     }
 
     /// Downloads an image for embedding; fails rather than returning a non-image.
     func downloadArtwork(_ address: String) async throws -> Data {
-        guard let url = URL(string: address) else { throw ProviderError(status: .failed, message: "Not a valid artwork address") }
+        guard let url = URL(string: address) else { throw ProviderError(status: .failed, message: String(localized: "Not a valid artwork address")) }
         let (data, response) = try await client.get(url, headers: ["User-Agent": metadataUserAgent])
         guard (200..<300).contains(response.statusCode) else {
-            throw ProviderError(status: .failed, message: "Artwork download failed: HTTP \(response.statusCode)")
+            throw ProviderError(status: .failed, message: String(localized: "Artwork download failed: HTTP \(response.statusCode)"))
         }
         if let type = response.value(forHTTPHeaderField: "Content-Type"), !type.lowercased().hasPrefix("image") {
-            throw ProviderError(status: .failed, message: "Artwork address is not an image (\(type))")
+            throw ProviderError(status: .failed, message: String(localized: "Artwork address is not an image (\(type))"))
         }
-        guard !data.isEmpty, data.count <= Self.maxArtworkBytes else { throw ProviderError(status: .failed, message: "Artwork has an invalid size") }
+        guard !data.isEmpty, data.count <= Self.maxArtworkBytes else { throw ProviderError(status: .failed, message: String(localized: "Artwork has an invalid size")) }
         return data
     }
 }

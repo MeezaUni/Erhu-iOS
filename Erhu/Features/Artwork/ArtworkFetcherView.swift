@@ -196,11 +196,11 @@ struct ArtworkPickerSheet: View {
                 Task {
                     do {
                         guard let data = try await item.loadTransferable(type: Data.self) else {
-                            saveError = "The selected photo could not be loaded."
+                            saveError = String(localized: "The selected photo could not be loaded.")
                             return
                         }
                         guard ArtworkImageFacts.thumbnail(data, maxPixels: 32) != nil else {
-                            saveError = "The selected photo could not be decoded."
+                            saveError = String(localized: "The selected photo could not be decoded.")
                             return
                         }
                         preview = ArtworkPreview(candidate: nil, data: data)
@@ -226,7 +226,7 @@ struct ArtworkPickerSheet: View {
         case .artist(let artist): status = store.artistStatus[artist.id]
         }
         if case .failed(let reason)? = status { return reason }
-        return "The image could not be saved. Try another image."
+        return String(localized: "The image could not be saved. Try another image.")
     }
 
     private var webSearchURL: URL {
@@ -248,7 +248,7 @@ struct ArtworkPickerSheet: View {
             var checked = candidate
             checked.image = ArtworkImageFacts.inspect(bytes)
             preview = ArtworkPreview(candidate: checked, data: bytes)
-        } catch { saveError = "The full image could not be verified. Try another image." }
+        } catch { saveError = String(localized: "The full image could not be verified. Try another image.") }
     }
 
     private func apply(_ candidate: ArtworkCandidate, image: Data) async {
@@ -299,7 +299,7 @@ private struct ArtworkCandidateTile: View {
                     if let match = candidate.match {
                         Text(match.album).font(.caption).lineLimit(2)
                         Text(match.artist + (match.year > 0 ? " · \(match.year)" : "")).font(.caption2).lineLimit(2)
-                        Text(candidate.recommended ? "Recommended" : match.review.joined(separator: " · ").ifBlank("Preview to confirm"))
+                        Text(candidate.recommended ? String(localized: "Recommended") : match.review.joined(separator: " · ").ifBlank(String(localized: "Preview to confirm")))
                             .font(.caption2).foregroundStyle(candidate.recommended ? Color.green : Color.secondary)
                     }
                     if let image = candidate.image { Text(image.resolution).font(.caption2).foregroundStyle(.secondary) }

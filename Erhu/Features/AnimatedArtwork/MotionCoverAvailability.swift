@@ -45,7 +45,7 @@ final class MotionCoverAvailability {
                 if let match = entry.match { results[entry.id] = Result(album: entry.album, match: match) }
             }
             checked = completed.count; total = saved.total; hasChecked = true
-            message = "Saved progress: checked \(checked) of \(total) albums. Continue to check remaining or newly added albums."
+            message = String(localized: "Saved progress: checked \(checked) of \(total) albums. Continue to check remaining or newly added albums.")
         }
     }
 
@@ -94,9 +94,9 @@ final class MotionCoverAvailability {
         task = Task {
             defer {
                 checking = false; task = nil
-                if let completion { completion(message ?? "The animated-cover check finished.") }
+                if let completion { completion(message ?? String(localized: "The animated-cover check finished.")) }
             }
-            do { try saveProgress() } catch { message = "Couldn’t save scan progress: \(error.localizedDescription)"; return }
+            do { try saveProgress() } catch { message = String(localized: "Couldn’t save scan progress: \(error.localizedDescription)"); return }
             for album in albums {
                 if !singleAlbum, completed[album.id] != nil { continue }
                 do {
@@ -111,16 +111,16 @@ final class MotionCoverAvailability {
                     try saveProgress()
                     if !singleAlbum, checked < total { try await Task.sleep(for: pause) }
                 } catch {
-                    message = Task.isCancelled ? "Check stopped. Continue to check the remaining albums."
-                        : "Check paused: \(error.localizedDescription) Continue later to check the remaining albums."
+                    message = Task.isCancelled ? String(localized: "Check stopped. Continue to check the remaining albums.")
+                        : String(localized: "Check paused: \(error.localizedDescription) Continue later to check the remaining albums.")
                     return
                 }
             }
             if singleAlbum, let album = albums.first {
-                message = match(for: album) == nil ? "No matching animated cover found for \(album.title)."
-                    : "An animated cover is available for \(album.title)."
+                message = match(for: album) == nil ? String(localized: "No matching animated cover found for \(album.title).")
+                    : String(localized: "An animated cover is available for \(album.title).")
             } else {
-                message = "Checked \(checked) albums. \(results.count) motion cover\(results.count == 1 ? "" : "s") available."
+                message = String(localized: "Albums checked: \(checked). Motion covers available: \(results.count).")
             }
         }
     }

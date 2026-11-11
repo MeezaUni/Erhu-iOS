@@ -7,14 +7,14 @@ struct IntroductionPage: Identifiable {
     let symbol: String
     static func pages(vybe: Bool) -> [Self] {
         var pages: [Self] = [
-            .init(id: "welcome", title: "Your music. Your space.", text: "A home for the music you own. Your collection and listening history stay on this iPhone.", symbol: "music.note.house"),
-            .init(id: "library", title: "Bring your collection", text: "Use + to choose files, or start Wi-Fi Transfer to send music from a computer. Browse your albums, artists and playlists.", symbol: "square.and.arrow.down"),
-            .init(id: "tools", title: "Give music its details", text: "Find Artwork Fetcher and Auto Fix Tags in the menu or Settings. Review matches before applying changes. Online searches send the metadata needed by the provider.", symbol: "wand.and.stars"),
-            .init(id: "listen", title: "Make yourself at home", text: "Tap the mini-player to open Now Playing. Swipe the artwork to change tracks, manage Queue, and follow synced lyrics when available.", symbol: "play.rectangle"),
-            .init(id: "sound", title: "Shape the handover", text: "Use the eight-band EQ for your sound. Open Transition Studio from an album or playlist to edit its crossfades, or select a track pair to inspect waveforms and preview the handover.", symbol: "waveform.path"),
+            .init(id: "welcome", title: String(localized: "Your music. Your space."), text: String(localized: "A home for the music you own. Your collection and listening history stay on this iPhone."), symbol: "music.note.house"),
+            .init(id: "library", title: String(localized: "Bring your collection"), text: String(localized: "Use + to choose files, or start Wi-Fi Transfer to send music from a computer. Browse your albums, artists and playlists."), symbol: "square.and.arrow.down"),
+            .init(id: "tools", title: String(localized: "Give music its details"), text: String(localized: "Find Artwork Fetcher and Auto Fix Tags in the menu or Settings. Review matches before applying changes. Online searches send the metadata needed by the provider."), symbol: "wand.and.stars"),
+            .init(id: "listen", title: String(localized: "Make yourself at home"), text: String(localized: "Tap the mini-player to open Now Playing. Swipe the artwork to change tracks, manage Queue, and follow synced lyrics when available."), symbol: "play.rectangle"),
+            .init(id: "sound", title: String(localized: "Shape the handover"), text: String(localized: "Use the eight-band EQ for your sound. Open Transition Studio from an album or playlist to edit its crossfades, or select a track pair to inspect waveforms and preview the handover."), symbol: "waveform.path"),
         ]
-        if vybe { pages.append(.init(id: "vybe", title: "Discover your own library", text: "VYBE searches the artists, genres, tempo and lyrics saved in your collection. Radio stations offer tracks to browse before you press Play. Nothing is streamed from a radio service.", symbol: "recordingtape")) }
-        pages.append(.init(id: "ready", title: "Ready when you are", text: "You can revisit this introduction in Settings → About Erhu. No Erhu account or music subscription is needed.", symbol: "checkmark.circle"))
+        if vybe { pages.append(.init(id: "vybe", title: String(localized: "Discover your own library"), text: String(localized: "VYBE searches the artists, genres, tempo and lyrics saved in your collection. Radio stations offer tracks to browse before you press Play. Nothing is streamed from a radio service."), symbol: "recordingtape")) }
+        pages.append(.init(id: "ready", title: String(localized: "Ready when you are"), text: String(localized: "You can revisit this introduction in Settings → About Erhu. No Erhu account or music subscription is needed."), symbol: "checkmark.circle"))
         return pages
     }
 }

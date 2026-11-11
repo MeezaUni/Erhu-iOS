@@ -112,18 +112,18 @@ struct MatchScore: Equatable {
 enum LyricsMatcher {
     private static let strictTags: [(String, Regex16)] = [
         ("live", Regex16(#"\blive\b"#)),
-        ("remix", Regex16(#"\b(remix|rmx|bootleg|edit mix)\b"#)),
+        ("remix", Regex16(#String(localized: "\b(remix|rmx|bootleg|edit mix)\b")#)),
         ("acoustic", Regex16(#"\b(acoustic|unplugged)\b"#)),
         ("instrumental", Regex16(#"\binstrumental\b"#)),
         ("karaoke", Regex16(#"\bkaraoke\b"#)),
         ("cover", Regex16(#"\bcover\b"#)),
         ("demo", Regex16(#"\bdemo\b"#)),
-        ("sped up", Regex16(#"\b(sped up|speed up|nightcore)\b"#)),
+        ("sped up", Regex16(#String(localized: "\b(sped up|speed up|nightcore)\b")#)),
         ("slowed", Regex16(#"\b(slowed|reverb)\b"#)),
         ("reprise", Regex16(#"\breprise\b"#)),
     ]
     private static let softTags: [(String, Regex16)] = [
-        ("clean", Regex16(#"\b(clean|radio edit|censored)\b"#)),
+        ("clean", Regex16(#String(localized: "\b(clean|radio edit|censored)\b")#)),
         ("explicit", Regex16(#"\bexplicit\b"#)),
         ("extended", Regex16(#"\bextended\b"#)),
     ]
@@ -561,9 +561,9 @@ enum LyricsWebSearch {
 enum LyricsFailureMessage {
     static func text(_ reason: String) -> String {
         if reason.contains("LRCLIB") { return reason + "." }
-        if reason.contains("HTTP 5") || reason.contains("timed out") {
-            return "Online lyrics are temporarily unavailable. You can search the web instead."
+        if reason.contains("HTTP 5") || reason.contains(String(localized: "timed out")) {
+            return String(localized: "Online lyrics are temporarily unavailable. You can search the web instead.")
         }
-        return "Could not load online lyrics (\(reason))."
+        return String(localized: "Could not load online lyrics (\(reason)).")
     }
 }

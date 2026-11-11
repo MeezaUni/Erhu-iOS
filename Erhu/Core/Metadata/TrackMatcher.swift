@@ -18,6 +18,13 @@ struct TrackQuery: Equatable, Sendable {
     enum Source: String, Sendable {
         case tag = "file tags"
         case fileName = "file name"
+
+        var label: String {
+            switch self {
+            case .tag: String(localized: "file tags")
+            case .fileName: String(localized: "file name")
+            }
+        }
     }
 
     let title: String
@@ -70,7 +77,7 @@ enum TrackMatcher {
             let response = await search(query)
             responses.append(response)
             attempts.append(QueryAttempt(title: query.title, artist: query.artist, album: query.album,
-                                         source: query.source.rawValue, outcomes: response.outcomes))
+                                         source: query.source.label, outcomes: response.outcomes))
             for candidate in response.candidates {
                 let scored = rescore(candidate, identity, query)
                 if let previous = found[candidate.id] {
@@ -150,14 +157,14 @@ enum TrackMatcher {
             $0.confidenceScore >= acceptAt && best.confidenceScore - $0.confidenceScore <= tieMargin && !sameSong($0, best)
         }
         if best.confidenceScore < min(uncertainThreshold, acceptAt) {
-            return .noMatch(reason: "No close match. Best: \(describe(best, identity))")
+            return .noMatch(reason: String(localized: "No close match. Best: \(describe(best, identity))"))
         }
         if best.confidenceScore < acceptAt {
-            return .lowConfidence(best, reason: "Not confident enough to write. Best: \(describe(best, identity))")
+            return .lowConfidence(best, reason: String(localized: "Not confident enough to write. Best: \(describe(best, identity))"))
         }
         if !rivals.isEmpty {
             let all = [best] + rivals
-            return .ambiguous(all, reason: "Equally good matches disagree: " + all.map { describe($0, identity) }.joined(separator: " / "))
+            return .ambiguous(all, reason: String(localized: "Equally good matches disagree: \(all.map { describe($0, identity) }.joined(separator: " / "))"))
         }
         return .confident(best)
     }
@@ -175,11 +182,11 @@ enum TrackMatcher {
     /// e.g. "GONE, GONE / THANK YOU" by Tyler, The Creator (IGOR), 4:32 vs file 6:15, 69% [MusicBrainz]
     static func describe(_ candidate: MetadataCandidate, _ identity: TrackIdentity) -> String {
         let album = candidate.album.isBlank ? "" : " (\(candidate.album))"
-        let fileLength = identity.durationMs.map { " vs file \(clock($0))" } ?? ""
+        let fileLength = identity.durationMs.map { " " + String(localized: "vs file \(clock($0))") } ?? ""
         let duration = candidate.durationMs.map { ", \(clock($0))\(fileLength)" } ?? ""
         let version = candidate.versionNote.map { " [\($0)]" } ?? ""
         let percent = Int(candidate.confidenceScore * 100)
-        return "\"\(candidate.title)\" by \(candidate.artist)\(album)\(version)\(duration), \(percent)% [\(candidate.sourceName)]"
+        return String(localized: "“\(candidate.title)” by \(candidate.artist)") + "\(album)\(version)\(duration), \(percent)% [\(candidate.sourceName)]"
     }
 
     private static func clock(_ ms: Int64) -> String {

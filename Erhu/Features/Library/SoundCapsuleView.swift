@@ -88,12 +88,12 @@ struct SoundCapsuleView: View {
         HStack(spacing: Spacing.sm) {
             summary("\(capsule.totalPlays)", capsule.totalPlays == 1 ? "play" : "plays")
             summary("\(minutes)", minutes == 1 ? "minute" : "minutes")
-            summary("\(capsule.longestStreakDays)", "day streak")
+            summary("\(capsule.longestStreakDays)", String(localized: "day streak"))
         }
         .padding(.horizontal, Spacing.gutter)
         .padding(.vertical, Spacing.sm)
         if !capsule.topSongs.isEmpty {
-            title("Top songs")
+            title(String(localized: "Top songs"))
             ForEach(Array(capsule.topSongs.enumerated()), id: \.element.song.id) { index, ranked in
                 Button { actions.play(songs, startIndex: index) } label: {
                     HStack(spacing: Spacing.sm) {
@@ -116,7 +116,7 @@ struct SoundCapsuleView: View {
             }
         }
         if !capsule.topAlbums.isEmpty {
-            title("Top albums")
+            title(String(localized: "Top albums"))
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: Spacing.md) {
                     ForEach(Array(capsule.topAlbums.enumerated()), id: \.element.album.id) { index, ranked in
@@ -139,7 +139,7 @@ struct SoundCapsuleView: View {
             }
         }
         if !capsule.topArtists.isEmpty {
-            title("Top artists")
+            title(String(localized: "Top artists"))
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: Spacing.md) {
                     ForEach(Array(capsule.topArtists.enumerated()), id: \.element.artist.id) { index, ranked in

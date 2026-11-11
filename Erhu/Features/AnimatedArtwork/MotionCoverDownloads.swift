@@ -46,14 +46,14 @@ final class MotionCoverDownloads {
                     failed += 1; completed += 1
                     let failure = error as NSError
                     if failure.domain == NSCocoaErrorDomain && failure.code == NSFileWriteOutOfSpaceError {
-                        message = "Storage is full. \(saved) cover\(saved == 1 ? "" : "s") saved. Free space, then try again."
+                        message = String(localized: "Storage is full. Covers saved: \(saved). Free space, then try again.")
                         return
                     }
                 }
             }
-            var summary = "\(saved) cover\(saved == 1 ? "" : "s") saved."
-            if unavailable > 0 { summary += " \(unavailable) no longer available." }
-            if failed > 0 { summary += " \(failed) failed; tap Download all to retry remaining covers." }
+            var summary = String(localized: "Covers saved: \(saved).")
+            if unavailable > 0 { summary += " " + String(localized: "No longer available: \(unavailable).") }
+            if failed > 0 { summary += " " + String(localized: "Failed: \(failed). Tap Download all to retry the remaining covers.") }
             message = summary
         }
     }
@@ -65,6 +65,6 @@ final class MotionCoverDownloads {
     }
 
     private func stopped() {
-        message = "Download stopped. \(saved) cover\(saved == 1 ? "" : "s") saved; Download all resumes remaining covers."
+        message = String(localized: "Download stopped. Covers saved: \(saved). Download all resumes the remaining covers.")
     }
 }

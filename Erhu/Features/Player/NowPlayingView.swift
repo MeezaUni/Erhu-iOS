@@ -208,14 +208,14 @@ struct NowPlayingView: View {
     }
 
     private var playbackSourceTitle: String {
-        guard let source = player.state.currentEntry?.source else { return "Your music" }
+        guard let source = player.state.currentEntry?.source else { return String(localized: "Your music") }
         switch source {
-        case .album(let id): return library.album(id)?.title ?? "Album unavailable"
-        case .playlist(let id): return library.playlist(id)?.name ?? "Playlist unavailable"
-        case .artist(let id): return library.artist(id)?.name ?? "Artist unavailable"
-        case .smartPlaylist(let key): return mixes.mix(key)?.title ?? MixKind.fromKey(key)?.title ?? "Smart playlist"
+        case .album(let id): return library.album(id)?.title ?? String(localized: "Album unavailable")
+        case .playlist(let id): return library.playlist(id)?.name ?? String(localized: "Playlist unavailable")
+        case .artist(let id): return library.artist(id)?.name ?? String(localized: "Artist unavailable")
+        case .smartPlaylist(let key): return mixes.mix(key)?.title ?? MixKind.fromKey(key)?.title ?? String(localized: "Smart playlist")
         case .library: return "Library"
-        case .favorites: return "Liked Songs"
+        case .favorites: return String(localized: "Liked Songs")
         case .vybe: return "VYBE"
         }
     }
@@ -270,7 +270,7 @@ struct NowPlayingView: View {
             _ = try AppServices.shared.database.addBookmark(songId: song.id, positionMs: position)
             actions.show("Bookmarked \(formatDuration(position))")
         } catch {
-            actions.show("Couldn't save the bookmark: \(error.localizedDescription)")
+            actions.show(String(localized: "Couldn't save the bookmark: \(error.localizedDescription)"))
         }
     }
 
@@ -516,11 +516,11 @@ struct QueueSheet: View {
                 if page == 0 {
                     ToolbarItem(placement: .topBarLeading) {
                         Menu {
-                            Button { if !player.shuffleUpcoming() { showFeedback("Fewer than two songs are coming up") } } label: {
+                            Button { if !player.shuffleUpcoming() { showFeedback(String(localized: "Fewer than two songs are coming up")) } } label: {
                                 Label("Shuffle upcoming", systemImage: "shuffle")
                             }
                             Button { saving = true } label: { Label("Save as playlist", systemImage: "square.and.arrow.down") }
-                            Button { showFeedback(player.undoQueueRemoval() ? "Removal undone" : "Nothing to undo") } label: {
+                            Button { showFeedback(player.undoQueueRemoval() ? String(localized: "Removal undone") : String(localized: "Nothing to undo")) } label: {
                                 Label("Undo removal", systemImage: "arrow.uturn.backward")
                             }
                         } label: { Image(systemName: "ellipsis.circle") }

@@ -63,11 +63,11 @@ enum TagWriteError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .nothingToWrite: "Nothing to write."
-        case .unsupportedFormat(let detail): "This file's format can't be tagged (\(detail))."
-        case .unreadable(let detail): "The file couldn't be read (\(detail))."
-        case .verificationFailed(let detail): "Tags couldn't be written: \(detail). The file was not changed."
-        case .io(let detail): "The file couldn't be saved (\(detail))."
+        case .nothingToWrite: String(localized: "Nothing to write.")
+        case .unsupportedFormat(let detail): String(localized: "This file's format can't be tagged (\(detail)).")
+        case .unreadable(let detail): String(localized: "The file couldn't be read (\(detail)).")
+        case .verificationFailed(let detail): String(localized: "Tags couldn't be written: \(detail). The file was not changed.")
+        case .io(let detail): String(localized: "The file couldn't be saved (\(detail)).")
         }
     }
 }
@@ -106,7 +106,7 @@ enum TagWriter {
         try verify(temp, request)
         let missing = MetadataCompleteness.missing(TagReader.read(temp), fields: fields)
         guard missing.isEmpty else {
-            throw TagWriteError.verificationFailed("selected tags remain missing: " + missing.map(\.displayName).joined(separator: ", "))
+            throw TagWriteError.verificationFailed(String(localized: "selected tags remain missing: \(missing.map(\.displayName).joined(separator: ", "))"))
         }
         do {
             _ = try FileManager.default.replaceItemAt(url, withItemAt: temp)

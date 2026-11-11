@@ -34,14 +34,14 @@ enum MotionPlaylist {
               url.scheme == "https", url.user == nil, url.password == nil,
               let host = url.host?.lowercased(),
               host == "music.apple.com" || host.hasSuffix(".apple.com") || host.hasSuffix(".mzstatic.com") else {
-            throw MotionArtworkError("Apple returned an unsupported video address.")
+            throw MotionArtworkError(String(localized: "Apple returned an unsupported video address."))
         }
         return url
     }
 
     static func variants(_ text: String, base: URL) throws -> [Variant] {
         let lines = text.components(separatedBy: .newlines).map(\.trimmed)
-        guard lines.first == "#EXTM3U" else { throw MotionArtworkError("Invalid video playlist.") }
+        guard lines.first == "#EXTM3U" else { throw MotionArtworkError(String(localized: "Invalid video playlist.")) }
         var result: [Variant] = []
         for i in lines.indices where lines[i].hasPrefix("#EXT-X-STREAM-INF:") {
             let fields = attributes(lines[i])
@@ -74,7 +74,7 @@ enum MotionPlaylist {
     static func parts(_ text: String, base: URL) throws -> [Part] {
         let lines = text.components(separatedBy: .newlines).map(\.trimmed)
         guard lines.first == "#EXTM3U", lines.contains("#EXT-X-ENDLIST") else {
-            throw MotionArtworkError("Only complete motion-cover clips can be downloaded.")
+            throw MotionArtworkError(String(localized: "Only complete motion-cover clips can be downloaded."))
         }
         var result: [Part] = []
         var nextRange: String?
@@ -85,33 +85,33 @@ enum MotionPlaylist {
             guard let range else { return Part(url: url, offset: nil, length: nil) }
             let values = range.split(separator: "@", omittingEmptySubsequences: false)
             guard values.count <= 2, let first = values.first, let length = Int64(first), length > 0, length <= 64 * 1024 * 1024 else {
-                throw MotionArtworkError("Invalid video byte range.")
+                throw MotionArtworkError(String(localized: "Invalid video byte range."))
             }
             let offset: Int64?
             if values.count == 2 { offset = Int64(values[1]) }
             else if let previous, previous.url == url, let old = previous.offset, let count = previous.length { offset = old + count }
             else { offset = nil }
-            guard let offset, offset >= 0, offset <= Int64.max - length else { throw MotionArtworkError("Invalid video byte offset.") }
+            guard let offset, offset >= 0, offset <= Int64.max - length else { throw MotionArtworkError(String(localized: "Invalid video byte offset.")) }
             return Part(url: url, offset: offset, length: length)
         }
         for line in lines {
             if line.hasPrefix("#EXT-X-KEY:"), attributes(line)["METHOD"] != "NONE" {
-                throw MotionArtworkError("Encrypted motion artwork is not supported.")
+                throw MotionArtworkError(String(localized: "Encrypted motion artwork is not supported."))
             }
-            if line == "#EXT-X-DISCONTINUITY" { throw MotionArtworkError("This video format is not supported for offline covers.") }
+            if line == "#EXT-X-DISCONTINUITY" { throw MotionArtworkError(String(localized: "This video format is not supported for offline covers.")) }
             if line.hasPrefix("#EXT-X-MAP:") {
-                guard !hasMap, let raw = attributes(line)["URI"] else { throw MotionArtworkError("Unsupported video initialization map.") }
+                guard !hasMap, let raw = attributes(line)["URI"] else { throw MotionArtworkError(String(localized: "Unsupported video initialization map.")) }
                 let initial = try part(raw, range: attributes(line)["BYTERANGE"])
                 result.append(initial); previous = initial; hasMap = true
             } else if line.hasPrefix("#EXT-X-BYTERANGE:") {
                 nextRange = String(line.dropFirst("#EXT-X-BYTERANGE:".count))
             } else if !line.isEmpty, !line.hasPrefix("#") {
-                guard hasMap else { throw MotionArtworkError("This cover is not an MP4 video.") }
+                guard hasMap else { throw MotionArtworkError(String(localized: "This cover is not an MP4 video.")) }
                 let segment = try part(line, range: nextRange)
                 result.append(segment); previous = segment; nextRange = nil
             }
         }
-        guard hasMap, result.count > 1, result.count <= 300, nextRange == nil else { throw MotionArtworkError("The motion cover has no complete video.") }
+        guard hasMap, result.count > 1, result.count <= 300, nextRange == nil else { throw MotionArtworkError(String(localized: "The motion cover has no complete video.")) }
         return result
     }
 }

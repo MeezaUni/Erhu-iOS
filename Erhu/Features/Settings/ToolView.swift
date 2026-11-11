@@ -22,7 +22,7 @@ struct ToolView: View {
         case .autoFixTags: FixTagsView()
         case .artworkFetcher: ArtworkFetcherView()
         case .animatedArtwork: AnimatedArtworkView()
-        default: EmptyState(message: "\(tool.label) isn't available on iOS yet.", systemImage: tool.icon).navigationTitle(tool.label)
+        default: EmptyState(message: String(localized: "\(tool.label) isn't available on iOS yet."), systemImage: tool.icon).navigationTitle(tool.label)
         }
     }
 }

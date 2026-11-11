@@ -30,7 +30,7 @@ final class PairTransitionPreview {
             do {
                 try AVAudioSession.sharedInstance().setActive(true)
             } catch {
-                self.error = "Preview unavailable: the audio output could not be activated."
+                self.error = String(localized: "Preview unavailable: the audio output could not be activated.")
                 stop()
                 return
             }
@@ -58,7 +58,7 @@ final class PairTransitionPreview {
                     }
                 }
             } catch {
-                self.error = "Preview unavailable: the files or transition audio processor could not be opened."
+                self.error = String(localized: "Preview unavailable: the files or transition audio processor could not be opened.")
                 stop()
             }
         }

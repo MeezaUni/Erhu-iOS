@@ -49,7 +49,7 @@ final class LockScreenMotionAsset: @unchecked Sendable {
     }
 
     static func prepare(source: URL) async throws -> LockScreenMotionAsset {
-        guard source.isFileURL else { throw MotionArtworkError("Lock-screen artwork must be downloaded first.") }
+        guard source.isFileURL else { throw MotionArtworkError(String(localized: "Lock-screen artwork must be downloaded first.")) }
         let leased = folder.appendingPathComponent(UUID().uuidString + ".mp4")
         do { try FileManager.default.linkItem(at: source, to: leased) }
         catch { try FileManager.default.copyItem(at: source, to: leased) }
@@ -60,7 +60,7 @@ final class LockScreenMotionAsset: @unchecked Sendable {
             let (image, _) = try await generator.image(at: .zero)
             try Task.checkCancellation()
             guard let aspect = LockScreenMotionAspect(size: CGSize(width: image.width, height: image.height)) else {
-                throw MotionArtworkError("This motion cover has no supported lock-screen aspect ratio.")
+                throw MotionArtworkError(String(localized: "This motion cover has no supported lock-screen aspect ratio."))
             }
             return LockScreenMotionAsset(url: leased, preview: image, aspect: aspect,
                                          artworkID: "erhu-motion-v3-\(source.lastPathComponent)-\(leased.lastPathComponent)")
@@ -152,19 +152,19 @@ final class LockScreenMotionArtwork {
         info = [:]
         videoRequested = false
         guard #available(iOS 26.0, *) else {
-            status = .unavailable("Animated Lock Screen artwork requires iOS 26 or later.")
+            status = .unavailable(String(localized: "Animated Lock Screen artwork requires iOS 26 or later."))
             return
         }
         guard !next.sources.isEmpty else { status = .idle; return }
         guard !next.supported.isEmpty else {
-            status = .unavailable("iOS is not accepting animated artwork on this device.")
+            status = .unavailable(String(localized: "iOS is not accepting animated artwork on this device."))
             return
         }
         if next.sources.allSatisfy({ assets[$0] != nil }) {
             for source in next.sources {
                 if let asset = assets[source] { info.merge(entry(asset, supported: next.supported, requestID: requestID)) { current, _ in current } }
             }
-            status = info.isEmpty ? .unavailable("The downloaded cover has no supported shape.") : .ready
+            status = info.isEmpty ? .unavailable(String(localized: "The downloaded cover has no supported shape.")) : .ready
             return
         }
         status = .preparing
@@ -193,8 +193,8 @@ final class LockScreenMotionArtwork {
             guard !Task.isCancelled, let self, self.requestID == requestID else { return }
             self.info = prepared
             self.status = prepared.isEmpty
-                ? .unavailable(lastError.map { "Could not prepare Lock Screen artwork: \($0)" }
-                    ?? "The downloaded cover has no shape supported by this device. Try Download again.")
+                ? .unavailable(lastError.map { String(localized: "Could not prepare Lock Screen artwork: \($0)") }
+                    ?? String(localized: "The downloaded cover has no shape supported by this device. Try Download again."))
                 : .ready
             self.pending = nil
             onReady()

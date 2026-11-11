@@ -15,6 +15,15 @@ enum StageStatus: String {
     case bypassed = "Bypassed"
     case off = "Off"
     case idle = "Not in use"
+
+    var label: String {
+        switch self {
+        case .active: String(localized: "Active")
+        case .bypassed: String(localized: "Bypassed")
+        case .off: String(localized: "Off")
+        case .idle: String(localized: "Not in use")
+        }
+    }
 }
 
 struct BandDescription: Equatable {
@@ -37,6 +46,15 @@ enum ClippingRisk: String {
     case low = "Low"
     case moderate = "Moderate"
     case high = "High"
+
+    var label: String {
+        switch self {
+        case .none: String(localized: "None from the app")
+        case .low: String(localized: "Low")
+        case .moderate: String(localized: "Moderate")
+        case .high: String(localized: "High")
+        }
+    }
 }
 
 /// A prediction from the EQ settings, not a measurement.
@@ -63,13 +81,13 @@ enum DspDiagnostics {
         let status: StageStatus
         let reason: String
         if !runtime.enabled {
-            (status, reason) = (.off, "Turned off in Audio & Equalizer")
+            (status, reason) = (.off, String(localized: "Turned off in Audio & Equalizer"))
         } else if !runtime.configured {
-            (status, reason) = (.idle, "Not configured for the current audio (nothing playing yet)")
+            (status, reason) = (.idle, String(localized: "Not configured for the current audio (nothing playing yet)"))
         } else if runtime.allGainsZero {
-            (status, reason) = (.bypassed, "All gains are 0 dB: audio passes through unchanged")
+            (status, reason) = (.bypassed, String(localized: "All gains are 0 dB: audio passes through unchanged"))
         } else {
-            (status, reason) = (.active, "Filtering the audio with \(bands.count) bands")
+            (status, reason) = (.active, String(localized: "Filtering the audio with \(bands.count) bands"))
         }
         return EqStage(status: status, reason: reason, activeBands: Array(bands))
     }
@@ -77,7 +95,7 @@ enum DspDiagnostics {
     static func headroom(_ stage: EqStage, sampleRateHz: Int?) -> HeadroomEstimate {
         guard stage.status == .active else {
             return HeadroomEstimate(maxBoostDb: 0, atFrequencyHz: nil, risk: .none,
-                                    advice: "The app is not adding gain, so its processing adds no clipping risk.")
+                                    advice: String(localized: "The app is not adding gain, so its processing adds no clipping risk."))
         }
         let rate = sampleRateHz ?? defaultSampleRate
         let filters = stage.activeBands.filter { !$0.skippedAtThisSampleRate }.map { band -> BiquadFilter in
@@ -100,12 +118,10 @@ enum DspDiagnostics {
         let risk: ClippingRisk = boost <= 0.05 ? .none : boost <= 3 ? .low : boost <= 6 ? .moderate : .high
         let advice: String
         if risk == .none {
-            advice = "The EQ only cuts, so it cannot push audio over full scale."
+            advice = String(localized: "The EQ only cuts, so it cannot push audio over full scale.")
         } else {
             let at = atHz >= 1000 ? String(format: "%.1f kHz", atHz / 1000) : "\(Int(atHz)) Hz"
-            advice = String(format: "The EQ raises up to %+.1f dB around %@. Loud, already-mastered music can exceed full scale there; "
-                + "the EQ then clips those samples. The app has no preamp, so to keep headroom lower the boosted bands or cut the "
-                + "others by about %.1f dB.", boost, at, boost)
+            advice = String(format: String(localized: "The EQ raises up to %+.1f dB around %@. Loud, already-mastered music can exceed full scale there; the EQ then clips those samples. The app has no preamp, so to keep headroom lower the boosted bands or cut the others by about %.1f dB."), boost, at, boost)
         }
         return HeadroomEstimate(maxBoostDb: boost, atFrequencyHz: risk == .none ? nil : atHz, risk: risk, advice: advice)
     }

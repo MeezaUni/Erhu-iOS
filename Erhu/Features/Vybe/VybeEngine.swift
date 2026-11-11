@@ -66,7 +66,7 @@ actor VybeEngine {
                 names = VybeNameIndex(songs: library, aliases: aliases)
             }
         } catch {
-            update(.failed("The library couldn't be read: \(error.localizedDescription)"))
+            update(.failed(String(localized: "The library couldn't be read: \(error.localizedDescription)")))
             return
         }
         if songs == library {
@@ -163,7 +163,7 @@ actor VybeEngine {
             publish(status, timings)
             return true
         } catch {
-            update(.failed("The model couldn't be loaded: \(error.localizedDescription)"))
+            update(.failed(String(localized: "The model couldn't be loaded: \(error.localizedDescription)")))
             return false
         }
     }
@@ -208,7 +208,7 @@ actor VybeEngine {
             try? file.append(batch)
         } catch {
             try? file.append(batch)
-            update(.failed("Indexing stopped: \(error.localizedDescription)"))
+            update(.failed(String(localized: "Indexing stopped: \(error.localizedDescription)")))
         }
     }
 

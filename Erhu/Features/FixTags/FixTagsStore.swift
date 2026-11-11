@@ -147,7 +147,7 @@ final class FixTagsStore {
                 return item
             }
             isAutoSelectionPaused = !(autoFillRemaining?.isEmpty ?? true)
-            if hasSavedProgress { pauseReason = "Saved progress restored. Continue with the remaining tracks; completed tracks are skipped." }
+            if hasSavedProgress { pauseReason = String(localized: "Saved progress restored. Continue with the remaining tracks; completed tracks are skipped.") }
         }
     }
 
@@ -181,7 +181,7 @@ final class FixTagsStore {
             }
         } catch {
             pauseRequested = true
-            pauseReason = "Couldn’t save progress: \(error.localizedDescription). The run will pause."
+            pauseReason = String(localized: "Couldn’t save progress: \(error.localizedDescription). The run will pause.")
         }
     }
     var revertible: [RepairItem] { queue.filter { $0.backup != nil } }
@@ -225,7 +225,7 @@ final class FixTagsStore {
         guard !isRunning, !isCheckingMissing else { return }
         let fields = selectedFields
         guard !fields.subtracting([.filename]).isEmpty else {
-            missingScanMessage = "Choose which tags to check first."
+            missingScanMessage = String(localized: "Choose which tags to check first.")
             return
         }
         settingsStore.saveNow(settings)
@@ -274,7 +274,7 @@ final class FixTagsStore {
             }.value
             guard !Task.isCancelled, !stopMissingScanRequested else { break }
             do { try progress.missing(song.id).save(check) }
-            catch { missingScanMessage = "Couldn’t save tag-check progress: \(error.localizedDescription)"; return }
+            catch { missingScanMessage = String(localized: "Couldn’t save tag-check progress: \(error.localizedDescription)"); return }
             libraryChecked[song.id] = song.path
             if !check.missing.isEmpty {
                 found.append((song, check.missing))
@@ -297,8 +297,8 @@ final class FixTagsStore {
         hasMissingScanProgress = (missingScanProgress?.completed ?? 0) < songs.count
         saveProgress()
         let labels = MetadataField.allCases.filter { field in found.contains { $0.1.contains(field) } }.map(\.displayName)
-        missingScanMessage = hasMissingScanProgress ? "Check stopped. Continue checking missing tags to skip completed files and include new songs."
-            : found.isEmpty ? "No missing selected tags found." : "Found \(countLabel(found.count, .track)) needing: " + labels.joined(separator: ", ") + "."
+        missingScanMessage = hasMissingScanProgress ? String(localized: "Check stopped. Continue checking missing tags to skip completed files and include new songs.")
+            : found.isEmpty ? String(localized: "No missing selected tags found.") : String(localized: "Found \(countLabel(found.count, .track)) needing: \(labels.joined(separator: ", ")).")
     }
 
     func stopMissingScan() { stopMissingScanRequested = true }
@@ -345,7 +345,7 @@ final class FixTagsStore {
         if scope == nil { inPlaceScope = [] }
         let selection = FieldSelection(selectedFields)
         guard !selection.fields.isEmpty else {
-            pauseReason = "Choose at least one field to fix"
+            pauseReason = String(localized: "Choose at least one field to fix")
             return
         }
         isRunning = true
@@ -381,7 +381,7 @@ final class FixTagsStore {
         var wroteAny = false
         for index in queue.indices where queue[index].status.toProcess && (scope == nil || scope!.contains(queue[index].id)) {
             if pauseRequested {
-                pauseReason = pauseReason ?? "Paused"
+                pauseReason = pauseReason ?? String(localized: "Paused")
                 break
             }
             queue[index].status = .fixing
@@ -392,7 +392,7 @@ final class FixTagsStore {
             case .unreachable(let reason):
                 // The track wasn't checked: it goes back as it was, and the batch waits for the connection.
                 queue[index].status = .pending
-                pauseReason = "\(reason). Nothing more was looked up; resume when you're back online."
+                pauseReason = String(localized: "\(reason). Nothing more was looked up; resume when you're back online.")
                 isRunning = false
                 if wroteAny { library.scan() }
                 return
@@ -424,7 +424,7 @@ final class FixTagsStore {
         let url = item.song.url
         guard FileManager.default.fileExists(atPath: url.path) else {
             item.status = .failed
-            item.reason = "The file no longer exists"
+            item.reason = String(localized: "The file no longer exists")
             return .concluded(item, nil)
         }
         let embedded = await Task.detached(priority: .utility) { TagReader.read(url) }.value
@@ -432,7 +432,7 @@ final class FixTagsStore {
         let missing = MetadataCompleteness.missing(embedded, fields: selected)
         if autoResolve && missing.isEmpty {
             item.status = .unchanged
-            item.reason = "Selected tags are already complete."
+            item.reason = String(localized: "Selected tags are already complete.")
             return .concluded(item, nil)
         }
         let effectiveSelection = autoResolve ? FieldSelection(Set(missing), fillMissingOnly: true) : selection
@@ -483,7 +483,7 @@ final class FixTagsStore {
             item.notes = plan.notes
             if plan.request == nil {
                 // Nothing to write is not a fix: say why instead of reporting success.
-                return concluded(plan.unfilled.isEmpty ? .unchanged : .needsReview, plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ") + ". See details for lookup results.")
+                return concluded(plan.unfilled.isEmpty ? .unchanged : .needsReview, plan.unfilled.isEmpty ? String(localized: "Selected tags are already complete.") : String(localized: "Still missing: \(plan.unfilled.joined(separator: ", ")). See details for lookup results."))
             }
             return concluded(.fixing, nil, plan)
         }
@@ -497,11 +497,11 @@ final class FixTagsStore {
             if result.candidates.isEmpty, let failure = Self.providerFailureSummary(result.outcomes) {
                 return concluded(.failed, failure)
             }
-            return concluded(.noMatch, reason ?? "No online match found")
+            return concluded(.noMatch, reason ?? String(localized: "No online match found"))
         case .lowConfidence(_, let reason), .ambiguous(_, let reason):
             return concluded(.needsReview, reason)
         case .confident:
-            return concluded(.needsReview, "No sufficiently verified identity for the remaining fields. Enter known tags manually.")
+            return concluded(.needsReview, String(localized: "No sufficiently verified identity for the remaining fields. Enter known tags manually."))
         }
     }
 
@@ -527,7 +527,7 @@ final class FixTagsStore {
             albumMatch = sameAlbum
         } else if !isUsableTag(match.album), let knownAlbum = verified.first(where: { isUsableTag($0.album) }) {
             albumMatch = knownAlbum
-            sourceNotes.append("Album from " + knownAlbum.sourceName)
+            sourceNotes.append(String(localized: "Album from \(knownAlbum.sourceName)"))
         }
         if isUsableTag(local.album), fillOnly || !fields.contains(.album),
            MetadataEnrichment.releaseKey(albumMatch.album) != MetadataEnrichment.releaseKey(local.album),
@@ -535,23 +535,23 @@ final class FixTagsStore {
             || (fields.contains(.trackNumber) && (local.trackNumber ?? 0) <= 0),
            let recovered = await service.matchingAlbum(match, candidates: candidates, album: local.album, acceptAt: acceptAt, searchITunes: searchITunes) {
             albumMatch = recovered
-            sourceNotes.append("Recovered the tagged album from " + recovered.sourceName)
+            sourceNotes.append(String(localized: "Recovered the tagged album from \(recovered.sourceName)"))
         }
         var genre: String?
         if fields.contains(.genre) && (!fillOnly || !isUsableTag(local.genre)) {
             switch await service.lookupGenre(albumMatch, candidates: candidates, acceptAt: acceptAt, searchITunes: searchITunes) {
             case .found(let genres, let source):
                 genre = Genres.join(genres)
-                sourceNotes.append("Genre from " + source)
-            case .notFound(let reason): reasons["No genre found online"] = "No genre: \(reason)"
-            case .failed(let reason): reasons["No genre found online"] = "Genre lookup failed: \(reason)"
+                sourceNotes.append(String(localized: "Genre from \(source)"))
+            case .notFound(let reason): reasons[String(localized: "No genre found online")] = String(localized: "No genre: \(reason)")
+            case .failed(let reason): reasons[String(localized: "No genre found online")] = String(localized: "Genre lookup failed: \(reason)")
             }
         }
         var releaseDate: ReleaseDate?
         if fields.contains(.year) && (!fillOnly || !isUsableYearTag(local.year)) {
             switch MetadataEnrichment.releaseDate(albumMatch, candidates: candidates, acceptAt: acceptAt) {
             case .found(let date): releaseDate = date
-            case .rejected(let reason): reasons["No release year found online"] = "No year: \(reason)"
+            case .rejected(let reason): reasons[String(localized: "No release year found online")] = String(localized: "No year: \(reason)")
             }
         }
         var bpm: FoundBpm?
@@ -565,8 +565,8 @@ final class FixTagsStore {
             let tempoMatch = tempoMatches.first(where: { $0.id == match.id }) ?? match
             switch await bpmFinder.find(tempoMatch, file: url, supporting: tempoMatches) {
             case .found(let found): bpm = found
-            case .notFound(let reason): reasons["No BPM found"] = "No BPM: \(reason)"
-            case .failed(let reason): reasons["No BPM found"] = "BPM lookup failed: \(reason)"
+            case .notFound(let reason): reasons[String(localized: "No BPM found")] = String(localized: "No BPM: \(reason)")
+            case .failed(let reason): reasons[String(localized: "No BPM found")] = String(localized: "BPM lookup failed: \(reason)")
             }
         }
         var positioned = albumMatch
@@ -600,7 +600,7 @@ final class FixTagsStore {
         let missing = MetadataCompleteness.missing(MetadataCompleteness.applying(request, to: before), fields: plan.checkedFields)
         guard missing.isEmpty else {
             item.status = .needsReview
-            item.reason = "No tags changed. Still missing: " + missing.map(\.displayName).joined(separator: ", ")
+            item.reason = String(localized: "No tags changed. Still missing: \(missing.map(\.displayName).joined(separator: ", "))")
             item.proposedRequest = request
             item.proposedFields = plan.checkedFields
             return item
@@ -627,7 +627,7 @@ final class FixTagsStore {
             item.backup = backup
             let remaining = MetadataCompleteness.missing(written, fields: plan.checkedFields).map(\.displayName)
             item.status = remaining.isEmpty ? .done : .needsReview
-            item.reason = remaining.isEmpty ? nil : "The file changed after verification. Still missing: " + remaining.joined(separator: ", ")
+            item.reason = remaining.isEmpty ? nil : String(localized: "The file changed after verification. Still missing: \(remaining.joined(separator: ", "))")
             item.proposedRequest = nil
             item.proposedFields = []
         } catch {
@@ -654,7 +654,7 @@ final class FixTagsStore {
         guard !isRunning, !isCheckingMissing else { return }
         inPlaceScope = []
         let selection = FieldSelection(selectedFields)
-        guard !selection.fields.isEmpty else { pauseReason = "Choose which fields to fix first."; return }
+        guard !selection.fields.isEmpty else { pauseReason = String(localized: "Choose which fields to fix first."); return }
         let acceptAt = settings.acceptAt
         isRunning = true
         pauseRequested = false
@@ -672,7 +672,7 @@ final class FixTagsStore {
             let choices = queue.filter { BulkMetadataSelection.canResolve($0) &&
                 (resumable == nil || resumable!.contains($0.id) || $0.status == .pending) }.map(\.id)
             guard !choices.isEmpty else {
-                autoSelectionMessage = "No unresolved tracks in this queue. Find missing tags or add songs first."
+                autoSelectionMessage = String(localized: "No unresolved tracks in this queue. Find missing tags or add songs first.")
                 autoFillRemaining = nil; saveProgress(); isRunning = false
                 return
             }
@@ -683,7 +683,7 @@ final class FixTagsStore {
             for (index, choice) in choices.enumerated() {
                 if pauseRequested {
                     isAutoSelectionPaused = true
-                    pauseReason = "Paused. Use Auto-fill best available tags to continue with the remaining tracks."
+                    pauseReason = String(localized: "Paused. Use Auto-fill best available tags to continue with the remaining tracks.")
                     break
                 }
                 guard let row = queue.firstIndex(where: { $0.id == choice }) else { continue }
@@ -693,7 +693,7 @@ final class FixTagsStore {
                 case .unreachable(let reason):
                     queue[row] = before
                     queue[row].status = .networkFailed
-                    queue[row].reason = reason + ". Enter known missing tags manually, or retry online."
+                    queue[row].reason = String(localized: "\(reason). Enter known missing tags manually, or retry online.")
                 case .concluded(var updated, let plan):
                     if let request = plan?.request {
                         updated = await write(request, plan: plan!, item: updated)
@@ -710,8 +710,8 @@ final class FixTagsStore {
             saveProgress()
             let remaining = queue.filter { BulkMetadataSelection.canResolve($0) && $0.status != .unchanged }.count
             autoSelectionMessage = written > 0
-                ? "Fully fixed \(countLabel(written, .track)); \(remaining) still need review. Incomplete repairs were not written."
-                : "No tags changed. Selected fields are either complete or no reliable value was available. Open an unfinished track to enter known values manually."
+                ? String(localized: "Fully fixed \(countLabel(written, .track)); \(remaining) still need review. Incomplete repairs were not written.")
+                : String(localized: "No tags changed. Selected fields are either complete or no reliable value was available. Open an unfinished track to enter known values manually.")
             isRunning = false
             if written > 0 { library.scan() }
         }
@@ -725,7 +725,7 @@ final class FixTagsStore {
         let url = item.song.url
         guard FileManager.default.fileExists(atPath: url.path) else {
             queue[start].status = .failed
-            queue[start].reason = "The file no longer exists"
+            queue[start].reason = String(localized: "The file no longer exists")
             saveProgress(queue[start], manifest: false)
             return false
         }
@@ -738,7 +738,7 @@ final class FixTagsStore {
             item = await write(request, plan: plan, item: item)
         } else {
             item.status = plan.unfilled.isEmpty ? .unchanged : .needsReview
-            item.reason = plan.unfilled.isEmpty ? "Selected tags are already complete." : "Still missing: " + plan.unfilled.joined(separator: ", ")
+            item.reason = plan.unfilled.isEmpty ? String(localized: "Selected tags are already complete.") : String(localized: "Still missing: \(plan.unfilled.joined(separator: ", "))")
         }
         if let index = queue.firstIndex(where: { $0.id == id }) { queue[index] = item }
         saveProgress(item, manifest: false)
@@ -747,8 +747,8 @@ final class FixTagsStore {
 
     /// Manual values share the same original backup and update the queue from the file after saving.
     func saveManual(_ request: TagWriteRequest, to id: Int64, checkedFields: Set<MetadataField>) async throws {
-        guard !isRunning, !isCheckingMissing else { throw TagWriteError.io("Wait for the current tag operation to finish") }
-        guard let index = queue.firstIndex(where: { $0.id == id }) else { throw TagWriteError.io("This track is no longer in the queue") }
+        guard !isRunning, !isCheckingMissing else { throw TagWriteError.io(String(localized: "Wait for the current tag operation to finish")) }
+        guard let index = queue.firstIndex(where: { $0.id == id }) else { throw TagWriteError.io(String(localized: "This track is no longer in the queue")) }
         isRunning = true
         autoSelectionProgress = nil
         defer { isRunning = false }
@@ -763,13 +763,13 @@ final class FixTagsStore {
         combined.trackNumber = request.trackNumber ?? combined.trackNumber
         combined.discNumber = request.discNumber ?? combined.discNumber
         let fields = checkedFields.union(queue[index].proposedFields)
-        let plan = FieldFixPlan(request: combined, changes: [], notes: ["Known values entered manually"], checkedFields: fields)
+        let plan = FieldFixPlan(request: combined, changes: [], notes: [String(localized: "Known values entered manually")], checkedFields: fields)
         var updated = await write(combined, plan: plan, item: queue[index])
-        updated.notes.append("Known values entered manually")
+        updated.notes.append(String(localized: "Known values entered manually"))
         queue[index] = updated
         saveProgress(updated, manifest: false)
-        if updated.status == .failed { throw TagWriteError.io(updated.reason ?? "The tags could not be saved") }
-        if updated.status == .needsReview { throw TagWriteError.io(updated.reason ?? "Complete the remaining selected tags before saving") }
+        if updated.status == .failed { throw TagWriteError.io(updated.reason ?? String(localized: "The tags could not be saved")) }
+        if updated.status == .needsReview { throw TagWriteError.io(updated.reason ?? String(localized: "Complete the remaining selected tags before saving")) }
         library.scan()
     }
 
@@ -816,8 +816,8 @@ final class FixTagsStore {
     nonisolated static func providerFailureSummary(_ outcomes: [ProviderOutcome]) -> String? {
         let considered = outcomes.filter { $0.status != .skipped }
         let failed = considered.filter { !$0.status.answered }
-        if considered.isEmpty { return "No provider could be queried for this source" }
+        if considered.isEmpty { return String(localized: "No provider could be queried for this source") }
         guard failed.count == considered.count else { return nil }
-        return "Lookup failed: " + failed.map { "\($0.providerName): \($0.errorMessage ?? $0.status.label)" }.joined(separator: "; ")
+        return String(localized: "Lookup failed: \(failed.map { "\($0.providerName): \($0.errorMessage ?? $0.status.label)" }.joined(separator: "; "))")
     }
 }

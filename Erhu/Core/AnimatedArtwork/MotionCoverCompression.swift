@@ -28,10 +28,10 @@ enum MotionCompressionError: LocalizedError {
     case unsupported, invalid, noSaving, changed
     var errorDescription: String? {
         switch self {
-        case .unsupported: "This cover isn’t supported for compression. Use a square SDR H.264 cover, up to two minutes long. Your original is unchanged."
-        case .invalid: "The compressed video did not pass playback, frame, colour or timing checks. Your original is unchanged."
-        case .noSaving: "Compression did not make this cover smaller. Your original is unchanged."
-        case .changed: "This cover changed while compression was running. Try again."
+        case .unsupported: String(localized: "This cover isn’t supported for compression. Use a square SDR H.264 cover, up to two minutes long. Your original is unchanged.")
+        case .invalid: String(localized: "The compressed video did not pass playback, frame, colour or timing checks. Your original is unchanged.")
+        case .noSaving: String(localized: "Compression did not make this cover smaller. Your original is unchanged.")
+        case .changed: String(localized: "This cover changed while compression was running. Try again.")
         }
     }
 }

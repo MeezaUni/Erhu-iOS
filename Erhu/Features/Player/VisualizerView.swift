@@ -124,10 +124,10 @@ struct VisualizerView: View {
 
     @ViewBuilder
     private func statusMessage(_ song: Song?) -> some View {
-        let text: String? = song == nil ? "Play something to see it here."
-            : status == .unavailable ? "The visualizer cannot read this audio. Playback is not affected."
-            : status == .waiting ? "Listening…"
-            : status == .paused ? "Paused" : nil
+        let text: String? = song == nil ? String(localized: "Play something to see it here.")
+            : status == .unavailable ? String(localized: "The visualizer cannot read this audio. Playback is not affected.")
+            : status == .waiting ? String(localized: "Listening…")
+            : status == .paused ? String(localized: "Paused") : nil
         if let text {
             Text(text).font(.subheadline).foregroundStyle(palette.onSurfaceVariant).multilineTextAlignment(.center).padding(Spacing.xl)
         }
@@ -135,9 +135,9 @@ struct VisualizerView: View {
 
     private func description(_ mode: VisualizerMode) -> String {
         switch mode {
-        case .spectrumBars: "Spectrum of the music playing"
-        case .circularSpectrum: "Circular spectrum of the music playing"
-        case .oscilloscope: "Waveform of the music playing"
+        case .spectrumBars: String(localized: "Spectrum of the music playing")
+        case .circularSpectrum: String(localized: "Circular spectrum of the music playing")
+        case .oscilloscope: String(localized: "Waveform of the music playing")
         }
     }
 

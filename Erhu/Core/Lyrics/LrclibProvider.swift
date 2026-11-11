@@ -95,7 +95,7 @@ actor LrclibProvider: OnlineLyricsProvider {
     private var lastRequestMs: Int64 = 0
     private var blockedUntilMs: Int64 = 0
     private var unavailableUntilMs: Int64 = 0
-    private var unavailableReason = "service unavailable"
+    private var unavailableReason = String(localized: "service unavailable")
     private var tail: Task<Void, Never>?
 
     init(http: HTTPClient = URLSessionHTTPClient(cachePolicy: .reloadIgnoringLocalCacheData), now: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) },
@@ -188,7 +188,7 @@ actor LrclibProvider: OnlineLyricsProvider {
             case 404: return .notFound
             case 200..<300:
                 do { return .success(try JSONDecoder().decode(T.self, from: data)) }
-                catch { return .failed("malformed response") }
+                catch { return .failed(String(localized: "malformed response")) }
             case 500..<600:
                 unavailableReason = "HTTP \(response.statusCode)"
                 if let retry = response.value(forHTTPHeaderField: "Retry-After") {
@@ -220,7 +220,7 @@ enum LyricsHTTP {
             switch error.code {
             case .notConnectedToInternet, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost,
                  .dataNotAllowed, .internationalRoamingOff, .dnsLookupFailed: return .offline
-            case .timedOut: return .failed("timed out")
+            case .timedOut: return .failed(String(localized: "timed out"))
             case .cancelled: return .failed("cancelled")
             default: return .failed(error.code.rawValue.description)
             }

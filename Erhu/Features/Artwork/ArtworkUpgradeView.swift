@@ -134,17 +134,17 @@ struct ArtworkUpgradeView: View {
             let data = try await fetcher.search.imageData(result.candidate)
             guard !Task.isCancelled else { return }
             guard ArtworkImageFacts.inspect(data) == result.candidate.image else {
-                message = "The provider’s image changed. Search again to review the latest match."
+                message = String(localized: "The provider’s image changed. Search again to review the latest match.")
                 return
             }
             guard let current = await ArtworkUpgradeStore.currentArtwork(result.target, library: library),
                   let comparison = ArtworkUpgradeReview(upgrade: result, original: current, replacement: data) else {
-                message = "The current artwork or replacement changed. Search again to compare the latest images."
+                message = String(localized: "The current artwork or replacement changed. Search again to compare the latest images.")
                 return
             }
             reviewError = nil
             review = comparison
-        } catch { message = "The full image couldn’t be loaded. Please try again." }
+        } catch { message = String(localized: "The full image couldn’t be loaded. Please try again.") }
     }
 
     private func apply(_ item: ArtworkUpgradeReview) async {
@@ -153,7 +153,7 @@ struct ArtworkUpgradeView: View {
         reviewError = nil
         defer { saving = false }
         guard item.matchesCurrentArtwork(await ArtworkUpgradeStore.currentArtwork(item.upgrade.target, library: library)) else {
-            reviewError = "Your current artwork changed after opening this comparison. Keep current, then search again."
+            reviewError = String(localized: "Your current artwork changed after opening this comparison. Keep current, then search again.")
             return
         }
         let success: Bool
@@ -161,7 +161,7 @@ struct ArtworkUpgradeView: View {
         case .album(let album): success = await fetcher.applyCover(item.upgrade.candidate, image: item.replacement, to: album)
         case .artist(let artist): success = await fetcher.applyPhoto(item.upgrade.candidate, image: item.replacement, to: artist)
         }
-        if success { store.remove(item.upgrade); review = nil; message = "Higher-resolution artwork saved." }
-        else { reviewError = "Couldn’t save the artwork. Try again." }
+        if success { store.remove(item.upgrade); review = nil; message = String(localized: "Higher-resolution artwork saved.") }
+        else { reviewError = String(localized: "Couldn’t save the artwork. Try again.") }
     }
 }

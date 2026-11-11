@@ -14,6 +14,16 @@ enum Provenance: String, Sendable {
     case player = "Player"
     /// Reported by iOS for the audio session and output devices.
     case platform = "iOS"
+
+    var label: String {
+        switch self {
+        case .fileHeader: String(localized: "File header")
+        case .container: String(localized: "Container")
+        case .library: String(localized: "Library index")
+        case .player: String(localized: "Player")
+        case .platform: "iOS"
+        }
+    }
 }
 
 /// A value and where it comes from.
@@ -61,8 +71,8 @@ enum MediaFormats {
     /// Common names for channel counts; nil for counts without a standard layout name.
     static func channelLayout(_ count: Int?) -> String? {
         switch count {
-        case 1: "Mono"
-        case 2: "Stereo"
+        case 1: String(localized: "Mono")
+        case 2: String(localized: "Stereo")
         case 6: "5.1"
         case 8: "7.1"
         default: nil
@@ -152,12 +162,12 @@ enum SourceInspector {
             return SourceDiagnostics(title: song.title, artist: song.artist, album: song.album,
                 container: Fact("Ogg", .container), codec: Fact(codec, .fileHeader),
                 sampleRate: Fact(MediaFormats.sampleRateText(rate), .fileHeader), channels: Fact(MediaFormats.channelsText(channels), .fileHeader),
-                bitDepth: nil, bitDepthNote: "\(codec) is lossy: it stores no bit depth",
+                bitDepth: nil, bitDepthNote: String(localized: "\(codec) is lossy: it stores no bit depth"),
                 bitrate: bitrate.map { Fact(MediaFormats.bitrateText($0), .container) },
                 duration: duration.map { Fact(formatDuration($0), .container) }, fileSize: sizeFact, problem: nil)
         }
         guard let file = AudioFileReader(url) else {
-            return fromLibrary(song, sizeFact: sizeFact, problem: "The file could not be opened, so these values come from the library index.")
+            return fromLibrary(song, sizeFact: sizeFact, problem: String(localized: "The file could not be opened, so these values come from the library index."))
         }
         let format = file.dataFormat
         let codec = format.map { MediaFormats.codecName($0.mFormatID) }
@@ -166,9 +176,9 @@ enum SourceInspector {
         if depth != nil {
             depthNote = nil
         } else if let codec, !MediaFormats.isLossless(codec) {
-            depthNote = "\(codec) is lossy: it stores no bit depth"
+            depthNote = String(localized: "\(codec) is lossy: it stores no bit depth")
         } else {
-            depthNote = "Not stated in the file"
+            depthNote = String(localized: "Not stated in the file")
         }
         let rate = format.map { Int($0.mSampleRate) }.flatMap { $0 > 0 ? $0 : nil }
         let channels = format.map { Int($0.mChannelsPerFrame) }.flatMap { $0 > 0 ? $0 : nil }
@@ -197,7 +207,7 @@ enum SourceInspector {
             sampleRate: song.sampleRate > 0 ? Fact(MediaFormats.sampleRateText(song.sampleRate), .library) : nil,
             channels: song.channels > 0 ? Fact(MediaFormats.channelsText(song.channels), .library) : nil,
             bitDepth: nil,
-            bitDepthNote: "Unknown: the file could not be read",
+            bitDepthNote: String(localized: "Unknown: the file could not be read"),
             bitrate: song.bitrate > 0 ? Fact(MediaFormats.bitrateText(song.bitrate), .library) : nil,
             duration: song.durationMs > 0 ? Fact(formatDuration(song.durationMs), .library) : nil,
             fileSize: sizeFact,

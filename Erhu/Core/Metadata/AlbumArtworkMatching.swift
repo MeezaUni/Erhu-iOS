@@ -60,8 +60,8 @@ enum AlbumArtworkMatching {
         let artistScore = knownArtist ? similarity(artistBase(query.artist), artistBase(artist)) : 0.5
         guard titleScore >= 0.6, !knownArtist || artistScore >= 0.55 else { return nil }
         var review: [String] = []
-        if titleScore < 0.95 { review.append("Check album title") }
-        if !knownArtist || artistScore < 0.92 { review.append("Check artist") }
+        if titleScore < 0.95 { review.append(String(localized: "Check album title")) }
+        if !knownArtist || artistScore < 0.92 { review.append(String(localized: "Check artist")) }
         func kind(_ title: String) -> String? {
             let title = normalize(title)
             if title.hasSuffix(" single") { return "single" }
@@ -69,13 +69,13 @@ enum AlbumArtworkMatching {
             return nil
         }
         let differentKind = kind(query.album) != kind(album) && (kind(query.album) != nil || kind(album) != nil)
-        if differentKind { review.append("Check album / single / EP") }
+        if differentKind { review.append(String(localized: "Check album / single / EP")) }
         let differentEdition = edition(query.album) != edition(album)
-        if differentEdition { review.append("Different edition") }
+        if differentEdition { review.append(String(localized: "Different edition")) }
         let differentYear = query.year > 0 && year > 0 && abs(query.year - year) > 1
-        if differentYear { review.append("Different release year") }
-        if groupCover { review.append("Confirm release edition") }
-        if query.year > 0 && year == 0 { review.append("Release year unavailable") }
+        if differentYear { review.append(String(localized: "Different release year")) }
+        if groupCover { review.append(String(localized: "Confirm release edition")) }
+        if query.year > 0 && year == 0 { review.append(String(localized: "Release year unavailable")) }
         let score = 0.55 * titleScore + 0.4 * artistScore + (query.year == 0 || year == query.year ? 0.03 : 0) + 0.02
             - (differentEdition ? 0.18 : 0) - (differentYear ? 0.1 : 0) - (differentKind ? 0.2 : 0)
         return AlbumArtworkMatch(album: album, artist: artist, year: year, review: review, score: min(1, max(0, score)))

@@ -72,7 +72,7 @@ actor CommonsArtworkSearch {
             let publicDomain = license.lowercased() == "public domain" && value("Copyrighted").lowercased() == "false"
             let author = value("Artist").nonBlank ?? value("Attribution").nonBlank
             guard by || cc0 || publicDomain, !by || author != nil else { return nil }
-            let credit = ArtworkCredit(title: plain(page["title"] as? String ?? "Commons image"), author: author ?? "Not stated",
+            let credit = ArtworkCredit(title: plain(page["title"] as? String ?? String(localized: "Commons image")), author: author ?? String(localized: "Not stated"),
                                        license: license.isEmpty ? "CC0" : license, page: source,
                                        licenseURL: cc ? licenseURL : nil)
             return ArtworkCandidate(url: image.absoluteString, source: "Wikimedia Commons", credit: credit)

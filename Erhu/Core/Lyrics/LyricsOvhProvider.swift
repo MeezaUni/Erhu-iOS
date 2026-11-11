@@ -96,7 +96,7 @@ actor LyricsOvhProvider: OnlineLyricsProvider {
             switch response.statusCode {
             case 200..<300:
                 do { return .success(try JSONDecoder().decode(T.self, from: data)) }
-                catch { return .failed("malformed response") }
+                catch { return .failed(String(localized: "malformed response")) }
             case 404: return .notFound
             case 429:
                 blockedUntilMs = now() + LyricsHTTP.retryAfterMs(response.value(forHTTPHeaderField: "Retry-After"), nowMs: now())

@@ -89,10 +89,10 @@ enum MetadataEnrichment {
         let matches = verified(match, candidates: candidates, acceptAt: acceptAt).filter { $0.id == match.id || sameRelease(match, $0) }
         let dates = matches.compactMap { ReleaseDate.parse($0.releaseDate) }
         let years = Set(dates.map(\.year))
-        guard years.count <= 1 else { return .rejected("Verified matches disagree on the release year") }
+        guard years.count <= 1 else { return .rejected(String(localized: "Verified matches disagree on the release year")) }
         if let date = ReleaseDate.parse(match.releaseDate) { return .found(date) }
         if let date = dates.first { return .found(date) }
-        return .rejected(match.releaseDateIssue ?? "No release date available from the verified matches")
+        return .rejected(match.releaseDateIssue ?? String(localized: "No release date available from the verified matches"))
     }
 }
 

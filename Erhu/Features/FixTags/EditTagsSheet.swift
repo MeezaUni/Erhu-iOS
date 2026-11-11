@@ -148,7 +148,7 @@ struct EditTagsSheet: View {
         candidates = Array(response.candidates.prefix(8))
         if candidates.isEmpty {
             let failures = response.outcomes.filter { !$0.status.answered && $0.status != .skipped }
-            searchNote = failures.isEmpty ? "No matches found." : failures.map { "\($0.providerName): \($0.errorMessage ?? $0.status.label)" }.joined(separator: "; ")
+            searchNote = failures.isEmpty ? String(localized: "No matches found.") : failures.map { "\($0.providerName): \($0.errorMessage ?? $0.status.label)" }.joined(separator: "; ")
         }
         searching = false
     }

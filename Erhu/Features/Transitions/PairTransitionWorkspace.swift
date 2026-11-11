@@ -195,7 +195,7 @@ struct PairTransitionWorkspace: View {
                 HStack(spacing: 4) {
                     legend("Vol", AutomationColors.volume)
                     if showsEQ && workingSpec.bassSwap { legend("200 Hz", AutomationColors.eq) }
-                    if showsFilter && workingSpec.filter != .none { legend("Cutoff", AutomationColors.filter) }
+                    if showsFilter && workingSpec.filter != .none { legend(String(localized: "Cutoff"), AutomationColors.filter) }
                 }
             }
         }
@@ -352,11 +352,11 @@ struct PairTransitionWorkspace: View {
     }
 
     private var editingHint: String {
-        guard editingVolume, let selectedLine else { return "Touch a curve to edit · drag audio to move cues" }
+        guard editingVolume, let selectedLine else { return String(localized: "Touch a curve to edit · drag audio to move cues") }
         switch selectedLine {
-        case .volume: return "Volume · drag points · tap a lane to add"
-        case .bass: return "EQ · drag the yellow handle to move the handover"
-        case .filter: return "Filter · drag the pink handle for time and cutoff"
+        case .volume: return String(localized: "Volume · drag points · tap a lane to add")
+        case .bass: return String(localized: "EQ · drag the yellow handle to move the handover")
+        case .filter: return String(localized: "Filter · drag the pink handle for time and cutoff")
         }
     }
 
@@ -504,13 +504,13 @@ struct PairTransitionWorkspace: View {
                 Text(song.title).font(.subheadline.weight(.medium)).lineLimit(1)
                 Text(song.artist).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
                 Text(role == "Outgoing"
-                     ? "Hands over at \(transitionTimestamp(Double(transitionEnabled ? workingSpec.outgoingEndMs(song.durationMs) : song.durationMs)))"
-                     : "Starts at \(transitionTimestamp(Double(transitionEnabled ? workingSpec.incomingStartMs : 0)))")
+                     ? String(localized: "Hands over at \(transitionTimestamp(Double(transitionEnabled ? workingSpec.outgoingEndMs(song.durationMs) : song.durationMs)))")
+                     : String(localized: "Starts at \(transitionTimestamp(Double(transitionEnabled ? workingSpec.incomingStartMs : 0)))"))
                     .font(.caption2.monospacedDigit()).foregroundStyle(palette.primary).lineLimit(1)
             }
             Spacer(minLength: 0)
             VStack(alignment: .trailing, spacing: 2) {
-                Text((role == "Outgoing" ? "OUT · " : "IN · ") + (song.bpm.map { "\($0) BPM tag" } ?? "BPM —")).font(.caption2)
+                Text((role == "Outgoing" ? String(localized: "Out") : String(localized: "In")).uppercased() + " · " + (song.bpm.map { String(localized: "\($0) BPM tag") } ?? "BPM —")).font(.caption2)
                 Text(transitionTimestamp(Double(song.durationMs))).font(.caption2.monospacedDigit())
 
             }
@@ -544,22 +544,22 @@ struct PairTransitionWorkspace: View {
                 .tint(palette.primary)
             Grid(alignment: .leading, horizontalSpacing: Spacing.md, verticalSpacing: Spacing.xs) {
                 GridRow { Text(""); Text("Out"); Text("In") }.fontWeight(.semibold)
-                detailRow("Decoded format", audioFormat(outgoing), audioFormat(incoming))
-                detailRow("Source time", transitionTimestamp(timing.sourceTime(.outgoing, elapsedMs: inspection(timing))),
+                detailRow(String(localized: "Decoded format"), audioFormat(outgoing), audioFormat(incoming))
+                detailRow(String(localized: "Source time"), transitionTimestamp(timing.sourceTime(.outgoing, elapsedMs: inspection(timing))),
                           transitionTimestamp(timing.sourceTime(.incoming, elapsedMs: inspection(timing))))
                 detailRow("Volume", gain(timing, .outgoing), gain(timing, .incoming))
-                detailRow("Bass shelf · 200 Hz", bass(timing, .outgoing), bass(timing, .incoming))
-                detailRow("Filter cutoff target", filter(timing, .outgoing), filter(timing, .incoming))
-                detailRow("Loaded audio peak", outgoing.map { TransitionAudioSlice.dbFS($0.peak) } ?? "Unavailable",
+                detailRow(String(localized: "Bass shelf · 200 Hz"), bass(timing, .outgoing), bass(timing, .incoming))
+                detailRow(String(localized: "Filter cutoff target"), filter(timing, .outgoing), filter(timing, .incoming))
+                detailRow(String(localized: "Loaded audio peak"), outgoing.map { TransitionAudioSlice.dbFS($0.peak) } ?? "Unavailable",
                           incoming.map { TransitionAudioSlice.dbFS($0.peak) } ?? "Unavailable")
-                detailRow("Loaded audio RMS", outgoing.map { TransitionAudioSlice.dbFS($0.meanRMS) } ?? "Unavailable",
+                detailRow(String(localized: "Loaded audio RMS"), outgoing.map { TransitionAudioSlice.dbFS($0.meanRMS) } ?? "Unavailable",
                           incoming.map { TransitionAudioSlice.dbFS($0.meanRMS) } ?? "Unavailable")
             }
             .font(.caption2.monospacedDigit())
             .foregroundStyle(palette.onSurfaceVariant)
             Text("Peak/RMS measure the loaded source audio before processing, including nearby audio for dragging. Wave height changes only the display. Gain, shelf and cutoff are the engine's automation targets at the inspection point. BPM is the file's tag; beatmatching and key analysis are unavailable.")
                 .font(.caption2).foregroundStyle(palette.onSurfaceVariant)
-            Text(String(format: "Wave height +%.1f dB · display only", 20 * log10(displayGain(timing))))
+            Text(String(format: String(localized: "Wave height +%.1f dB · display only"), 20 * log10(displayGain(timing))))
                 .font(.caption2).foregroundStyle(palette.onSurfaceVariant)
             if let outgoing { loadedRange("Out", outgoing) }
             if let incoming { loadedRange("In", incoming) }
@@ -585,19 +585,19 @@ struct PairTransitionWorkspace: View {
     }
 
     private func bass(_ timing: PairTransitionTiming, _ role: TransitionRole) -> String {
-        transitionEnabled && workingSpec.bassSwap ? String(format: "%.1f dB", timing.automation(role).bassDbAt(inspection(timing))) : "Bypass"
+        transitionEnabled && workingSpec.bassSwap ? String(format: "%.1f dB", timing.automation(role).bassDbAt(inspection(timing))) : String(localized: "Bypass")
     }
 
     private func filter(_ timing: PairTransitionTiming, _ role: TransitionRole) -> String {
-        guard transitionEnabled, let setting = timing.automation(role).filterAt(inspection(timing)) else { return "Bypass" }
+        guard transitionEnabled, let setting = timing.automation(role).filterAt(inspection(timing)) else { return String(localized: "Bypass") }
         return "\(setting.type == .highPass ? "HP" : "LP") \(Int(setting.hz.rounded())) Hz"
     }
 
     private func cues(_ timing: PairTransitionTiming?) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            cue("Outgoing end", role: .outgoing, song: pair.from.song,
+            cue(String(localized: "Outgoing end"), role: .outgoing, song: pair.from.song,
                 value: Double(spec.outgoingEndMs(pair.from.song.durationMs)))
-            cue("Incoming start", role: .incoming, song: pair.to.song, value: Double(spec.incomingStartMs))
+            cue(String(localized: "Incoming start"), role: .incoming, song: pair.to.song, value: Double(spec.incomingStartMs))
             Button("Reset both cue points") {
                 edit { spec in var reset = spec; reset.outgoingCutMs = 0; reset.incomingStartMs = 0; return reset }
             }

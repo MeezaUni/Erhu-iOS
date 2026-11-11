@@ -168,7 +168,7 @@ struct LibrarySortMenu: View {
         } label: {
             BrowseControlLabel(title: (LibrarySort(rawValue: selection) ?? .title).shortLabel, icon: "arrow.up.arrow.down")
         }
-        .accessibilityLabel("Sort by \((LibrarySort(rawValue: selection) ?? .title).label)")
+        .accessibilityLabel(String(localized: "Sort by \((LibrarySort(rawValue: selection) ?? .title).label)"))
     }
 }
 

@@ -47,7 +47,23 @@ enum ProviderStatus: String, Codable, Sendable {
     case unavailable = "Not available here"
     case failed = "Provider error"
 
-    var label: String { rawValue }
+    var label: String {
+        switch self {
+        case .inProgress: String(localized: "Searching…")
+        case .noResults: String(localized: "No results found")
+        case .candidatesFound: String(localized: "Candidates found")
+        case .lowConfidence: String(localized: "Low confidence candidates")
+        case .success: String(localized: "Selected candidate contributed")
+        case .skipped: String(localized: "Not queried")
+        case .notConfigured: String(localized: "Not configured")
+        case .authFailed: String(localized: "Credentials rejected")
+        case .networkError: String(localized: "Network unavailable")
+        case .timedOut: String(localized: "Request timed out")
+        case .rateLimited: String(localized: "Rate limited")
+        case .unavailable: String(localized: "Not available here")
+        case .failed: String(localized: "Provider error")
+        }
+    }
 
     /// A failure worth retrying later: the connection or the provider's load, not the request itself.
     var isTransient: Bool { self == .networkError || self == .timedOut || self == .rateLimited }
@@ -166,11 +182,11 @@ func releaseDateFor(_ match: MetadataCandidate, candidates: [MetadataCandidate],
         }
     }
     guard let date else {
-        return .rejected(match.releaseDateIssue ?? "\(match.sourceName) gives no release date for this match")
+        return .rejected(match.releaseDateIssue ?? String(localized: "\(match.sourceName) gives no release date for this match"))
     }
     if !otherYears.isEmpty {
         let years = ([date.year] + otherYears).sorted().map(String.init).joined(separator: ", ")
-        return .rejected("Equally good matches disagree on the year (\(years))")
+        return .rejected(String(localized: "Equally good matches disagree on the year (\(years))"))
     }
     return .found(date)
 }

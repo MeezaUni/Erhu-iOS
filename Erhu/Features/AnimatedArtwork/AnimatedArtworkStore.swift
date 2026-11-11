@@ -196,7 +196,7 @@ final class AnimatedArtworkStore {
                     modified: attributes.contentModificationDate ?? .distantPast)
             } catch {
                 removeFile(candidate)
-                compressionMessage = error is CancellationError ? "Compression cancelled. Original kept." : error.localizedDescription
+                compressionMessage = error is CancellationError ? String(localized: "Compression cancelled. Original kept.") : error.localizedDescription
             }
         }
     }
@@ -224,7 +224,7 @@ final class AnimatedArtworkStore {
             compressionPreview = nil
             onChange?()
             removeFile(preview.original)
-            compressionMessage = "Saved " + ByteCountFormatter.string(fromByteCount: preview.saving, countStyle: .file) + ". Portrait artwork was kept."
+            compressionMessage = String(localized: "Saved \(ByteCountFormatter.string(fromByteCount: preview.saving, countStyle: .file)). Portrait artwork was kept.")
         } catch { compressionMessage = error.localizedDescription }
     }
 

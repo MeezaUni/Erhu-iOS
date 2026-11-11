@@ -230,7 +230,7 @@ struct TransitionWaveformOverview: View {
         .frame(height: 44)
         .accessibilityElement()
         .accessibilityLabel("Visible timeline window")
-        .accessibilityValue(String(format: "%.2f seconds visible", viewport.durationMs / 1000))
+        .accessibilityValue(String(format: String(localized: "%.2f seconds visible"), viewport.durationMs / 1000))
         .accessibilityHint("Adjust to move the view without moving either cue.")
         .accessibilityAdjustableAction { direction in
             switch direction {

@@ -59,7 +59,7 @@ actor AppleMotionService {
     }
 
     func find(album: String, artist: String, country: String) async throws -> AppleMotionMatch? {
-        guard Date() >= retryAt else { throw MotionArtworkError("Apple asked to wait before trying again.") }
+        guard Date() >= retryAt else { throw MotionArtworkError(String(localized: "Apple asked to wait before trying again.")) }
         let countries = [country.lowercased(), "us", "in", "gb"].filter { $0.count == 2 && $0.allSatisfy(\.isLetter) }.distinct(by: { $0 })
         var matches: [AlbumResult] = []
         for country in countries.prefix(2) {
@@ -104,9 +104,9 @@ actor AppleMotionService {
         if response.statusCode == 429 {
             let seconds = Double(response.value(forHTTPHeaderField: "Retry-After") ?? "") ?? 300
             retryAt = Date().addingTimeInterval(min(max(seconds, 1), 1800))
-            throw MotionArtworkError("Apple is limiting requests. Try again later.")
+            throw MotionArtworkError(String(localized: "Apple is limiting requests. Try again later."))
         }
-        guard (200..<300).contains(response.statusCode) else { throw MotionArtworkError("Apple lookup failed (HTTP \(response.statusCode)).") }
+        guard (200..<300).contains(response.statusCode) else { throw MotionArtworkError(String(localized: "Apple lookup failed (HTTP \(response.statusCode)).")) }
     }
 
     private func get(_ url: URL) async throws -> Data {
@@ -121,7 +121,7 @@ actor AppleMotionService {
         }
         let (data, response) = try await client.get(url, headers: [:])
         try check(response)
-        guard data.count <= 8 * 1024 * 1024 else { throw MotionArtworkError("The Apple response was too large.") }
+        guard data.count <= 8 * 1024 * 1024 else { throw MotionArtworkError(String(localized: "The Apple response was too large.")) }
         return data
     }
 
@@ -139,7 +139,7 @@ actor AppleMotionService {
                 return found
             }
         }
-        throw MotionArtworkError("Apple's web player changed; its motion artwork lookup is unavailable.")
+        throw MotionArtworkError(String(localized: "Apple's web player changed; its motion artwork lookup is unavailable."))
     }
 
     func download(_ match: AppleMotionMatch, to destination: URL) async throws {
@@ -150,7 +150,7 @@ actor AppleMotionService {
         let parts = try MotionPlaylist.parts(media, base: mediaURL)
         let temp = destination.deletingLastPathComponent().appendingPathComponent(UUID().uuidString + ".mp4")
         defer { try? FileManager.default.removeItem(at: temp) }
-        guard FileManager.default.createFile(atPath: temp.path, contents: nil) else { throw MotionArtworkError("Could not create the motion-cover file.") }
+        guard FileManager.default.createFile(atPath: temp.path, contents: nil) else { throw MotionArtworkError(String(localized: "Could not create the motion-cover file.")) }
         let output = try FileHandle(forWritingTo: temp)
         do {
             var total: Int64 = 0
@@ -162,11 +162,11 @@ actor AppleMotionService {
                 defer { try? FileManager.default.removeItem(at: local) }
                 guard let response = response as? HTTPURLResponse,
                       response.statusCode == (part.length == nil ? 200 : 206),
-                      let final = response.url else { throw MotionArtworkError("The motion-cover download failed.") }
+                      let final = response.url else { throw MotionArtworkError(String(localized: "The motion-cover download failed.")) }
                 _ = try MotionPlaylist.trustedURL(final.absoluteString)
                 let size = (try local.resourceValues(forKeys: [.fileSizeKey])).fileSize ?? 0
                 guard size > 0, Int64(size) <= 64 * 1024 * 1024 - total,
-                      part.length == nil || Int64(size) == part.length else { throw MotionArtworkError("The motion cover is incomplete or exceeds 64 MB.") }
+                      part.length == nil || Int64(size) == part.length else { throw MotionArtworkError(String(localized: "The motion cover is incomplete or exceeds 64 MB.")) }
                 total += Int64(size)
                 let input = try FileHandle(forReadingFrom: local)
                 do {
@@ -179,10 +179,10 @@ actor AppleMotionService {
         try MotionTimeline.startAtZero(temp)
         let asset = AVURLAsset(url: temp)
         guard try await asset.load(.isPlayable), !(try await asset.loadTracks(withMediaType: .video)).isEmpty else {
-            throw MotionArtworkError("The downloaded motion cover cannot be played on this device.")
+            throw MotionArtworkError(String(localized: "The downloaded motion cover cannot be played on this device."))
         }
         let duration = try await asset.load(.duration).seconds
-        guard duration.isFinite, duration > 0, duration <= 120 else { throw MotionArtworkError("This is not a short motion-cover clip.") }
+        guard duration.isFinite, duration > 0, duration <= 120 else { throw MotionArtworkError(String(localized: "This is not a short motion-cover clip.")) }
         try Task.checkCancellation()
         try FileManager.default.moveItem(at: temp, to: destination)
     }

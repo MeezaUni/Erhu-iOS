@@ -140,7 +140,7 @@ final class ArtworkUpgradeStore {
                 guard !Task.isCancelled else { return }
                 if !failedRequest || best != nil {
                     do { try checkpoint(target, kind: kind).save(Entry(target: target, originalFacts: facts, candidate: best)) }
-                    catch { message = "Couldn’t save progress: \(error.localizedDescription)"; return }
+                    catch { message = String(localized: "Couldn’t save progress: \(error.localizedDescription)"); return }
                 }
                 checked += 1
                 do { try await Task.sleep(for: .milliseconds(300)) } catch { return }
@@ -153,7 +153,7 @@ final class ArtworkUpgradeStore {
         results.removeAll { $0.id == result.id }
         if let kind {
             do { try checkpoint(result.target, kind: kind).save(Entry(target: result.target, originalFacts: result.originalFacts, candidate: nil)) }
-            catch { message = "Artwork saved, but the progress checkpoint couldn’t be updated: \(error.localizedDescription)" }
+            catch { message = String(localized: "Artwork saved, but the progress checkpoint couldn’t be updated: \(error.localizedDescription)") }
         }
     }
 
@@ -169,7 +169,7 @@ final class ArtworkUpgradeStore {
             var saved = 0
             defer {
                 applying = false; task = nil
-                message = "Upgraded \(saved) of \(batch.count) images. \(batch.count - saved) kept their current artwork."
+                message = String(localized: "Upgraded \(saved) of \(batch.count) images. \(batch.count - saved) kept their current artwork.")
             }
             for result in batch {
                 guard !Task.isCancelled else { return }
