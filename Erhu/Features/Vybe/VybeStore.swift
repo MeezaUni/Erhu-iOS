@@ -162,7 +162,7 @@ final class VybeStore {
 
     func addAllToQueue(_ results: [VybeResult]) {
         for result in results { player.addToQueue(result.song) }
-        message = String(localized: "Added \(results.count) songs to the queue")
+        message = String(localized: "Added \(countLabel(results.count, .song)) to the queue")
     }
 
     private func run(_ label: String, _ answer: @escaping () async throws -> VybeAnswer?) {
