@@ -41,7 +41,7 @@ struct ArtworkUpgradeView: View {
                         }.disabled(loading || saving)
                     }
                     if store.finished {
-                        Text("Checked \(store.checked). \(store.results.count) upgrade\(store.results.count == 1 ? "" : "s") to review. Some sources may have no matching larger image.")
+                        Text("Checked \(store.checked). Upgrades to review: \(store.results.count). Some sources may have no matching larger image.")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     if store.skipped > 0 { Text("\(store.skipped) images or requests could not be checked.").font(.caption).foregroundStyle(.secondary) }

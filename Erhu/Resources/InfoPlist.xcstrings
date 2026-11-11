@@ -3,20 +3,308 @@
   "strings" : {
     "NSLocalNetworkUsageDescription" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستقبل النقل عبر Wi-Fi الموسيقى من متصفح حاسوبك عبر شبكة Wi-Fi الخاصة بك. لا يمر أي شيء عبر الإنترنت."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ওয়াই-ফাই ট্রান্সফার আপনার নিজের ওয়াই-ফাই দিয়ে কম্পিউটারের ব্রাউজার থেকে গান গ্রহণ করে। কিছুই ইন্টারনেটের মধ্য দিয়ে যায় না।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WLAN-Übertragung empfängt Musik aus dem Browser deines Computers über dein eigenes WLAN. Nichts läuft über das Internet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferencia Wi-Fi recibe música desde el navegador de tu ordenador a través de tu propia Wi-Fi. Nada pasa por internet."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتقال با وای‌فای موسیقی را از مرورگر رایانه‌تان از طریق وای‌فای خودتان دریافت می‌کند. هیچ چیز از اینترنت عبور نمی‌کند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tumatanggap ang Wi-Fi Transfer ng musika mula sa browser ng iyong computer gamit ang sarili mong Wi-Fi. Walang dumadaan sa internet."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le Transfert Wi-Fi reçoit de la musique depuis le navigateur de votre ordinateur via votre propre Wi-Fi. Rien ne passe par internet."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi ट्रांसफ़र आपके अपने Wi-Fi के ज़रिए आपके कंप्यूटर के ब्राउज़र से संगीत लेता है। कुछ भी इंटरनेट से होकर नहीं जाता।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfer Wi-Fi menerima musik dari browser komputer Anda melalui Wi-Fi Anda sendiri. Tidak ada yang melewati internet."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trasferimento Wi-Fi riceve musica dal browser del tuo computer tramite la tua rete Wi-Fi. Niente passa da internet."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi転送は、自分のWi-Fi経由でコンピュータのブラウザから音楽を受信します。インターネットは経由しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi 전송은 내 Wi-Fi를 통해 컴퓨터 브라우저에서 음악을 받습니다. 인터넷을 거치지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wifi-overdracht ontvangt muziek vanuit de browser van je computer via je eigen wifi. Er gaat niets via internet."
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transfer Wi-Fi odbiera muzykę z przeglądarki w komputerze przez twoją sieć Wi-Fi. Nic nie przechodzi przez internet."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Transferência Wi-Fi recebe músicas do navegador do seu computador pela sua própria rede Wi-Fi. Nada passa pela internet."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Передача по Wi-Fi получает музыку из браузера на компьютере через вашу собственную сеть Wi-Fi. Ничего не идёт через интернет."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi பரிமாற்றம் உங்கள் சொந்த Wi-Fi வழியாக கணினியின் உலாவியிலிருந்து இசையைப் பெறுகிறது. எதுவும் இணையம் வழியாகச் செல்லாது."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi బదిలీ మీ స్వంత Wi-Fi ద్వారా కంప్యూటర్ బ్రౌజర్ నుండి సంగీతాన్ని అందుకుంటుంది. ఏదీ ఇంటర్నెట్ ద్వారా వెళ్లదు."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การถ่ายโอนผ่าน Wi-Fi รับเพลงจากเบราว์เซอร์บนคอมพิวเตอร์ของคุณผ่าน Wi-Fi ของคุณเอง ไม่มีข้อมูลใดผ่านอินเทอร์เน็ต"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi Aktarımı, bilgisayarınızın tarayıcısından kendi Wi-Fi ağınız üzerinden müzik alır. Hiçbir şey internetten geçmez."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Передача через Wi-Fi отримує музику з браузера вашого комп’ютера через вашу власну мережу Wi-Fi. Нічого не проходить через інтернет."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وائی فائی ٹرانسفر آپ کے اپنے وائی فائی کے ذریعے کمپیوٹر کے براؤزر سے موسیقی وصول کرتا ہے۔ کچھ بھی انٹرنیٹ سے نہیں گزرتا۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Truyền qua Wi-Fi nhận nhạc từ trình duyệt trên máy tính của bạn qua Wi-Fi của chính bạn. Không có gì đi qua internet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无线传输通过你自己的 Wi-Fi 从电脑浏览器接收音乐，不经过互联网。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi 傳輸會透過你自己的 Wi-Fi 從電腦瀏覽器接收音樂，不經過網際網路。"
           }
         }
       }
     },
     "Ogg Vorbis or Opus audio" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صوت Ogg Vorbis أو Opus"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis বা Opus অডিও"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg-Vorbis- oder Opus-Audio"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Ogg Vorbis u Opus"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صدای Ogg Vorbis یا Opus"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio na Ogg Vorbis o Opus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Ogg Vorbis ou Opus"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis या Opus ऑडियो"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Ogg Vorbis atau Opus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Ogg Vorbis o Opus"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg VorbisまたはOpusオーディオ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis 또는 Opus 오디오"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis- of Opus-audio"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dźwięk Ogg Vorbis lub Opus"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áudio Ogg Vorbis ou Opus"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудио Ogg Vorbis или Opus"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis அல்லது Opus ஆடியோ"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis లేదా Opus ఆడియో"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เสียง Ogg Vorbis หรือ Opus"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis veya Opus ses"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудіо Ogg Vorbis або Opus"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis یا Opus آڈیو"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Âm thanh Ogg Vorbis hoặc Opus"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis 或 Opus 音频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogg Vorbis 或 Opus 音訊"
           }
         }
       }

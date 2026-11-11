@@ -201,7 +201,7 @@ struct PlaylistTile: View {
     let action: () -> Void
 
     var body: some View {
-        ArtworkTile(title: playlist.name, subtitle: countLabel(playlist.songCount, "song"), action: action) { PlaylistCoverView(playlist: playlist) }
+        ArtworkTile(title: playlist.name, subtitle: countLabel(playlist.songCount, .song), action: action) { PlaylistCoverView(playlist: playlist) }
     }
 }
 
@@ -210,7 +210,7 @@ struct ArtistTile: View {
     let action: () -> Void
 
     var body: some View {
-        ArtworkTile(title: artist.name, subtitle: "\(countLabel(artist.songCount, "song")) · \(countLabel(artist.albumCount, "album"))",
+        ArtworkTile(title: artist.name, subtitle: "\(countLabel(artist.songCount, .song)) · \(countLabel(artist.albumCount, .album))",
                     circular: true, action: action) { ArtistArtworkView(artist: artist) }
     }
 }

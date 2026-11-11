@@ -255,7 +255,7 @@ private struct MixBanner: View {
                             }
                             .pressable()
                             .accessibilityLabel("Play \(mix.title)")
-                            Text(countLabel(mix.songIds.count, "song")).font(.caption).foregroundStyle(quiet).lineLimit(1)
+                            Text(countLabel(mix.songIds.count, .song)).font(.caption).foregroundStyle(quiet).lineLimit(1)
                         }
                     }
                     .padding(Spacing.lg)

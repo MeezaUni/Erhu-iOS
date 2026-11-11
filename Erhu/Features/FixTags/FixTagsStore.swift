@@ -298,7 +298,7 @@ final class FixTagsStore {
         saveProgress()
         let labels = MetadataField.allCases.filter { field in found.contains { $0.1.contains(field) } }.map(\.displayName)
         missingScanMessage = hasMissingScanProgress ? "Check stopped. Continue checking missing tags to skip completed files and include new songs."
-            : found.isEmpty ? "No missing selected tags found." : "Found \(countLabel(found.count, "track")) needing: " + labels.joined(separator: ", ") + "."
+            : found.isEmpty ? "No missing selected tags found." : "Found \(countLabel(found.count, .track)) needing: " + labels.joined(separator: ", ") + "."
     }
 
     func stopMissingScan() { stopMissingScanRequested = true }
@@ -710,7 +710,7 @@ final class FixTagsStore {
             saveProgress()
             let remaining = queue.filter { BulkMetadataSelection.canResolve($0) && $0.status != .unchanged }.count
             autoSelectionMessage = written > 0
-                ? "Fully fixed \(countLabel(written, "track")); \(remaining) still need review. Incomplete repairs were not written."
+                ? "Fully fixed \(countLabel(written, .track)); \(remaining) still need review. Incomplete repairs were not written."
                 : "No tags changed. Selected fields are either complete or no reliable value was available. Open an unfinished track to enter known values manually."
             isRunning = false
             if written > 0 { library.scan() }

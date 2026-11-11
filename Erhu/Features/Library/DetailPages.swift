@@ -55,7 +55,7 @@ func collectionFacts(year: Int? = nil, songs: [Song]) -> String {
     let minutes = songs.reduce(Int64(0)) { $0 + $1.durationMs } / 60_000
     let duration: String? = minutes <= 0 ? nil : minutes < 60 ? "\(minutes) min" : "\(minutes / 60) hr \(minutes % 60) min"
     let yearText = year.flatMap { (1900...2099).contains($0) ? String($0) : nil }
-    return [yearText, countLabel(songs.count, "song"), duration].compactMap { $0 }.joined(separator: " · ")
+    return [yearText, countLabel(songs.count, .song), duration].compactMap { $0 }.joined(separator: " · ")
 }
 
 /// An album: cover, facts (and "Lossless" when any track is), Play / Shuffle, its tracks by number.
@@ -136,7 +136,7 @@ struct ArtistDetailView: View {
                 let all = primary.isEmpty ? featured : primary
                 LazyVStack(alignment: .leading, spacing: 0) {
                     CollectionHeroHeader(title: artist.name, subtitle: nil,
-                                     facts: "\(countLabel(artist.songCount, "song")) · \(countLabel(artist.albumCount, "album"))",
+                                     facts: "\(countLabel(artist.songCount, .song)) · \(countLabel(artist.albumCount, .album))",
                                      canPlay: !all.isEmpty,
                                      onPlay: { actions.playInOrder(all, source: .artist(artistId)) },
                                      onShuffle: { actions.playShuffled(all, source: .artist(artistId)) }) {
