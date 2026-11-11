@@ -7,9 +7,9 @@ enum VisualizerMode: String, CaseIterable, Codable {
 
     var label: String {
         switch self {
-        case .spectrumBars: "Spectrum bars"
-        case .circularSpectrum: "Circular spectrum"
-        case .oscilloscope: "Oscilloscope"
+        case .spectrumBars: String(localized: "Spectrum bars")
+        case .circularSpectrum: String(localized: "Circular spectrum")
+        case .oscilloscope: String(localized: "Oscilloscope")
         }
     }
 }

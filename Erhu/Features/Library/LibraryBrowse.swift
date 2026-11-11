@@ -5,29 +5,29 @@ enum LibrarySort: String, CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .title: "Title · A–Z"
-        case .titleDescending: "Title · Z–A"
-        case .recentlyAdded: "Recently added"
-        case .recentlyPlayed: "Recently played"
-        case .artist: "Artist · A–Z"
-        case .album: "Album · A–Z"
-        case .newestYear: "Year · newest first"
-        case .oldestYear: "Year · oldest first"
-        case .mostPlayed: "Most played"
+        case .title: String(localized: "Title · A–Z")
+        case .titleDescending: String(localized: "Title · Z–A")
+        case .recentlyAdded: String(localized: "Recently added")
+        case .recentlyPlayed: String(localized: "Recently played")
+        case .artist: String(localized: "Artist · A–Z")
+        case .album: String(localized: "Album · A–Z")
+        case .newestYear: String(localized: "Year · newest first")
+        case .oldestYear: String(localized: "Year · oldest first")
+        case .mostPlayed: String(localized: "Most played")
         }
     }
 
     var shortLabel: String {
         switch self {
-        case .title: "A–Z"
-        case .titleDescending: "Z–A"
-        case .recentlyAdded: "Added"
-        case .recentlyPlayed: "Played"
-        case .artist: "Artist"
-        case .album: "Album"
-        case .newestYear: "Newest"
-        case .oldestYear: "Oldest"
-        case .mostPlayed: "Most played"
+        case .title: String(localized: "A–Z")
+        case .titleDescending: String(localized: "Z–A")
+        case .recentlyAdded: String(localized: "Added")
+        case .recentlyPlayed: String(localized: "Played")
+        case .artist: String(localized: "Artist")
+        case .album: String(localized: "Album")
+        case .newestYear: String(localized: "Newest")
+        case .oldestYear: String(localized: "Oldest")
+        case .mostPlayed: String(localized: "Most played")
         }
     }
 
@@ -40,17 +40,17 @@ enum LibraryMood: String, CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .all: "Mood"
-        case .chill: "Chill"
-        case .highEnergy: "High energy"
-        case .lateNight: "Late night"
-        case .feelGood: "Feel-good"
-        case .party: "Party"
-        case .romantic: "Love songs"
-        case .sad: "Sad & reflective"
-        case .dark: "Dark"
-        case .focus: "Focus"
-        case .throwback: "Throwback"
+        case .all: String(localized: "Mood")
+        case .chill: String(localized: "Chill")
+        case .highEnergy: String(localized: "High energy")
+        case .lateNight: String(localized: "Late night")
+        case .feelGood: String(localized: "Feel-good")
+        case .party: String(localized: "Party")
+        case .romantic: String(localized: "Love songs")
+        case .sad: String(localized: "Sad & reflective")
+        case .dark: String(localized: "Dark")
+        case .focus: String(localized: "Focus")
+        case .throwback: String(localized: "Throwback")
         }
     }
 

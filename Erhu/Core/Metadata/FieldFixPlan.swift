@@ -6,8 +6,8 @@ enum FixField: String, CaseIterable, Codable, Sendable {
 
     var displayName: String {
         switch self {
-        case .trackNumber: "Track number"
-        case .discNumber: "Disc number"
+        case .trackNumber: String(localized: "Track number")
+        case .discNumber: String(localized: "Disc number")
         default: rawValue.capitalized
         }
     }
@@ -29,15 +29,15 @@ enum MetadataField: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var displayName: String {
         switch self {
-        case .title: "Title"
-        case .artist: "Artist"
-        case .album: "Album"
-        case .year: "Year"
-        case .genre: "Genre"
-        case .bpm: "BPM"
-        case .trackNumber: "Track number"
-        case .discNumber: "Disc number"
-        case .filename: "Filename"
+        case .title: String(localized: "Title")
+        case .artist: String(localized: "Artist")
+        case .album: String(localized: "Album")
+        case .year: String(localized: "Year")
+        case .genre: String(localized: "Genre")
+        case .bpm: String(localized: "BPM")
+        case .trackNumber: String(localized: "Track number")
+        case .discNumber: String(localized: "Disc number")
+        case .filename: String(localized: "Filename")
         }
     }
 

@@ -54,10 +54,10 @@ enum TransitionWaveformHeight: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .auto: "Auto"
-        case .original: "1×"
-        case .four: "4×"
-        case .sixteen: "16×"
+        case .auto: String(localized: "Auto")
+        case .original: String(localized: "1×")
+        case .four: String(localized: "4×")
+        case .sixteen: String(localized: "16×")
         }
     }
 

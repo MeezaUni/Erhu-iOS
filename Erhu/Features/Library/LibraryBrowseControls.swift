@@ -82,12 +82,12 @@ private struct LibraryBrowseHeader<Controls: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(title).font(.largeTitle.bold())
+            Text(ui: title).font(.largeTitle.bold())
                 .padding(.horizontal, Spacing.gutter).padding(.bottom, 12)
                 .offset(y: drawer.pinnedOffset).zIndex(1)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("sectionBrowseTitle")
-            GlassSearchField(text: $query, prompt: "Search \(title.lowercased())", focused: $focused,
+            GlassSearchField(text: $query, prompt: String(localized: "Search \(title.ui.lowercased())"), focused: $focused,
                              close: close, identifier: "sectionSearchField")
                 .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
                 .frame(height: height)
@@ -105,7 +105,7 @@ private struct LibraryBrowseHeader<Controls: View>: View {
                         Image(systemName: "magnifyingglass")
                             .frame(width: 44, height: 44).contentShape(Rectangle())
                     }
-                    .accessibilityLabel("Search \(title.lowercased())")
+                    .accessibilityLabel(String(localized: "Search \(title.ui.lowercased())"))
                     .accessibilityIdentifier("sectionSearchButton")
                     .opacity(drawer.collapsed ? 1 : 0)
                     .allowsHitTesting(drawer.collapsed)
@@ -178,7 +178,7 @@ struct BrowseControlLabel: View {
     var selected = false
 
     var body: some View {
-        Label(title, systemImage: icon)
+        Label(title.ui, systemImage: icon)
             .font(.subheadline.weight(.medium))
             .lineLimit(1)
             .padding(.horizontal, 12).frame(minHeight: 44)

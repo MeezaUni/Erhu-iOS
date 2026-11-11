@@ -24,21 +24,21 @@ enum MixKind: String, CaseIterable, Sendable, Codable {
 
     var title: String {
         switch self {
-        case .rotation: "In Your Rotation"
-        case .yourSound: "Your Kind of Sound"
-        case .forgotten: "Forgotten Favourites"
-        case .deepCuts: "Deep Cuts"
-        case .highEnergy: "High Energy"
-        case .chill: "Chill"
-        case .lateNight: "Late Night"
-        case .aLittleDifferent: "A Little Different"
-        case .spotlight: "Spotlight"
-        case .throwbacks: "Throwbacks"
-        case .quickHits: "Quick Hits"
-        case .longListens: "Long Listens"
-        case .yetToHear: "Yet to Be Heard"
-        case .favourites: "Favourites"
-        case .fresh: "Fresh in Your Library"
+        case .rotation: String(localized: "In Your Rotation")
+        case .yourSound: String(localized: "Your Kind of Sound")
+        case .forgotten: String(localized: "Forgotten Favourites")
+        case .deepCuts: String(localized: "Deep Cuts")
+        case .highEnergy: String(localized: "High Energy")
+        case .chill: String(localized: "Chill")
+        case .lateNight: String(localized: "Late Night")
+        case .aLittleDifferent: String(localized: "A Little Different")
+        case .spotlight: String(localized: "Spotlight")
+        case .throwbacks: String(localized: "Throwbacks")
+        case .quickHits: String(localized: "Quick Hits")
+        case .longListens: String(localized: "Long Listens")
+        case .yetToHear: String(localized: "Yet to Be Heard")
+        case .favourites: String(localized: "Favourites")
+        case .fresh: String(localized: "Fresh in Your Library")
         }
     }
 

@@ -8,10 +8,10 @@ enum LibrarySection: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .home: "Home"
-        case .albums: "Albums"
-        case .library: "Library"
-        case .vybe: "VYBE"
+        case .home: String(localized: "Home")
+        case .albums: String(localized: "Albums")
+        case .library: String(localized: "Library")
+        case .vybe: String(localized: "VYBE")
         }
     }
 
@@ -40,9 +40,9 @@ enum LibraryShelf: String, Hashable {
 
     var label: String {
         switch self {
-        case .playlists: "Playlists"
-        case .favorites: "Favorites"
-        case .artists: "Artists"
+        case .playlists: String(localized: "Playlists")
+        case .favorites: String(localized: "Favorites")
+        case .artists: String(localized: "Artists")
         }
     }
 }
@@ -54,14 +54,14 @@ enum Tool: String, CaseIterable, Identifiable, Hashable {
 
     var label: String {
         switch self {
-        case .soundCapsule: "Sound Capsule"
-        case .equalizer: "Equalizer"
-        case .autoFixTags: "Auto Fix Tags"
-        case .libraryBuilder: "Library Builder"
-        case .artworkFetcher: "Artwork Fetcher"
-        case .animatedArtwork: "Animated covers"
-        case .wifiTransfer: "Wi-Fi Transfer"
-        case .settings: "Settings"
+        case .soundCapsule: String(localized: "Sound Capsule")
+        case .equalizer: String(localized: "Equalizer")
+        case .autoFixTags: String(localized: "Auto Fix Tags")
+        case .libraryBuilder: String(localized: "Library Builder")
+        case .artworkFetcher: String(localized: "Artwork Fetcher")
+        case .animatedArtwork: String(localized: "Animated covers")
+        case .wifiTransfer: String(localized: "Wi-Fi Transfer")
+        case .settings: String(localized: "Settings")
         }
     }
 
