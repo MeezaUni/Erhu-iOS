@@ -80,10 +80,10 @@ enum ThemeChoice: String, CaseIterable, Codable, Identifiable {
 
     var label: String {
         switch self {
-        case .system: "System default"
-        case .light: "Light"
-        case .dark: "Dark"
-        case .artwork: "Colours from artwork"
+        case .system: String(localized: "System default")
+        case .light: String(localized: "Light")
+        case .dark: String(localized: "Dark")
+        case .artwork: String(localized: "Colours from artwork")
         }
     }
 

@@ -7,16 +7,16 @@ enum RepairStatus: String, Codable, Sendable {
 
     var label: String {
         switch self {
-        case .pending: "Waiting"
-        case .fixing: "Looking up…"
-        case .done: "Fixed"
-        case .partial: "Needs review"
-        case .unchanged: "Unchanged"
-        case .needsReview: "Needs review"
-        case .noMatch: "No match"
-        case .failed: "Failed"
-        case .networkFailed: "Couldn't reach the providers"
-        case .reverted: "Reverted"
+        case .pending: String(localized: "Waiting")
+        case .fixing: String(localized: "Looking up…")
+        case .done: String(localized: "Fixed")
+        case .partial: String(localized: "Needs review")
+        case .unchanged: String(localized: "Unchanged")
+        case .needsReview: String(localized: "Needs review")
+        case .noMatch: String(localized: "No match")
+        case .failed: String(localized: "Failed")
+        case .networkFailed: String(localized: "Couldn't reach the providers")
+        case .reverted: String(localized: "Reverted")
         }
     }
 

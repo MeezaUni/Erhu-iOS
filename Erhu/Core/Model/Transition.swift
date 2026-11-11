@@ -97,9 +97,9 @@ enum TransitionCurve: String, CaseIterable, Codable {
 
     var label: String {
         switch self {
-        case .linear: "Linear"
-        case .equalPower: "Equal power"
-        case .custom: "Custom"
+        case .linear: String(localized: "Linear")
+        case .equalPower: String(localized: "Equal power")
+        case .custom: String(localized: "Custom")
         }
     }
 }
@@ -116,13 +116,13 @@ enum TransitionPreset: String, CaseIterable, Codable {
 
     var label: String {
         switch self {
-        case .fade: "Fade"
-        case .rise: "Rise"
-        case .bassSwap: "Bass Swap"
-        case .blend: "Blend"
-        case .melt: "Melt"
-        case .slam: "Slam"
-        case .custom: "Custom"
+        case .fade: String(localized: "Fade")
+        case .rise: String(localized: "Rise")
+        case .bassSwap: String(localized: "Bass Swap")
+        case .blend: String(localized: "Blend")
+        case .melt: String(localized: "Melt")
+        case .slam: String(localized: "Slam")
+        case .custom: String(localized: "Custom")
         }
     }
 }
@@ -232,12 +232,12 @@ enum TransitionFilter: String, CaseIterable, Codable {
 
     var label: String {
         switch self {
-        case .none: "None"
-        case .highPassIn: "High-pass in"
-        case .highPassOut: "High-pass out"
-        case .highPassInOut: "High-pass in, high-pass out"
-        case .highPassInLowPassOut: "High-pass in, low-pass out"
-        case .lowPassOut: "Low-pass out"
+        case .none: String(localized: "None")
+        case .highPassIn: String(localized: "High-pass in")
+        case .highPassOut: String(localized: "High-pass out")
+        case .highPassInOut: String(localized: "High-pass in, high-pass out")
+        case .highPassInLowPassOut: String(localized: "High-pass in, low-pass out")
+        case .lowPassOut: String(localized: "Low-pass out")
         }
     }
 
@@ -438,13 +438,13 @@ enum VolumeShape: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .crossfade: "Crossfade"
-        case .linear: "Linear crossfade"
-        case .overlap: "Overlap"
-        case .fadeOutThenIn: "Fade out, then in"
-        case .cutInFadeOut: "Cut in, fade out"
-        case .fadeInCutOut: "Fade in, cut out"
-        case .centerCut: "Center cut"
+        case .crossfade: String(localized: "Crossfade")
+        case .linear: String(localized: "Linear crossfade")
+        case .overlap: String(localized: "Overlap")
+        case .fadeOutThenIn: String(localized: "Fade out, then in")
+        case .cutInFadeOut: String(localized: "Cut in, fade out")
+        case .fadeInCutOut: String(localized: "Fade in, cut out")
+        case .centerCut: String(localized: "Center cut")
         }
     }
 
@@ -500,10 +500,10 @@ enum EqMove: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .none: "None"
-        case .startBassSwap: "Start bass swap"
-        case .centerBassSwap: "Center bass swap"
-        case .endBassSwap: "End bass swap"
+        case .none: String(localized: "None")
+        case .startBassSwap: String(localized: "Start bass swap")
+        case .centerBassSwap: String(localized: "Center bass swap")
+        case .endBassSwap: String(localized: "End bass swap")
         }
     }
 

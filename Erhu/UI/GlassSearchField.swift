@@ -13,7 +13,7 @@ struct GlassSearchField: View {
         HStack(spacing: Spacing.sm) {
             HStack(spacing: Spacing.sm) {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField(prompt, text: $text)
+                TextField(prompt.ui, text: $text)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .focused($focused).submitLabel(.search).onSubmit {
                         focused = false

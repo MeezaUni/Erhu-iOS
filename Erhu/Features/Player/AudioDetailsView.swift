@@ -233,7 +233,7 @@ private struct DetailRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline) {
-                Text(label).foregroundStyle(palette.onSurfaceVariant)
+                Text(ui: label).foregroundStyle(palette.onSurfaceVariant)
                 Spacer(minLength: Spacing.md)
                 Text(fact?.value ?? "Unavailable")
                     .foregroundStyle(fact == nil ? palette.onSurfaceVariant : palette.onSurface)
@@ -245,7 +245,7 @@ private struct DetailRow: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if let note {
-                Text(note).font(.caption).foregroundStyle(palette.onSurfaceVariant)
+                Text(ui: note).font(.caption).foregroundStyle(palette.onSurfaceVariant)
             }
         }
         .accessibilityElement(children: .combine)
@@ -259,7 +259,7 @@ private struct DetailNote: View {
     init(_ text: String) { self.text = text }
 
     var body: some View {
-        Text(text).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
+        Text(ui: text).font(.footnote).foregroundStyle(palette.onSurfaceVariant)
     }
 }
 
@@ -274,9 +274,9 @@ private struct ChainStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
-                Text(title).font(.subheadline.weight(.semibold))
+                Text(ui: title).font(.subheadline.weight(.semibold))
                 Spacer()
-                Text(state)
+                Text(ui: state)
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, 3)

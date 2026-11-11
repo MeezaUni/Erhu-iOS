@@ -246,7 +246,7 @@ struct SectionHeading: View {
 
     var body: some View {
         HStack {
-            Text(title).font(.title3.weight(.bold)).foregroundStyle(palette.onSurface).lineLimit(1)
+            Text(ui: title).font(.title3.weight(.bold)).foregroundStyle(palette.onSurface).lineLimit(1)
             Spacer()
             if let onMore {
                 Button(action: onMore) {
@@ -294,7 +294,7 @@ struct EmptyState: View {
     var body: some View {
         VStack(spacing: Spacing.md) {
             Image(systemName: systemImage).font(.system(size: 36)).foregroundStyle(palette.onSurfaceVariant)
-            Text(message).font(.body).foregroundStyle(palette.onSurfaceVariant).multilineTextAlignment(.center)
+            Text(ui: message).font(.body).foregroundStyle(palette.onSurfaceVariant).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, Spacing.xxl)

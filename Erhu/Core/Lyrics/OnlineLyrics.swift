@@ -17,10 +17,10 @@ enum LyricsTiming: Int, Comparable, Sendable {
 
     var label: String {
         switch self {
-        case .word: "word-synced"
-        case .line: "line-synced"
-        case .plain: "plain text"
-        case .none: "no text"
+        case .word: String(localized: "word-synced")
+        case .line: String(localized: "line-synced")
+        case .plain: String(localized: "plain text")
+        case .none: String(localized: "no text")
         }
     }
 }

@@ -14,7 +14,7 @@ struct TransitionDetailsSheet<Content: View>: View {
             }
             .background(palette.background)
             .foregroundStyle(palette.onSurface)
-            .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(title.ui).navigationBarTitleDisplayMode(.inline)
             .toolbar { Button("Done") { dismiss() } }
         }
         .presentationDetents([.medium, .large])

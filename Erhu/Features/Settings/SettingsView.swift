@@ -96,7 +96,7 @@ private struct SettingsValueRow<Value: View>: View {
     var body: some View {
         HStack(spacing: Spacing.lg) {
             SettingsIcon(symbol: icon)
-            Text(title).frame(maxWidth: .infinity, alignment: .leading)
+            Text(ui: title).frame(maxWidth: .infinity, alignment: .leading)
             value.labelsHidden()
         }
         .padding(Spacing.lg)
@@ -151,7 +151,7 @@ private struct SettingsGroup<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(title)
+            Text(ui: title)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(palette.onSurfaceVariant)
                 .padding(.horizontal, Spacing.lg)
@@ -208,8 +208,8 @@ private struct SettingsLink: View {
         HStack(spacing: Spacing.lg) {
             SettingsIcon(symbol: icon)
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(title).font(.body.weight(.semibold)).foregroundStyle(palette.onSurface)
-                Text(subtitle).font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
+                Text(ui: title).font(.body.weight(.semibold)).foregroundStyle(palette.onSurface)
+                Text(ui: subtitle).font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

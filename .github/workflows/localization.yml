@@ -1,0 +1,55 @@
+name: Export localizations
+
+# Extracts every translatable string with the exact keys iOS uses (format specifiers included)
+# and uploads them as the Erhu-localizations artifact. Run it by hand after changing interface text.
+on:
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Resolve Swift packages
+        run: |
+          mkdir -p build
+          for attempt in 1 2 3 4 5; do
+            rm -rf "$HOME/Library/Caches/org.swift.swiftpm/artifacts"
+            if xcodebuild -resolvePackageDependencies -project Erhu.xcodeproj -scheme Erhu \
+              -derivedDataPath build -clonedSourcePackagesDirPath build/SourcePackages > build/resolve.log 2>&1; then
+              exit 0
+            fi
+            echo "::warning::Swift package resolution attempt $attempt failed; retrying."
+            sleep $((attempt * 30))
+          done
+          grep -i "error" build/resolve.log | head -20
+          exit 1
+
+      - name: Export localizations
+        run: |
+          set -o pipefail
+          xcodebuild -exportLocalizations -project Erhu.xcodeproj -localizationPath build/Localizations \
+            -exportLanguage en -sdk iphonesimulator -derivedDataPath build \
+            -clonedSourcePackagesDirPath build/SourcePackages 2>&1 | tail -40
+          find build/Localizations -maxdepth 3 | head -20
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Erhu-localizations
+          path: build/Localizations
+          if-no-files-found: error

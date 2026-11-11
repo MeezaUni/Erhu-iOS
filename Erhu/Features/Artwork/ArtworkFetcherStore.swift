@@ -13,12 +13,12 @@ enum ArtworkStatus: Equatable, Codable, Sendable {
 
     var label: String {
         switch self {
-        case .missing: "No artwork"
-        case .searching: "Searching…"
+        case .missing: String(localized: "No artwork")
+        case .searching: String(localized: "Searching…")
         case .found(let count): "\(count) found"
-        case .notFound: "Nothing found"
-        case .writing: "Saving…"
-        case .done: "Saved"
+        case .notFound: String(localized: "Nothing found")
+        case .writing: String(localized: "Saving…")
+        case .done: String(localized: "Saved")
         case .failed(let reason): reason
         }
     }

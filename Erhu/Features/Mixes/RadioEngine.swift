@@ -21,11 +21,11 @@ enum RadioSignal: CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .sound: "VYBE sound match"
-        case .genre: "shared genres"
-        case .tempo: "similar tempo"
-        case .sameArtist: "the same artist"
-        case .listening: "your listening"
+        case .sound: String(localized: "VYBE sound match")
+        case .genre: String(localized: "shared genres")
+        case .tempo: String(localized: "similar tempo")
+        case .sameArtist: String(localized: "the same artist")
+        case .listening: String(localized: "your listening")
         }
     }
 }

@@ -14,7 +14,7 @@ struct SettingsActionLabel: View {
                 .font(.body.weight(.medium))
                 .frame(width: iconSize, height: iconSize)
                 .accessibilityHidden(true)
-            Text(title)
+            Text(ui: title)
                 .font(.body)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)

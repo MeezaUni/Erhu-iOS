@@ -260,7 +260,7 @@ private struct SectionRow: View {
     var body: some View {
         HStack(spacing: Spacing.md) {
             Circle().fill(color).frame(width: 10, height: 10)
-            Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface)
+            Text(ui: title).font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface)
             Spacer()
             Text(value).font(.subheadline).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
             Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundStyle(palette.onSurfaceVariant)
