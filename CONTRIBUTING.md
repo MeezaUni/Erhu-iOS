@@ -36,6 +36,14 @@ Use synthetic or appropriately licensed test media. Keep API keys, signing crede
 personal libraries, local paths, and generated IPAs out of commits. Preserve existing third-party
 licences and attribution when changing adapted code or model resources.
 
+## README translations
+
+`README.md` and its translations (`README.<language>.md`) are generated. Edit the English text in
+`Tools/readme_i18n/strings/en.json` (layout lives in `Tools/readme_i18n/template.md`), update the
+same keys in the other strings files, then run `python3 Tools/readme_i18n/build.py`. Corrections to
+a translation go in that language's strings file. Links must stay the same as in English; the script
+checks this.
+
 ## Licence
 
 The project is distributed under [GPLv3](LICENSE). Contributions are provided under the project
