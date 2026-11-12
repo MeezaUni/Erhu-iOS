@@ -1,5 +1,7 @@
 <h1><img src="docs/branding/erhu-cube.png" alt="erhu app icon" width="64"> <img src="docs/branding/erhu-wordmark-on-dark.png#gh-dark-mode-only" alt="erhu" width="95"><img src="docs/branding/erhu-wordmark-on-light.png#gh-light-mode-only" alt="erhu" width="95"> <sub>for iOS</sub></h1>
 
+<sub>🌐 **English** · [العربية](README.ar.md) · [বাংলা](README.bn.md) · [Deutsch](README.de.md) · [Español](README.es.md) · [فارسی](README.fa.md) · [Filipino](README.fil.md) · [Français](README.fr.md) · [हिन्दी](README.hi.md) · [Bahasa Indonesia](README.id.md) · [Italiano](README.it.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [தமிழ்](README.ta.md) · [తెలుగు](README.te.md) · [ไทย](README.th.md) · [Türkçe](README.tr.md) · [Українська](README.uk.md) · [اردو](README.ur.md) · [Tiếng Việt](README.vi.md) · [简体中文](README.zh-Hans.md) · [繁體中文](README.zh-Hant.md)</sub>
+
 An iPhone music player for your own collection.
 
 <a href="https://github.com/MeezaUni/Erhu-iOS/releases"><img src="docs/badges/download-ios.svg" alt="Download erhu for iOS"></a>
@@ -136,3 +138,5 @@ erhu is free, with no ads or accounts. If you'd like to help cover the Apple Dev
 ## License
 
 [GNU General Public License v3.0](LICENSE). Android-derived code and the erhu branding are documented in [licensing and permissions](docs/LICENSING-PERMISSIONS.md). Third-party components keep their own licences ([ThirdParty](ThirdParty/)).
+
+<!-- Built by Tools/readme_i18n/build.py from template.md and strings/<language>.json. Edit those and run the script instead of editing this file. -->
