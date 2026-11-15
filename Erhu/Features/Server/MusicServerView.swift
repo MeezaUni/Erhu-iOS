@@ -19,6 +19,11 @@ struct MusicServerView: View {
                     Button { addingServer = true } label: { Label("Add server", systemImage: "plus") }
                     Link(destination: Self.setupGuide) { Label("How to set up Erhu Server", systemImage: "book") }
                 }.toolSectionAppearance()
+                if !servers.recentlyStreamed.isEmpty {
+                    Section {
+                        NavigationLink { RecentlyStreamedView() } label: { Label("Recently streamed", systemImage: "clock.arrow.circlepath") }
+                    }.toolSectionAppearance()
+                }
             } else if let account = servers.selected {
                 Section {
                     if servers.accounts.count > 1 {
@@ -32,6 +37,10 @@ struct MusicServerView: View {
                 }.toolSectionAppearance()
                 Section("Browse") {
                     NavigationLink { ServerSearchView(account: account) } label: { Label("Search", systemImage: "magnifyingglass") }
+                    if !servers.recentlyStreamed.isEmpty {
+                        NavigationLink { RecentlyStreamedView() } label: { Label("Recently streamed", systemImage: "clock.arrow.circlepath") }
+                    }
+                    NavigationLink { ServerFavouritesView(account: account) } label: { Label("Favourites", systemImage: "heart") }
                     NavigationLink { ServerAlbumListView(account: account, type: "alphabeticalByName", title: String(localized: "Albums")) } label: {
                         Label("Albums", systemImage: "square.stack")
                     }
@@ -112,6 +121,8 @@ struct MusicServerView: View {
 
 /// Name, address, username and password of a new server; checked with the server before saving.
 struct AddServerSheet: View {
+    /// Filled in from a pairing link (the QR code shown by the Erhu Server app).
+    var invite: ServerInvite?
     @Environment(ServerStore.self) private var servers
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
@@ -132,7 +143,10 @@ struct AddServerSheet: View {
                     SecureField("Password", text: $password).textContentType(.password)
                     TextField("Name (optional)", text: $name)
                 } footer: {
-                    Text("Use the address Erhu Server shows on your computer. Away from home, use an HTTPS address, for example through Tailscale. Erhu Server and Navidrome work, and so do other Subsonic-compatible servers.")
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("With the Erhu Server app on your computer, scan its QR code with the iPhone's Camera to fill this in.")
+                        Text("Use the address Erhu Server shows on your computer. Away from home, use an HTTPS address, for example through Tailscale. Erhu Server and Navidrome work, and so do other Subsonic-compatible servers.")
+                    }
                 }
                 if let error {
                     Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
@@ -149,6 +163,12 @@ struct AddServerSheet: View {
                 }
             }
             .interactiveDismissDisabled(connecting)
+        }
+        .onAppear {
+            guard let invite, address.isEmpty else { return }
+            address = invite.address
+            username = invite.username
+            name = invite.name
         }
     }
 

@@ -318,6 +318,9 @@ struct ServerSongRow: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            if servers.isFavourite(song, account: account) {
+                Image(systemName: "heart.fill").font(.caption).foregroundStyle(.pink).accessibilityLabel("Favourite")
+            }
             if servers.isDownloaded(song) {
                 Image(systemName: "arrow.down.circle.fill").foregroundStyle(.secondary).accessibilityLabel("On this device")
             }
@@ -326,6 +329,11 @@ struct ServerSongRow: View {
                 Button { servers.addToQueue(song, account: account) } label: { Label("Add to queue", systemImage: "text.badge.plus") }
                 Button { servers.download([song], account: account) } label: { Label("Download to this device", systemImage: "arrow.down.circle") }
                     .disabled(servers.isDownloaded(song))
+                if servers.isFavourite(song, account: account) {
+                    Button { servers.setFavourite(song, false, account: account) } label: { Label("Remove from server favourites", systemImage: "heart.slash") }
+                } else {
+                    Button { servers.setFavourite(song, true, account: account) } label: { Label("Add to server favourites", systemImage: "heart") }
+                }
             } label: {
                 Image(systemName: "ellipsis").frame(width: 32, height: 32).contentShape(Rectangle())
             }
@@ -339,4 +347,85 @@ struct ServerSongRow: View {
 func requireClient(_ servers: ServerStore, _ account: ServerAccount) throws -> SubsonicClient {
     guard let client = servers.client(for: account.id) else { throw SubsonicError.missingPassword }
     return client
+}
+
+/// The account's favourites on the server: albums, then songs.
+struct ServerFavouritesView: View {
+    let account: ServerAccount
+    @Environment(ServerStore.self) private var servers
+
+    var body: some View {
+        ServerContent(load: { try await requireClient(servers, account).starred() }) { starred in
+            let songs = (starred?.song ?? []).filter { servers.isFavourite($0, account: account) }
+            let albums = starred?.album ?? []
+            List {
+                if songs.isEmpty && albums.isEmpty {
+                    Text("No favourites on this server yet. Use a song's menu to add one.").foregroundStyle(.secondary)
+                }
+                if !albums.isEmpty {
+                    Section("Albums") { ForEach(albums) { ServerAlbumRow(account: account, album: $0) } }
+                }
+                if !songs.isEmpty {
+                    Section("Songs") {
+                        ForEach(Array(songs.enumerated()), id: \.element.id) { index, _ in
+                            ServerSongRow(account: account, songs: songs, index: index)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Favourites")
+    }
+}
+
+/// Songs streamed lately, newest first. Tapping one streams it again if its server is still
+/// connected; otherwise the page offers to connect again.
+struct RecentlyStreamedView: View {
+    @Environment(ServerStore.self) private var servers
+    @State private var reconnecting = false
+    @State private var addingServer = false
+
+    var body: some View {
+        List {
+            if servers.recentlyStreamed.isEmpty {
+                Text("Songs you stream from a server appear here.").foregroundStyle(.secondary)
+            }
+            ForEach(servers.recentlyStreamed) { item in
+                let account = servers.account(for: item)
+                Button {
+                    if !servers.playRecent(item) { reconnecting = true }
+                } label: {
+                    HStack(spacing: Spacing.md) {
+                        if let account {
+                            ServerCover(account: account, coverArt: item.song.coverArt)
+                        } else {
+                            Image(systemName: "wifi.slash").foregroundStyle(.secondary)
+                                .frame(width: ArtworkSize.compact, height: ArtworkSize.compact).accessibilityHidden(true)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.song.title).foregroundStyle(.primary).lineLimit(1)
+                            Text([item.song.artist, account?.name ?? String(localized: "Server not connected")].compactMap { $0 }.joined(separator: " · "))
+                                .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .navigationTitle("Recently streamed")
+        .toolbar {
+            if !servers.recentlyStreamed.isEmpty {
+                Button("Clear") { servers.clearRecentlyStreamed() }
+            }
+        }
+        .alert("Connect to the server again", isPresented: $reconnecting) {
+            Button("Add server") { addingServer = true }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This song's server is no longer connected in Erhu. Add the server again to play it.")
+        }
+        .sheet(isPresented: $addingServer) { AddServerSheet() }
+    }
 }

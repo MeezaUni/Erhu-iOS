@@ -530,6 +530,7 @@ final class PlayerController {
         if history.onItemBecameCurrent(song, isPlaying: state.isPlaying) { state.history = history.entries }
         abLoop.onEntryChanged(sameEntryRepeated: sameEntryRepeated)
         if let song, state.isPlaying { recordAlbumPlayed(song.id) }
+        if let song, song.isStream { ServerStream.shared.noteStarted(song) }
         reevaluateTransition()
         updateNowPlaying()
         persistState()

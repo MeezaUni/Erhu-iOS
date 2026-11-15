@@ -69,7 +69,11 @@ final class ServerStream {
     /// Cached streams are trimmed, oldest first, to stay under this size.
     var cacheLimitBytes: Int64 = 2 * 1024 * 1024 * 1024
 
+    /// Called when a streamed song starts playing (set by [ServerStore], for Recently streamed).
+    var onStarted: ((UUID, ServerSong) -> Void)?
+
     private var sources: [String: Source] = [:]
+    private var remotes: [String: ServerSong] = [:]
     private var pathsById: [Int64: String] = [:]
     private var inFlight: [String: Task<Void, Error>] = [:]
     private var prefetchTask: Task<Void, Never>?
@@ -81,6 +85,7 @@ final class ServerStream {
         let path = ServerStreamPaths.path(accountId: account.id, remoteId: remote.id, quality: quality, originalExtension: remote.fileExtension)
         let id = ServerStreamPaths.songId(accountId: account.id, remoteId: remote.id)
         sources[path] = Source(accountId: account.id, remoteId: remote.id, quality: quality)
+        remotes[path] = remote
         pathsById[id] = path
         return Song(id: id, title: remote.title, artist: remote.artist ?? "", album: remote.album ?? "",
                     durationMs: Int64(remote.duration ?? 0) * 1000, path: path,
@@ -135,6 +140,12 @@ final class ServerStream {
                 try? await self?.fetch(song)
             }
         }
+    }
+
+    /// A streamed song became the current song.
+    func noteStarted(_ song: Song) {
+        guard let source = sources[song.path], let remote = remotes[song.path] else { return }
+        onStarted?(source.accountId, remote)
     }
 
     /// Reports a counted play of a streamed song to its server.

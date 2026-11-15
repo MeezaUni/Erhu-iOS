@@ -24,6 +24,11 @@ struct ErhuApp: App {
                 .environment(services.transitions)
                 .environment(services.servers)
                 .preferredColorScheme(services.settings.colorScheme)
+                .onOpenURL { services.servers.open($0) }
+                .sheet(item: Binding(get: { services.servers.pendingInvite }, set: { services.servers.pendingInvite = $0 })) { invite in
+                    AddServerSheet(invite: invite)
+                        .environment(services.servers)
+                }
         }
     }
 

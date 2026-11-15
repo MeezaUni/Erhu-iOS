@@ -36,6 +36,18 @@
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Erhu uses your own network for Wi-Fi Transfer, which receives music from your computer's browser, and to reach Erhu Server on your computer or NAS. Nothing goes through an Erhu service.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<!-- erhu://server?... pairing links (the QR code shown by the Erhu Server app). -->
+			<key>CFBundleURLName</key>
+			<string>com.erhu.pairing</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>erhu</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<!-- Home music servers usually have plain http:// addresses on the local network. -->

@@ -187,6 +187,16 @@ struct SubsonicClient: Sendable {
         return playlist
     }
 
+    /// The account's favourites on the server.
+    func starred() async throws -> SubsonicSearchResult? {
+        try await call("getStarred2").starred2
+    }
+
+    /// Marks a song as a favourite on the server, or removes the mark.
+    func setStarred(_ id: String, _ starred: Bool) async throws {
+        _ = try await call(starred ? "star" : "unstar", [URLQueryItem(name: "id", value: id)])
+    }
+
     /// Tells the server a song was played, so its play counts (and Last.fm, if linked there) stay right.
     func scrobble(_ id: String) async throws {
         _ = try await call("scrobble", [URLQueryItem(name: "id", value: id), URLQueryItem(name: "submission", value: "true")])
@@ -211,5 +221,24 @@ struct SubsonicClient: Sendable {
 
     func coverArtURL(_ id: String, size: Int = 600) -> URL {
         url("getCoverArt", [URLQueryItem(name: "id", value: id), URLQueryItem(name: "size", value: String(size))], salt: mediaSalt, json: false)
+    }
+}
+
+/// A pairing link shown by the Erhu Server app as a QR code: erhu://server?url=…&user=…&name=…
+/// It never carries a password; the listener types it.
+struct ServerInvite: Identifiable, Hashable, Sendable {
+    let id = UUID()
+    var address: String
+    var username: String
+    var name: String
+
+    init?(url: URL) {
+        guard url.scheme?.lowercased() == "erhu", url.host?.lowercased() == "server",
+              let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
+              let address = items.first(where: { $0.name == "url" })?.value,
+              let server = ServerAccount.normalizedURL(from: address) else { return nil }
+        self.address = server.absoluteString
+        username = items.first { $0.name == "user" }?.value ?? ""
+        name = items.first { $0.name == "name" }?.value ?? ""
     }
 }

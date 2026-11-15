@@ -15,6 +15,12 @@ final class ServerStore {
     }
     /// Downloads in this session, newest last.
     private(set) var downloads: [ServerDownload] = []
+    /// Songs streamed lately, newest first (kept between launches; only what is needed to play them again).
+    private(set) var recentlyStreamed: [StreamedSong] = []
+    /// Favourite changes made in this session, by "account/song", shown before the server list is reloaded.
+    private(set) var favouriteChanges: [String: Bool] = [:]
+    /// A pairing link (QR code from the Erhu Server app) waiting to be shown as a filled-in Add server sheet.
+    var pendingInvite: ServerInvite?
 
     @ObservationIgnored private var clients: [UUID: SubsonicClient] = [:]
     @ObservationIgnored private var downloadTask: Task<Void, Never>?
@@ -26,7 +32,9 @@ final class ServerStore {
         static let accounts = "musicServer.accounts"
         static let selected = "musicServer.selected"
         static let quality = "musicServer.streamQuality"
+        static let recent = "musicServer.recentlyStreamed"
     }
+    static let recentLimit = 100
 
     init(library: LibraryStore, actions: LibraryActions, player: PlayerController) {
         self.library = library
@@ -39,7 +47,12 @@ final class ServerStore {
         }
         selectedId = UserDefaults.standard.string(forKey: Keys.selected).flatMap(UUID.init(uuidString:)) ?? accounts.first?.id
         if let id = selectedId, !accounts.contains(where: { $0.id == id }) { selectedId = accounts.first?.id }
+        if let data = UserDefaults.standard.data(forKey: Keys.recent),
+           let saved = try? JSONDecoder().decode([StreamedSong].self, from: data) {
+            recentlyStreamed = saved
+        }
         ServerStream.shared.clientProvider = { [weak self] id in self?.client(for: id) }
+        ServerStream.shared.onStarted = { [weak self] accountId, song in self?.noteStreamed(song, accountId: accountId) }
         ServerStream.shared.trimCache()
     }
 
@@ -69,6 +82,14 @@ final class ServerStore {
         saveAccounts()
         selectedId = account.id
         return account
+    }
+
+    /// Handles an erhu:// link. True if it was a pairing link.
+    @discardableResult
+    func open(_ url: URL) -> Bool {
+        guard let invite = ServerInvite(url: url) else { return false }
+        pendingInvite = invite
+        return true
     }
 
     func remove(_ account: ServerAccount) {
@@ -104,6 +125,73 @@ final class ServerStore {
 
     private func streamSongs(_ songs: [ServerSong], account: ServerAccount) -> [Song] {
         songs.filter { $0.isVideo != true }.map { ServerStream.shared.song(for: $0, account: account, quality: quality) }
+    }
+
+    // MARK: Recently streamed
+
+    private func noteStreamed(_ song: ServerSong, accountId: UUID) {
+        if recentlyStreamed.first?.song.id == song.id, recentlyStreamed.first?.accountId == accountId { return }
+        let account = accounts.first { $0.id == accountId }
+        let item = StreamedSong(accountId: accountId, song: song, playedAt: Date(),
+                                server: account?.baseURL.absoluteString ?? "", username: account?.username ?? "")
+        recentlyStreamed = Self.addingRecent(item, to: recentlyStreamed)
+        saveRecent()
+    }
+
+    /// [recent] with [item] first, any earlier entry for the same song removed, capped at [recentLimit].
+    nonisolated static func addingRecent(_ item: StreamedSong, to recent: [StreamedSong]) -> [StreamedSong] {
+        var list = recent.filter { !($0.accountId == item.accountId && $0.song.id == item.song.id) }
+        list.insert(item, at: 0)
+        return Array(list.prefix(recentLimit))
+    }
+
+    /// The server a recently streamed song came from, or nil if that server was removed.
+    /// A server that was removed and added again has a new ID, so the address and user also match.
+    func account(for item: StreamedSong) -> ServerAccount? {
+        accounts.first { $0.id == item.accountId }
+            ?? accounts.first { !item.server.isEmpty && $0.baseURL.absoluteString == item.server && $0.username == item.username }
+    }
+
+    /// Streams the recent songs from [item]'s server, starting with [item]. False if that server
+    /// is no longer connected, so the page can ask the listener to connect again.
+    @discardableResult
+    func playRecent(_ item: StreamedSong) -> Bool {
+        guard let account = account(for: item) else { return false }
+        let sameServer = recentlyStreamed.filter { self.account(for: $0)?.id == account.id }
+        let index = sameServer.firstIndex { $0.song.id == item.song.id } ?? 0
+        play(sameServer.map(\.song), startAt: index, account: account)
+        return true
+    }
+
+    func clearRecentlyStreamed() {
+        recentlyStreamed = []
+        saveRecent()
+    }
+
+    private func saveRecent() {
+        if let data = try? JSONEncoder().encode(recentlyStreamed) { UserDefaults.standard.set(data, forKey: Keys.recent) }
+    }
+
+    // MARK: Favourites
+
+    func isFavourite(_ song: ServerSong, account: ServerAccount) -> Bool {
+        favouriteChanges["\(account.id.uuidString)/\(song.id)"] ?? (song.starred != nil)
+    }
+
+    /// Marks [song] as a favourite on the server (or removes the mark) and remembers it for this session.
+    func setFavourite(_ song: ServerSong, _ favourite: Bool, account: ServerAccount) {
+        guard let client = client(for: account.id) else { return }
+        let key = "\(account.id.uuidString)/\(song.id)"
+        let before = favouriteChanges[key]
+        favouriteChanges[key] = favourite
+        Task {
+            do {
+                try await client.setStarred(song.id, favourite)
+            } catch {
+                favouriteChanges[key] = before
+                actions.show(String(localized: "Couldn't change the favourite: \(error.localizedDescription)"))
+            }
+        }
     }
 
     // MARK: Downloads
@@ -219,4 +307,15 @@ struct ServerDownload: Identifiable, Hashable {
     let accountId: UUID
     var state: State
     var message: String?
+}
+
+/// A song streamed lately: which server it came from and what is needed to play it again.
+struct StreamedSong: Codable, Hashable, Identifiable, Sendable {
+    let accountId: UUID
+    let song: ServerSong
+    let playedAt: Date
+    /// The server's address and user when the song was streamed.
+    var server = ""
+    var username = ""
+    var id: String { "\(accountId.uuidString)/\(song.id)" }
 }

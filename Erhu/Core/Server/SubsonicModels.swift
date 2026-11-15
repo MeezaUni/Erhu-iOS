@@ -20,6 +20,8 @@ struct SubsonicResponse: Decodable, Sendable {
     let searchResult3: SubsonicSearchResult?
     let playlists: SubsonicPlaylists?
     let playlist: ServerPlaylist?
+    /// getStarred2: the account's favourite artists, albums and songs.
+    let starred2: SubsonicSearchResult?
 
     var isOK: Bool { status == "ok" }
 }
@@ -106,7 +108,7 @@ struct ServerAlbum: Decodable, Sendable, Hashable, Identifiable {
     enum CodingKeys: String, CodingKey { case id, name, title, artist, artistId, coverArt, songCount, duration, year, genre, song }
 }
 
-struct ServerSong: Decodable, Sendable, Hashable, Identifiable {
+struct ServerSong: Codable, Sendable, Hashable, Identifiable {
     let id: String
     let title: String
     let album: String?
@@ -127,6 +129,8 @@ struct ServerSong: Decodable, Sendable, Hashable, Identifiable {
     let bitRate: Int?
     let bpm: Int?
     let isVideo: Bool?
+    /// When the account marked the song as a favourite (nil: not a favourite).
+    let starred: String?
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -148,9 +152,10 @@ struct ServerSong: Decodable, Sendable, Hashable, Identifiable {
         bitRate = try c.decodeIfPresent(Int.self, forKey: .bitRate)
         bpm = try c.decodeIfPresent(Int.self, forKey: .bpm)
         isVideo = try c.decodeIfPresent(Bool.self, forKey: .isVideo)
+        starred = try c.decodeIfPresent(String.self, forKey: .starred)
     }
     enum CodingKeys: String, CodingKey {
-        case id, title, album, artist, albumId, artistId, track, discNumber, year, genre, coverArt, size, contentType, suffix, duration, bitRate, bpm, isVideo
+        case id, title, album, artist, albumId, artistId, track, discNumber, year, genre, coverArt, size, contentType, suffix, duration, bitRate, bpm, isVideo, starred
     }
 
     /// The original file extension, lower-cased, or "mp3" if the server didn't say.

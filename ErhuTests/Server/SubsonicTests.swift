@@ -123,6 +123,43 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual("mp3", album.song[0].fileExtension, "no suffix falls back to mp3")
     }
 
+    // MARK: Pairing links, favourites and recents
+
+    func testPairingLinkFillsInTheServerButNeverAPassword() throws {
+        let url = try XCTUnwrap(URL(string: "erhu://server?url=http%3A%2F%2F192.168.1.20%3A4533%2F&user=azeem&name=Living%20room%20PC&password=nope"))
+        let invite = try XCTUnwrap(ServerInvite(url: url))
+        XCTAssertEqual("http://192.168.1.20:4533", invite.address)
+        XCTAssertEqual("azeem", invite.username)
+        XCTAssertEqual("Living room PC", invite.name)
+        XCTAssertNil(ServerInvite(url: URL(string: "erhu://server?user=a")!), "no address")
+        XCTAssertNil(ServerInvite(url: URL(string: "erhu://other?url=http://x")!))
+        XCTAssertNil(ServerInvite(url: URL(string: "https://server?url=http://x")!))
+    }
+
+    func testFavouritesDecodeAndSongsRoundTripForRecents() throws {
+        let json = #"{"subsonic-response":{"status":"ok","starred2":{"song":[{"id":"s1","title":"Loved","artist":"A","duration":200,"suffix":"flac","starred":"2026-11-15T11:02:05Z"}]}}}"#
+        let song = try XCTUnwrap(try decode(json).starred2?.song.first)
+        XCTAssertNotNil(song.starred)
+        let item = StreamedSong(accountId: account.id, song: song, playedAt: Date(timeIntervalSince1970: 1), server: "http://192.168.1.20:4533", username: "listener")
+        let restored = try JSONDecoder().decode([StreamedSong].self, from: JSONEncoder().encode([item]))
+        XCTAssertEqual([item], restored)
+        XCTAssertEqual("flac", restored[0].song.fileExtension)
+    }
+
+    func testRecentlyStreamedIsNewestFirstWithoutRepeatsAndCapped() throws {
+        func item(_ id: Int, _ at: TimeInterval = 0) throws -> StreamedSong {
+            let json = #"{"subsonic-response":{"status":"ok","album":{"id":"a","name":"x","song":[{"id":"\#(id)","title":"T\#(id)"}]}}}"#
+            return StreamedSong(accountId: account.id, song: try XCTUnwrap(try decode(json).album).song[0], playedAt: Date(timeIntervalSince1970: at))
+        }
+        var recent: [StreamedSong] = []
+        for id in [1, 2, 3] { recent = ServerStore.addingRecent(try item(id), to: recent) }
+        recent = ServerStore.addingRecent(try item(1, 9), to: recent)
+        XCTAssertEqual(["1", "3", "2"], recent.map(\.song.id))
+        for id in 10..<(10 + ServerStore.recentLimit) { recent = ServerStore.addingRecent(try item(id), to: recent) }
+        XCTAssertEqual(ServerStore.recentLimit, recent.count)
+        XCTAssertFalse(recent.contains { $0.song.id == "1" }, "the oldest entries fall off")
+    }
+
     // MARK: Streaming and downloads
 
     @MainActor
