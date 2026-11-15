@@ -1,0 +1,8 @@
+# The Navidrome release bundled with Erhu Server, and the SHA-256 of each official download
+# (from navidrome_checksums.txt of that release). The build refuses a file that doesn't match.
+# To update: change the version and replace the checksums with the new release's.
+version=0.64.2
+windows_amd64.zip=72e06c9101fca6b14ff1437f9a56beb7ad6fe4bd7f25ff62cd5b70a075fee305
+darwin_amd64.tar.gz=bc872847dcd1c0d760bb9b8730f2a3c876e0ff0679e5440755c37697f2804a23
+darwin_arm64.tar.gz=8b0a7798001453719ad50c12f7025a6044546c4a3568efe51feb296681f29956
+linux_amd64.tar.gz=fdd87fd107818667c2c50bc24dc6ce856962c795b3822a91f95c066cfad2c53e

@@ -7,6 +7,8 @@ on:
       - "Tools/VybeProbe/**"
       - ".github/workflows/vybe-probe.yml"
       - "docs/downloads/VYBE-training-kit.zip"
+      - "Server/**"
+      - ".github/workflows/erhu-server.yml"
   workflow_dispatch:
 
 concurrency:

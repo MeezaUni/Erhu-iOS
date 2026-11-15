@@ -9,43 +9,60 @@ used unmodified with settings chosen for Erhu. Erhu also works with any other se
 the Subsonic API (an existing Navidrome, Gonic, Airsonic, Ampache, Jellyfin with its Subsonic
 plugin…). This branch (`test-server-option`) is a test build.
 
-## What you need
+## Which setup is for you?
 
-- A computer or NAS that stays on while you listen (Windows, macOS, Linux, Synology, QNAP,
-  Unraid, TrueNAS, a Raspberry Pi…), with your music in a folder.
-- The iPhone on the same network (Wi-Fi) for home use. For use away from home, see
-  [Outside your home](#outside-your-home).
+| You have | Use |
+| --- | --- |
+| A Windows PC or a Mac you listen from at home | **The Erhu Server app** (below): no terminal, no Docker |
+| A NAS, home server or Linux box that is always on | **Docker** or a Navidrome package ([further down](#on-a-nas-or-home-server-docker)) |
+| A Navidrome or other Subsonic-compatible server already | Nothing: just [add it in Erhu](#connect-erhu) |
 
-## 1. Start Erhu Server
+## The Erhu Server app (Windows and macOS)
 
-### With Docker (recommended: Windows, macOS, Linux and most NAS)
+A small app that runs the music server for you. It lives in the tray (Windows) or menu bar (Mac).
 
-1. Install Docker: [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Windows
-   or macOS; on a NAS, its Docker / Container Manager app.
-2. Put this folder's `docker-compose.yml` and `.env.example` in a folder on the computer.
+1. **Download** the test build: open the latest successful
+   [Erhu Server build](https://github.com/MeezaUni/Erhu-iOS/actions/workflows/erhu-server.yml?query=branch%3Atest-server-option)
+   (you need to be signed in to GitHub), scroll to *Artifacts* and download
+   `ErhuServer-Windows`, `ErhuServer-macOS-Intel` or `ErhuServer-macOS-AppleSilicon`. Unzip it.
+   On a Mac, unzip the zip inside it as well.
+2. **Open it.**
+   - **Windows:** double-click `ErhuServer.exe`. If "Windows protected your PC" appears, click
+     *More info* → *Run anyway*.
+   - **Mac (macOS 12 or later):** right-click *Erhu Server* → *Open*. If macOS still refuses,
+     open System Settings → Privacy & Security and click *Open Anyway*. If it then says the app
+     is damaged, run this once in Terminal and open it again:
+     `xattr -dr com.apple.quarantine "/path/to/Erhu Server.app"`
+
+   These warnings appear because test builds aren't code-signed yet.
+3. A page opens in your browser. **Choose your music folder**, then **create a username and
+   password**. If Windows asks whether to allow `navidrome` on the network, choose *Allow* for
+   private networks.
+4. On the iPhone, on the same Wi-Fi, **point the Camera at the QR code** on the page and tap
+   *Open in Erhu*. Type your password and tap *Connect*.
+
+Keep the computer on and awake while you listen. Click the tray or menu bar icon to open the page
+again or to quit. *Start Erhu Server when I sign in* on the page makes it start with the computer.
+Keep the files in the folder together: the app needs the `navidrome` file beside it.
+
+The MP3 streaming qualities need `ffmpeg` on the computer; without it, use *Original file* in
+Erhu (the default).
+
+## On a NAS or home server (Docker)
+
+1. Install Docker (on a NAS: its Docker / Container Manager app).
+2. Put this folder's `docker-compose.yml` and `.env.example` on the server.
 3. Copy `.env.example` to `.env` and set `MUSIC_FOLDER` to your music folder.
-4. In that folder, run:
+4. Run `docker compose up -d` in that folder, or create a "project" / "stack" from
+   `docker-compose.yml` in the NAS's container app.
 
-   ```sh
-   docker compose up -d
-   ```
+Without Docker, install Navidrome with its official package for your system from the
+[Navidrome installation guide](https://www.navidrome.org/docs/installation/), apply the settings
+in this folder's [`navidrome.toml`](navidrome.toml) and restart it.
 
-   On a NAS you can instead create a "project" / "stack" from `docker-compose.yml` in its
-   container app.
+## Create your account (Docker and package installs)
 
-Erhu Server starts with the computer from now on, and picks up music you add to the folder.
-
-### Without Docker
-
-Install Navidrome with its official installer or package for your system (Windows installer,
-Linux packages, and others) from the
-[Navidrome installation guide](https://www.navidrome.org/docs/installation/).
-Then apply the settings in this folder's [`navidrome.toml`](navidrome.toml) (where the file goes
-depends on the installation; the guide explains it) and restart Navidrome.
-
-## 2. Create your account
-
-Open `http://<computer address>:4533` in a browser (on the computer itself:
+The Erhu Server app does this for you. Otherwise, open `http://<computer address>:4533` in a browser (on the computer itself:
 `http://localhost:4533`). The first account you create is the administrator. Make a strong
 password.
 
@@ -59,9 +76,10 @@ To find the computer's address on your network:
 The address looks like `192.168.1.20`. Giving the computer a fixed (reserved) address in your
 router keeps it from changing.
 
-## 3. Connect Erhu
+## Connect Erhu
 
-In Erhu: **Settings → Music Server → Add server** (or the side menu → *Music Server*). Enter
+With the Erhu Server app, scan its QR code as described above. Otherwise, in Erhu:
+**Settings → Music Server → Add server** (or the side menu → *Music Server*). Enter
 `http://<computer address>:4533`, your username and password, and tap **Connect**. The first
 time, iOS asks to let Erhu use the local network: allow it.
 
@@ -96,10 +114,16 @@ Nginx Proxy Manager).
 - **Back up:** the `erhu_server_data` volume (Docker) or Navidrome's data folder holds accounts,
   play counts and playlists. Your music folder is only read, never changed.
 
-## Licence
+## Licence and credits
 
-Navidrome is © its contributors and licensed under the
+All of the music serving is done by [Navidrome](https://www.navidrome.org), © the Navidrome
+authors and contributors, licensed under the
 [GNU GPL v3.0](https://github.com/navidrome/navidrome/blob/master/LICENSE). Erhu Server uses the
-official, unmodified Navidrome image or packages; this folder only adds configuration. Erhu
-connects to it over the network through the public Subsonic API and contains no Navidrome code.
-See [ThirdParty/NAVIDROME-NOTICE.md](../ThirdParty/NAVIDROME-NOTICE.md).
+official, unmodified Navidrome release (the version and checksums are pinned in
+[`launcher/navidrome.lock`](launcher/navidrome.lock)). Thank you to everyone who builds it.
+
+The Erhu Server app in [`launcher/`](launcher) is a separate program that starts Navidrome and
+sets it up. Because it is distributed together with Navidrome, it is also released under the
+GPL v3.0 ([`launcher/LICENSE`](launcher/LICENSE)), with its source in this repository. The Erhu
+iPhone app only talks to the server over the network through the public Subsonic API and contains
+no Navidrome code. See [ThirdParty/NAVIDROME-NOTICE.md](../ThirdParty/NAVIDROME-NOTICE.md).

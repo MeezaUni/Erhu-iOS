@@ -1,0 +1,148 @@
+name: Erhu Server
+
+# Builds the Erhu Server launcher (Server/launcher) for Windows and macOS, bundles the official
+# Navidrome release pinned in navidrome.lock, and tests the result against that real Navidrome.
+on:
+  push:
+    paths:
+      - "Server/**"
+      - ".github/workflows/erhu-server.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: erhu-server-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: Server/launcher
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: Server/launcher/go.mod
+          cache-dependency-path: Server/launcher/go.sum
+      - name: Format, vet and unit tests
+        run: |
+          test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::run gofmt"; exit 1; }
+          go vet ./...
+          go test ./...
+      - name: Lint scripts
+        run: shellcheck scripts/*.sh
+      - name: End-to-end test with the real Navidrome
+        run: |
+          go build -o build/erhu-server .
+          scripts/fetch-navidrome.sh linux_amd64.tar.gz build
+          scripts/smoke-test.sh "$PWD/build/erhu-server" "$PWD/testdata/music"
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: Server/launcher/go.mod
+          cache-dependency-path: Server/launcher/go.sum
+      - name: Build ErhuServer.exe
+        run: |
+          version="test-$(git rev-parse --short HEAD)"
+          # Icon and version details for the .exe (written as .syso files the Go build picks up).
+          go run github.com/tc-hib/go-winres@latest simply --icon assets/icon.png --manifest gui \
+            --product-name "Erhu Server" --file-description "Erhu Server" --product-version "0.1.0.0" --file-version "0.1.0.0"
+          mkdir -p "dist/Erhu Server"
+          go build -trimpath -ldflags "-H=windowsgui -s -w -X main.version=$version" -o "dist/Erhu Server/ErhuServer.exe" .
+          scripts/fetch-navidrome.sh windows_amd64.zip "dist/Erhu Server"
+          nd=$(grep '^version=' navidrome.lock | cut -d= -f2)
+          sed "s/@NAVIDROME_VERSION@/$nd/" NOTICE.txt > "dist/Erhu Server/NOTICE.txt"
+          cp LICENSE "dist/Erhu Server/LICENSE.txt"
+          cp START-HERE.txt "dist/Erhu Server/START-HERE.txt"
+          ls -la "dist/Erhu Server"
+      - name: End-to-end test on Windows with the real Navidrome
+        run: scripts/smoke-test.sh "$(cygpath -m "$PWD/dist/Erhu Server/ErhuServer.exe")" "$(cygpath -m "$PWD/testdata/music")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ErhuServer-Windows
+          path: Server/launcher/dist
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: Server/launcher/go.mod
+          cache-dependency-path: Server/launcher/go.sum
+      - name: Build Erhu Server.app (Intel and Apple silicon)
+        run: |
+          version="test-$(git rev-parse --short HEAD)"
+          nd=$(grep '^version=' navidrome.lock | cut -d= -f2)
+          mkdir -p build/icon.iconset
+          for size in 16 32 128 256 512; do
+            sips -z $size $size assets/icon-1024.png --out build/icon.iconset/icon_${size}x${size}.png > /dev/null
+            sips -z $((size * 2)) $((size * 2)) assets/icon-1024.png --out build/icon.iconset/icon_${size}x${size}@2x.png > /dev/null
+          done
+          iconutil -c icns build/icon.iconset -o build/icon.icns
+          for arch in amd64 arm64; do
+            case $arch in amd64) label=Intel ;; arm64) label=AppleSilicon ;; esac
+            app="dist/$label/Erhu Server.app"
+            mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
+            CGO_ENABLED=1 GOOS=darwin GOARCH=$arch go build -trimpath -ldflags "-s -w -X main.version=$version" -o "$app/Contents/MacOS/ErhuServer" .
+            scripts/fetch-navidrome.sh darwin_$arch.tar.gz "$app/Contents/MacOS"
+            cp build/icon.icns "$app/Contents/Resources/icon.icns"
+            sed "s/@NAVIDROME_VERSION@/$nd/" NOTICE.txt > "$app/Contents/Resources/NOTICE.txt"
+            cp LICENSE "$app/Contents/Resources/LICENSE.txt"
+            cat > "$app/Contents/Info.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>Erhu Server</string>
+            <key>CFBundleDisplayName</key><string>Erhu Server</string>
+            <key>CFBundleIdentifier</key><string>org.erhu.server</string>
+            <key>CFBundleExecutable</key><string>ErhuServer</string>
+            <key>CFBundleIconFile</key><string>icon</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleShortVersionString</key><string>0.1.0</string>
+            <key>CFBundleVersion</key><string>1</string>
+            <key>LSMinimumSystemVersion</key><string>12.0</string>
+            <key>LSUIElement</key><true/>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          PLIST
+            # Not signed with a Developer ID (see START-HERE.txt); an ad-hoc signature is still
+            # required for Apple silicon to run it at all.
+            codesign --force --deep --sign - "$app"
+            sed "s/@NAVIDROME_VERSION@/$nd/" NOTICE.txt > "dist/$label/NOTICE.txt"
+            cp LICENSE "dist/$label/LICENSE.txt"
+            cp START-HERE.txt "dist/$label/START-HERE.txt"
+            # GitHub artifacts drop file permissions, which would break the app: ship a zip made
+            # by ditto (it keeps them) inside the artifact.
+            mkdir -p "dist/upload-$label"
+            (cd dist && mv "$label" "Erhu Server" && ditto -c -k --keepParent "Erhu Server" "upload-$label/ErhuServer-macOS-$label.zip" && mv "Erhu Server" "$label")
+          done
+          ls -la dist
+      - name: End-to-end test on macOS (Intel) with the real Navidrome
+        run: scripts/smoke-test.sh "$PWD/dist/Intel/Erhu Server.app/Contents/MacOS/ErhuServer" "$PWD/testdata/music"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ErhuServer-macOS-Intel
+          path: Server/launcher/dist/upload-Intel
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ErhuServer-macOS-AppleSilicon
+          path: Server/launcher/dist/upload-AppleSilicon
+          if-no-files-found: error
