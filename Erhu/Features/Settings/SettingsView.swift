@@ -26,6 +26,7 @@ struct SettingsView: View {
         SettingsPage {
             SettingsGroup("Personalize") {
                 SettingsLink("Themes & Appearance", subtitle: "Colours, themes and appearance", icon: "paintpalette.fill", page: .appearance)
+                LanguageSettingsRow()
             }
             SettingsGroup("Sound") {
                 SettingsLink("Audio & Equalizer", subtitle: "8-band equalizer, presets and audio effects", icon: "chart.bar.fill", tool: .equalizer)
@@ -176,6 +177,31 @@ private struct SettingsIcon: View {
             .frame(width: size, height: size)
             .background(palette.onSurface.opacity(0.09), in: Circle())
             .accessibilityHidden(true)
+    }
+}
+
+/// Shows the current language and opens the Settings app, where iOS keeps each app's language.
+private struct LanguageSettingsRow: View {
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        Button { AppLanguage.openSystemSettings() } label: {
+            HStack(spacing: Spacing.lg) {
+                SettingsIcon(symbol: "globe")
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text("Language").font(.body.weight(.semibold)).foregroundStyle(palette.onSurface)
+                    Text("\(AppLanguage.currentName) · Change it in the Settings app").font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "arrow.up.right").font(.caption.weight(.semibold)).foregroundStyle(palette.onSurfaceVariant)
+                    .accessibilityHidden(true)
+            }
+            .padding(Spacing.lg)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens the Settings app")
     }
 }
 

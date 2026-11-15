@@ -89,10 +89,40 @@ final class LibraryActions {
     /// the queue (so playback moves on and never reaches it), then the file, then the library and
     /// playlists. A rescan rebuilds albums and artists without it.
     func deleteFromDevice(_ song: Song) {
+        if let problem = removeFromDevice(song) {
+            // If the file itself is gone, a rescan still takes the song out of the library.
+            if !FileManager.default.fileExists(atPath: song.url.path) { AppServices.shared.library.scan() }
+            show(problem)
+            return
+        }
+        AppServices.shared.library.scan()
+        show(String(localized: "Deleted “\(song.title)” from this device"))
+    }
+
+    /// Deletes every song of an album from this device (after the user confirmed), then rescans once.
+    /// Songs that can't be deleted are left alone and named in the message.
+    func deleteAlbumFromDevice(title: String, songs: [Song]) {
+        var deleted = 0
+        var failed: [String] = []
+        for song in songs {
+            if removeFromDevice(song) == nil { deleted += 1 } else { failed.append(song.title) }
+        }
+        if deleted > 0 || songs.contains(where: { !FileManager.default.fileExists(atPath: $0.url.path) }) {
+            AppServices.shared.library.scan()
+        }
+        if failed.isEmpty {
+            show(String(localized: "Deleted “\(title)” and \(countLabel(deleted, .song))"))
+        } else {
+            show(String(localized: "Deleted \(countLabel(deleted, .song)). Couldn't delete: \(failed.joined(separator: ", "))"))
+        }
+    }
+
+    /// Removes one song from the queue, the Erhu folder and the library. Nil on success, otherwise
+    /// the message to show. Does not rescan, so a batch rescans once at the end.
+    private func removeFromDevice(_ song: Song) -> String? {
         let url = song.url
         guard LibraryPaths.relativePath(of: url) != nil else {
-            show(String(localized: "Couldn't delete “\(song.title)”: it isn't in the Erhu folder."))
-            return
+            return String(localized: "Couldn't delete “\(song.title)”: it isn't in the Erhu folder.")
         }
         player.removeSong(song.id)
         do {
@@ -100,16 +130,14 @@ final class LibraryActions {
                 try FileManager.default.removeItem(at: url)
             }
         } catch {
-            show(String(localized: "Couldn't delete “\(song.title)”: \(error.localizedDescription)"))
-            return
+            return String(localized: "Couldn't delete “\(song.title)”: \(error.localizedDescription)")
         }
         do {
             try database.forgetSong(song.id)
         } catch {
-            show(String(localized: "The file was deleted, but the library couldn't be updated: \(error.localizedDescription)"))
+            return String(localized: "The file was deleted, but the library couldn't be updated: \(error.localizedDescription)")
         }
-        AppServices.shared.library.scan()
-        show(String(localized: "Deleted “\(song.title)” from this device"))
+        return nil
     }
 
     /// The library songs with [ids], in that order (missing ones left out).

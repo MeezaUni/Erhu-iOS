@@ -68,10 +68,12 @@ struct AlbumDetailView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
     @Environment(AppRouter.self) private var router
+    @Environment(\.dismiss) private var dismiss
     @State private var songs: [Song] = []
     @State private var artworkTarget: ArtworkTarget?
     @State private var motionCover = MotionVideoSession()
     @State private var motionCheckMessage: String?
+    @State private var confirmingDelete = false
 
     var body: some View {
         let origin = CollectionRef.album(albumId)
@@ -121,6 +123,8 @@ struct AlbumDetailView: View {
                     }
                     .disabled(animatedArtwork.availability.checking || animatedArtwork.isBusy)
                 }
+                Button(role: .destructive) { confirmingDelete = true } label: { Label("Delete album from device", systemImage: "trash") }
+                    .disabled(songs.isEmpty)
             } label: { Image(systemName: "ellipsis.circle") }
             .accessibilityLabel("Album options")
         }
@@ -132,6 +136,20 @@ struct AlbumDetailView: View {
             }
             Button("Done", role: .cancel) { motionCheckMessage = nil }
         } message: { Text(motionCheckMessage ?? "") }
+        .confirmationDialog(library.album(albumId).map { String(localized: "Delete “\($0.title)” from this device?") } ?? "",
+                            isPresented: $confirmingDelete, titleVisibility: .visible) {
+            Button(String(localized: "Delete album from device"), role: .destructive) {
+                let title = library.album(albumId)?.title ?? ""
+                let doomed = songs
+                // A saved motion cover belongs to the album; don't leave its video behind.
+                if let album = library.album(albumId) { animatedArtwork.remove(album) }
+                dismiss()
+                actions.deleteAlbumFromDevice(title: title, songs: doomed)
+            }
+            Button(String(localized: "Cancel"), role: .cancel) {}
+        } message: {
+            Text("\(countLabel(songs.count, .song)) will be removed from the Erhu folder in Files for good, and leave your library, your playlists and the queue.")
+        }
         .task(id: library.songs) { songs = (try? library.database.songsOfAlbum(albumId)) ?? [] }
         .onDisappear { motionCover.pause() }
         .background { CollectionPageBackground() }
@@ -254,6 +272,7 @@ struct PlaylistDetailView: View {
     @State private var confirmingDelete = false
     @State private var coverItem: PhotosPickerItem?
     @State private var choosingCover = false
+    @State private var reordering = false
 
     var body: some View {
         let origin = CollectionRef.playlist(playlistId)
@@ -291,6 +310,8 @@ struct PlaylistDetailView: View {
                     newName = library.playlist(playlistId)?.name ?? ""
                     renaming = true
                 } label: { Label("Rename", systemImage: "pencil") }
+                Button { reordering = true } label: { Label("Reorder songs", systemImage: "arrow.up.arrow.down") }
+                    .disabled(entries.count < 2)
                 Button { actions.fixTags(songs) } label: { Label("Fix tags online", systemImage: "wand.and.stars") }
                 Button { choosingCover = true } label: { Label("Choose cover", systemImage: "photo") }
                 if let playlist = library.playlist(playlistId), playlist.artworkPath != nil {
@@ -327,7 +348,14 @@ struct PlaylistDetailView: View {
         } message: {
             Text("The songs stay in your library.")
         }
-        .task(id: library.playlists) { entries = (try? library.database.playlistEntries(playlistId)) ?? [] }
+        .sheet(isPresented: $reordering) {
+            PlaylistReorderSheet(playlistId: playlistId, entries: entries) { reloadEntries() }
+        }
+        .task(id: library.playlists) { reloadEntries() }
+    }
+
+    private func reloadEntries() {
+        entries = (try? library.database.playlistEntries(playlistId)) ?? []
     }
 
     private func playlistSongActions() -> SongActions {
