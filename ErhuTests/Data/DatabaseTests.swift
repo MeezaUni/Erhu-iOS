@@ -23,6 +23,60 @@ final class DatabaseTests: XCTestCase {
         XCTAssertTrue(try db.playlists().isEmpty)
     }
 
+    func testPlaylistReorderKeepsPositionsAndDuplicates() throws {
+        let db = try LibraryDatabase.inMemory()
+        for id in Int64(1)...3 { try insertSong(db, id, title: "S\(id)") }
+        let id = try db.createPlaylist(name: "Mix", songIds: [1, 2, 1, 3])
+        XCTAssertEqual([0, 1, 2, 3], try db.playlistOrder(id))
+        // Move the second copy of song 1 to the top: songs and their positions travel together.
+        XCTAssertTrue(try db.reorderPlaylist(id, from: [0, 1, 2, 3], to: [2, 0, 1, 3]))
+        XCTAssertEqual([1, 1, 2, 3], try db.playlistEntries(id).map(\.song.id))
+        XCTAssertEqual([2, 0, 1, 3], try db.playlistEntries(id).map(\.position))
+        // A song added later goes to the end of the new order.
+        try insertSong(db, 4, title: "S4")
+        XCTAssertTrue(try db.appendSong(4, toPlaylist: id))
+        XCTAssertEqual([1, 1, 2, 3, 4], try db.playlistEntries(id).map(\.song.id))
+        XCTAssertEqual(4, try db.playlistEntries(id).last!.position)
+    }
+
+    func testPlaylistReorderRejectsStaleOrInvalidOrders() throws {
+        let db = try LibraryDatabase.inMemory()
+        for id in Int64(1)...3 { try insertSong(db, id) }
+        let id = try db.createPlaylist(name: "Mix", songIds: [1, 2, 3])
+        // The playlist changed after the drag started (song 3 removed elsewhere): nothing is written.
+        try db.removeSong(3, fromPlaylist: id)
+        XCTAssertFalse(try db.reorderPlaylist(id, from: [0, 1, 2], to: [2, 1, 0]))
+        XCTAssertEqual([0, 1], try db.playlistOrder(id))
+        // Orders that are not a rearrangement of the same entries are refused.
+        XCTAssertFalse(try db.reorderPlaylist(id, from: [0, 1], to: [0, 0]))
+        XCTAssertFalse(try db.reorderPlaylist(id, from: [0, 1], to: [1, 5]))
+        XCTAssertTrue(try db.reorderPlaylist(id, from: [0, 1], to: [1, 0]))
+        XCTAssertEqual([2, 1], try db.playlistEntries(id).map(\.song.id))
+    }
+
+    func testVersion2DatabaseGainsPlaylistOrderInExistingOrder() throws {
+        let raw = try SQLiteDatabase.inMemory()
+        // A database as version 2 left it: no sort_order column yet.
+        _ = try LibraryDatabase(db: raw)
+        try raw.executeScript("""
+            CREATE TABLE old_ref AS SELECT playlist_id, song_id, position FROM playlist_song_cross_ref;
+            DROP TABLE playlist_song_cross_ref;
+            CREATE TABLE playlist_song_cross_ref (playlist_id INTEGER NOT NULL, song_id INTEGER NOT NULL,
+                position INTEGER NOT NULL, PRIMARY KEY (playlist_id, position));
+            DROP TABLE old_ref;
+            """)
+        raw.userVersion = 2
+        try raw.execute("INSERT INTO playlists (id, name, created_at, updated_at) VALUES (7, 'Old', 0, 0)")
+        for (position, song) in [(0, 2), (1, 1), (2, 2)] {
+            try raw.execute("INSERT INTO playlist_song_cross_ref (playlist_id, song_id, position) VALUES (7, ?, ?)", [song, position])
+        }
+        let db = try LibraryDatabase(db: raw)
+        XCTAssertEqual(LibraryDatabase.schemaVersion, raw.userVersion)
+        for id in Int64(1)...2 { try insertSong(db, id) }
+        XCTAssertEqual([2, 1, 2], try db.playlistEntries(7).map(\.song.id))
+        XCTAssertEqual([0, 1, 2], try db.playlistOrder(7))
+    }
+
     func testListeningStatsRankAndCountStreaks() throws {
         let db = try LibraryDatabase.inMemory()
         try insertSong(db, 1, title: "A")

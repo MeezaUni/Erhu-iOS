@@ -44,6 +44,11 @@ struct IntroductionView: View {
                                 Text(page.title).font(.largeTitle.bold()).multilineTextAlignment(.center)
                                 Text(page.text).font(.body).foregroundStyle(palette.onSurfaceVariant).multilineTextAlignment(.center)
                                 if page.id == "welcome" {
+                                    Button { AppLanguage.openSystemSettings() } label: {
+                                        Label("Language: \(AppLanguage.currentName)", systemImage: "globe")
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .accessibilityHint("Opens the Settings app, where you can choose Erhu's language")
                                     Toggle("Show VYBE and radio discovery", isOn: $settings.vybeEnabled).padding(.top)
                                 }
                             }.padding(Spacing.xl)

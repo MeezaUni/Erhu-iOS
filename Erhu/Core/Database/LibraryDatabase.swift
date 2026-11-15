@@ -6,7 +6,7 @@ import Foundation
 final class LibraryDatabase: @unchecked Sendable {
     let db: SQLiteDatabase
 
-    static let schemaVersion = 2
+    static let schemaVersion = 3
 
     init(db: SQLiteDatabase) throws {
         self.db = db
@@ -38,6 +38,18 @@ final class LibraryDatabase: @unchecked Sendable {
                         SELECT id, date_modified FROM songs;
                     """)
                 try db.execute("PRAGMA user_version = 2")
+            }
+        }
+        if db.userVersion < 3 {
+            // Playlist order is kept separately from an entry's position, as in the Android app:
+            // the position stays the entry's identity (transitions and saved queues refer to it),
+            // and reordering only changes sort_order.
+            try db.transaction {
+                try db.executeScript("""
+                    ALTER TABLE playlist_song_cross_ref ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;
+                    UPDATE playlist_song_cross_ref SET sort_order = position;
+                    """)
+                try db.execute("PRAGMA user_version = 3")
             }
         }
     }
@@ -368,8 +380,36 @@ extension LibraryDatabase {
             SELECT s.*, ref.position AS entry_position FROM songs s
             INNER JOIN playlist_song_cross_ref ref ON s.id = ref.song_id
             WHERE ref.playlist_id = ?
-            ORDER BY ref.position ASC
+            ORDER BY ref.sort_order ASC, ref.position ASC
             """, [playlistId]) { PlaylistEntry(song: Self.song($0), position: $0.int("entry_position")) }
+    }
+
+    /// The positions of a playlist's entries (for songs still in the library), in play order.
+    func playlistOrder(_ playlistId: Int64) throws -> [Int] {
+        try db.query("""
+            SELECT ref.position AS position FROM playlist_song_cross_ref ref
+            INNER JOIN songs s ON s.id = ref.song_id
+            WHERE ref.playlist_id = ?
+            ORDER BY ref.sort_order ASC, ref.position ASC
+            """, [playlistId]) { $0.int("position") }
+    }
+
+    /// Saves a new play order. [expected] is the order the user started dragging from and [order]
+    /// the same positions rearranged. If the playlist changed meanwhile (songs added or removed
+    /// elsewhere), nothing is written and false is returned, so no concurrent change is lost.
+    @discardableResult
+    func reorderPlaylist(_ playlistId: Int64, from expected: [Int], to order: [Int]) throws -> Bool {
+        guard expected.count == order.count, expected.sorted() == order.sorted(), Set(order).count == order.count else { return false }
+        return try db.transaction {
+            guard try playlistOrder(playlistId) == expected else { return false }
+            if expected == order { return true }
+            for (sortOrder, position) in order.enumerated() {
+                try db.execute("UPDATE playlist_song_cross_ref SET sort_order = ? WHERE playlist_id = ? AND position = ?",
+                               [sortOrder, playlistId, position])
+            }
+            try db.execute("UPDATE playlists SET updated_at = ? WHERE id = ?", [Self.now(), playlistId])
+            return true
+        }
     }
 
     @discardableResult
@@ -379,8 +419,8 @@ extension LibraryDatabase {
             try db.execute("INSERT INTO playlists (name, created_at, updated_at) VALUES (?, ?, ?)", [name, now, now])
             let id = db.lastInsertRowId
             for (position, songId) in songIds.enumerated() {
-                try db.execute("INSERT INTO playlist_song_cross_ref (playlist_id, song_id, position) VALUES (?, ?, ?)",
-                               [id, songId, position])
+                try db.execute("INSERT INTO playlist_song_cross_ref (playlist_id, song_id, position, sort_order) VALUES (?, ?, ?, ?)",
+                               [id, songId, position, position])
             }
             return id
         }
@@ -413,10 +453,12 @@ extension LibraryDatabase {
             let exists = try db.query("SELECT EXISTS(SELECT 1 FROM playlist_song_cross_ref WHERE playlist_id = ? AND song_id = ?) AS e",
                                       [playlistId, songId]) { $0.bool("e") }.first ?? false
             if exists { return false }
-            let maxPosition = try db.query("SELECT COALESCE(MAX(position), -1) AS m FROM playlist_song_cross_ref WHERE playlist_id = ?",
-                                           [playlistId]) { $0.int("m") }.first ?? -1
-            try db.execute("INSERT INTO playlist_song_cross_ref (playlist_id, song_id, position) VALUES (?, ?, ?)",
-                           [playlistId, songId, maxPosition + 1])
+            let last = try db.query("""
+                SELECT COALESCE(MAX(position), -1) AS p, COALESCE(MAX(sort_order), -1) AS o
+                FROM playlist_song_cross_ref WHERE playlist_id = ?
+                """, [playlistId]) { ($0.int("p"), $0.int("o")) }.first ?? (-1, -1)
+            try db.execute("INSERT INTO playlist_song_cross_ref (playlist_id, song_id, position, sort_order) VALUES (?, ?, ?, ?)",
+                           [playlistId, songId, last.0 + 1, last.1 + 1])
             try db.execute("UPDATE playlists SET updated_at = ? WHERE id = ?", [Self.now(), playlistId])
             return true
         }

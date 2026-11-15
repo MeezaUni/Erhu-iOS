@@ -185,3 +185,18 @@ Artwork Fetcher checkpoints each album, including albums that already have artwo
 ## Separate featured sections
 
 Home again shows Featured Radio Stations and Featured Albums as separate shelves, followed by Recently played albums. Radio cards retain their circular artwork and artwork-derived backgrounds.
+
+## Android 1.0.20 sync (15 November 2026)
+
+Reviewed against Android [`lochanpthakke/erhu` `063594e`](https://github.com/lochanpthakke/erhu/tree/063594e) (previous review `69be688c`).
+
+| Android change | iOS |
+| --- | --- |
+| Drag-and-drop playlist reordering, persistent, repeated tracks supported | Ported. Playlist ⋯ → **Reorder songs** opens a drag list; **Done** saves. As on Android, each entry keeps its position (its identity for transitions and saved queues) and a separate `sort_order` column holds the play order (database version 3; existing playlists keep their order). A reorder is refused, with a message, if the playlist changed while the sheet was open. |
+| Delete album from device | Ported. Album ⋯ → **Delete album from device**, after a confirmation that states the number of songs. Songs leave the queue, the Erhu folder, the library and playlists; one rescan follows. Songs that can't be deleted are named. |
+| Language choice on the first introduction page and in Settings | Adapted. iOS keeps each app's language in the Settings app, so the introduction's welcome page and Settings → Personalize → **Language** show the current language and open Erhu's page in Settings. |
+| Songs page with search, saved sorting, genre and mood filters | Already present (Library → Songs → More). |
+| Google Images links, same-image artwork upgrades, station portraits and colours, lyrics timing, collection transitions | Already present (see the sections above). |
+| VYBE model downloaded from GitHub with checksum and resume | Not applicable: iOS bundles its Core ML model. |
+| Android Auto browsing | Not ported: the CarPlay audio entitlement is granted by Apple and is not available to sideloaded builds. |
+| Settings layout, Redmi transparent background, glass backdrop cache, live artwork lifecycle | Android-specific rendering fixes; no matching iOS symptom. |
