@@ -2,7 +2,7 @@ import SwiftUI
 
 extension Tool {
     /// The tools ported so far; the rest join the menu as they arrive.
-    static let available: [Tool] = [.soundCapsule, .equalizer, .autoFixTags, .artworkFetcher, .wifiTransfer, .settings]
+    static let available: [Tool] = [.soundCapsule, .equalizer, .autoFixTags, .artworkFetcher, .wifiTransfer, .musicServer, .settings]
 }
 
 /// A tool page from the side menu.
@@ -19,6 +19,7 @@ struct ToolView: View {
         case .equalizer: EqualizerView()
         case .soundCapsule: SoundCapsuleView()
         case .wifiTransfer: WifiTransferView()
+        case .musicServer: MusicServerView()
         case .autoFixTags: FixTagsView()
         case .artworkFetcher: ArtworkFetcherView()
         default: EmptyState(message: String(localized: "\(tool.label) isn't available on iOS yet."), systemImage: tool.icon).navigationTitle(tool.label)

@@ -381,6 +381,30 @@ final class PlayerController {
             playingChanged(false)
             return
         }
+        if entry.song.isStream, !ServerStream.shared.isCached(entry.song) {
+            // A song from a music server: fetch it into the streaming cache first (buffering),
+            // then start it like any other file. Skipping cancels the wait, not the fetch, which
+            // still caches the song for later.
+            engine.stopAll()
+            listening.onPlayingChanged(false, durationMs: state.durationMs)
+            stopTimer()
+            state.status = .buffering
+            state.durationMs = entry.song.durationMs
+            setPosition(positionMs)
+            updateNowPlaying()
+            audioPreparation = Task {
+                var failure: String?
+                do { try await ServerStream.shared.fetch(entry.song) } catch { failure = error.localizedDescription }
+                guard !Task.isCancelled, state.currentEntry?.id == entry.id else { return }
+                audioPreparation = nil
+                if let failure {
+                    playbackError = failure
+                    state.status = .paused
+                    updateNowPlaying()
+                } else { startCurrent(at: positionMs, playing: playing) }
+            }
+            return
+        }
         if DecodedAudioSource.requiresDecoder(entry.song.url), !DecodedAudioSource.isPrepared(entry.song.url) {
             engine.stopAll()
             listening.onPlayingChanged(false, durationMs: state.durationMs)
@@ -535,6 +559,12 @@ final class PlayerController {
             return url == state.currentSong?.url ? nil : url
         }
         DecodedAudioSource.pin(urls + [state.currentSong?.url].compactMap { $0 })
+        // Fetch the next streamed songs ahead of time, so they start without waiting.
+        let upcoming = [next, nextTwo].compactMap { index -> Song? in
+            guard let index, state.queue.indices.contains(index) else { return nil }
+            return state.queue[index].song
+        }
+        ServerStream.shared.prefetch(upcoming)
         fileWarmup = Task { [weak self] in await self?.engine.warmFiles(urls) }
         artworkWarmup?.cancel()
         artworkWarmup = Task {
@@ -657,6 +687,7 @@ final class PlayerController {
     // MARK: Listening statistics
 
     private func recordPlay(_ songId: Int64) {
+        if songId < 0 { ServerStream.shared.reportPlay(songId: songId); return }
         let database = self.database
         Task.detached(priority: .utility) { try? database.recordPlay(songId: songId) }
     }

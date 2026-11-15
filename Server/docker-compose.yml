@@ -1,0 +1,33 @@
+# Erhu Server: Navidrome (unmodified, GPL-3.0) set up for the Erhu app.
+# 1. Copy .env.example to .env and set MUSIC_FOLDER to your music folder.
+# 2. Run:  docker compose up -d
+# 3. Open http://<this computer's address>:4533 in a browser and create the first (admin) account.
+# 4. In Erhu: Settings > Music Server > Add server.
+services:
+  erhu-server:
+    container_name: erhu-server
+    # Navidrome's official image (it includes ffmpeg for the smaller MP3 streams).
+    # To pin a version instead of following new releases, replace "latest" with a release tag.
+    image: deluan/navidrome:latest
+    restart: unless-stopped
+    read_only: true
+    ports:
+      - "4533:4533"
+    environment:
+      # No anonymous usage statistics are sent to the Navidrome project.
+      ND_ENABLEINSIGHTSCOLLECTOR: "false"
+      # Erhu doesn't use public share links; keep them off.
+      ND_ENABLESHARING: "false"
+      # Erhu's "Download to this device" needs this (Navidrome's default).
+      ND_ENABLEDOWNLOADS: "true"
+      # Pick up new music automatically (Navidrome watches the folder) and at every start.
+      ND_SCANNER_ENABLED: "true"
+      ND_SCANNER_SCANONSTARTUP: "true"
+      ND_LOGLEVEL: "info"
+    volumes:
+      - "erhu_server_data:/data"
+      # Read-only: Erhu Server never changes your music files.
+      - "${MUSIC_FOLDER:?Set MUSIC_FOLDER in .env}:/music:ro"
+
+volumes:
+  erhu_server_data:

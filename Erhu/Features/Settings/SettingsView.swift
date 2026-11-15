@@ -35,6 +35,7 @@ struct SettingsView: View {
             SettingsGroup("Library") {
                 Toggle("Show VYBE and radio discovery", isOn: $settings.vybeEnabled).padding(Spacing.lg)
                 SettingsLink("Music Library", subtitle: "Music folder, scanning and your collection", icon: "folder.fill", page: .library)
+                SettingsLink("Music Server", subtitle: "Stream or download from Erhu Server on your computer", icon: "server.rack", tool: .musicServer)
                 SettingsLink("Metadata & Artwork", subtitle: "Tags, cover art and online sources", icon: "number", page: .metadata)
             }
             SettingsGroup("About") {
