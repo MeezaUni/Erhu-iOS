@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Erhu Server</title>
+<link rel="icon" href="/logo.png">
+<style>
+  :root { --bg:#101216; --surface:#1E222A; --variant:#2D3748; --text:#F8F9FA; --muted:#A0AEC0; --line:#4A5568; --good:#7fd6a5; --warn:#f6b26b; --bad:#f28b82; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#F4F5F8; --surface:#FFFFFF; --variant:#E2E8F0; --text:#121316; --muted:#4A5568; --line:#CBD5E0; --good:#1f7a4d; --warn:#9a5b00; --bad:#b3261e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 -apple-system, "Segoe UI", Roboto, system-ui, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 28px 16px 48px; }
+  header { display:flex; align-items:center; gap:14px; margin-bottom: 22px; }
+  header img { width:56px; height:56px; border-radius:14px; }
+  h1 { font-size: 26px; margin:0; }
+  .pill { margin-left:auto; padding:6px 12px; border-radius:999px; font-size:14px; font-weight:600; background:var(--variant); white-space:nowrap; }
+  .pill.running { color:var(--good); } .pill.failed { color:var(--bad); } .pill.starting, .pill.setup, .pill.stopped { color:var(--warn); }
+  section { background:var(--surface); border-radius:18px; padding:18px 18px 20px; margin-bottom:16px; }
+  section.locked { opacity:.55; }
+  h2 { font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:10px; }
+  .num { width:28px; height:28px; border-radius:50%; background:var(--variant); display:inline-grid; place-items:center; font-size:14px; flex:none; }
+  .num.done { background:var(--good); color:#0b1a12; }
+  p { margin:6px 0 12px; color:var(--muted); }
+  code, .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size:15px; overflow-wrap:anywhere; }
+  .value { color:var(--text); background:var(--variant); padding:10px 12px; border-radius:10px; margin:8px 0 12px; }
+  button { font:inherit; font-weight:600; border:0; border-radius:12px; padding:10px 16px; cursor:pointer; background:var(--text); color:var(--bg); }
+  button.secondary { background:var(--variant); color:var(--text); }
+  button:disabled { opacity:.5; cursor:default; }
+  input[type=text], input[type=password] { font:inherit; width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--text); margin:4px 0 10px; }
+  label { font-size:14px; color:var(--muted); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .pair { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+  .pair img { width:208px; height:208px; border-radius:12px; background:#fff; padding:8px; }
+  .pair div { flex:1; min-width:230px; }
+  ol { margin:6px 0 0; padding-left:20px; color:var(--muted); } ol li { margin-bottom:6px; }
+  .error { color:var(--bad); margin:8px 0 0; min-height:1.2em; }
+  .problem { background:var(--variant); border-left:4px solid var(--bad); padding:10px 12px; border-radius:8px; margin-bottom:16px; overflow-wrap:anywhere; }
+  footer { color:var(--muted); font-size:14px; margin-top:22px; } footer a, p a { color:inherit; }
+  .check { display:flex; align-items:center; gap:8px; color:var(--text); margin-top:6px; } .check input { width:18px; height:18px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/logo.png" alt="">
+    <h1>Erhu Server</h1>
+    <span class="pill" id="pill" role="status">Loading…</span>
+  </header>
+
+  <div class="problem" id="problem" hidden></div>
+
+  <section id="s-folder">
+    <h2><span class="num" id="n1">1</span>Your music folder</h2>
+    <p>Erhu Server only reads this folder. It never changes or uploads your music.</p>
+    <div class="value mono" id="folder" hidden></div>
+    <div class="row">
+      <button id="choose">Choose folder…</button>
+      <button class="secondary" id="type-toggle">Type a path instead</button>
+    </div>
+    <div id="type-box" hidden>
+      <label for="path">Folder path</label>
+      <input type="text" id="path" placeholder="C:\Users\you\Music" autocomplete="off" spellcheck="false">
+      <button class="secondary" id="path-save">Use this folder</button>
+    </div>
+    <div class="error" id="folder-error" role="alert"></div>
+  </section>
+
+  <section id="s-account">
+    <h2><span class="num" id="n2">2</span>Your account</h2>
+    <div id="account-done" hidden>
+      <p>Account <strong class="mono" id="account-name"></strong> is ready. Use its username and password in Erhu.</p>
+    </div>
+    <form id="account-form">
+      <p>Create the username and password you'll type in Erhu on your iPhone. The password is stored only by the server on this computer.</p>
+      <label for="user">Username</label>
+      <input type="text" id="user" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      <label for="pass">Password (at least 8 characters)</label>
+      <input type="password" id="pass" autocomplete="new-password" required>
+      <label for="pass2">Password again</label>
+      <input type="password" id="pass2" autocomplete="new-password" required>
+      <button type="submit" id="account-save">Create account</button>
+    </form>
+    <div class="error" id="account-error" role="alert"></div>
+  </section>
+
+  <section id="s-connect">
+    <h2><span class="num" id="n3">3</span>Connect Erhu on your iPhone</h2>
+    <p id="connect-wait">Finish the steps above first.</p>
+    <div class="pair" id="pair" hidden>
+      <img id="qr" alt="QR code that opens Erhu with this server filled in">
+      <div>
+        <ol>
+          <li>Put the iPhone on the same Wi-Fi as this computer.</li>
+          <li>Point the iPhone's <strong>Camera</strong> at the QR code and tap <strong>Open in Erhu</strong>.</li>
+          <li>Type your password and tap <strong>Connect</strong>.</li>
+        </ol>
+        <p style="margin-top:12px">Or in Erhu: Settings → Music Server → Add server, with this address:</p>
+        <div class="value mono" id="address"></div>
+        <p id="more-addresses" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Options</h2>
+    <label class="check" id="autostart-row"><input type="checkbox" id="autostart"> Start Erhu Server when I sign in to this computer</label>
+    <div class="row" style="margin-top:14px">
+      <button class="secondary" id="restart">Restart server</button>
+      <a id="player" target="_blank" rel="noopener"><button class="secondary" type="button">Open web player</button></a>
+      <button class="secondary" id="quit">Quit Erhu Server</button>
+    </div>
+    <p style="margin-top:12px">Keep this computer on and awake while you listen. If Windows asks whether to allow <span class="mono">navidrome</span> on the network, choose <strong>Allow</strong> for private networks.</p>
+    <div class="error" id="options-error" role="alert"></div>
+  </section>
+
+  <footer>
+    Erhu Server <span id="version"></span> runs <a href="https://www.navidrome.org" target="_blank" rel="noopener">Navidrome</a>, an open-source music server (GPL-3.0), unmodified. Thank you to the Navidrome authors and contributors.
+    Erhu Server's own source code is at <a href="https://github.com/MeezaUni/Erhu-iOS/tree/test-server-option/Server/launcher" target="_blank" rel="noopener">github.com/MeezaUni/Erhu-iOS</a> (GPL-3.0).
+  </footer>
+</main>
+<script>
+const TOKEN = "{{TOKEN}}";
+const $ = id => document.getElementById(id);
+const LABELS = { setup: "Choose your music folder", starting: "Starting…", running: "Running", failed: "Problem", stopped: "Stopped" };
+let lastInvite = null, busy = false;
+
+async function api(path, body) {
+  const res = await fetch(path, { method: body === undefined ? "GET" : "POST", headers: { "X-Erhu-Token": TOKEN, "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Something went wrong.");
+  return data;
+}
+
+function show(s) {
+  $("pill").textContent = LABELS[s.state] || s.state;
+  $("pill").className = "pill " + s.state;
+  $("problem").hidden = !s.problem; $("problem").textContent = s.problem || "";
+  $("version").textContent = s.version;
+
+  const hasFolder = !!s.musicFolder;
+  $("folder").hidden = !hasFolder; $("folder").textContent = s.musicFolder || "";
+  $("choose").textContent = hasFolder ? "Change folder…" : "Choose folder…";
+  $("n1").className = "num" + (hasFolder ? " done" : ""); $("n1").textContent = hasFolder ? "✓" : "1";
+
+  const running = s.state === "running";
+  $("s-account").className = hasFolder ? "" : "locked";
+  $("account-done").hidden = !s.accountCreated; $("account-form").hidden = s.accountCreated;
+  $("account-name").textContent = s.username || "(created earlier)";
+  $("account-save").disabled = !running || busy;
+  $("n2").className = "num" + (s.accountCreated ? " done" : ""); $("n2").textContent = s.accountCreated ? "✓" : "2";
+
+  const ready = running && s.accountCreated && s.addresses && s.addresses.length > 0;
+  $("s-connect").className = ready ? "" : "locked";
+  $("pair").hidden = !ready; $("connect-wait").hidden = ready;
+  if (running && s.accountCreated && !(s.addresses && s.addresses.length)) {
+    $("connect-wait").textContent = "This computer isn't on a network yet. Connect it to your Wi-Fi.";
+  } else { $("connect-wait").textContent = "Finish the steps above first."; }
+  if (ready) {
+    $("address").textContent = s.addresses[0];
+    const more = s.addresses.slice(1);
+    $("more-addresses").hidden = more.length === 0;
+    $("more-addresses").textContent = more.length ? "If that doesn't connect, try: " + more.join("  ·  ") : "";
+    if (s.invite !== lastInvite) { lastInvite = s.invite; $("qr").src = "/qr.png?t=" + TOKEN + "&v=" + encodeURIComponent(s.invite); }
+  }
+  $("autostart-row").hidden = !s.autostartSupported;
+  $("autostart").checked = s.autostart;
+  $("player").href = s.webPlayer;
+}
+
+async function refresh() { try { show(await api("/api/state")); } catch (e) { $("pill").textContent = "Erhu Server was closed"; $("pill").className = "pill failed"; } }
+async function act(errorId, fn) {
+  $(errorId).textContent = ""; busy = true;
+  try { show(await fn()); } catch (e) { $(errorId).textContent = e.message; } finally { busy = false; refresh(); }
+}
+
+$("choose").onclick = () => act("folder-error", () => api("/api/choose-folder", {}));
+$("type-toggle").onclick = () => { $("type-box").hidden = !$("type-box").hidden; if (!$("type-box").hidden) $("path").focus(); };
+$("path-save").onclick = () => act("folder-error", async () => { const s = await api("/api/folder", { path: $("path").value }); $("type-box").hidden = true; return s; });
+$("account-form").onsubmit = e => {
+  e.preventDefault();
+  if ($("pass").value !== $("pass2").value) { $("account-error").textContent = "The two passwords don't match."; return; }
+  act("account-error", () => api("/api/account", { username: $("user").value, password: $("pass").value }));
+};
+$("restart").onclick = () => act("options-error", () => api("/api/restart", {}));
+$("autostart").onchange = e => act("options-error", () => api("/api/autostart", { enabled: e.target.checked }));
+$("quit").onclick = async () => {
+  if (!confirm("Quit Erhu Server? Erhu on your iPhone won't be able to stream or download until you open it again.")) return;
+  busy = true; clearInterval(timer);
+  try { await api("/api/quit", {}); } catch (e) {}
+  document.querySelector("main").innerHTML = "<section><h2>Erhu Server has quit</h2><p>You can close this tab. Open Erhu Server again to start it.</p></section>";
+};
+refresh(); const timer = setInterval(() => { if (!busy) refresh(); }, 2000);
+</script>
+</body>
+</html>

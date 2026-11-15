@@ -1,0 +1,24 @@
+Erhu Server
+===========
+
+Stream or download your own music in Erhu on your iPhone, from this computer.
+
+1. Open "ErhuServer" (Windows: ErhuServer.exe. Mac: the Erhu Server app).
+   - Windows may show "Windows protected your PC": click "More info", then "Run anyway".
+   - On a Mac, the first time: right-click the app and choose Open. If macOS still refuses, open
+     System Settings > Privacy & Security and click "Open Anyway".
+     If it then says the app is damaged, run this once in Terminal, then open it again:
+       xattr -dr com.apple.quarantine "/path/to/Erhu Server.app"
+   These warnings appear because this test build isn't code-signed yet.
+2. A page opens in your browser. Choose your music folder, then create a username and password.
+   If Windows asks whether to allow "navidrome" on the network, choose Allow (private networks).
+3. On your iPhone (same Wi-Fi), point the Camera at the QR code on the page and tap
+   "Open in Erhu". Type your password and tap Connect.
+
+Erhu Server keeps running in the tray (Windows, near the clock) or the menu bar (Mac). Click its
+icon to open the page again or to quit. Keep the computer on and awake while you listen.
+
+Keep all the files in this folder together: Erhu Server needs the "navidrome" file next to it.
+
+Erhu Server runs Navidrome (https://www.navidrome.org), open-source software under the GPL-3.0.
+See NOTICE.txt and LICENSE.txt.

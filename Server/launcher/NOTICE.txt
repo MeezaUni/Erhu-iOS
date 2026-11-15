@@ -1,0 +1,26 @@
+Erhu Server
+===========
+
+Erhu Server is a small launcher for the Erhu music player. It is free software, licensed under
+the GNU General Public License version 3 (see LICENSE.txt). Its source code is at:
+https://github.com/MeezaUni/Erhu-iOS/tree/test-server-option/Server/launcher
+
+Navidrome
+---------
+
+This package includes Navidrome (the file "navidrome" or "navidrome.exe"), an open-source music
+server, copyright the Navidrome authors and contributors, licensed under the GNU General Public
+License version 3 (see LICENSE.txt). It is the official, unmodified release build.
+
+  Website:      https://www.navidrome.org
+  Source code:  https://github.com/navidrome/navidrome
+  This version: https://github.com/navidrome/navidrome/releases/tag/v@NAVIDROME_VERSION@
+
+Erhu Server starts Navidrome as a separate program and sets it up for the Erhu app. All of the
+music serving is Navidrome's work. Thank you to everyone who builds it.
+
+Other components
+----------------
+
+Erhu Server is written in Go and uses fyne.io/systray (Apache-2.0), github.com/ncruces/zenity
+(MIT), github.com/skip2/go-qrcode (MIT) and golang.org/x/sys (BSD-3-Clause).
