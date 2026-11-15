@@ -49,7 +49,7 @@ enum LibraryShelf: String, Hashable {
 
 /// The tools in the side menu (Android's navigation drawer).
 enum Tool: String, CaseIterable, Identifiable, Hashable {
-    case soundCapsule, equalizer, autoFixTags, libraryBuilder, artworkFetcher, animatedArtwork, wifiTransfer, settings
+    case soundCapsule, equalizer, autoFixTags, libraryBuilder, artworkFetcher, animatedArtwork, wifiTransfer, musicServer, settings
     var id: String { rawValue }
 
     var label: String {
@@ -61,6 +61,7 @@ enum Tool: String, CaseIterable, Identifiable, Hashable {
         case .artworkFetcher: String(localized: "Artwork Fetcher")
         case .animatedArtwork: String(localized: "Animated covers")
         case .wifiTransfer: String(localized: "Wi-Fi Transfer")
+        case .musicServer: String(localized: "Music Server")
         case .settings: String(localized: "Settings")
         }
     }
@@ -74,6 +75,7 @@ enum Tool: String, CaseIterable, Identifiable, Hashable {
         case .artworkFetcher: "photo.on.rectangle.angled"
         case .animatedArtwork: "play.rectangle"
         case .wifiTransfer: "wifi"
+        case .musicServer: "server.rack"
         case .settings: "gearshape"
         }
     }

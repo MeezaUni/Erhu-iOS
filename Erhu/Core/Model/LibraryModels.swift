@@ -25,7 +25,11 @@ struct Song: Identifiable, Hashable, Codable, Sendable {
     var bitrate = 0
     var channels = 2
 
-    var url: URL { LibraryPaths.musicFolder.appendingPathComponent(path) }
+    /// The file to play. A song streamed from a music server lives in the streaming cache.
+    var url: URL {
+        if ServerStreamPaths.isStream(path) { return ServerStreamPaths.cacheURL(forPath: path) }
+        return LibraryPaths.musicFolder.appendingPathComponent(path)
+    }
 
     /// "Artist — Album", skipping whichever is missing.
     var subtitle: String {

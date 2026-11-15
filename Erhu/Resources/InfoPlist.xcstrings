@@ -6,151 +6,151 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يستقبل النقل عبر Wi-Fi الموسيقى من متصفح حاسوبك عبر شبكة Wi-Fi الخاصة بك. لا يمر أي شيء عبر الإنترنت."
+            "value" : "يستخدم Erhu شبكتك الخاصة للنقل عبر Wi-Fi، الذي يستقبل الموسيقى من متصفح حاسوبك، وللوصول إلى Erhu Server على حاسوبك أو جهاز NAS. لا يمر أي شيء عبر خدمة من Erhu."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ওয়াই-ফাই ট্রান্সফার আপনার নিজের ওয়াই-ফাই দিয়ে কম্পিউটারের ব্রাউজার থেকে গান গ্রহণ করে। কিছুই ইন্টারনেটের মধ্য দিয়ে যায় না।"
+            "value" : "Erhu আপনার নিজের নেটওয়ার্ক ব্যবহার করে ওয়াই-ফাই ট্রান্সফারের জন্য, যা কম্পিউটারের ব্রাউজার থেকে গান গ্রহণ করে, এবং আপনার কম্পিউটার বা NAS-এ থাকা Erhu Server-এ পৌঁছাতে। কিছুই Erhu-এর কোনো পরিষেবার মধ্য দিয়ে যায় না।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WLAN-Übertragung empfängt Musik aus dem Browser deines Computers über dein eigenes WLAN. Nichts läuft über das Internet."
+            "value" : "Erhu nutzt dein eigenes Netzwerk für die WLAN-Übertragung, die Musik aus dem Browser deines Computers empfängt, und um Erhu Server auf deinem Computer oder NAS zu erreichen. Nichts läuft über einen Erhu-Dienst."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transferencia Wi-Fi recibe música desde el navegador de tu ordenador a través de tu propia Wi-Fi. Nada pasa por internet."
+            "value" : "Erhu usa tu propia red para la transferencia por Wi-Fi, que recibe música desde el navegador de tu ordenador, y para conectar con Erhu Server en tu ordenador o NAS. Nada pasa por un servicio de Erhu."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "انتقال با وای‌فای موسیقی را از مرورگر رایانه‌تان از طریق وای‌فای خودتان دریافت می‌کند. هیچ چیز از اینترنت عبور نمی‌کند."
+            "value" : "Erhu از شبکهٔ خودتان برای انتقال با Wi-Fi، که موسیقی را از مرورگر رایانه دریافت می‌کند، و برای دسترسی به Erhu Server روی رایانه یا NAS شما استفاده می‌کند. هیچ چیز از سرویسی از Erhu عبور نمی‌کند."
           }
         },
         "fil" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tumatanggap ang Wi-Fi Transfer ng musika mula sa browser ng iyong computer gamit ang sarili mong Wi-Fi. Walang dumadaan sa internet."
+            "value" : "Ginagamit ng Erhu ang sarili mong network para sa Wi-Fi Transfer, na tumatanggap ng musika mula sa browser ng iyong computer, at para maabot ang Erhu Server sa iyong computer o NAS. Walang dumadaan sa anumang serbisyo ng Erhu."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le Transfert Wi-Fi reçoit de la musique depuis le navigateur de votre ordinateur via votre propre Wi-Fi. Rien ne passe par internet."
+            "value" : "Erhu utilise votre propre réseau pour le transfert Wi-Fi, qui reçoit la musique depuis le navigateur de votre ordinateur, et pour joindre Erhu Server sur votre ordinateur ou votre NAS. Rien ne passe par un service Erhu."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi ट्रांसफ़र आपके अपने Wi-Fi के ज़रिए आपके कंप्यूटर के ब्राउज़र से संगीत लेता है। कुछ भी इंटरनेट से होकर नहीं जाता।"
+            "value" : "Erhu आपके अपने नेटवर्क का उपयोग Wi-Fi ट्रांसफ़र के लिए करता है, जो आपके कंप्यूटर के ब्राउज़र से संगीत प्राप्त करता है, और आपके कंप्यूटर या NAS पर Erhu Server तक पहुँचने के लिए। कुछ भी Erhu की किसी सेवा से होकर नहीं जाता।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transfer Wi-Fi menerima musik dari browser komputer Anda melalui Wi-Fi Anda sendiri. Tidak ada yang melewati internet."
+            "value" : "Erhu memakai jaringan Anda sendiri untuk Transfer Wi-Fi, yang menerima musik dari browser komputer Anda, dan untuk menjangkau Erhu Server di komputer atau NAS Anda. Tidak ada yang melewati layanan Erhu."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trasferimento Wi-Fi riceve musica dal browser del tuo computer tramite la tua rete Wi-Fi. Niente passa da internet."
+            "value" : "Erhu usa la tua rete per il trasferimento Wi-Fi, che riceve musica dal browser del computer, e per raggiungere Erhu Server sul tuo computer o NAS. Nulla passa da un servizio di Erhu."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi転送は、自分のWi-Fi経由でコンピュータのブラウザから音楽を受信します。インターネットは経由しません。"
+            "value" : "Erhuは、コンピュータのブラウザから音楽を受け取るWi-Fi転送と、コンピュータやNAS上のErhu Serverへの接続に、あなた自身のネットワークを使用します。Erhuのサービスを経由するものはありません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi 전송은 내 Wi-Fi를 통해 컴퓨터 브라우저에서 음악을 받습니다. 인터넷을 거치지 않습니다."
+            "value" : "Erhu는 컴퓨터 브라우저에서 음악을 받는 Wi-Fi 전송과, 컴퓨터나 NAS의 Erhu Server에 연결하기 위해 사용자의 네트워크를 사용합니다. Erhu 서비스를 거치는 것은 없습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wifi-overdracht ontvangt muziek vanuit de browser van je computer via je eigen wifi. Er gaat niets via internet."
+            "value" : "Erhu gebruikt je eigen netwerk voor Wi-Fi-overdracht, die muziek ontvangt vanuit de browser van je computer, en om Erhu Server op je computer of NAS te bereiken. Niets gaat via een dienst van Erhu."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transfer Wi-Fi odbiera muzykę z przeglądarki w komputerze przez twoją sieć Wi-Fi. Nic nie przechodzi przez internet."
+            "value" : "Erhu korzysta z Twojej sieci do przesyłania przez Wi-Fi, które odbiera muzykę z przeglądarki na komputerze, oraz do łączenia się z Erhu Server na Twoim komputerze lub serwerze NAS. Nic nie przechodzi przez usługę Erhu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A Transferência Wi-Fi recebe músicas do navegador do seu computador pela sua própria rede Wi-Fi. Nada passa pela internet."
+            "value" : "O Erhu usa sua própria rede para a transferência por Wi-Fi, que recebe músicas do navegador do computador, e para acessar o Erhu Server no seu computador ou NAS. Nada passa por um serviço do Erhu."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Передача по Wi-Fi получает музыку из браузера на компьютере через вашу собственную сеть Wi-Fi. Ничего не идёт через интернет."
+            "value" : "Erhu использует вашу собственную сеть для передачи по Wi-Fi, которая принимает музыку из браузера компьютера, и для подключения к Erhu Server на вашем компьютере или NAS. Ничего не проходит через сервисы Erhu."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi பரிமாற்றம் உங்கள் சொந்த Wi-Fi வழியாக கணினியின் உலாவியிலிருந்து இசையைப் பெறுகிறது. எதுவும் இணையம் வழியாகச் செல்லாது."
+            "value" : "உங்கள் கணினியின் உலாவியிலிருந்து இசையைப் பெறும் Wi-Fi பரிமாற்றத்திற்கும், உங்கள் கணினி அல்லது NAS-இல் உள்ள Erhu Server-ஐ அடையவும் Erhu உங்கள் சொந்த நெட்வொர்க்கைப் பயன்படுத்துகிறது. எதுவும் Erhu சேவை வழியாகச் செல்லாது."
           }
         },
         "te" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi బదిలీ మీ స్వంత Wi-Fi ద్వారా కంప్యూటర్ బ్రౌజర్ నుండి సంగీతాన్ని అందుకుంటుంది. ఏదీ ఇంటర్నెట్ ద్వారా వెళ్లదు."
+            "value" : "మీ కంప్యూటర్ బ్రౌజర్ నుండి సంగీతాన్ని స్వీకరించే Wi-Fi బదిలీ కోసం, మీ కంప్యూటర్ లేదా NAS లోని Erhu Serverను చేరుకోవడానికి Erhu మీ స్వంత నెట్‌వర్క్‌ను ఉపయోగిస్తుంది. ఏదీ Erhu సేవ ద్వారా వెళ్లదు."
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "การถ่ายโอนผ่าน Wi-Fi รับเพลงจากเบราว์เซอร์บนคอมพิวเตอร์ของคุณผ่าน Wi-Fi ของคุณเอง ไม่มีข้อมูลใดผ่านอินเทอร์เน็ต"
+            "value" : "Erhu ใช้เครือข่ายของคุณเองสำหรับการโอนผ่าน Wi-Fi ซึ่งรับเพลงจากเบราว์เซอร์ในคอมพิวเตอร์ และเพื่อเชื่อมต่อ Erhu Server บนคอมพิวเตอร์หรือ NAS ของคุณ ไม่มีสิ่งใดผ่านบริการของ Erhu"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi Aktarımı, bilgisayarınızın tarayıcısından kendi Wi-Fi ağınız üzerinden müzik alır. Hiçbir şey internetten geçmez."
+            "value" : "Erhu, bilgisayarınızın tarayıcısından müzik alan Wi-Fi Aktarımı ve bilgisayarınızdaki ya da NAS’ınızdaki Erhu Server’a ulaşmak için kendi ağınızı kullanır. Hiçbir şey bir Erhu hizmetinden geçmez."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Передача через Wi-Fi отримує музику з браузера вашого комп’ютера через вашу власну мережу Wi-Fi. Нічого не проходить через інтернет."
+            "value" : "Erhu використовує вашу власну мережу для передавання через Wi-Fi, яке отримує музику з браузера комп’ютера, і для з’єднання з Erhu Server на вашому комп’ютері чи NAS. Ніщо не проходить через сервіси Erhu."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "وائی فائی ٹرانسفر آپ کے اپنے وائی فائی کے ذریعے کمپیوٹر کے براؤزر سے موسیقی وصول کرتا ہے۔ کچھ بھی انٹرنیٹ سے نہیں گزرتا۔"
+            "value" : "Erhu آپ کا اپنا نیٹ ورک Wi-Fi ٹرانسفر کے لیے استعمال کرتا ہے، جو آپ کے کمپیوٹر کے براؤزر سے موسیقی وصول کرتا ہے، اور آپ کے کمپیوٹر یا NAS پر Erhu Server تک پہنچنے کے لیے۔ کچھ بھی Erhu کی کسی سروس سے نہیں گزرتا۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Truyền qua Wi-Fi nhận nhạc từ trình duyệt trên máy tính của bạn qua Wi-Fi của chính bạn. Không có gì đi qua internet."
+            "value" : "Erhu dùng mạng của chính bạn cho Truyền qua Wi-Fi, vốn nhận nhạc từ trình duyệt trên máy tính, và để kết nối Erhu Server trên máy tính hoặc NAS của bạn. Không có gì đi qua dịch vụ của Erhu."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无线传输通过你自己的 Wi-Fi 从电脑浏览器接收音乐，不经过互联网。"
+            "value" : "Erhu 使用你自己的网络进行无线局域网传输（从电脑浏览器接收音乐），并连接你电脑或 NAS 上的 Erhu Server。不会经过任何 Erhu 服务。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wi-Fi 傳輸會透過你自己的 Wi-Fi 從電腦瀏覽器接收音樂，不經過網際網路。"
+            "value" : "Erhu 使用你自己的網路進行 Wi-Fi 傳輸（從電腦瀏覽器接收音樂），並連線你電腦或 NAS 上的 Erhu Server。不會經過任何 Erhu 服務。"
           }
         }
       }

@@ -22,6 +22,7 @@ struct ErhuApp: App {
                 .environment(services.artwork)
                 .environment(services.animatedArtwork)
                 .environment(services.transitions)
+                .environment(services.servers)
                 .preferredColorScheme(services.settings.colorScheme)
         }
     }

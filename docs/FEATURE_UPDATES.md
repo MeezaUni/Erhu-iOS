@@ -208,3 +208,20 @@ Reviewed against Android [`lochanpthakke/erhu` `063594e`](https://github.com/loc
 | VYBE model downloaded from GitHub with checksum and resume | Not applicable: iOS bundles its Core ML model. |
 | Android Auto browsing | Not ported: the CarPlay audio entitlement is granted by Apple and is not available to sideloaded builds. |
 | Settings layout, Redmi transparent background, glass backdrop cache, live artwork lifecycle | Android-specific rendering fixes; no matching iOS symptom. |
+
+## Music Server (test branch `test-server-option`)
+
+Settings → Library → **Music Server** (also in the side menu) connects to Erhu Server, which is
+[Navidrome](https://www.navidrome.org) run by the listener on their own computer or NAS
+([setup](../Server/README.md)), or to any other Subsonic-compatible server.
+
+| Part | Behaviour |
+| --- | --- |
+| Accounts | Address, username and password; the server is checked before saving. Passwords stay in the Keychain; requests use Subsonic token authentication with a fresh salt, so the password is never sent. Plain `http://` is allowed only on the local network (`NSAllowsLocalNetworking`); remote servers need HTTPS. |
+| Browsing | Albums (A–Z, recently added, random), artists, playlists and search on the server. |
+| Streaming | A streamed song is a normal queue entry whose file is fetched to a cache (`Caches/Erhu/server-stream`) just before it plays, with the next two songs fetched ahead, so the existing engine keeps the equalizer, waveform, transitions and gapless playback. Quality: original file or MP3 320/192/128 kbps converted by the server. The cache stays under 2 GB, oldest first, and can be cleared. Counted plays are reported to the server. Streamed songs don't join the library and aren't restored after the app is closed. |
+| Downloads | Original files are saved to the Erhu folder under *From Server/Artist/Album/*, then one library scan adds them. Already-saved songs are skipped; failures are listed. |
+
+Limitations of this test build: a song starts once its file has been fetched (true progressive
+streaming would need a second playback path); server playlists and favourites are not synced into
+the library; tested against Navidrome 0.64.2 responses recorded from its public demo server.

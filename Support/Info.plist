@@ -35,7 +35,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Wi-Fi Transfer receives music from your computer's browser over your own Wi-Fi. Nothing goes through the internet.</string>
+	<string>Erhu uses your own network for Wi-Fi Transfer, which receives music from your computer's browser, and to reach Erhu Server on your computer or NAS. Nothing goes through an Erhu service.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Home music servers usually have plain http:// addresses on the local network. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>UIFileSharingEnabled</key>

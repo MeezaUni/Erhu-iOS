@@ -1,0 +1,16 @@
+# Erhu Server settings for a Navidrome installed without Docker (Windows installer, Homebrew,
+# Linux package). Put this file where your installation reads its configuration (see README.md)
+# and set MusicFolder to your music folder.
+MusicFolder = "/path/to/your/Music"
+
+# No anonymous usage statistics are sent to the Navidrome project.
+EnableInsightsCollector = false
+# Erhu doesn't use public share links.
+EnableSharing = false
+# Erhu's "Download to this device" needs this (Navidrome's default).
+EnableDownloads = true
+
+[Scanner]
+# Pick up new music automatically and at every start.
+Enabled = true
+ScanOnStartup = true
