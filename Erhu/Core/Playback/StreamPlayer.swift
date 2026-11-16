@@ -17,7 +17,7 @@ final class StreamPlayer {
     var onFailed: ((UUID, String) -> Void)?
     /// The system paused playback (a call, another app) without being asked to here.
     var onPausedBySystem: ((UUID) -> Void)?
-    /// Enough of the song is buffered (all of it, or a minute ahead) that other downloads can
+    /// Enough of the song is buffered (all of it, or half a minute ahead) that other downloads can
     /// start without making it stall. Called once per song.
     var onBufferedEnough: ((UUID) -> Void)?
     /// Playback stopped to wait for more of the song (the connection fell behind or dropped).
@@ -34,7 +34,7 @@ final class StreamPlayer {
     private var offsetMs: Int64 = 0
     private var reportedBuffered = false
     /// The next song, connected and buffering ahead while paused, so skipping to it starts at once.
-    private var prepared: (entryId: UUID, url: URL, player: AVPlayer, item: AVPlayerItem)?
+    private var prepared: (url: URL, player: AVPlayer, item: AVPlayerItem)?
 
     /// Formats iOS's player streams; others (Ogg Vorbis, Opus) are fetched in full first.
     static func canStream(fileExtension ext: String) -> Bool {
@@ -60,10 +60,10 @@ final class StreamPlayer {
         return AVPlayerItem(asset: AVURLAsset(url: url, options: options))
     }
 
-    /// Connects to [url] and buffers its start while paused, for [play] of the same entry to start
+    /// Connects to [url] and buffers its start while paused, for [play] of the same song to start
     /// without waiting. Replaces an earlier prepared song.
-    func prepare(entryId: UUID, url: URL, fileExtension: String) {
-        if prepared?.entryId == entryId, prepared?.url == url { return }
+    func prepare(url: URL, fileExtension: String) {
+        if prepared?.url == url { return }
         discardPrepared()
         let item = Self.makeItem(url: url, fileExtension: fileExtension)
         // Enough to start smoothly; the rest streams once it plays.
@@ -71,7 +71,7 @@ final class StreamPlayer {
         let player = AVPlayer(playerItem: item)
         player.automaticallyWaitsToMinimizeStalling = true
         player.volume = 0
-        prepared = (entryId, url, player, item)
+        prepared = (url, player, item)
     }
 
     func discardPrepared() {
@@ -86,13 +86,13 @@ final class StreamPlayer {
         self.entryId = entryId
         self.offsetMs = offsetMs
         let item: AVPlayerItem, player: AVPlayer
-        if let ready = prepared, ready.entryId == entryId, ready.url == url, ready.item.status != .failed {
+        if let ready = prepared, ready.url == url, ready.item.status != .failed {
             // Prepared while the previous song played: already connected and buffered.
             (item, player) = (ready.item, ready.player)
             item.preferredForwardBufferDuration = 0
             prepared = nil
         } else {
-            if prepared?.entryId == entryId { discardPrepared() }
+            if prepared?.url == url { discardPrepared() }
             item = Self.makeItem(url: url, fileExtension: fileExtension)
             player = AVPlayer(playerItem: item)
         }
@@ -182,7 +182,7 @@ final class StreamPlayer {
             Task { @MainActor in
                 guard let self, self.entryId == entryId, !self.reportedBuffered else { return }
                 let complete = duration.isFinite && duration > 0 && ahead >= duration - 1
-                if complete || (now.isFinite && ahead - now >= 60) {
+                if complete || (now.isFinite && ahead - now >= 30) {
                     self.reportedBuffered = true
                     self.onBufferedEnough?(entryId)
                 }
