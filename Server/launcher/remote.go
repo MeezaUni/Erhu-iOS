@@ -18,11 +18,12 @@ import (
 	"time"
 )
 
-// Away-from-home listening goes through Tailscale, a free private network between the
-// listener's own devices. "tailscale serve" gives this computer an HTTPS address on that
-// network (https://<computer>.<tailnet>.ts.net) that forwards to the server. Nothing is opened
-// on the router and the server is not put on the public internet: only devices signed in to
-// the listener's Tailscale account can reach it.
+// Away-from-home listening goes through Tailscale Funnel. Tailscale runs on this computer only;
+// "tailscale funnel" gives it a permanent public HTTPS address
+// (https://<computer>.<tailnet>.ts.net) that forwards to the server, so Erhu on any phone can
+// reach it with no extra app. Nothing is opened on the router: the computer keeps an outgoing
+// connection to Tailscale, which relays requests to it. The server is reachable from the
+// internet and protected by its account password, so the page asks for a strong one.
 
 // RemoteState is what the page shows about away-from-home access.
 type RemoteState struct {
@@ -32,6 +33,9 @@ type RemoteState struct {
 	// A Tailscale page the listener must open once to allow HTTPS addresses on their network.
 	ApproveURL string `json:"approveUrl,omitempty"`
 	Problem    string `json:"problem,omitempty"`
+	// While the one-button setup runs: what it is doing or waiting for.
+	SettingUp bool   `json:"settingUp,omitempty"`
+	Step      string `json:"step,omitempty"`
 }
 
 // runner runs the Tailscale command line; replaced in tests.
@@ -43,9 +47,10 @@ type Remote struct {
 	cached  RemoteState
 	checked time.Time
 	approve string
+	setup   *tsSetup
 }
 
-func newRemote() *Remote { return &Remote{run: runTailscale} }
+func newRemote() *Remote { return &Remote{run: runTailscale, setup: newSetup()} }
 
 // tailscaleBinary finds the Tailscale command line: on the PATH, or where the Windows and
 // macOS apps install it.
@@ -108,8 +113,9 @@ type tsStatus struct {
 }
 
 type tsServe struct {
-	TCP map[string]struct{ HTTPS bool }
-	Web map[string]struct {
+	TCP         map[string]struct{ HTTPS bool }
+	AllowFunnel map[string]bool
+	Web         map[string]struct {
 		Handlers map[string]struct{ Proxy string }
 	}
 }
@@ -142,10 +148,12 @@ func (r *Remote) check(port int) RemoteState {
 	return state
 }
 
-// serving reports whether Tailscale serves https://host (port 443) by forwarding to the server.
+// serving reports whether Tailscale Funnel publishes https://host (port 443) by forwarding to
+// the server. Served only inside the tailnet (no funnel) doesn't count: phones without
+// Tailscale couldn't reach it.
 func serving(data []byte, host string, port int) bool {
 	var cfg tsServe
-	if json.Unmarshal(data, &cfg) != nil || !cfg.TCP["443"].HTTPS {
+	if json.Unmarshal(data, &cfg) != nil || !cfg.TCP["443"].HTTPS || !cfg.AllowFunnel[host+":443"] {
 		return false
 	}
 	web, ok := cfg.Web[host+":443"]
@@ -172,12 +180,12 @@ func jsonPart(out []byte) []byte {
 
 var approveLink = regexp.MustCompile(`https://login\.tailscale\.com/\S+`)
 
-// Enable asks Tailscale to serve the server at this computer's HTTPS address. The first time,
-// Tailscale may ask the listener to allow HTTPS on their network: the link is kept for the page.
+// Enable asks Tailscale to publish the server at this computer's HTTPS address. The first time,
+// Tailscale may ask the listener to allow Funnel on their account: the link is kept for the page.
 func (r *Remote) Enable(ctx context.Context, port int) error {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	out, err := r.run(ctx, "serve", "--bg", strconv.Itoa(port))
+	out, err := r.run(ctx, "funnel", "--bg", strconv.Itoa(port))
 	defer r.forget()
 	if link := approveLink.FindString(string(out)); link != "" {
 		r.mu.Lock()
@@ -194,11 +202,11 @@ func (r *Remote) Enable(ctx context.Context, port int) error {
 	return nil
 }
 
-// Disable stops serving the HTTPS address. Other things served through Tailscale are left alone.
+// Disable stops publishing the HTTPS address. Other things served through Tailscale are left alone.
 func (r *Remote) Disable(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	out, err := r.run(ctx, "serve", "--https=443", "off")
+	out, err := r.run(ctx, "funnel", "--https=443", "off")
 	r.forget()
 	if err != nil {
 		return errors.New("Tailscale couldn't turn this off: " + firstLine(out, err))

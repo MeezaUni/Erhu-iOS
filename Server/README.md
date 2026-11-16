@@ -36,7 +36,7 @@ A small app that runs the music server for you. It lives in the tray (Windows) o
 
    These warnings appear because test builds aren't code-signed yet.
 3. A page opens in your browser. **Choose your music folder**, then **create a username and
-   password**. If Windows asks whether to allow `navidrome` on the network, choose *Allow* for
+   password** (at least 12 characters). If Windows asks whether to allow `navidrome` on the network, choose *Allow* for
    private networks.
 4. On the iPhone, on the same Wi-Fi, **point the Camera at the QR code** on the page and tap
    *Open in Erhu*. Type your password and tap *Connect*.
@@ -108,27 +108,38 @@ password itself is never sent over the network.
 ## Away from home
 
 On your Wi-Fi, Erhu uses the server's home address (`http://192.168.…:4533`). To listen
-anywhere else, Erhu Server uses [Tailscale](https://tailscale.com), a free private network
-between your own devices. Nothing is opened on your router and the server isn't put on the
-public internet: only devices signed in to your Tailscale account can reach it.
+anywhere else, the server needs an address that works on the internet. Erhu Server gets one
+for free from [Tailscale Funnel](https://tailscale.com/kb/1223/funnel): a permanent
+`https://your-pc.tailXXXX.ts.net` address that forwards to your computer.
 
-You don't need Docker for this (or for anything else) on Windows or a Mac: the Erhu Server app
-already runs the server itself. Docker is only one way to run it on a NAS or Linux box.
+- **Your iPhone needs nothing extra**: no app, no VPN. Erhu just uses the address.
+- **Nothing changes on your router**: the computer connects out to Tailscale, which passes the
+  requests on.
+- **No Docker needed**: on Windows and Mac the Erhu Server app does everything.
 
-### With the Erhu Server app (Windows and macOS)
+The address can be reached from the internet, protected by your Erhu Server password. Erhu
+Server asks for at least 12 characters; use a password you don't use anywhere else.
 
-1. Install Tailscale on the computer from [tailscale.com/download](https://tailscale.com/download)
-   and sign in (a Google, Microsoft, Apple or GitHub account works).
-2. Install **Tailscale** on the iPhone from the App Store and sign in with the **same** account.
-3. On the Erhu Server page, under **4. Listen away from home**, click **Turn on away-from-home
-   access**. The first time, Tailscale may ask you to allow HTTPS: open the link the page shows,
-   allow it, and click the button again.
-4. The page shows an address like `https://your-pc.tail1234.ts.net`, and the QR code now
-   carries it too. Scan the QR code again (or in Erhu: Music Server → *Away address*) and save.
+### With the Erhu Server app (Windows and macOS): one button
 
-Erhu then tries the home address first and switches to the away address by itself when you leave
-your Wi-Fi. Keep Tailscale switched on on both devices. Music Server shows which address is in
-use (*Connected through*).
+1. Open the Erhu Server page (click its tray / menu bar icon) and, under
+   **4. Listen away from home**, click **Set up away-from-home access**.
+2. Erhu Server downloads Tailscale's official installer and opens it. **Click through the
+   installer** (Windows: choose *Yes* when asked; Mac: allow the VPN configuration when Tailscale
+   first starts).
+3. A Tailscale page opens in your browser: **sign in** (free; a Google, Microsoft, Apple or GitHub
+   account works).
+4. The first time only, another Tailscale page asks to **allow Funnel**: allow it.
+5. Done. The page shows your `https://….ts.net` address. On the iPhone, **scan the QR code again**
+   (it now carries both addresses) and tap *Connect*, or in Erhu: Music Server → *Away address*.
+
+You don't need to press anything between the steps: the page shows what is happening and moves on
+by itself as soon as each step is done. If a step fails, the page says why and the button becomes
+*Try again*. Already have Tailscale? Then steps 2–3 are skipped.
+
+Erhu then uses the home address on your Wi-Fi and switches to the away address by itself
+everywhere else (Music Server shows *Connected through*). Keep the computer on and awake.
+*Turn off* on the page removes the public address again.
 
 ### On a NAS or Linux box (Docker or a package)
 
@@ -136,19 +147,20 @@ Install Tailscale on the machine itself ([Linux](https://tailscale.com/download/
 Tailscale app in Synology / QNAP / Unraid / TrueNAS app centres), sign in, then run once:
 
 ```sh
-sudo tailscale serve --bg 4533
+sudo tailscale funnel --bg 4533
 ```
 
-It prints the `https://<machine>.<tailnet>.ts.net` address. The first time it may print a link
-to allow HTTPS on your tailnet; open it, allow, and run the command again. In Erhu, add that
-address as the server's **Away address** (Music Server → *Away address*). The setting is kept
-across restarts. To stop: `sudo tailscale serve --https=443 off`.
+It prints the `https://<machine>.<tailnet>.ts.net` address (the first time it may print a link
+to allow Funnel; open it, allow, and run the command again). In Erhu, add that address as the
+server's **Away address**. The setting is kept across restarts. To stop:
+`sudo tailscale funnel --https=443 off`.
 
 ### Other ways
 
 Erhu accepts plain `http://` only on your local network; an away address must be `https://`.
-If you already run a reverse proxy with a certificate (Caddy, Traefik, Nginx Proxy Manager),
-its address works too. Never forward port 4533 on your router over plain `http://`.
+If you already run a reverse proxy with a certificate (Caddy, Traefik, Nginx Proxy Manager) or a
+Cloudflare Tunnel on your own domain, that address works too. Never forward port 4533 on your
+router over plain `http://`.
 
 ## Updating and backups
 

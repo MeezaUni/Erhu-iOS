@@ -78,7 +78,7 @@
       <p>Create the username and password you'll type in Erhu on your iPhone. The password is stored only by the server on this computer.</p>
       <label for="user">Username</label>
       <input type="text" id="user" autocomplete="username" autocapitalize="none" spellcheck="false" required>
-      <label for="pass">Password (at least 8 characters)</label>
+      <label for="pass">Password (at least 12 characters; not one you use anywhere else)</label>
       <input type="password" id="pass" autocomplete="new-password" required>
       <label for="pass2">Password again</label>
       <input type="password" id="pass2" autocomplete="new-password" required>
@@ -107,25 +107,21 @@
 
   <section id="s-away">
     <h2><span class="num" id="n4">4</span>Listen away from home (optional)</h2>
-    <p>At home, Erhu uses the address above. To stream and download anywhere, Erhu Server uses <a href="https://tailscale.com" target="_blank" rel="noopener">Tailscale</a>, a free private network between your own devices. Nothing is opened on your router, and only devices signed in to your Tailscale account can reach this server.</p>
-    <div id="away-missing" hidden>
-      <ol>
-        <li>Install Tailscale on this computer from <a href="https://tailscale.com/download" target="_blank" rel="noopener">tailscale.com/download</a> and sign in.</li>
-        <li>Install Tailscale on your iPhone from the App Store and sign in with the same account.</li>
-        <li>Come back here; this page notices Tailscale by itself.</li>
-      </ol>
-    </div>
-    <div id="away-signedout" hidden>
-      <p>Tailscale is installed but not connected. Open Tailscale on this computer and sign in (or switch it on).</p>
-    </div>
-    <div id="away-off" hidden>
-      <button id="away-on">Turn on away-from-home access</button>
-      <p id="away-approve" hidden>Tailscale needs your permission once. Open <a id="away-approve-link" target="_blank" rel="noopener">this Tailscale page</a>, allow HTTPS, then press the button again.</p>
+    <p>At home, Erhu uses the address above. To stream and download anywhere, Erhu Server gives this computer a permanent web address through <a href="https://tailscale.com/kb/1223/funnel" target="_blank" rel="noopener">Tailscale Funnel</a> (free). Your iPhone needs nothing extra, and nothing changes on your router.</p>
+    <div id="away-setup">
+      <p>Press the button and Erhu Server does the rest: it installs Tailscale on this computer if needed, then opens a page whenever you have to do something (click through the installer, sign in once, allow once).</p>
+      <p>The address can be reached from the internet and is protected by your Erhu Server password, so keep that password strong and don't use it anywhere else.</p>
+      <div class="row">
+        <button id="away-on">Set up away-from-home access</button>
+        <button class="secondary" id="away-cancel" hidden>Stop</button>
+      </div>
+      <div class="value" id="away-step" hidden role="status"></div>
+      <p id="away-approve" hidden>If no page opened, open <a id="away-approve-link" target="_blank" rel="noopener">this Tailscale page</a> and allow it.</p>
     </div>
     <div id="away-on-box" hidden>
-      <p>On. Away from home, Erhu uses this address (the QR code above now includes it):</p>
+      <p>On. Away from home, Erhu uses this address (the QR code above now includes it, so scan it again in Erhu):</p>
       <div class="value mono" id="away-address"></div>
-      <p>Keep Tailscale signed in and switched on, on this computer and on your iPhone. Erhu tries your home address first and switches to this one by itself.</p>
+      <p>Keep this computer on and awake, and Tailscale signed in. Erhu tries your home address first and switches to this one by itself.</p>
       <button class="secondary" id="away-turn-off">Turn off</button>
     </div>
     <div class="error" id="away-error" role="alert"></div>
@@ -193,15 +189,17 @@ function show(s) {
     if (s.invite !== lastInvite) { lastInvite = s.invite; $("qr").src = "/qr.png?t=" + TOKEN + "&v=" + encodeURIComponent(s.invite); }
   }
   const remote = s.remote || { status: "missing" };
-  $("away-missing").hidden = remote.status !== "missing";
-  $("away-signedout").hidden = remote.status !== "signedOut";
-  $("away-off").hidden = remote.status !== "off" && remote.status !== "error";
-  $("away-on-box").hidden = remote.status !== "on";
+  const on = remote.status === "on";
+  $("away-setup").hidden = on; $("away-on-box").hidden = !on;
   $("away-address").textContent = remote.address || "";
-  $("away-approve").hidden = !remote.approveUrl;
+  $("away-on").disabled = !!remote.settingUp || busy;
+  $("away-on").textContent = remote.settingUp ? "Setting up…" : (remote.problem ? "Try again" : "Set up away-from-home access");
+  $("away-cancel").hidden = !remote.settingUp;
+  $("away-step").hidden = !remote.step; $("away-step").textContent = remote.step || "";
+  $("away-approve").hidden = !remote.approveUrl || on;
   if (remote.approveUrl) $("away-approve-link").href = remote.approveUrl;
-  if (remote.problem && !busy) $("away-error").textContent = remote.problem;
-  $("n4").className = "num" + (remote.status === "on" ? " done" : ""); $("n4").textContent = remote.status === "on" ? "✓" : "4";
+  if (!busy) $("away-error").textContent = remote.problem || "";
+  $("n4").className = "num" + (on ? " done" : ""); $("n4").textContent = on ? "✓" : "4";
   $("autostart-row").hidden = !s.autostartSupported;
   $("autostart").checked = s.autostart;
   $("player").href = s.webPlayer;
@@ -223,6 +221,7 @@ $("account-form").onsubmit = e => {
 };
 $("away-on").onclick = () => act("away-error", () => api("/api/remote", { enabled: true }));
 $("away-turn-off").onclick = () => act("away-error", () => api("/api/remote", { enabled: false }));
+$("away-cancel").onclick = () => act("away-error", () => api("/api/remote", { stop: true }));
 $("restart").onclick = () => act("options-error", () => api("/api/restart", {}));
 $("autostart").onchange = e => act("options-error", () => api("/api/autostart", { enabled: e.target.checked }));
 $("quit").onclick = async () => {

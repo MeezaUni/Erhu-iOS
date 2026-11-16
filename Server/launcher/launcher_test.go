@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -118,11 +119,11 @@ func TestSetupFlowFolderAccountAndPairing(t *testing.T) {
 			t.Fatalf("%v should be refused", bad)
 		}
 	}
-	code, out := call(t, control, "POST", "/api/account", control.token, host, map[string]string{"username": "azeem", "password": "correct horse"})
-	if code != 200 || out["accountCreated"] != true || out["username"] != "azeem" {
+	code, out := call(t, control, "POST", "/api/account", control.token, host, map[string]string{"username": "listener", "password": "correct horse"})
+	if code != 200 || out["accountCreated"] != true || out["username"] != "listener" {
 		t.Fatalf("create account: %d %v", code, out)
 	}
-	if cfg := store.Get(); !cfg.AccountCreated || cfg.Username != "azeem" {
+	if cfg := store.Get(); !cfg.AccountCreated || cfg.Username != "listener" {
 		t.Fatalf("config not saved: %+v", cfg)
 	}
 	data, _ := os.ReadFile(store.path())
@@ -130,7 +131,7 @@ func TestSetupFlowFolderAccountAndPairing(t *testing.T) {
 		t.Fatal("the password must never be written to the config file")
 	}
 	// A second account can't be made this way; the listener is told to use the existing one.
-	if code, out := call(t, control, "POST", "/api/account", control.token, host, map[string]string{"username": "other", "password": "another one"}); code != 400 || !strings.Contains(out["error"].(string), "already has an account") {
+	if code, out := call(t, control, "POST", "/api/account", control.token, host, map[string]string{"username": "other", "password": "another password"}); code != 400 || !strings.Contains(out["error"].(string), "already has an account") {
 		t.Fatalf("second account: %d %v", code, out)
 	}
 
@@ -138,7 +139,7 @@ func TestSetupFlowFolderAccountAndPairing(t *testing.T) {
 	_, state := call(t, control, "GET", "/api/state", control.token, host, nil)
 	if invite, _ := state["invite"].(string); invite != "" {
 		u, err := url.Parse(invite)
-		if err != nil || u.Scheme != "erhu" || u.Host != "server" || u.Query().Get("user") != "azeem" || !strings.HasPrefix(u.Query().Get("url"), "http://") {
+		if err != nil || u.Scheme != "erhu" || u.Host != "server" || u.Query().Get("user") != "listener" || !strings.HasPrefix(u.Query().Get("url"), "http://") {
 			t.Fatalf("bad invite %q", invite)
 		}
 		if strings.Contains(invite, "correct") {
@@ -272,19 +273,29 @@ func TestConfigSurvivesRestartAndDamage(t *testing.T) {
 
 // fakeTailscale answers like the Tailscale command line, from canned output.
 type fakeTailscale struct {
+	mu                    sync.Mutex
 	status, serve, enable string
 	statusErr, enableErr  error
 	calls                 [][]string
 }
 
+// set changes the canned answers while the setup may be running in the background.
+func (f *fakeTailscale) set(change func(f *fakeTailscale)) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	change(f)
+}
+
 func (f *fakeTailscale) run(ctx context.Context, args ...string) ([]byte, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.calls = append(f.calls, args)
 	switch {
 	case args[0] == "status":
 		return []byte(f.status), f.statusErr
 	case len(args) > 1 && args[0] == "serve" && args[1] == "status":
 		return []byte(f.serve), nil
-	case args[0] == "serve":
+	case args[0] == "funnel":
 		return []byte(f.enable), f.enableErr
 	}
 	return nil, errors.New("unexpected command")
@@ -296,23 +307,25 @@ const tsRunning = `Warning: client version differs
 func TestRemoteStates(t *testing.T) {
 	cases := []struct {
 		name string
-		fake fakeTailscale
+		fake *fakeTailscale
 		want RemoteState
 	}{
-		{"missing", fakeTailscale{statusErr: errNoTailscale}, RemoteState{Status: "missing"}},
-		{"stopped", fakeTailscale{status: "Tailscale is stopped.", statusErr: errors.New("exit status 1")}, RemoteState{Status: "signedOut"}},
-		{"signed out", fakeTailscale{status: `{"BackendState":"NeedsLogin","Self":{"DNSName":""}}`}, RemoteState{Status: "signedOut"}},
-		{"off", fakeTailscale{status: tsRunning, serve: `{}`}, RemoteState{Status: "off"}},
-		{"other port", fakeTailscale{status: tsRunning,
+		{"missing", &fakeTailscale{statusErr: errNoTailscale}, RemoteState{Status: "missing"}},
+		{"stopped", &fakeTailscale{status: "Tailscale is stopped.", statusErr: errors.New("exit status 1")}, RemoteState{Status: "signedOut"}},
+		{"signed out", &fakeTailscale{status: `{"BackendState":"NeedsLogin","Self":{"DNSName":""}}`}, RemoteState{Status: "signedOut"}},
+		{"off", &fakeTailscale{status: tsRunning, serve: `{}`}, RemoteState{Status: "off"}},
+		{"other port", &fakeTailscale{status: tsRunning,
 			serve: `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:8080"}}}}}`},
 			RemoteState{Status: "off"}},
-		{"on", fakeTailscale{status: tsRunning,
+		{"private only", &fakeTailscale{status: tsRunning,
 			serve: `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}}}`},
+			RemoteState{Status: "off"}},
+		{"on", &fakeTailscale{status: tsRunning,
+			serve: `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}},"AllowFunnel":{"pc.tail1234.ts.net:443":true}}`},
 			RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net"}},
 	}
 	for _, c := range cases {
-		fake := c.fake
-		r := &Remote{run: fake.run}
+		r := &Remote{run: c.fake.run}
 		if got := r.State(4533); got != c.want {
 			t.Errorf("%s: got %+v, want %+v", c.name, got, c.want)
 		}
@@ -321,26 +334,110 @@ func TestRemoteStates(t *testing.T) {
 
 func TestRemoteEnableAsksForApprovalOnce(t *testing.T) {
 	fake := &fakeTailscale{status: tsRunning, serve: `{}`,
-		enable: "Serve is not enabled on your tailnet.\nTo enable, visit:\n\n         https://login.tailscale.com/f/serve?node=abc123\n", enableErr: context.DeadlineExceeded}
+		enable: "Funnel is not enabled on your tailnet.\nTo enable, visit:\n\n         https://login.tailscale.com/f/funnel?node=abc123\n", enableErr: context.DeadlineExceeded}
 	r := &Remote{run: fake.run}
 	err := r.Enable(context.Background(), 4533)
 	if err == nil || !strings.Contains(err.Error(), "permission") {
 		t.Fatalf("want a permission message, got %v", err)
 	}
-	if got := r.State(4533); got.Status != "off" || got.ApproveURL != "https://login.tailscale.com/f/serve?node=abc123" {
+	if got := r.State(4533); got.Status != "off" || got.ApproveURL != "https://login.tailscale.com/f/funnel?node=abc123" {
 		t.Fatalf("%+v", got)
 	}
 	last := fake.calls[0]
-	if strings.Join(last, " ") != "serve --bg 4533" {
+	if strings.Join(last, " ") != "funnel --bg 4533" {
 		t.Fatalf("ran %v", last)
 	}
 	// Once allowed, the next try works and the link goes away.
-	fake.enable, fake.enableErr = "Available within your tailnet:\nhttps://pc.tail1234.ts.net/\n", nil
-	fake.serve = `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}}}`
+	fake.enable, fake.enableErr = "Available on the internet:\nhttps://pc.tail1234.ts.net/\n", nil
+	fake.serve = `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}},"AllowFunnel":{"pc.tail1234.ts.net:443":true}}`
 	if err := r.Enable(context.Background(), 4533); err != nil {
 		t.Fatal(err)
 	}
 	if got := r.State(4533); got != (RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net"}) {
 		t.Fatalf("%+v", got)
+	}
+}
+
+// TestOneButtonSetup walks the whole away-from-home setup with a stand-in Tailscale: install,
+// sign in, allow Funnel, done. Each page opens once, and nothing else is run.
+func TestOneButtonSetup(t *testing.T) {
+	defer func(old func() string) { installerURL = old }(installerURL)
+	installerURL = func() string { return "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe" }
+	fake := &fakeTailscale{statusErr: errNoTailscale}
+	r := &Remote{run: fake.run, setup: newSetup()}
+	var mu sync.Mutex
+	var opened, installed []string
+	seen := func() ([]string, []string) {
+		mu.Lock()
+		defer mu.Unlock()
+		return append([]string(nil), opened...), append([]string(nil), installed...)
+	}
+	signIn := make(chan struct{})
+	r.setup.open = func(url string) { mu.Lock(); opened = append(opened, url); mu.Unlock() }
+	r.setup.startApp = func() {}
+	r.setup.download = func(ctx context.Context, url, dir string) (string, error) {
+		return filepath.Join(dir, "tailscale-setup.exe"), nil
+	}
+	r.setup.install = func(file string) error { mu.Lock(); installed = append(installed, file); mu.Unlock(); return nil }
+	r.setup.stream = func(ctx context.Context, line func(string), args ...string) error {
+		line("To authenticate, visit:")
+		line("\thttps://login.tailscale.com/a/xyz789")
+		<-signIn
+		return nil
+	}
+	step := func() {
+		r.forget()
+		r.Advance(4533)
+	}
+
+	r.Start(4533)
+	time.Sleep(50 * time.Millisecond) // Start advances in the background
+	step()
+	if _, installed := seen(); len(installed) != 1 {
+		t.Fatalf("installer opened %d times", len(installed))
+	}
+	if _, msg, _ := r.progress(); !strings.Contains(msg, "installer is open") {
+		t.Fatalf("step: %q", msg)
+	}
+
+	// Installed, not signed in: the sign-in page opens once.
+	fake.set(func(f *fakeTailscale) { f.statusErr, f.status = nil, `{"BackendState":"NeedsLogin"}` })
+	step()
+	step()
+	time.Sleep(50 * time.Millisecond)
+	if opened, _ := seen(); len(opened) != 1 || opened[0] != "https://login.tailscale.com/a/xyz789" {
+		t.Fatalf("opened %v", opened)
+	}
+
+	// Signed in; Funnel needs approval: the approval page opens once.
+	close(signIn)
+	time.Sleep(50 * time.Millisecond)
+	fake.set(func(f *fakeTailscale) {
+		f.status, f.serve = tsRunning, `{}`
+		f.enable, f.enableErr = "Funnel is not enabled on your tailnet.\nTo enable, visit:\n\n https://login.tailscale.com/f/funnel?node=n1\n", context.DeadlineExceeded
+	})
+	step()
+	if opened, _ := seen(); len(opened) != 2 || opened[1] != "https://login.tailscale.com/f/funnel?node=n1" {
+		t.Fatalf("opened %v", opened)
+	}
+
+	// Allowed: the next try turns it on and the setup ends.
+	fake.set(func(f *fakeTailscale) {
+		f.enable, f.enableErr = "Available on the internet:\nhttps://pc.tail1234.ts.net/\n", nil
+		f.serve = `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}},"AllowFunnel":{"pc.tail1234.ts.net:443":true}}`
+	})
+	r.setup.mu.Lock()
+	r.setup.lastTry = time.Time{}
+	r.setup.mu.Unlock()
+	step()
+	step()
+	if wanted, _, problem := r.progress(); wanted || problem != "" {
+		t.Fatalf("setup should be finished: wanted=%v problem=%q", wanted, problem)
+	}
+	if got := r.State(4533); got.Status != "on" || got.Address != "https://pc.tail1234.ts.net" {
+		t.Fatalf("%+v", got)
+	}
+	if opened, installed := seen(); len(installed) != 1 || len(opened) != 2 {
+		t.Fatalf("extra steps: installed %v opened %v", installed, opened)
 	}
 }
