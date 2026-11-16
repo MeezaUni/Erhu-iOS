@@ -281,7 +281,11 @@ func (c *Control) state() PageState {
 	}
 	publish := c.publishPort()
 	if publish != cfg.Port {
-		c.remote.SetOldPort(cfg.Port)
+		old := []int{cfg.Port}
+		for p := playerPort; p < playerPort+10; p++ {
+			old = append(old, p)
+		}
+		c.remote.SetOldPorts(old...)
 	}
 	out.Remote = c.remote.State(publish)
 	go c.remote.MoveIfNeeded(publish)

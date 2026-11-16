@@ -55,8 +55,9 @@ type Remote struct {
 	port  int
 	// Earlier versions published Navidrome's own port; such an address is moved to the
 	// themed web app's port (keeping the same HTTPS port, so the address stays the same).
-	oldPort  int
+	oldPorts []int
 	moveFrom int
+	movedOff int // the port the address pointed at before a move (to put back if it fails)
 	moving   bool
 }
 
@@ -168,10 +169,13 @@ func (r *Remote) check(port int) RemoteState {
 		r.port = https
 		return RemoteState{Status: "on", Address: httpsAddress(host, https)}
 	}
-	if r.oldPort != 0 && r.oldPort != port {
-		if https, ok := servingPort(cfg, host, r.oldPort); ok {
+	for _, old := range r.oldPorts {
+		if old == port {
+			continue
+		}
+		if https, ok := servingPort(cfg, host, old); ok {
 			r.approve = ""
-			r.port, r.moveFrom = https, https
+			r.port, r.moveFrom, r.movedOff = https, https, old
 			return RemoteState{Status: "on", Address: httpsAddress(host, https)}
 		}
 	}
@@ -259,10 +263,12 @@ func (r *Remote) Enable(ctx context.Context, port int) error {
 	return nil
 }
 
-// SetOldPort names the port earlier versions published (Navidrome's), to move it.
-func (r *Remote) SetOldPort(port int) {
+// SetOldPorts names ports the address may still point at, to move it to the current one:
+// Navidrome's (earlier versions published it) and the web app's other possible ports (it takes
+// the next free one when its usual port is busy, so it can differ between starts).
+func (r *Remote) SetOldPorts(ports ...int) {
 	r.mu.Lock()
-	r.oldPort = port
+	r.oldPorts = ports
 	r.mu.Unlock()
 }
 
@@ -270,7 +276,7 @@ func (r *Remote) SetOldPort(port int) {
 // HTTPS port, so the address listeners and phones already use keeps working.
 func (r *Remote) MoveIfNeeded(port int) {
 	r.mu.Lock()
-	https := r.moveFrom
+	https, old := r.moveFrom, r.movedOff
 	if https == 0 || r.moving {
 		r.mu.Unlock()
 		return
@@ -288,7 +294,10 @@ func (r *Remote) MoveIfNeeded(port int) {
 	if _, err := r.run(ctx, "funnel", "--https="+strconv.Itoa(https), "off"); err != nil {
 		return
 	}
-	_, _ = r.run(ctx, "funnel", "--bg", "--https="+strconv.Itoa(https), strconv.Itoa(port))
+	if _, err := r.run(ctx, "funnel", "--bg", "--https="+strconv.Itoa(https), strconv.Itoa(port)); err != nil && old != 0 {
+		// Never leave the address pointing nowhere: put the old target back.
+		_, _ = r.run(ctx, "funnel", "--bg", "--https="+strconv.Itoa(https), strconv.Itoa(old))
+	}
 }
 
 // Disable stops publishing the HTTPS address. Other things served through Tailscale are left alone.

@@ -645,7 +645,7 @@ func TestRemoteMovesAnOldAddressToTheWebApp(t *testing.T) {
 	old := `{"TCP":{"8443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:8443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}},"AllowFunnel":{"pc.tail1234.ts.net:8443":true}}`
 	fake := &fakeTailscale{status: tsRunning, serve: old}
 	r := &Remote{run: fake.run, setup: newSetup()}
-	r.SetOldPort(4533)
+	r.SetOldPorts(4533)
 	if got := r.State(4535); got != (RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net:8443"}) {
 		t.Fatalf("%+v", got)
 	}
@@ -661,5 +661,41 @@ func TestRemoteMovesAnOldAddressToTheWebApp(t *testing.T) {
 	r.MoveIfNeeded(4535)
 	if got := funnelCalls(fake); len(got) != 2 {
 		t.Fatalf("moved again: %v", got)
+	}
+}
+
+// The web app took another port this time (its usual one was busy): the address follows it.
+// A move that fails puts the old target back rather than leaving the address pointing nowhere.
+func TestRemoteFollowsTheWebAppsPortAndUndoesAFailedMove(t *testing.T) {
+	old := `{"TCP":{"8443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:8443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4535"}}}},"AllowFunnel":{"pc.tail1234.ts.net:8443":true}}`
+	fake := &fakeTailscale{status: tsRunning, serve: old}
+	r := &Remote{run: fake.run, setup: newSetup()}
+	r.SetOldPorts(4533, 4535, 4536)
+	if got := r.State(4536); got.Status != "on" {
+		t.Fatalf("%+v", got)
+	}
+	r.MoveIfNeeded(4536)
+	if got := funnelCalls(fake); len(got) != 2 || got[1] != "funnel --bg --https=8443 4536" {
+		t.Fatalf("ran %v", got)
+	}
+
+	failing := &fakeTailscale{status: tsRunning, serve: old}
+	// Turning off works; publishing the new port fails once (then the old one is put back).
+	failed := false
+	run := func(ctx context.Context, args ...string) ([]byte, error) {
+		out, err := failing.run(ctx, args...)
+		if len(args) > 1 && args[0] == "funnel" && args[1] == "--bg" && !failed {
+			failed = true
+			return []byte("error"), errors.New("exit status 1")
+		}
+		return out, err
+	}
+	r = &Remote{run: run, setup: newSetup()}
+	r.SetOldPorts(4533, 4535, 4536)
+	r.State(4536)
+	r.MoveIfNeeded(4536)
+	got := funnelCalls(failing)
+	if len(got) != 3 || got[2] != "funnel --bg --https=8443 4535" {
+		t.Fatalf("a failed move should put 4535 back: %v", got)
 	}
 }
