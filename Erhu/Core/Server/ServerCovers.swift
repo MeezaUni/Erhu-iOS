@@ -91,10 +91,12 @@ struct ServerCoverView: View {
     private var size: ServerCovers.Size { ServerCovers.Size(maxPixels: maxPixels) }
     private var file: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0, size: size) } }
     private var largeFile: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0, size: .large) } }
+    private var smallFile: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0, size: .small) } }
 
     var body: some View {
-        // A cover already decoded shows at once, without a placeholder flash.
-        let shown = image ?? [file, largeFile].compactMap { $0 }.lazy.compactMap { file in
+        // A cover already decoded shows at once, without a placeholder flash: the large one, or
+        // the small one a tile showed (an album page opened from the grid) until the large arrives.
+        let shown = image ?? [largeFile, smallFile].compactMap { $0 }.lazy.compactMap { file in
             [maxPixels, 1200, 800, 400, 300, 144].lazy.compactMap { ArtworkLoader.shared.cachedImage(atPath: file.path, maxPixels: $0) }.first
         }.first
         ZStack {
@@ -107,15 +109,19 @@ struct ServerCoverView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: ServerCovers.didChange)) { note in
             let path = note.object as? String
-            if path == file?.path || path == largeFile?.path { revision += 1 }
+            if path == largeFile?.path || path == smallFile?.path { revision += 1 }
         }
         .task(id: "\(file?.path ?? "")|\(maxPixels)|\(revision)") {
-            guard let file, let largeFile, let coverArt else { image = nil; return }
+            guard let file, let largeFile, let smallFile, let coverArt else { image = nil; return }
             if ServerCovers.hasCover(at: largeFile) {
                 image = await ArtworkLoader.shared.image(atPath: largeFile.path, maxPixels: maxPixels)
-            } else if ServerCovers.hasCover(at: file) {
-                image = await ArtworkLoader.shared.image(atPath: file.path, maxPixels: maxPixels)
-            } else if let client = servers.client(for: accountId) {
+                return
+            }
+            // The small cover on disk shows meanwhile (a page wanting the large one fetches it).
+            if ServerCovers.hasCover(at: smallFile), shown == nil {
+                image = await ArtworkLoader.shared.image(atPath: smallFile.path, maxPixels: maxPixels)
+            }
+            if !ServerCovers.hasCover(at: file), let client = servers.client(for: accountId) {
                 ServerCovers.fetch(client.coverArtURL(coverArt, size: size.pixels), to: file, session: client.session)
             }
         }
