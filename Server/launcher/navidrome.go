@@ -129,6 +129,10 @@ func (s *Server) Start() error {
 		"ND_LOGLEVEL=info",
 		// Erhu Server's web app restyles Navidrome's dark look.
 		"ND_DEFAULTTHEME=Dark",
+		// Keep more of the smaller copies made for streaming away from home (Navidrome's default
+		// is 100MB), so a song played or seeked in again comes from the cache instead of being
+		// converted again. Same copies, same quality; about 1GB of disk at most.
+		"ND_TRANSCODINGCACHESIZE=1GB",
 	)
 	// With ffmpeg, Navidrome can send smaller MP3 copies (Erhu uses them away from home).
 	if ffmpeg := newFFmpeg(s.store.DataDir()).Path(); ffmpeg != "" {
