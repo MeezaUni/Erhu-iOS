@@ -458,7 +458,7 @@ final class SubsonicTests: XCTestCase {
         let big = ServerStream.shared.song(for: flac, account: account, quality: .original)
         let small = ServerStream.shared.song(for: flac, account: account, quality: .mp3_192)
         XCTAssertNotEqual(big.url, small.url, "another quality is a separate cached file")
-        XCTAssertTrue(small.url.lastPathComponent.hasSuffix(".mp3_192.flac"))
+        XCTAssertTrue(small.url.lastPathComponent.hasSuffix(".mp3_192.mp3"), "a converted copy is saved as what it is")
         XCTAssertNil(LibraryPaths.relativePath(of: song.url), "streams never sit in the Erhu folder")
         // A library song is unaffected.
         let local = Song(id: 1, title: "A", artist: "B", album: "C", durationMs: 1, path: "B/C/a.mp3")
