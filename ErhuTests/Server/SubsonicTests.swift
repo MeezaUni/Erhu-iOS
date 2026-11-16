@@ -327,6 +327,11 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual("c-al1", alicia.coverArt)
         XCTAssertEqual(["s1"], artists[ServerLibraryMerge.artistKey("Kendrick Lamar")]?.songIds)
         XCTAssertNil(artists[ServerLibraryMerge.artistKey("Alicia Keys, Kendrick Lamar")], "a credit of two is not an artist")
+        // The same song credited two ways is still one song.
+        XCTAssertTrue(ServerLibraryMerge.sameArtist("Alicia Keys feat. Kendrick Lamar", "Alicia Keys, Kendrick Lamar"))
+        XCTAssertFalse(ServerLibraryMerge.sameArtist("Alicia Keys", "Kendrick Lamar"))
+        let local = Song(id: 9, title: "It's On Again", artist: "Alicia Keys feat. Kendrick Lamar", album: "x", durationMs: 1, path: "x.mp3")
+        XCTAssertTrue(ServerLibraryMerge.SongKeys([local]).contains(title: "It’s On Again", artist: "Alicia Keys, Kendrick Lamar"))
     }
 
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {

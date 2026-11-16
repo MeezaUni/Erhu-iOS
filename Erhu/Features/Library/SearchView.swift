@@ -307,15 +307,17 @@ struct SearchView: View {
                 }
             }
         }
-        if !server.songs.isEmpty {
+        // Songs the library has are already among its results above.
+        let remoteSongs = server.songs.filter { $0.isVideo != true && servers.librarySong(matching: $0) == nil }
+        if !remoteSongs.isEmpty {
             SectionHeading(title: String(localized: "Songs on \(account.name)"))
             let source = PlaybackSource.server(account: account.id, album: nil, title: account.name)
-            let songs = servers.streamSongs(server.songs, account: account)
+            let songs = servers.streamSongs(remoteSongs, account: account)
             let rowActions = servers.songActions(source: source)
             ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
                 TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
                     focused = false
-                    let remote = server.songs[index]
+                    let remote = remoteSongs[index]
                     search.remember(.serverSong(StreamedSong(accountId: account.id, song: remote, playedAt: Date(),
                                                              server: account.baseURL.absoluteString, username: account.username)))
                     servers.play([remote], account: account,

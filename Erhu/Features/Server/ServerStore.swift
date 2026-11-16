@@ -358,7 +358,7 @@ final class ServerStore {
                               source: source ?? .server(account: account.id, album: nil, title: account.name))
         // Home's Recently streamed albums follows what was played, even before the song arrives.
         let started = songs.filter { $0.isVideo != true }
-        if started.indices.contains(start),
+        if started.indices.contains(start), playable[start].isStream,
            let album = StreamedAlbum(StreamedSong(accountId: account.id, song: started[start], playedAt: Date(),
                                                   server: account.baseURL.absoluteString, username: account.username)) {
             noteAlbum(album)
@@ -366,10 +366,27 @@ final class ServerStore {
     }
 
     /// Playable songs for [songs], with each one's favourite mark as the server (or this session) has it.
+    /// A song the library already has comes back as the library's (it plays from the phone, with
+    /// its own tags and cover); the others stream.
     func streamSongs(_ songs: [ServerSong], account: ServerAccount) -> [Song] {
         songs.filter { $0.isVideo != true }.map {
-            ServerStream.shared.song(for: $0, account: account, quality: streamQuality(for: account), favourite: isFavourite($0, account: account))
+            librarySong(matching: $0)
+                ?? ServerStream.shared.song(for: $0, account: account, quality: streamQuality(for: account), favourite: isFavourite($0, account: account))
         }
+    }
+
+    /// The library's songs by normalized title, rebuilt when the songs change.
+    @ObservationIgnored private var songsByTitle: (signature: [Int64], songs: [String: [Song]]) = ([], [:])
+
+    /// The library's copy of [remote] (same title and artist), if it has one.
+    func librarySong(matching remote: ServerSong) -> Song? {
+        let songs = library.songs
+        let signature = [Int64(songs.count), songs.first?.id ?? 0, songs.last?.id ?? 0]
+        if signature != songsByTitle.signature {
+            songsByTitle = (signature, Dictionary(grouping: songs) { SearchNormalizer.normalize($0.title) })
+        }
+        return songsByTitle.songs[SearchNormalizer.normalize(remote.title)]?
+            .first { ServerLibraryMerge.sameArtist($0.artist, remote.artist ?? "") }
     }
 
     /// The library's albums by normalized title, rebuilt when the albums change.
@@ -442,7 +459,8 @@ final class ServerStore {
 
     /// What a streamed song's row menu offers: queueing, the server favourite and downloading.
     func songActions(source: PlaybackSource) -> SongActions {
-        SongActions(toggleFavorite: { [weak self] in self?.toggleFavourite(stream: $0) },
+        // Server pages can list library songs too (the phone's copy of a song comes first).
+        SongActions(toggleFavorite: { [weak self] in self?.actions.toggleFavorite($0) },
                     playNext: { [weak self] in self?.actions.playNext($0, source: source) },
                     addToQueue: { [weak self] in self?.actions.addToQueue($0, source: source) },
                     startRadio: { _ in }, addToPlaylist: { _ in })
