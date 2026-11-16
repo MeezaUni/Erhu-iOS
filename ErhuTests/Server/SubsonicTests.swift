@@ -334,6 +334,21 @@ final class SubsonicTests: XCTestCase {
         XCTAssertTrue(ServerLibraryMerge.SongKeys([local]).contains(title: "It’s On Again", artist: "Alicia Keys, Kendrick Lamar"))
     }
 
+    func testServerCopiesOfASongShowOnce() throws {
+        func remote(_ id: String, _ title: String, duration: Int, album: String = "Depression Cherry") throws -> ServerSong {
+            let json = #"{"id":"\#(id)","title":"\#(title)","artist":"Beach House","album":"\#(album)","duration":\#(duration)}"#
+            return try JSONDecoder().decode(ServerSong.self, from: Data(json.utf8))
+        }
+        let songs = [try remote("1", "Space Song", duration: 320), try remote("2", "Space Song", duration: 321),
+                     try remote("3", "Space Song", duration: 200), try remote("4", "Space Song", duration: 320, album: "Live"),
+                     try remote("5", "Myth", duration: 258)]
+        // Same title, artist, album and length: one. Another length or album is another song.
+        XCTAssertEqual(["1", "3", "4", "5"], ServerCatalog.uniqueSongs(songs).map(\.id))
+        var catalog = ServerCatalog()
+        catalog.songs = songs
+        XCTAssertEqual(4, ServerCatalogIndex(catalog).catalog.songs.count)
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#

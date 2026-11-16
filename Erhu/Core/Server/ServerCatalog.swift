@@ -71,6 +71,23 @@ struct ServerCatalog: Codable, Sendable {
 /// Searches a [ServerCatalog] with the library's own matching ([SearchNormalizer]: prefixes,
 /// partial words, accents, small typos, "title artist"). Songs, albums and artists are ranked on
 /// their own, so every matching song shows (two songs of the same name by different artists).
+extension ServerCatalog {
+    /// [songs] without copies: the same title, artist and album, within two seconds of the same
+    /// length (a server with the same file twice). The first of each stays.
+    static func uniqueSongs(_ songs: [ServerSong]) -> [ServerSong] {
+        func key(_ song: ServerSong) -> String {
+            [song.title, song.artist ?? "", song.album ?? ""].map(SearchNormalizer.normalize).joined(separator: "|")
+        }
+        var kept: [String: [Int]] = [:]
+        return songs.filter { song in
+            let k = key(song), length = song.duration ?? 0
+            if kept[k]?.contains(where: { abs($0 - length) <= 2 }) == true { return false }
+            kept[k, default: []].append(length)
+            return true
+        }
+    }
+}
+
 final class ServerCatalogIndex: @unchecked Sendable {
     let catalog: ServerCatalog
     // Names folded once, so a search only compares.
@@ -86,6 +103,8 @@ final class ServerCatalogIndex: @unchecked Sendable {
     private let songsById: [String: Int]
 
     init(_ catalog: ServerCatalog) {
+        var catalog = catalog
+        catalog.songs = ServerCatalog.uniqueSongs(catalog.songs)
         self.catalog = catalog
         var byAlbum: [String: [Int]] = [:]
         for (index, song) in catalog.songs.enumerated() { if let album = song.albumId { byAlbum[album, default: []].append(index) } }
