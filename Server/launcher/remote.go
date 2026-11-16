@@ -53,6 +53,11 @@ type Remote struct {
 	host  string
 	serve tsServe
 	port  int
+	// Earlier versions published Navidrome's own port; such an address is moved to the
+	// themed web app's port (keeping the same HTTPS port, so the address stays the same).
+	oldPort  int
+	moveFrom int
+	moving   bool
 }
 
 func newRemote() *Remote { return &Remote{run: runTailscale, setup: newSetup()} }
@@ -163,6 +168,13 @@ func (r *Remote) check(port int) RemoteState {
 		r.port = https
 		return RemoteState{Status: "on", Address: httpsAddress(host, https)}
 	}
+	if r.oldPort != 0 && r.oldPort != port {
+		if https, ok := servingPort(cfg, host, r.oldPort); ok {
+			r.approve = ""
+			r.port, r.moveFrom = https, https
+			return RemoteState{Status: "on", Address: httpsAddress(host, https)}
+		}
+	}
 	return state
 }
 
@@ -245,6 +257,38 @@ func (r *Remote) Enable(ctx context.Context, port int) error {
 		return errors.New("Tailscale couldn't turn this on: " + firstLine(out, err))
 	}
 	return nil
+}
+
+// SetOldPort names the port earlier versions published (Navidrome's), to move it.
+func (r *Remote) SetOldPort(port int) {
+	r.mu.Lock()
+	r.oldPort = port
+	r.mu.Unlock()
+}
+
+// MoveIfNeeded points an address that publishes the old port at [port] instead, on the same
+// HTTPS port, so the address listeners and phones already use keeps working.
+func (r *Remote) MoveIfNeeded(port int) {
+	r.mu.Lock()
+	https := r.moveFrom
+	if https == 0 || r.moving {
+		r.mu.Unlock()
+		return
+	}
+	r.moving = true
+	r.mu.Unlock()
+	defer func() {
+		r.mu.Lock()
+		r.moving, r.moveFrom = false, 0
+		r.mu.Unlock()
+		r.forget()
+	}()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if _, err := r.run(ctx, "funnel", "--https="+strconv.Itoa(https), "off"); err != nil {
+		return
+	}
+	_, _ = r.run(ctx, "funnel", "--bg", "--https="+strconv.Itoa(https), strconv.Itoa(port))
 }
 
 // Disable stops publishing the HTTPS address. Other things served through Tailscale are left alone.

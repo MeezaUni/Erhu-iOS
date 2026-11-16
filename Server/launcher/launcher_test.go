@@ -566,15 +566,25 @@ func TestFFmpegIsFoundOrInstalledWithTheSystemsPackageManager(t *testing.T) {
 	}
 }
 
-// The web player serves its page and passes the Subsonic API through to the music server.
-func TestWebPlayerServesItsPageAndTheAPI(t *testing.T) {
+// The web app is Navidrome's own, in Erhu's look: pages get the theme, the Subsonic API and
+// everything else pass through unchanged.
+func TestWebAppThemesNavidromeAndPassesEverythingThrough(t *testing.T) {
 	music := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/rest/ping" || r.URL.Query().Get("u") != "listener" {
+		switch {
+		case r.URL.Path == "/app/":
+			if r.Header.Get("Accept-Encoding") != "" {
+				t.Errorf("the page should be asked for uncompressed")
+			}
+			w.Header().Set("Content-Type", "text/html")
+			_, _ = w.Write([]byte(`<html><head><meta name="theme-color" content="#ffffff"><title>Navidrome</title></head><body></body></html>`))
+		case r.URL.Path == "/rest/ping" && r.URL.Query().Get("u") == "listener":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"subsonic-response":{"status":"ok","version":"1.16.1"}}`))
+		case r.URL.Path == "/auth/login" && r.Method == http.MethodPost:
+			_, _ = w.Write([]byte(`{"token":"t"}`))
+		default:
 			http.NotFound(w, r)
-			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"subsonic-response":{"status":"ok","version":"1.16.1"}}`))
 	}))
 	defer music.Close()
 	port, _ := strconv.Atoi(music.URL[strings.LastIndex(music.URL, ":")+1:])
@@ -587,43 +597,69 @@ func TestWebPlayerServesItsPageAndTheAPI(t *testing.T) {
 	page := httptest.NewServer((&Player{store: store}).handler())
 	defer page.Close()
 
-	res, err := http.Get(page.URL + "/")
-	if err != nil {
-		t.Fatal(err)
-	}
-	body, _ := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode != 200 || !strings.Contains(string(body), "<title>Erhu</title>") || res.Header.Get("Content-Security-Policy") == "" {
-		t.Fatalf("page: %d %q", res.StatusCode, res.Header)
-	}
-	res, err = http.Get(page.URL + "/rest/ping?u=listener&f=json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	body, _ = io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode != 200 || !strings.Contains(string(body), `"status":"ok"`) {
-		t.Fatalf("api: %d %s", res.StatusCode, body)
-	}
-	// Nothing else of Erhu Server is reachable from the player's address.
-	for _, path := range []string{"/api/state", "/qr.png", "/rest/../api/state"} {
+	get := func(path string) (int, string) {
 		res, err := http.Get(page.URL + path)
 		if err != nil {
 			t.Fatal(err)
 		}
-		res.Body.Close()
-		if res.StatusCode == 200 {
-			t.Fatalf("%s should not be served", path)
-		}
+		defer res.Body.Close()
+		body, _ := io.ReadAll(res.Body)
+		return res.StatusCode, string(body)
 	}
-	// The music server stopped: a clear error, not a hang.
-	music.Close()
-	res, err = http.Get(page.URL + "/rest/ping?u=listener")
+	code, body := get("/app/")
+	if code != 200 || !strings.Contains(body, "<title>Erhu</title>") || !strings.Contains(body, `/erhu/theme.css`) ||
+		!strings.Contains(body, `content="#0E0F12"`) || strings.Index(body, "theme.css") > strings.Index(body, "</head>") {
+		t.Fatalf("page: %d %s", code, body)
+	}
+	if code, body := get("/erhu/theme.css"); code != 200 || !strings.Contains(body, "--erhu-accent") {
+		t.Fatalf("theme: %d", code)
+	}
+	if code, _ := get("/app/favicon-32x32.png"); code != 200 {
+		t.Fatalf("icon: %d", code)
+	}
+	if code, body := get("/rest/ping?u=listener&f=json"); code != 200 || !strings.Contains(body, `"status":"ok"`) {
+		t.Fatalf("api: %d %s", code, body)
+	}
+	res, err := http.Post(page.URL+"/auth/login", "application/json", strings.NewReader(`{}`))
 	if err != nil {
 		t.Fatal(err)
 	}
 	res.Body.Close()
-	if res.StatusCode != http.StatusBadGateway {
-		t.Fatalf("got %d", res.StatusCode)
+	if res.StatusCode != 200 {
+		t.Fatalf("sign-in: %d", res.StatusCode)
+	}
+	// Erhu Server's own controls are never on this address.
+	if code, _ := get("/api/state"); code == 200 {
+		t.Fatal("/api/state should not be served")
+	}
+	// The music server stopped: a clear error, not a hang.
+	music.Close()
+	if code, _ := get("/rest/ping?u=listener"); code != http.StatusBadGateway {
+		t.Fatalf("got %d", code)
+	}
+}
+
+// An address set up by an earlier version (publishing Navidrome's port) keeps working and is
+// moved to the web app, on the same HTTPS port, so the address itself doesn't change.
+func TestRemoteMovesAnOldAddressToTheWebApp(t *testing.T) {
+	old := `{"TCP":{"8443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:8443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}},"AllowFunnel":{"pc.tail1234.ts.net:8443":true}}`
+	fake := &fakeTailscale{status: tsRunning, serve: old}
+	r := &Remote{run: fake.run, setup: newSetup()}
+	r.SetOldPort(4533)
+	if got := r.State(4535); got != (RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net:8443"}) {
+		t.Fatalf("%+v", got)
+	}
+	r.MoveIfNeeded(4535)
+	if got := funnelCalls(fake); len(got) != 2 || got[0] != "funnel --https=8443 off" || got[1] != "funnel --bg --https=8443 4535" {
+		t.Fatalf("ran %v", got)
+	}
+	// Moved: nothing more to do.
+	fake.set(func(f *fakeTailscale) { f.serve = strings.Replace(old, "4533", "4535", 1) })
+	if got := r.State(4535); got.Status != "on" || got.Address != "https://pc.tail1234.ts.net:8443" {
+		t.Fatalf("%+v", got)
+	}
+	r.MoveIfNeeded(4535)
+	if got := funnelCalls(fake); len(got) != 2 {
+		t.Fatalf("moved again: %v", got)
 	}
 }
