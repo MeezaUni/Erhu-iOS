@@ -68,8 +68,12 @@ struct ServerCoverView: View {
     private var file: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0) } }
 
     var body: some View {
+        // A cover already decoded shows at once, without a placeholder flash.
+        let shown = image ?? file.flatMap { file in
+            [maxPixels, 1200, 800, 400, 144].lazy.compactMap { ArtworkLoader.shared.cachedImage(atPath: file.path, maxPixels: $0) }.first
+        }
         ZStack {
-            if let image {
+            if let image = shown {
                 FillImage(image: image)
             } else {
                 Rectangle().fill(palette.surfaceVariant)

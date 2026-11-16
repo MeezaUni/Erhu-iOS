@@ -133,17 +133,31 @@ final class SearchStore {
     /// The same query on the connected server. Without a server, or when it can't be reached,
     /// search simply shows the library.
     private func searchServer(_ text: String, request: UInt64) async {
-        guard !text.isEmpty, let servers, let account = servers.selected, let client = servers.client(for: account.id) else {
+        guard !text.isEmpty, let servers, let account = servers.selected else {
             server = nil
             return
         }
+        let limit = Self.sectionLimit
+        if let index = servers.catalog(for: account.id) {
+            // The server's catalog is on this device: matched like the library, at once.
+            let found = await Task.detached(priority: .userInitiated) { index.search(text, limit: limit) }.value
+            guard !Task.isCancelled, request == generation, text == query.trimmed else { return }
+            server = found.artists.isEmpty && found.albums.isEmpty && found.songs.isEmpty ? nil
+                : ServerSearchResults(account: account,
+                                      artists: found.artists.map { RecentServerArtist(id: $0.id, name: $0.name, coverArt: $0.coverArt, albumCount: $0.albumCount) },
+                                      albums: found.albums.map { RecentServerAlbum(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt) },
+                                      songs: found.songs)
+            return
+        }
+        // No catalog yet (first use): ask the server.
+        guard let client = servers.client(for: account.id) else { server = nil; return }
         let found = try? await client.search(text)
         guard !Task.isCancelled, request == generation, text == query.trimmed else { return }
         guard let found, !(found.artist.isEmpty && found.album.isEmpty && found.song.isEmpty) else { server = nil; return }
         server = ServerSearchResults(account: account,
-                                     artists: Array(found.artist.prefix(Self.sectionLimit)),
-                                     albums: Array(found.album.prefix(Self.sectionLimit)),
-                                     songs: Array(found.song.filter { $0.isVideo != true }.prefix(Self.sectionLimit)))
+                                     artists: found.artist.prefix(limit).map { RecentServerArtist(id: $0.id, name: $0.name, coverArt: $0.coverArt, albumCount: $0.albumCount) },
+                                     albums: found.album.prefix(limit).map { RecentServerAlbum(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt) },
+                                     songs: Array(found.song.filter { $0.isVideo != true }.prefix(limit)))
     }
 
     func remember(_ item: RecentSearchItem) {
@@ -158,9 +172,23 @@ final class SearchStore {
 /// What the connected server found for the search.
 struct ServerSearchResults {
     let account: ServerAccount
-    let artists: [ServerArtist]
-    let albums: [ServerAlbum]
+    let artists: [RecentServerArtist]
+    let albums: [RecentServerAlbum]
     let songs: [ServerSong]
+}
+
+struct RecentServerArtist: Identifiable, Hashable, Sendable {
+    let id: String
+    let name: String
+    let coverArt: String?
+    let albumCount: Int?
+}
+
+struct RecentServerAlbum: Identifiable, Hashable, Sendable {
+    let id: String
+    let name: String
+    let artist: String?
+    let coverArt: String?
 }
 
 /// Search over the library: artists, albums and songs as you type, recent items before you do.
@@ -190,14 +218,32 @@ struct SearchView: View {
                 .padding(.top, Spacing.md)
                 .padding(.bottom, Spacing.lg)
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
+            // What's playing stays in reach while searching; tapping it opens Now Playing.
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if let song = player.state.currentSong {
+                    SearchNowPlayingBar(song: song) {
+                        focused = false
+                        router.showsSearch = false
+                        router.showsNowPlaying = true
+                    }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.bottom, Spacing.xs)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
             .safeAreaInset(edge: .top, spacing: 0) {
                 GlassSearchField(text: $search.query, prompt: "Songs, albums, artists", focused: $focused, close: { focused = false; router.showsSearch = false; dismiss() })
                     .padding(.horizontal, Spacing.gutter).padding(.vertical, Spacing.sm)
             }
             .toolbar(.hidden, for: .navigationBar)
-            .onAppear { focused = true }
+            .onAppear {
+                focused = true
+                servers.refreshCatalogs()
+            }
             .task(id: library.songs) { await search.run() }
+            // A server catalog arriving (or refreshed) updates the results at once.
+            .task(id: servers.catalogVersion) { if !search.query.trimmed.isEmpty { await search.run() } }
             .modifier(ToolPageAppearance())
         }
     }
@@ -222,6 +268,7 @@ struct SearchView: View {
             let songActions = router.songActions(actions)
             ForEach(Array(search.songs.enumerated()), id: \.element.id) { index, song in
                 TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: songActions) {
+                    focused = false
                     search.remember(.song(song))
                     actions.play(search.songs, startIndex: index)
                 }
@@ -267,6 +314,7 @@ struct SearchView: View {
             let rowActions = servers.songActions(source: source)
             ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
                 TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
+                    focused = false
                     let remote = server.songs[index]
                     search.remember(.serverSong(StreamedSong(accountId: account.id, song: remote, playedAt: Date(),
                                                              server: account.baseURL.absoluteString, username: account.username)))
@@ -378,6 +426,7 @@ struct SearchView: View {
     }
 
     private func reopen(_ item: RecentSearchItem) {
+        focused = false
         switch item {
         case .song(let song):
             search.remember(item)
@@ -408,5 +457,53 @@ struct SearchView: View {
             router.open(.serverArtist(ServerRef(accountId: serverAccount(recent)?.id ?? recent.accountId, id: recent.id, title: recent.title)))
         case .song, .serverSong: break
         }
+    }
+}
+
+/// The song playing, at the bottom of Search: cover, title and play / pause. Tapping it opens Now Playing.
+private struct SearchNowPlayingBar: View {
+    let song: Song
+    let onOpen: () -> Void
+    @Environment(PlayerController.self) private var player
+    @Environment(AppSettings.self) private var settings
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        let state = player.state
+        HStack(spacing: Spacing.md) {
+            Button(action: onOpen) {
+                HStack(spacing: Spacing.md) {
+                    SongArtworkView(song: song, maxPixels: 132)
+                        .frame(width: ArtworkSize.miniPlayer, height: ArtworkSize.miniPlayer)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(song.title).font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface).lineLimit(1)
+                        Text(player.isLoading ? String(localized: "Loading…") : song.artist)
+                            .font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens Now Playing")
+            Button { player.togglePlayPause() } label: {
+                Group {
+                    if player.isLoading {
+                        LoadingRing(fraction: StreamLoading.shared.fraction(of: song), size: 24)
+                    } else {
+                        Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.title2)
+                    }
+                }
+                .frame(width: 44, height: 48).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(palette.onSurface)
+            .accessibilityLabel(player.isLoading ? "Loading, tap to stop" : (state.isPlaying ? "Pause" : "Play"))
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.xs + 2)
+        .frame(height: 60)
+        .chromeSurface(enabled: settings.glassEnabled)
     }
 }

@@ -17,6 +17,9 @@ final class StreamPlayer {
     var onFailed: ((UUID, String) -> Void)?
     /// The system paused playback (a call, another app) without being asked to here.
     var onPausedBySystem: ((UUID) -> Void)?
+    /// Enough of the song is buffered (all of it, or a minute ahead) that other downloads can
+    /// start without making it stall. Called once per song.
+    var onBufferedEnough: ((UUID) -> Void)?
 
     var volume: Float = 1 { didSet { player?.volume = volume } }
 
@@ -24,6 +27,7 @@ final class StreamPlayer {
     private var observations: [NSKeyValueObservation] = []
     private var tokens: [NSObjectProtocol] = []
     private var wantsToPlay = false
+    private var reportedBuffered = false
 
     /// Formats iOS's player streams; others (Ogg Vorbis, Opus) are fetched in full first.
     static func canStream(fileExtension ext: String) -> Bool {
@@ -49,10 +53,9 @@ final class StreamPlayer {
         var options: [String: Any] = [:]
         if let type = Self.mimeType(for: fileExtension) { options[AVURLAssetOverrideMIMETypeKey] = type }
         let item = AVPlayerItem(asset: AVURLAsset(url: url, options: options))
-        // Start as soon as a little is buffered rather than waiting to be sure of no stall.
-        item.preferredForwardBufferDuration = 0
         let player = AVPlayer(playerItem: item)
-        player.automaticallyWaitsToMinimizeStalling = false
+        // If the connection falls behind, wait for more instead of stopping (see [play]).
+        player.automaticallyWaitsToMinimizeStalling = true
         player.volume = volume
         self.player = player
         observe(player: player, item: item, entryId: entryId)
@@ -60,7 +63,8 @@ final class StreamPlayer {
             player.seek(to: CMTime(value: positionMs, timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero)
         }
         wantsToPlay = startPlaying
-        if startPlaying { player.play() }
+        // Start at once with what has arrived; later stalls wait to refill rather than stutter.
+        if startPlaying { player.playImmediately(atRate: 1) }
     }
 
     func pause() {
@@ -87,6 +91,7 @@ final class StreamPlayer {
         player = nil
         entryId = nil
         wantsToPlay = false
+        reportedBuffered = false
     }
 
     /// The position of [entryId]'s song, in milliseconds.
@@ -111,6 +116,19 @@ final class StreamPlayer {
                         self.onPausedBySystem?(entryId)
                     }
                 default: break
+                }
+            }
+        })
+        observations.append(item.observe(\.loadedTimeRanges, options: [.new]) { [weak self] item, _ in
+            let ahead = item.loadedTimeRanges.map(\.timeRangeValue).map { CMTimeRangeGetEnd($0).seconds }.max() ?? 0
+            let now = item.currentTime().seconds
+            let duration = item.duration.seconds
+            Task { @MainActor in
+                guard let self, self.entryId == entryId, !self.reportedBuffered else { return }
+                let complete = duration.isFinite && duration > 0 && ahead >= duration - 1
+                if complete || (now.isFinite && ahead - now >= 60) {
+                    self.reportedBuffered = true
+                    self.onBufferedEnough?(entryId)
                 }
             }
         })

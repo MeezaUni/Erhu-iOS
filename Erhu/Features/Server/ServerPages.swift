@@ -55,7 +55,8 @@ struct ServerAlbumPage: View {
 
     var body: some View {
         if let account = servers.account(ref.accountId) {
-            ServerContent(load: { try await requireClient(servers, account).album(ref.id) }) { album in
+            ServerContent(cached: servers.cachedAlbum(ref.id, account: account.id),
+                          load: { try await servers.album(ref.id, account: account) }) { album in
                 ServerCollectionPage(account: account, title: album.name, subtitle: album.artist, year: album.year,
                                      coverArt: album.coverArt, remote: album.song, numbered: true,
                                      source: .server(account: account.id, album: album.id, title: album.name))
@@ -148,7 +149,7 @@ private struct ServerCollectionPage: View {
         .collectionArtworkTheme(.image(themeCover))
         // On Wi-Fi, start fetching the first song as the page opens, so Play starts at once.
         .task(id: songs.first?.path) {
-            guard !servers.networkIsExpensive, let first = songs.first else { return }
+            guard !servers.networkIsExpensive, !player.isStreamingDirectly, let first = songs.first else { return }
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, player.state.currentSong?.path != first.path else { return }
             ServerStream.shared.prefetch([first])
@@ -169,7 +170,8 @@ struct ServerArtistPage: View {
 
     var body: some View {
         if let account = servers.account(ref.accountId) {
-            ServerContent(load: { try await requireClient(servers, account).artist(ref.id) }) { artist in
+            ServerContent(cached: servers.cachedArtist(ref.id, account: account.id),
+                          load: { try await servers.artist(ref.id, account: account) }) { artist in
                 ScrollView {
                     if artist.album.isEmpty { EmptyState(message: String(localized: "No albums on this server yet."), systemImage: "square.stack") }
                     LazyVGrid(columns: serverGridColumns, spacing: Spacing.xl) {

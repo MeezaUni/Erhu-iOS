@@ -160,6 +160,35 @@ final class AppRouter {
         showsNowPlaying = false
     }
 
+    /// Opens the album of [song] (the library's, or its server's for a streamed song) and closes
+    /// Now Playing.
+    func showAlbum(of song: Song) {
+        if song.isStream {
+            guard let found = ServerStream.shared.remote(for: song), let id = found.song.albumId else { return }
+            go(.serverAlbum(ServerRef(accountId: found.accountId, id: id, title: found.song.album ?? song.album)), in: .home)
+        } else if song.albumId > 0 {
+            go(.album(song.albumId), in: .albums)
+        }
+    }
+
+    /// Opens the artist of [song] and closes Now Playing.
+    func showArtist(of song: Song) {
+        if song.isStream {
+            guard let found = ServerStream.shared.remote(for: song), let id = found.song.artistId else { return }
+            go(.serverArtist(ServerRef(accountId: found.accountId, id: id, title: found.song.artist ?? song.artist)), in: .home)
+        } else if song.artistId > 0 {
+            go(.artist(song.artistId), in: .library)
+        }
+    }
+
+    private func go(_ route: Route, in target: LibrarySection) {
+        section = target
+        paths[target] = NavigationPath([route])
+        showsDrawer = false
+        showsSearch = false
+        showsNowPlaying = false
+    }
+
     func songActions(_ actions: LibraryActions, hideFromMixes: ((Song) -> Void)? = nil, source: PlaybackSource? = nil) -> SongActions {
         SongActions(
             toggleFavorite: { actions.toggleFavorite($0) },

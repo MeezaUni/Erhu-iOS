@@ -185,6 +185,7 @@ private struct CarouselCard: View, Equatable {
     let reportsArtworkFrame: Bool
     let metrics: CardMetrics
     @Environment(LibraryActions.self) private var actions
+    @Environment(AppRouter.self) private var router
     @Environment(\.playerArtworkInFlight) private var artworkInFlight
     @Environment(\.palette) private var palette
     @Environment(\.colorScheme) private var scheme
@@ -212,9 +213,20 @@ private struct CarouselCard: View, Equatable {
             HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(song.title).font(.title2.weight(.bold)).foregroundStyle(colors.content).lineLimit(1)
-                    Text(song.artist).font(.subheadline).foregroundStyle(colors.secondary).lineLimit(1)
+                    // On the current card the artist and album open their pages.
+                    Button { router.showArtist(of: song) } label: {
+                        Text(song.artist).font(.subheadline).foregroundStyle(colors.secondary).lineLimit(1)
+                    }
+                    .buttonStyle(.plain)
+                    .allowsHitTesting(isCurrent)
+                    .accessibilityHint(isCurrent ? "Opens the artist" : "")
                     if metrics.showAlbum, !song.album.isBlank {
-                        Text(song.album).font(.caption.weight(.medium)).foregroundStyle(colors.secondary.opacity(0.8)).lineLimit(1)
+                        Button { router.showAlbum(of: song) } label: {
+                            Text(song.album).font(.caption.weight(.medium)).foregroundStyle(colors.secondary.opacity(0.8)).lineLimit(1)
+                        }
+                        .buttonStyle(.plain)
+                        .allowsHitTesting(isCurrent)
+                        .accessibilityHint(isCurrent ? "Opens the album" : "")
                     }
                 }
                 Spacer(minLength: 0)

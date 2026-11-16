@@ -211,6 +211,13 @@ final class ServerStream {
         }
     }
 
+    /// Stops every fetch, so a song streaming directly has the whole connection.
+    func stopFetching() {
+        prefetchTask?.cancel()
+        prefetchTask = nil
+        for fetcher in fetchers.values { fetcher.cancel() }
+    }
+
     /// Where the player can stream [song] from directly (nil: its server isn't connected, or the
     /// song isn't one known in this session).
     func streamURL(for song: Song) -> URL? {
