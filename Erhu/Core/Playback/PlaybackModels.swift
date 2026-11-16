@@ -175,6 +175,8 @@ struct PersistedPlaybackState: Codable, Equatable {
     var queueCollectionKeys: [String] = []
     /// Optional so snapshots from older builds still decode.
     var queueSources: [PlaybackSource]? = nil
+    /// Streamed songs in the queue (they aren't in the library), so they come back after a restart.
+    var streamSongs: [PersistedStreamSong]? = nil
 }
 
 struct RestoredQueue: Equatable {

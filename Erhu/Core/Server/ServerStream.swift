@@ -41,14 +41,23 @@ extension Song {
     var isStream: Bool { ServerStreamPaths.isStream(path) }
 }
 
+/// What is saved with the queue for a streamed song, so it can be rebuilt after the app restarts.
+struct PersistedStreamSong: Codable, Equatable, Sendable {
+    let accountId: UUID
+    let remote: ServerSong
+    let quality: StreamQuality
+}
+
 enum ServerStreamError: LocalizedError {
     case unknownSong
     case notAudio
+    case notConnected
 
     var errorDescription: String? {
         switch self {
         case .unknownSong: String(localized: "This song came from a music server in an earlier session. Play it again from the server page.")
         case .notAudio: String(localized: "The server didn't send audio for this song.")
+        case .notConnected: String(localized: "This song's server isn't connected in Erhu. Add the server again in Music Server to play it.")
         }
     }
 }
@@ -82,16 +91,31 @@ final class ServerStream {
 
     /// A playable song for [remote] on [account].
     func song(for remote: ServerSong, account: ServerAccount, quality: StreamQuality, favourite: Bool = false) -> Song {
-        let path = ServerStreamPaths.path(accountId: account.id, remoteId: remote.id, quality: quality, originalExtension: remote.fileExtension)
-        let id = ServerStreamPaths.songId(accountId: account.id, remoteId: remote.id)
-        sources[path] = Source(accountId: account.id, remoteId: remote.id, quality: quality)
+        song(for: remote, accountId: account.id, quality: quality, favourite: favourite)
+    }
+
+    /// The details to save for a streamed song in the queue (nil if it isn't one known here).
+    func persisted(_ song: Song) -> PersistedStreamSong? {
+        guard let source = sources[song.path], let remote = remotes[song.path] else { return nil }
+        return PersistedStreamSong(accountId: source.accountId, remote: remote, quality: source.quality)
+    }
+
+    /// A streamed song saved with the queue, playable again (fetched when it plays).
+    func restore(_ saved: PersistedStreamSong) -> Song {
+        song(for: saved.remote, accountId: saved.accountId, quality: saved.quality, favourite: saved.remote.starred != nil)
+    }
+
+    private func song(for remote: ServerSong, accountId: UUID, quality: StreamQuality, favourite: Bool) -> Song {
+        let path = ServerStreamPaths.path(accountId: accountId, remoteId: remote.id, quality: quality, originalExtension: remote.fileExtension)
+        let id = ServerStreamPaths.songId(accountId: accountId, remoteId: remote.id)
+        sources[path] = Source(accountId: accountId, remoteId: remote.id, quality: quality)
         remotes[path] = remote
         // The cover is fetched now, ahead of the audio, so the song shows artwork everywhere at once.
         if let coverArt = remote.coverArt {
             let streamFile = ServerStreamPaths.cacheURL(forPath: path)
-            let cover = ServerCovers.fileURL(accountId: account.id, coverArt: coverArt)
+            let cover = ServerCovers.fileURL(accountId: accountId, coverArt: coverArt)
             ServerCovers.register(streamFile: streamFile, cover: cover)
-            if let client = clientProvider?(account.id) {
+            if let client = clientProvider?(accountId) {
                 ServerCovers.fetch(client.coverArtURL(coverArt, size: 800), to: cover, session: client.session) {
                     ArtworkLoader.shared.forget(path: streamFile.path)
                 }
@@ -117,7 +141,7 @@ final class ServerStream {
         let path = song.path
         if let running = inFlight[path] { return try await running.value }
         guard let source = sources[path] else { throw ServerStreamError.unknownSong }
-        guard let client = clientProvider?(source.accountId) else { throw SubsonicError.missingPassword }
+        guard let client = clientProvider?(source.accountId) else { throw ServerStreamError.notConnected }
         let destination = song.url
         let task = Task.detached(priority: .userInitiated) {
             var request = URLRequest(url: client.streamURL(source.remoteId, quality: source.quality))

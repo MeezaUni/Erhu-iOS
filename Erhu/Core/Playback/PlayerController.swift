@@ -719,8 +719,19 @@ final class PlayerController {
             positionMs: currentPositionMs(),
             shuffleModeEnabled: state.shuffleModeEnabled,
             repeatMode: state.repeatMode,
-            queueCollectionKeys: state.queue.map { $0.origin?.key ?? "" }, queueSources: state.queue.map(\.source)
+            queueCollectionKeys: state.queue.map { $0.origin?.key ?? "" }, queueSources: state.queue.map(\.source),
+            streamSongs: streamSnapshot()
         ))
+    }
+
+    /// The streamed songs in the queue, once each.
+    private func streamSnapshot() -> [PersistedStreamSong]? {
+        var seen = Set<Int64>()
+        let saved = state.queue.compactMap { entry -> PersistedStreamSong? in
+            guard entry.song.isStream, seen.insert(entry.song.id).inserted else { return nil }
+            return ServerStream.shared.persisted(entry.song)
+        }
+        return saved.isEmpty ? nil : saved
     }
 
     /// Saves at once (the app is going to the background).
@@ -729,14 +740,17 @@ final class PlayerController {
         persistence.saveNow(PersistedPlaybackState(
             queueSongIds: state.queue.map(\.song.id), currentIndex: state.currentIndex, positionMs: currentPositionMs(),
             shuffleModeEnabled: state.shuffleModeEnabled, repeatMode: state.repeatMode,
-            queueCollectionKeys: state.queue.map { $0.origin?.key ?? "" }, queueSources: state.queue.map(\.source)
+            queueCollectionKeys: state.queue.map { $0.origin?.key ?? "" }, queueSources: state.queue.map(\.source),
+            streamSongs: streamSnapshot()
         ))
     }
 
     private func restorePersistedState() {
         defer { restoreFinished = true }
-        guard state.queue.isEmpty, let saved = persistence.load(),
-              let restored = buildRestoredQueue(saved, available: (try? database.songs(ids: Array(Set(saved.queueSongIds)))) ?? []),
+        guard state.queue.isEmpty, let saved = persistence.load() else { return }
+        let library = (try? database.songs(ids: Array(Set(saved.queueSongIds.filter { $0 > 0 })))) ?? []
+        let streamed = (saved.streamSongs ?? []).map { ServerStream.shared.restore($0) }
+        guard let restored = buildRestoredQueue(saved, available: library + streamed),
               state.queue.isEmpty
         else { return }
         let entries = restored.songs.enumerated().map { i, song in

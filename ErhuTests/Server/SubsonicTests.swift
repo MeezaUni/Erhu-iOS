@@ -205,6 +205,29 @@ final class SubsonicTests: XCTestCase {
     }
 
     @MainActor
+    func testStreamedSongsInTheQueueComeBackAfterARestart() throws {
+        let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
+        let streamed = album.song.prefix(2).map { ServerStream.shared.song(for: $0, account: account, quality: .mp3_192) }
+        let snapshot = streamed.compactMap { ServerStream.shared.persisted($0) }
+        XCTAssertEqual(2, snapshot.count)
+        let saved = PersistedPlaybackState(queueSongIds: [7, streamed[0].id, streamed[1].id], currentIndex: 1, positionMs: 4_000,
+                                           streamSongs: snapshot)
+        // Written to disk and read back by the next launch.
+        let reloaded = try JSONDecoder().decode(PersistedPlaybackState.self, from: JSONEncoder().encode(saved))
+        let rebuilt = (reloaded.streamSongs ?? []).map { ServerStream.shared.restore($0) }
+        XCTAssertEqual(streamed.map(\.id), rebuilt.map(\.id))
+        XCTAssertEqual(streamed.map(\.path), rebuilt.map(\.path), "same quality, same cached file")
+        // Song 7 left the library meanwhile: the streamed songs and the position survive.
+        let queue = try XCTUnwrap(buildRestoredQueue(reloaded, available: rebuilt))
+        XCTAssertEqual(streamed.map(\.id), queue.songs.map(\.id))
+        XCTAssertEqual(0, queue.startIndex)
+        XCTAssertEqual(4_000, queue.startPositionMs)
+        // A snapshot from before this change still loads.
+        let old = #"{"queueSongIds":[1],"currentIndex":0,"positionMs":0,"shuffleModeEnabled":false,"repeatMode":"OFF","queueCollectionKeys":[""]}"#
+        XCTAssertNil(try JSONDecoder().decode(PersistedPlaybackState.self, from: Data(old.utf8)).streamSongs)
+    }
+
+    @MainActor
     func testStreamedSongsLiveInTheCacheWithStableNegativeIds() throws {
         let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
         let remote = album.song[0]
