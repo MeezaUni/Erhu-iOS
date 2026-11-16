@@ -28,13 +28,15 @@ var logoPNG []byte
 // change anything must carry the page's token, and the Host header must be local, so other web
 // pages open in the browser can't drive the launcher.
 type Control struct {
-	store    *Store
-	server   *Server
-	remote   *Remote
-	ffmpeg   *FFmpeg
-	token    string
-	listener net.Listener
-	quit     func()
+	store  *Store
+	server *Server
+	remote *Remote
+	ffmpeg *FFmpeg
+	// The Erhu web player's port (0: not running).
+	playerPort int
+	token      string
+	listener   net.Listener
+	quit       func()
 	// chooseFolder shows the system's folder picker ("" if cancelled).
 	chooseFolder func() (string, error)
 }
@@ -234,20 +236,22 @@ func (c *Control) api(fn func(*http.Request) (any, error)) http.HandlerFunc {
 
 // PageState is everything the page shows.
 type PageState struct {
-	State          State       `json:"state"`
-	Problem        string      `json:"problem"`
-	MusicFolder    string      `json:"musicFolder"`
-	Username       string      `json:"username"`
-	AccountCreated bool        `json:"accountCreated"`
-	Addresses      []string    `json:"addresses"`
-	Invite         string      `json:"invite"`
-	WebPlayer      string      `json:"webPlayer"`
-	Autostart      bool        `json:"autostart"`
-	AutostartKnown bool        `json:"autostartSupported"`
-	Remote         RemoteState `json:"remote"`
-	FFmpeg         FFmpegState `json:"ffmpeg"`
-	Version        string      `json:"version"`
-	Name           string      `json:"name"`
+	State          State    `json:"state"`
+	Problem        string   `json:"problem"`
+	MusicFolder    string   `json:"musicFolder"`
+	Username       string   `json:"username"`
+	AccountCreated bool     `json:"accountCreated"`
+	Addresses      []string `json:"addresses"`
+	Invite         string   `json:"invite"`
+	WebPlayer      string   `json:"webPlayer"`
+	// The web player's addresses for other devices on the network.
+	WebPlayerOthers []string    `json:"webPlayerOthers,omitempty"`
+	Autostart       bool        `json:"autostart"`
+	AutostartKnown  bool        `json:"autostartSupported"`
+	Remote          RemoteState `json:"remote"`
+	FFmpeg          FFmpegState `json:"ffmpeg"`
+	Version         string      `json:"version"`
+	Name            string      `json:"name"`
 }
 
 func (c *Control) state() PageState {
@@ -256,6 +260,12 @@ func (c *Control) state() PageState {
 	out := PageState{State: state, Problem: problem, MusicFolder: cfg.MusicFolder, Username: cfg.Username,
 		AccountCreated: cfg.AccountCreated, Version: version, Name: computerName(),
 		WebPlayer: "http://localhost:" + strconv.Itoa(cfg.Port)}
+	if c.playerPort != 0 {
+		out.WebPlayer = "http://localhost:" + strconv.Itoa(c.playerPort)
+		for _, ip := range lanAddresses() {
+			out.WebPlayerOthers = append(out.WebPlayerOthers, serverURL(ip, c.playerPort))
+		}
+	}
 	for _, ip := range lanAddresses() {
 		out.Addresses = append(out.Addresses, serverURL(ip, cfg.Port))
 	}

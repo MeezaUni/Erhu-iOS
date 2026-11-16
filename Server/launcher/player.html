@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0E0F12">
+<title>Erhu</title>
+<link rel="icon" href="/logo.png">
+<style>
+  :root {
+    --bg:#0E0F12; --surface:#191B21; --raised:#23262E; --line:#30343E;
+    --text:#F5F6F8; --muted:#9AA3B2; --accent:#E2A766; --on-accent:#1A1206;
+    --radius-s:10px; --radius-m:16px; --radius-l:24px;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--bg); color:var(--text); height:100%; }
+  body { font:16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif; overflow-x:hidden; }
+  button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0; }
+  input { font:inherit; color:inherit; }
+  a { color:inherit; text-decoration:none; }
+  [hidden] { display:none !important; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:8px; }
+
+  /* Top bar */
+  .top { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:12px; padding:14px 20px;
+         background:linear-gradient(var(--bg) 70%, transparent); }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:22px; letter-spacing:.2px; }
+  .brand img { width:34px; height:34px; border-radius:9px; }
+  .search { flex:1; max-width:520px; margin-left:auto; display:flex; align-items:center; gap:10px; background:var(--surface);
+            border:1px solid var(--line); border-radius:999px; padding:9px 16px; }
+  .search input { flex:1; background:none; border:0; outline:none; min-width:0; }
+  .search svg { flex:none; opacity:.7; }
+  .tabs { display:flex; gap:6px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:5px; }
+  .tabs a { padding:7px 14px; border-radius:999px; font-weight:600; font-size:14px; color:var(--muted); }
+  .tabs a.on { background:var(--raised); color:var(--accent); }
+  main { padding:0 20px 150px; max-width:1400px; margin:0 auto; }
+
+  /* Shelves and grids */
+  h1 { font-size:32px; margin:18px 0 6px; }
+  h2 { font-size:21px; margin:26px 0 12px; }
+  .shelf { display:grid; grid-auto-flow:column; grid-auto-columns:168px; gap:16px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; }
+  .shelf::-webkit-scrollbar { display:none; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:22px 18px; }
+  .tile { display:block; min-width:0; }
+  .tile .art { aspect-ratio:1; border-radius:var(--radius-m); overflow:hidden; background:var(--raised); position:relative;
+               box-shadow:0 8px 20px rgba(0,0,0,.35); transition:transform .15s ease; }
+  .tile:hover .art { transform:translateY(-2px); }
+  .tile:active .art { transform:scale(.98); }
+  .tile.round .art { border-radius:50%; }
+  .tile img { width:100%; height:100%; object-fit:cover; display:block; }
+  .tile .t { font-weight:650; font-size:15px; margin-top:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tile .s { color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tile.round .t, .tile.round .s { text-align:center; }
+  .placeholder { width:100%; height:100%; display:grid; place-items:center; color:var(--muted); font-size:34px; }
+
+  /* Collection hero (album, playlist) */
+  .hero { position:relative; margin:0 -20px; min-height:440px; display:flex; align-items:flex-end; overflow:hidden; }
+  .hero .bg { position:absolute; inset:0; background-size:cover; background-position:center; }
+  .hero .fade { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(14,15,18,.05) 0%, rgba(14,15,18,.35) 45%, var(--bg) 100%); }
+  .hero .meta { position:relative; width:100%; padding:0 20px 18px; text-align:center; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+  .hero h1 { font-size:clamp(30px, 5vw, 48px); margin:0 0 6px; }
+  .hero .by { font-size:19px; font-weight:650; }
+  .hero .by a:hover { text-decoration:underline; }
+  .hero .facts { color:var(--muted); margin-top:6px; font-size:15px; }
+  .actions { display:flex; justify-content:center; gap:14px; margin:16px 0 22px; }
+  .pill { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:150px; padding:13px 26px; border-radius:999px;
+          font-weight:700; font-size:16px; }
+  .pill.fill { background:var(--accent); color:var(--on-accent); }
+  .pill.line { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); color:var(--accent); }
+  .pill:active { transform:scale(.98); }
+
+  /* Track rows */
+  .tracks { display:flex; flex-direction:column; gap:2px; max-width:980px; margin:0 auto; }
+  .row { display:flex; align-items:center; gap:14px; padding:8px 12px; border-radius:var(--radius-s); cursor:pointer; }
+  .row:hover { background:rgba(255,255,255,.05); }
+  .row:active { background:rgba(255,255,255,.1); }
+  .row .n { width:28px; text-align:center; color:var(--muted); font-weight:650; font-variant-numeric:tabular-nums; flex:none; }
+  .row .thumb { width:46px; height:46px; border-radius:8px; overflow:hidden; background:var(--raised); flex:none; }
+  .row .thumb img { width:100%; height:100%; object-fit:cover; }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .s { color:var(--muted); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .d { color:var(--muted); font-size:14px; font-variant-numeric:tabular-nums; flex:none; }
+  .row.now .t, .row.now .n { color:var(--accent); }
+
+  /* Player bar */
+  .bar { position:fixed; left:50%; transform:translateX(-50%); bottom:16px; width:min(980px, calc(100% - 24px)); z-index:10;
+         display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:16px;
+         padding:10px 18px 14px 10px; border-radius:30px; background:rgba(30,32,39,.82); border:1px solid rgba(255,255,255,.08);
+         backdrop-filter:blur(24px) saturate(1.4); -webkit-backdrop-filter:blur(24px) saturate(1.4); box-shadow:0 12px 40px rgba(0,0,0,.5); }
+  .bar .song { display:flex; align-items:center; gap:12px; min-width:0; cursor:pointer; }
+  .bar .song img, .bar .song .ph { width:50px; height:50px; border-radius:10px; object-fit:cover; background:var(--raised); flex:none; }
+  .bar .song .t { font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar .song .s { color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .controls { display:flex; align-items:center; gap:6px; }
+  .icon { width:42px; height:42px; display:grid; place-items:center; border-radius:50%; color:var(--text); }
+  .icon:hover { background:rgba(255,255,255,.07); }
+  .icon.on { color:var(--accent); }
+  .icon.big { width:52px; height:52px; background:var(--accent); color:var(--on-accent); }
+  .icon.big:hover { background:var(--accent); filter:brightness(1.08); }
+  .right { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+  .vol { width:96px; accent-color:var(--accent); }
+  .seek { position:absolute; left:22px; right:22px; bottom:5px; height:4px; border-radius:2px; background:rgba(255,255,255,.12); cursor:pointer; }
+  .seek i { position:absolute; left:0; top:0; bottom:0; border-radius:2px; background:var(--accent); width:0; }
+  .times { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  /* Queue panel */
+  .queue { position:fixed; right:16px; bottom:104px; width:min(380px, calc(100% - 32px)); max-height:60vh; overflow:auto; z-index:11;
+           background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-l); padding:10px; box-shadow:0 12px 40px rgba(0,0,0,.5); }
+  .queue h3 { margin:6px 10px 8px; font-size:17px; }
+
+  /* Sign in */
+  .login { min-height:100%; display:grid; place-items:center; padding:24px; }
+  .card { width:min(400px, 100%); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-l); padding:28px; text-align:center; }
+  .card img { width:72px; height:72px; border-radius:18px; }
+  .card h1 { font-size:26px; margin:12px 0 4px; }
+  .card p { color:var(--muted); margin:0 0 18px; }
+  .field { width:100%; padding:13px 16px; border-radius:14px; border:1px solid var(--line); background:var(--bg); margin-bottom:10px; outline:none; }
+  .field:focus { border-color:var(--accent); }
+  .card .pill { width:100%; margin-top:6px; }
+  .err { color:#F28B82; min-height:1.3em; margin-top:10px; font-size:14px; }
+  .note { color:var(--muted); text-align:center; padding:40px 0; }
+  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:110px; background:var(--accent); color:var(--on-accent); padding:10px 18px;
+           border-radius:999px; font-weight:650; z-index:20; }
+
+  @media (max-width: 720px) {
+    .top { flex-wrap:wrap; padding:12px 14px; }
+    .search { order:3; max-width:none; flex-basis:100%; margin:0; }
+    .tabs { margin-left:auto; }
+    .tabs a { padding:6px 10px; font-size:13px; }
+    main { padding:0 14px 150px; }
+    .hero { margin:0 -14px; min-height:360px; }
+    .bar { grid-template-columns:minmax(0,1fr) auto; padding-right:10px; }
+    .bar .right { display:none; }
+    .controls .icon.side { display:none; }
+    .shelf { grid-auto-columns:140px; }
+    .grid { grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:18px 14px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<audio id="audio" preload="auto"></audio>
+<script>
+"use strict";
+// Erhu web player. Talks to the music server with the Subsonic API (token authentication:
+// md5(password + salt), so the password itself is never sent or stored).
+
+// ---- md5 (RFC 1321), for the Subsonic token ----
+function md5(str) {
+  const bytes = new TextEncoder().encode(str);
+  const words = [];
+  for (let i = 0; i < bytes.length; i++) words[i >> 2] |= bytes[i] << ((i % 4) * 8);
+  const bitLen = bytes.length * 8;
+  words[bitLen >> 5] |= 0x80 << (bitLen % 32);
+  words[(((bitLen + 64) >>> 9) << 4) + 14] = bitLen;
+  const K = [], S = [7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+             4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+  for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) | 0;
+  let a0 = 0x67452301, b0 = 0xefcdab89 | 0, c0 = 0x98badcfe | 0, d0 = 0x10325476;
+  for (let off = 0; off < words.length; off += 16) {
+    let A = a0, B = b0, C = c0, D = d0;
+    for (let i = 0; i < 64; i++) {
+      let F, g;
+      if (i < 16) { F = (B & C) | (~B & D); g = i; }
+      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; }
+      else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+      const tmp = D; D = C; C = B;
+      const x = (A + F + K[i] + (words[off + g] | 0)) | 0;
+      B = (B + ((x << S[i]) | (x >>> (32 - S[i])))) | 0;
+      A = tmp;
+    }
+    a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+  }
+  return [a0, b0, c0, d0].map(n => { let h = ""; for (let i = 0; i < 4; i++) h += ((n >>> (i * 8)) & 255).toString(16).padStart(2, "0"); return h; }).join("");
+}
+
+// ---- Account and API ----
+const KEY = "erhu.web.auth";
+let auth = null;
+try { auth = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { auth = null; }
+
+function authParams(a = auth) {
+  return new URLSearchParams({ u: a.u, t: a.t, s: a.s, v: "1.16.1", c: "Erhu Web" });
+}
+function apiURL(method, params = {}, json = true) {
+  const q = authParams();
+  if (json) q.set("f", "json");
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) q.set(k, v);
+  return "/rest/" + method + "?" + q.toString();
+}
+async function api(method, params = {}, a) {
+  const q = authParams(a || auth); q.set("f", "json");
+  for (const [k, v] of Object.entries(params)) q.set(k, v);
+  const res = await fetch("/rest/" + method + "?" + q.toString());
+  if (!res.ok) throw new Error(res.status === 502 ? "The music server isn't running. Open Erhu Server on the computer." : "The server answered with an error (" + res.status + ").");
+  const body = (await res.json())["subsonic-response"];
+  if (!body) throw new Error("That didn't look like a music server.");
+  if (body.status !== "ok") {
+    const err = new Error(body.error && body.error.code === 40 ? "Wrong username or password." : (body.error && body.error.message) || "The server reported an error.");
+    err.code = body.error && body.error.code;
+    throw err;
+  }
+  return body;
+}
+const cover = (id, size = 300) => id ? apiURL("getCoverArt", { id, size }, false) : "";
+const streamURL = id => apiURL("stream", { id, format: "raw" }, false);
+const list = x => Array.isArray(x) ? x : (x ? [x] : []);
+
+// ---- Small DOM helpers (text is always set as text, never as HTML) ----
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k === "class") node.className = v;
+    else if (k === "text") node.textContent = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) if (c !== null && c !== undefined && c !== false) node.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return node;
+}
+const ICONS = {
+  play: "M8 5v14l11-7z", pause: "M6 5h4v14H6zM14 5h4v14h-4z", next: "M6 6l8.5 6L6 18V6zm10 0h2v12h-2z",
+  prev: "M6 6h2v12H6zm3.5 6L18 18V6z", shuffle: "M10.6 9.2 5.4 4 4 5.4l5.2 5.2 1.4-1.4zM14.5 4l2 2L4 18.6 5.4 20 18 7.5l2 2V4h-5.5zm.3 9.4-1.4 1.4 3.1 3.1-2 2H20v-5.5l-2 2-3.2-3z",
+  repeat: "M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z", queue: "M3 6h12v2H3zm0 5h12v2H3zm0 5h8v2H3zm14-5v8.2a3 3 0 1 0 2 2.8V9h3V7h-5v4z",
+  search: "M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z",
+  volume: "M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z", note: "M12 3v10.6A4 4 0 1 0 14 17V7h4V3h-6z",
+};
+function icon(name, size = 22) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("width", size); svg.setAttribute("height", size); svg.setAttribute("aria-hidden", "true");
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", ICONS[name]); p.setAttribute("fill", "currentColor"); svg.append(p);
+  return svg;
+}
+function img(src, alt = "") {
+  if (!src) return el("div", { class: "placeholder" }, icon("note", 30));
+  return el("img", { src, alt, loading: "lazy", decoding: "async" });
+}
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+function toast(text) {
+  const t = el("div", { class: "toast", role: "status", text });
+  document.body.append(t); setTimeout(() => t.remove(), 2200);
+}
+
+// ---- Sign in ----
+function showLogin(message = "") {
+  stopPlayback();
+  const app = document.getElementById("app");
+  const err = el("div", { class: "err", role: "alert", text: message });
+  const user = el("input", { class: "field", placeholder: "Username", autocomplete: "username", autocapitalize: "none", spellcheck: "false", required: true });
+  const pass = el("input", { class: "field", type: "password", placeholder: "Password", autocomplete: "current-password", required: true });
+  const btn = el("button", { class: "pill fill", type: "submit", text: "Sign in" });
+  const form = el("form", { class: "card", onsubmit: async e => {
+    e.preventDefault(); err.textContent = ""; btn.disabled = true;
+    const s = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, "0")).join("");
+    const candidate = { u: user.value.trim(), s, t: md5(pass.value + s) };
+    try { await api("ping", {}, candidate); auth = candidate; localStorage.setItem(KEY, JSON.stringify(auth)); start(); }
+    catch (x) { err.textContent = x.message; }
+    finally { btn.disabled = false; }
+  } }, el("img", { src: "/logo.png", alt: "" }), el("h1", { text: "Erhu" }),
+     el("p", { text: "Sign in with your Erhu Server account." }), user, pass, btn, err);
+  app.replaceChildren(el("div", { class: "login" }, form));
+  user.focus();
+}
+
+// ---- Player ----
+const audio = document.getElementById("audio");
+const player = { queue: [], index: -1, shuffle: false, repeat: false, scrobbled: false, failures: 0 };
+let barRefs = null;
+
+function playList(songs, start = 0, shuffle = false) {
+  songs = songs.filter(s => !s.isVideo);
+  if (!songs.length) return;
+  let queue = songs.slice(), index = Math.min(Math.max(start, 0), queue.length - 1);
+  if (shuffle) {
+    const first = shuffleFirst(queue);
+    queue = first; index = 0;
+  }
+  player.queue = queue; player.index = index; player.shuffle = shuffle;
+  playCurrent();
+}
+function shuffleFirst(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function current() { return player.queue[player.index]; }
+function playCurrent() {
+  const song = current(); if (!song) return;
+  player.scrobbled = false;
+  audio.src = streamURL(song.id);
+  audio.play().catch(() => {});
+  api("scrobble", { id: song.id, submission: "false" }).catch(() => {});
+  updateBar(); updateMediaSession(); markRows();
+}
+function next(auto = false) {
+  if (player.repeat && auto) { audio.currentTime = 0; audio.play(); return; }
+  if (player.index + 1 < player.queue.length) { player.index++; playCurrent(); }
+  else if (!auto) { player.index = 0; playCurrent(); }
+  else { audio.pause(); updateBar(); }
+}
+function prev() {
+  if (audio.currentTime > 3 || player.index === 0) { audio.currentTime = 0; return; }
+  player.index--; playCurrent();
+}
+function toggle() { if (!current()) return; if (audio.paused) audio.play().catch(() => {}); else audio.pause(); }
+function stopPlayback() { audio.pause(); audio.removeAttribute("src"); player.queue = []; player.index = -1; document.querySelector(".bar")?.remove(); barRefs = null; }
+
+audio.addEventListener("ended", () => next(true));
+audio.addEventListener("play", updateBar);
+audio.addEventListener("playing", () => { player.failures = 0; });
+audio.addEventListener("pause", updateBar);
+audio.addEventListener("timeupdate", () => {
+  const d = audio.duration || current()?.duration || 0, t = audio.currentTime;
+  if (barRefs) { barRefs.fill.style.width = d ? (t / d * 100) + "%" : "0"; barRefs.times.textContent = fmt(t) + " / " + fmt(d); }
+  if (!player.scrobbled && d && (t > d / 2 || t > 240)) { player.scrobbled = true; api("scrobble", { id: current().id, submission: "true" }).catch(() => {}); }
+});
+audio.addEventListener("error", () => {
+  if (!current()) return;
+  player.failures++;
+  // A few songs in a row failing means the server is unreachable: stop rather than run through the queue.
+  if (player.failures >= 3) { toast("The music server isn't answering. Check Erhu Server on the computer."); audio.pause(); updateBar(); return; }
+  toast("Couldn't play “" + current().title + "”."); setTimeout(() => next(true), 800);
+});
+
+function buildBar() {
+  const art = el("div", { class: "ph" });
+  const title = el("div", { class: "t" }), sub = el("div", { class: "s" });
+  const playBtn = el("button", { class: "icon big", "aria-label": "Play", onclick: toggle });
+  const shuffleBtn = el("button", { class: "icon side", "aria-label": "Shuffle", onclick: () => {
+    player.shuffle = !player.shuffle;
+    if (player.shuffle && player.queue.length > 1) { const cur = current(); const rest = shuffleFirst(player.queue.filter((_, i) => i !== player.index)); player.queue = [cur, ...rest]; player.index = 0; }
+    updateBar();
+  } }, icon("shuffle", 20));
+  const repeatBtn = el("button", { class: "icon side", "aria-label": "Repeat this song", onclick: () => { player.repeat = !player.repeat; updateBar(); } }, icon("repeat", 20));
+  const fill = el("i"), seek = el("div", { class: "seek", role: "slider", "aria-label": "Position", tabindex: "0", onclick: e => {
+    const r = seek.getBoundingClientRect(); const d = audio.duration || current()?.duration || 0;
+    if (d) audio.currentTime = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) * d;
+  } }, fill);
+  const times = el("span", { class: "times", text: "0:00 / 0:00" });
+  const vol = el("input", { class: "vol", type: "range", min: "0", max: "1", step: "0.01", value: String(audio.volume), "aria-label": "Volume",
+                            oninput: e => { audio.volume = Number(e.target.value); } });
+  const queueBtn = el("button", { class: "icon", "aria-label": "Queue", onclick: toggleQueue }, icon("queue", 20));
+  const songBox = el("div", { class: "song", onclick: () => { const s = current(); if (s && s.albumId) go("#/album/" + s.albumId); } }, art, el("div", { style: "min-width:0" }, title, sub));
+  const bar = el("div", { class: "bar" }, songBox,
+    el("div", { class: "controls" }, shuffleBtn, el("button", { class: "icon", "aria-label": "Previous", onclick: prev }, icon("prev")), playBtn,
+       el("button", { class: "icon", "aria-label": "Next", onclick: () => next(false) }, icon("next")), repeatBtn),
+    el("div", { class: "right" }, times, icon("volume", 18), vol, queueBtn), seek);
+  document.body.append(bar);
+  barRefs = { art, title, sub, playBtn, shuffleBtn, repeatBtn, fill, times, songBox };
+}
+function updateBar() {
+  const song = current();
+  if (!song) return;
+  if (!barRefs) buildBar();
+  const r = barRefs;
+  r.title.textContent = song.title; r.sub.textContent = [song.artist, song.album].filter(Boolean).join(" · ");
+  const newArt = song.coverArt ? el("img", { src: cover(song.coverArt, 150), alt: "" }) : el("div", { class: "ph" });
+  r.art.replaceWith(newArt); r.art = newArt;
+  r.playBtn.replaceChildren(icon(audio.paused ? "play" : "pause", 26));
+  r.playBtn.setAttribute("aria-label", audio.paused ? "Play" : "Pause");
+  r.shuffleBtn.classList.toggle("on", player.shuffle); r.repeatBtn.classList.toggle("on", player.repeat);
+  document.title = audio.paused ? "Erhu" : song.title + " · " + (song.artist || "Erhu");
+  if (queueOpen) renderQueue();
+}
+function updateMediaSession() {
+  if (!("mediaSession" in navigator)) return;
+  const song = current(); if (!song) return;
+  navigator.mediaSession.metadata = new MediaMetadata({ title: song.title, artist: song.artist || "", album: song.album || "",
+    artwork: song.coverArt ? [{ src: cover(song.coverArt, 512), sizes: "512x512" }] : [] });
+  navigator.mediaSession.setActionHandler("play", () => audio.play());
+  navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+  navigator.mediaSession.setActionHandler("nexttrack", () => next(false));
+  navigator.mediaSession.setActionHandler("previoustrack", prev);
+}
+
+let queueOpen = false;
+function toggleQueue() { queueOpen = !queueOpen; if (queueOpen) renderQueue(); else document.querySelector(".queue")?.remove(); }
+function renderQueue() {
+  document.querySelector(".queue")?.remove();
+  const box = el("div", { class: "queue" }, el("h3", { text: "Queue" }),
+    ...player.queue.map((s, i) => songRow(s, { onPlay: () => { player.index = i; playCurrent(); }, now: i === player.index, thumb: true })));
+  document.body.append(box);
+}
+
+// ---- Rows and tiles ----
+function songRow(song, { number, onPlay, thumb = false, now } = {}) {
+  const row = el("div", { class: "row", role: "button", tabindex: "0", "data-id": song.id, onclick: onPlay,
+                          onkeydown: e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlay(); } } },
+    thumb ? el("div", { class: "thumb" }, img(song.coverArt ? cover(song.coverArt, 100) : "")) : el("div", { class: "n", text: number ?? "" }),
+    el("div", { class: "main" }, el("div", { class: "t", text: song.title }), el("div", { class: "s", text: [song.artist, song.album].filter(Boolean).join(" · ") })),
+    el("div", { class: "d", text: song.duration ? fmt(song.duration) : "" }));
+  if (now ?? (current() && current().id === song.id)) row.classList.add("now");
+  return row;
+}
+function markRows() {
+  const id = current()?.id;
+  document.querySelectorAll("main .row").forEach(r => r.classList.toggle("now", r.dataset.id === id));
+}
+function albumTile(a) {
+  return el("a", { class: "tile", href: "#/album/" + encodeURIComponent(a.id) },
+    el("div", { class: "art" }, img(cover(a.coverArt), "")), el("div", { class: "t", text: a.name || a.title || "" }),
+    el("div", { class: "s", text: [a.artist, a.year].filter(Boolean).join(" · ") }));
+}
+function artistTile(a) {
+  return el("a", { class: "tile round", href: "#/artist/" + encodeURIComponent(a.id) },
+    el("div", { class: "art" }, img(cover(a.coverArt), "")), el("div", { class: "t", text: a.name }),
+    el("div", { class: "s", text: a.albumCount ? plural(a.albumCount, "album", "albums") : "" }));
+}
+function playlistTile(p) {
+  return el("a", { class: "tile", href: "#/playlist/" + encodeURIComponent(p.id) },
+    el("div", { class: "art" }, img(cover(p.coverArt), "")), el("div", { class: "t", text: p.name }),
+    el("div", { class: "s", text: plural(p.songCount || 0, "song", "songs") }));
+}
+
+// Accent from a cover (the app themes collection pages from their artwork too).
+function accentFrom(src) {
+  const image = new Image();
+  image.onload = () => {
+    try {
+      const c = document.createElement("canvas"); c.width = c.height = 24;
+      const ctx = c.getContext("2d"); ctx.drawImage(image, 0, 0, 24, 24);
+      const d = ctx.getImageData(0, 0, 24, 24).data;
+      let best = null, bestScore = -1;
+      for (let i = 0; i < d.length; i += 4) {
+        const [r, g, b] = [d[i], d[i + 1], d[i + 2]];
+        const max = Math.max(r, g, b), min = Math.min(r, g, b), sat = max ? (max - min) / max : 0, light = max / 255;
+        const score = sat * (light > .35 ? 1 : light * 2);
+        if (score > bestScore) { bestScore = score; best = [r, g, b]; }
+      }
+      if (best && bestScore > .2) {
+        let [r, g, b] = best; const max = Math.max(r, g, b); const k = max < 170 ? 170 / max : 1;
+        [r, g, b] = [r, g, b].map(v => Math.min(255, Math.round(v * k)));
+        document.documentElement.style.setProperty("--accent", `rgb(${r}, ${g}, ${b})`);
+      }
+    } catch (e) {}
+  };
+  image.src = src;
+}
+function resetAccent() { document.documentElement.style.removeProperty("--accent"); }
+
+// ---- Pages ----
+function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
+function shell(active) {
+  const input = el("input", { type: "search", placeholder: "Songs, albums, artists", "aria-label": "Search", value: searchText(),
+    oninput: e => { clearTimeout(searchTimer); const v = e.target.value; searchTimer = setTimeout(() => go("#/search/" + encodeURIComponent(v)), 220); } });
+  const tab = (h, label, key) => el("a", { href: h, class: active === key ? "on" : "", text: label });
+  const top = el("div", { class: "top" },
+    el("a", { class: "brand", href: "#/home" }, el("img", { src: "/logo.png", alt: "" }), "Erhu"),
+    el("nav", { class: "tabs", "aria-label": "Sections" }, tab("#/home", "Home", "home"), tab("#/albums", "Albums", "albums"),
+       tab("#/artists", "Artists", "artists"), tab("#/playlists", "Playlists", "playlists")),
+    el("label", { class: "search" }, icon("search", 18), input));
+  const main = el("main");
+  document.getElementById("app").replaceChildren(top, main);
+  return { main, input };
+}
+let searchTimer = null;
+function searchText() { const m = location.hash.match(/^#\/search\/(.*)$/); return m ? decodeURIComponent(m[1]) : ""; }
+function loading(main) { main.replaceChildren(el("div", { class: "note", text: "Loading…" })); }
+function failed(main, x) {
+  if (x && x.code === 40) { localStorage.removeItem(KEY); auth = null; showLogin("Please sign in again."); return; }
+  main.replaceChildren(el("div", { class: "note", text: (x && x.message) || "Something went wrong." }), el("div", { style: "text-align:center" },
+    el("button", { class: "pill line", text: "Try again", onclick: route })));
+}
+
+async function home(main) {
+  const [newest, frequent, random] = await Promise.all([
+    api("getAlbumList2", { type: "newest", size: 18 }), api("getAlbumList2", { type: "frequent", size: 18 }), api("getAlbumList2", { type: "random", size: 18 })]);
+  const shelf = (title, albums) => albums.length ? [el("h2", { text: title }), el("div", { class: "shelf" }, albums.map(albumTile))] : [];
+  main.replaceChildren(...shelf("Recently added", list(newest.albumList2?.album)), ...shelf("Most played", list(frequent.albumList2?.album)),
+                       ...shelf("Something different", list(random.albumList2?.album)));
+  if (!main.children.length) main.append(el("div", { class: "note", text: "No music on this server yet. Choose a music folder in Erhu Server." }));
+}
+
+async function albums(main) {
+  const grid = el("div", { class: "grid" });
+  main.replaceChildren(el("h1", { text: "Albums" }), grid);
+  let offset = 0, done = false, busy = false;
+  const more = async () => {
+    if (busy || done) return; busy = true;
+    const page = list((await api("getAlbumList2", { type: "alphabeticalByName", size: 120, offset })).albumList2?.album);
+    grid.append(...page.map(albumTile)); offset += page.length; done = page.length < 120; busy = false;
+    if (!done && document.body.scrollHeight < innerHeight * 2) more();
+  };
+  await more();
+  const watcher = () => { if (!document.body.contains(grid)) return removeEventListener("scroll", watcher); if (innerHeight + scrollY > document.body.scrollHeight - 800) more(); };
+  addEventListener("scroll", watcher, { passive: true });
+}
+
+async function album(main, id) {
+  const a = (await api("getAlbum", { id })).album;
+  const songs = list(a.song).filter(s => !s.isVideo);
+  const minutes = Math.round(songs.reduce((t, s) => t + (s.duration || 0), 0) / 60);
+  const facts = [a.year, plural(songs.length, "song", "songs"), minutes ? minutes + " min" : null].filter(Boolean).join(" · ");
+  const bg = el("div", { class: "bg" });
+  if (a.coverArt) { const src = cover(a.coverArt, 1000); bg.style.backgroundImage = `url("${src}")`; accentFrom(cover(a.coverArt, 100)); }
+  main.replaceChildren(
+    el("section", { class: "hero" }, bg, el("div", { class: "fade" }), el("div", { class: "meta" }, el("h1", { text: a.name }),
+      el("div", { class: "by" }, a.artistId ? el("a", { href: "#/artist/" + encodeURIComponent(a.artistId), text: a.artist || "" }) : (a.artist || "")),
+      el("div", { class: "facts", text: facts }))),
+    el("div", { class: "actions" }, el("button", { class: "pill fill", onclick: () => playList(songs, 0) }, icon("play", 20), "Play"),
+       el("button", { class: "pill line", onclick: () => playList(songs, 0, true) }, icon("shuffle", 20), "Shuffle")),
+    el("div", { class: "tracks" }, songs.map((s, i) => songRow(s, { number: i + 1, onPlay: () => playList(songs, i) }))));
+}
+
+async function artist(main, id) {
+  const a = (await api("getArtist", { id })).artist;
+  const albumsList = list(a.album);
+  main.replaceChildren(el("h1", { text: a.name }), el("div", { class: "facts", style: "color:var(--muted)", text: plural(albumsList.length, "album", "albums") }),
+    el("div", { class: "actions", style: "justify-content:flex-start" }, el("button", { class: "pill fill", onclick: async () => {
+      const all = (await Promise.all(albumsList.map(x => api("getAlbum", { id: x.id }).then(r => list(r.album.song))))).flat();
+      playList(all, 0, true);
+    } }, icon("shuffle", 20), "Shuffle all")),
+    el("div", { class: "grid" }, albumsList.map(albumTile)));
+}
+
+async function artists(main) {
+  const index = list((await api("getArtists")).artists?.index);
+  const all = index.flatMap(i => list(i.artist));
+  main.replaceChildren(el("h1", { text: "Artists" }), all.length ? el("div", { class: "grid" }, all.map(artistTile)) : el("div", { class: "note", text: "No artists yet." }));
+}
+
+async function playlists(main) {
+  const all = list((await api("getPlaylists")).playlists?.playlist);
+  main.replaceChildren(el("h1", { text: "Playlists" }), all.length ? el("div", { class: "grid" }, all.map(playlistTile)) : el("div", { class: "note", text: "No playlists on this server yet." }));
+}
+
+async function playlist(main, id) {
+  const p = (await api("getPlaylist", { id })).playlist;
+  const songs = list(p.entry).filter(s => !s.isVideo);
+  const bg = el("div", { class: "bg" });
+  if (p.coverArt) { bg.style.backgroundImage = `url("${cover(p.coverArt, 1000)}")`; accentFrom(cover(p.coverArt, 100)); }
+  main.replaceChildren(el("section", { class: "hero" }, bg, el("div", { class: "fade" }), el("div", { class: "meta" }, el("h1", { text: p.name }),
+      el("div", { class: "facts", text: plural(songs.length, "song", "songs") }))),
+    el("div", { class: "actions" }, el("button", { class: "pill fill", onclick: () => playList(songs, 0) }, icon("play", 20), "Play"),
+       el("button", { class: "pill line", onclick: () => playList(songs, 0, true) }, icon("shuffle", 20), "Shuffle")),
+    el("div", { class: "tracks" }, songs.map((s, i) => songRow(s, { thumb: true, onPlay: () => playList(songs, i) }))));
+}
+
+async function search(main, text) {
+  if (!text.trim()) { main.replaceChildren(el("div", { class: "note", text: "Search your songs, albums and artists." })); return; }
+  const r = (await api("search3", { query: text, artistCount: 12, albumCount: 24, songCount: 60 })).searchResult3 || {};
+  const ar = list(r.artist), al = list(r.album), so = list(r.song).filter(s => !s.isVideo);
+  if (!ar.length && !al.length && !so.length) { main.replaceChildren(el("div", { class: "note", text: "Nothing matches “" + text + "”." })); return; }
+  main.replaceChildren(
+    ...(ar.length ? [el("h2", { text: "Artists" }), el("div", { class: "shelf" }, ar.map(artistTile))] : []),
+    ...(al.length ? [el("h2", { text: "Albums" }), el("div", { class: "shelf" }, al.map(albumTile))] : []),
+    ...(so.length ? [el("h2", { text: "Songs" }), el("div", { class: "tracks", style: "margin:0" }, so.map((s, i) => songRow(s, { thumb: true, onPlay: () => playList(so, i) })))] : []));
+}
+
+let routeToken = 0;
+async function route() {
+  if (!auth) { showLogin(); return; }
+  const hash = location.hash || "#/home";
+  const [, page, arg] = hash.match(/^#\/([a-z]+)\/?(.*)$/) || [, "home", ""];
+  const active = { album: "albums", artist: "artists", playlist: "playlists" }[page] || page;
+  const keepSearch = page === "search" && document.activeElement && document.activeElement.type === "search";
+  let main;
+  if (keepSearch) { main = document.querySelector("main"); }
+  else { ({ main } = shell(active)); scrollTo(0, 0); }
+  if (!["album", "playlist"].includes(page)) resetAccent();
+  const token = ++routeToken;
+  if (!keepSearch) loading(main);
+  const id = decodeURIComponent(arg || "");
+  const pages = { home: () => home(main), albums: () => albums(main), album: () => album(main, id), artist: () => artist(main, id),
+                  artists: () => artists(main), playlists: () => playlists(main), playlist: () => playlist(main, id), search: () => search(main, id) };
+  try { await (pages[page] || pages.home)(); if (token === routeToken) markRows(); }
+  catch (x) { if (token === routeToken) failed(main, x); }
+}
+addEventListener("hashchange", route);
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space") { e.preventDefault(); toggle(); }
+  else if (e.key === "ArrowRight" && e.shiftKey) next(false);
+  else if (e.key === "ArrowLeft" && e.shiftKey) prev();
+});
+function start() { route(); }
+start();
+</script>
+</body>
+</html>

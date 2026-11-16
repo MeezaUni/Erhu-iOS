@@ -50,6 +50,11 @@ func main() {
 		fatal("Erhu Server can't open its page: " + err.Error())
 	}
 	go func() { _ = control.Serve() }()
+	// The Erhu web player (another browser tab, or another device on the network).
+	if player, err := newPlayer(store); err == nil {
+		control.playerPort = player.Port()
+		go func() { _ = player.Serve() }()
+	}
 
 	if store.Get().MusicFolder != "" {
 		_ = server.Start()

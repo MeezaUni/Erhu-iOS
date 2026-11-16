@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -561,5 +563,67 @@ func TestFFmpegIsFoundOrInstalledWithTheSystemsPackageManager(t *testing.T) {
 	defer mu.Unlock()
 	if len(ran) == 0 || !(strings.Contains(ran[0], "winget") || strings.Contains(ran[0], "brew")) {
 		t.Fatalf("ran %v", ran)
+	}
+}
+
+// The web player serves its page and passes the Subsonic API through to the music server.
+func TestWebPlayerServesItsPageAndTheAPI(t *testing.T) {
+	music := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/rest/ping" || r.URL.Query().Get("u") != "listener" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"subsonic-response":{"status":"ok","version":"1.16.1"}}`))
+	}))
+	defer music.Close()
+	port, _ := strconv.Atoi(music.URL[strings.LastIndex(music.URL, ":")+1:])
+	t.Setenv("ERHU_SERVER_HOME", t.TempDir())
+	store, err := openStore()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = store.Update(func(c *Config) { c.Port = port })
+	page := httptest.NewServer((&Player{store: store}).handler())
+	defer page.Close()
+
+	res, err := http.Get(page.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != 200 || !strings.Contains(string(body), "<title>Erhu</title>") || res.Header.Get("Content-Security-Policy") == "" {
+		t.Fatalf("page: %d %q", res.StatusCode, res.Header)
+	}
+	res, err = http.Get(page.URL + "/rest/ping?u=listener&f=json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ = io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != 200 || !strings.Contains(string(body), `"status":"ok"`) {
+		t.Fatalf("api: %d %s", res.StatusCode, body)
+	}
+	// Nothing else of Erhu Server is reachable from the player's address.
+	for _, path := range []string{"/api/state", "/qr.png", "/rest/../api/state"} {
+		res, err := http.Get(page.URL + path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		if res.StatusCode == 200 {
+			t.Fatalf("%s should not be served", path)
+		}
+	}
+	// The music server stopped: a clear error, not a hang.
+	music.Close()
+	res, err = http.Get(page.URL + "/rest/ping?u=listener")
+	if err != nil {
+		t.Fatal(err)
+	}
+	res.Body.Close()
+	if res.StatusCode != http.StatusBadGateway {
+		t.Fatalf("got %d", res.StatusCode)
 	}
 }
