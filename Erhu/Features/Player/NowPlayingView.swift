@@ -299,15 +299,22 @@ struct NowPlayingView: View {
                 }
                 slot {
                     Button { player.togglePlayPause() } label: {
-                        Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundStyle(palette.onFilledButton)
-                            .contentTransition(.symbolEffect(.replace))
-                            .frame(width: 80, height: 80)
-                            .background(Circle().fill(palette.filledButton))
+                        Group {
+                            if player.isLoading {
+                                LoadingRing(fraction: state.currentSong.flatMap { StreamLoading.shared.fraction(of: $0) },
+                                            size: 34, lineWidth: 4, color: palette.onFilledButton)
+                            } else {
+                                Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundStyle(palette.onFilledButton)
+                                    .contentTransition(.symbolEffect(.replace))
+                            }
+                        }
+                        .frame(width: 80, height: 80)
+                        .background(Circle().fill(palette.filledButton))
                     }
                     .buttonStyle(PressScaleStyle(scale: 0.92))
-                    .accessibilityLabel(state.isPlaying ? "Pause" : "Play")
+                    .accessibilityLabel(player.isLoading ? "Loading, tap to stop" : (state.isPlaying ? "Pause" : "Play"))
                 }
                 slot {
                     Button(action: next) { Image(systemName: "forward.end.fill").font(.system(size: 30)).frame(width: 52, height: 52).contentShape(Rectangle()) }
@@ -472,10 +479,16 @@ private struct ExpandedLyrics: View {
                     .accessibilityLabel("Previous")
                     .frame(maxWidth: .infinity)
                 Button { player.togglePlayPause() } label: {
-                    Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 30)).contentTransition(.symbolEffect(.replace))
-                        .frame(width: 56, height: 56).contentShape(Rectangle())
+                    Group {
+                        if player.isLoading {
+                            LoadingRing(fraction: state.currentSong.flatMap { StreamLoading.shared.fraction(of: $0) }, size: 30)
+                        } else {
+                            Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 30)).contentTransition(.symbolEffect(.replace))
+                        }
+                    }
+                    .frame(width: 56, height: 56).contentShape(Rectangle())
                 }
-                .accessibilityLabel(state.isPlaying ? "Pause" : "Play")
+                .accessibilityLabel(player.isLoading ? "Loading, tap to stop" : (state.isPlaying ? "Pause" : "Play"))
                 .frame(maxWidth: .infinity)
                 Button(action: next) { Image(systemName: "forward.end.fill").font(.system(size: 28)).frame(width: 56, height: 56).contentShape(Rectangle()) }
                     .accessibilityLabel("Next")
