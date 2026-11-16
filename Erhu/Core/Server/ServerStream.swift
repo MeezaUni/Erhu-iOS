@@ -103,6 +103,9 @@ final class ServerStream {
 
     /// Called when a streamed song starts playing (set by [ServerStore], for Recently streamed).
     var onStarted: ((UUID, ServerSong) -> Void)?
+    /// The library's album a server song belongs to, with a song of it whose cover the album
+    /// shows: the streamed song joins that album (its cover, animated cover and page).
+    var libraryAlbum: ((ServerSong) -> (albumId: Int64, coverSong: URL?)?)?
 
     private var sources: [String: Source] = [:]
     private var remotes: [String: ServerSong] = [:]
@@ -140,8 +143,10 @@ final class ServerStream {
                                   cover: ServerCovers.fileURL(accountId: accountId, coverArt: coverArt))
         }
         pathsById[id] = path
+        let album = libraryAlbum?(remote)
+        ServerCovers.register(streamFile: ServerStreamPaths.cacheURL(forPath: path), librarySong: album?.coverSong)
         return Song(id: id, title: remote.title, artist: remote.artist ?? "", album: remote.album ?? "",
-                    durationMs: Int64(remote.duration ?? 0) * 1000, path: path,
+                    albumId: album?.albumId ?? 0, durationMs: Int64(remote.duration ?? 0) * 1000, path: path,
                     trackNumber: remote.track ?? 0, discNumber: remote.discNumber ?? 1, year: remote.year ?? 0,
                     isFavorite: favourite, genre: remote.genre, bpm: (remote.bpm ?? 0) > 0 ? remote.bpm : nil,
                     fileSize: quality == .original ? (remote.size ?? 0) : 0,

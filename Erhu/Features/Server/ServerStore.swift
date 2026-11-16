@@ -85,6 +85,7 @@ final class ServerStore {
         ServerStream.shared.trimCache()
         ServerStream.shared.allowsCaching = { [weak self] in !(self?.networkIsExpensive ?? false) }
         actions.streamFavorite = { [weak self] song in self?.toggleFavourite(stream: song) }
+        ServerStream.shared.libraryAlbum = { [weak self] remote in self?.libraryAlbum(of: remote) }
         // Songs streamed before a server was removed and added again belong to it again.
         for account in accounts { adoptRecents(of: account) }
         // Joining or leaving a Wi-Fi network decides between the home and away addresses.
@@ -369,6 +370,24 @@ final class ServerStore {
         songs.filter { $0.isVideo != true }.map {
             ServerStream.shared.song(for: $0, account: account, quality: streamQuality(for: account), favourite: isFavourite($0, account: account))
         }
+    }
+
+    /// The library's albums by normalized title, rebuilt when the albums change.
+    @ObservationIgnored private var albumsByTitle: (signature: [Int64], albums: [String: [Album]]) = ([], [:])
+
+    /// The library's album [remote] belongs to (same title, same artist), and the song whose
+    /// cover it shows.
+    private func libraryAlbum(of remote: ServerSong) -> (albumId: Int64, coverSong: URL?)? {
+        guard let title = remote.album, !title.isEmpty else { return nil }
+        let albums = library.albums
+        // Cheap to compare for every song; a rescan that changes albums changes these.
+        let signature = [Int64(albums.count), albums.first?.id ?? 0, albums.last?.id ?? 0]
+        if signature != albumsByTitle.signature {
+            albumsByTitle = (signature, Dictionary(grouping: albums) { SearchNormalizer.normalize($0.title) })
+        }
+        guard let album = albumsByTitle.albums[SearchNormalizer.normalize(title)]?
+            .first(where: { ServerLibraryMerge.sameArtist($0.artist, remote.artist ?? "") }) else { return nil }
+        return (album.id, library.albumCoverSong[album.id]?.url)
     }
 
     /// What a streamed song's row menu offers: queueing, the server favourite and downloading.
