@@ -41,10 +41,11 @@ A small app that runs the music server for you. It lives in the tray (Windows) o
 4. On the iPhone, on the same Wi-Fi, **point the Camera at the QR code** on the page and tap
    *Open in Erhu*. Type your password and tap *Connect*.
 
-**Erhu web player:** *Open the Erhu web player* on the page plays your music in a browser, in
-Erhu's own look: albums, artists, playlists, search, and a player bar with keyboard and media-key
-controls. Other computers, tablets and phones on the same Wi-Fi can open it too, at the address the
-page shows (`http://<computer address>:4535`); sign in with your Erhu Server account. If Windows asks
+**Erhu web player:** *Open the Erhu web player* on the page opens Navidrome's full web app (albums,
+artists, songs, playlists, radios, favourites, ratings, the queue, downloads and settings) in
+Erhu's own dark-and-amber look. Other computers, tablets and phones on the same Wi-Fi can open it
+too, at the address the page shows (`http://<computer address>:4535`), and so can any browser at
+your away-from-home address once that's set up; sign in with your Erhu Server account. If Windows asks
 whether to allow `ErhuServer` on the network, choose *Allow* for private networks.
 
 Keep the computer on and awake while you listen. Click the tray or menu bar icon to open the page
@@ -154,6 +155,10 @@ by itself as soon as each step is done. If a step fails, the page says why and t
 Erhu then uses the home address on your Wi-Fi and switches to the away address by itself
 everywhere else (Music Server shows *Connected through*). Keep the computer on and awake.
 *Turn off* on the page removes the public address again.
+
+The away address goes through Erhu Server, so opened in a browser it shows the Erhu web player
+too. An away address set up with an earlier version of Erhu Server (which published Navidrome
+directly) is switched over by itself the next time the page is open; the address stays the same.
 
 ### On a NAS or Linux box (Docker or a package)
 

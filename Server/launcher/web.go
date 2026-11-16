@@ -165,7 +165,7 @@ func (c *Control) handler() http.Handler {
 		}
 		switch {
 		case in.Enabled:
-			c.remote.Start(c.store.Get().Port)
+			c.remote.Start(c.publishPort())
 		case in.Stop:
 			c.remote.Cancel()
 		default:
@@ -187,6 +187,16 @@ func (c *Control) handler() http.Handler {
 		return map[string]bool{"quitting": true}, nil
 	}))
 	return mux
+}
+
+// publishPort is what the away-from-home address forwards to: the web app in Erhu's look (it
+// passes the Subsonic API through, so the phone app works through it too), or Navidrome itself
+// if that couldn't start.
+func (c *Control) publishPort() int {
+	if c.playerPort != 0 {
+		return c.playerPort
+	}
+	return c.store.Get().Port
 }
 
 func (c *Control) setFolder(path string) (any, error) {
@@ -269,11 +279,16 @@ func (c *Control) state() PageState {
 	for _, ip := range lanAddresses() {
 		out.Addresses = append(out.Addresses, serverURL(ip, cfg.Port))
 	}
-	out.Remote = c.remote.State(cfg.Port)
+	publish := c.publishPort()
+	if publish != cfg.Port {
+		c.remote.SetOldPort(cfg.Port)
+	}
+	out.Remote = c.remote.State(publish)
+	go c.remote.MoveIfNeeded(publish)
 	out.FFmpeg = c.ffmpeg.State()
 	wanted, step, problem := c.remote.progress()
 	if wanted {
-		go c.remote.Advance(cfg.Port) // the page refreshes every two seconds, which moves the setup on
+		go c.remote.Advance(publish) // the page refreshes every two seconds, which moves the setup on
 	}
 	out.Remote.SettingUp, out.Remote.Step = wanted, step
 	if problem != "" {

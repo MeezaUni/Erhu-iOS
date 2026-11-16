@@ -127,6 +127,8 @@ func (s *Server) Start() error {
 		"ND_SCANNER_ENABLED=true",
 		"ND_SCANNER_SCANONSTARTUP=true",
 		"ND_LOGLEVEL=info",
+		// Erhu Server's web app restyles Navidrome's dark look.
+		"ND_DEFAULTTHEME=Dark",
 	)
 	// With ffmpeg, Navidrome can send smaller MP3 copies (Erhu uses them away from home).
 	if ffmpeg := newFFmpeg(s.store.DataDir()).Path(); ffmpeg != "" {
