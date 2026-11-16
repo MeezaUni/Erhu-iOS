@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// An album, artist or playlist on a music server, as a navigation destination.
 struct ServerRef: Hashable, Sendable {
@@ -297,8 +298,9 @@ struct ServerLibraryShelves: View {
     }
 }
 
-/// On Home, under Recently played albums: the last albums streamed from a server. They stay
-/// listed without a connection; opening one then explains that its server isn't connected.
+/// On Home, under Recently played albums: the last five albums streamed from a server, with
+/// covers saved on this device. They stay listed without a connection; opening one then explains
+/// that its server isn't connected.
 struct RecentlyStreamedShelf: View {
     @Environment(ServerStore.self) private var servers
     @Environment(AppRouter.self) private var router
@@ -309,14 +311,8 @@ struct RecentlyStreamedShelf: View {
         if !albums.isEmpty {
             Shelf(title: String(localized: "Recently streamed albums")) {
                 ForEach(albums) { album in
-                    // A server added again has a new ID: covers and pages follow the current one.
-                    ServerTile(accountId: servers.account(for: album.item)?.id ?? album.accountId,
-                               title: album.title, subtitle: album.artist, coverArt: album.coverArt) {
-                        if let account = servers.account(for: album.item) {
-                            router.open(.serverAlbum(ServerRef(accountId: account.id, id: album.albumId, title: album.title)))
-                        } else {
-                            notConnected = true
-                        }
+                    ArtworkTile(title: album.title, subtitle: album.artist) { open(album) } cover: {
+                        StreamedAlbumCover(album: album)
                     }
                     .frame(width: ArtworkSize.shelf)
                 }
@@ -329,5 +325,49 @@ struct RecentlyStreamedShelf: View {
                 Text("This album was streamed from a server that is no longer connected in Erhu. Add the server again in Music Server to play it.")
             }
         }
+    }
+
+    private func open(_ album: StreamedAlbum) {
+        guard let account = servers.account(album.accountId, server: album.server, username: album.username) else {
+            notConnected = true
+            return
+        }
+        if let albumId = album.albumId {
+            router.open(.serverAlbum(ServerRef(accountId: account.id, id: albumId, title: album.title)))
+        } else if !servers.playRecent(album) {
+            notConnected = true
+        }
+    }
+}
+
+/// A Recently streamed album's cover, from the copy saved on this device (fetched once if missing).
+private struct StreamedAlbumCover: View {
+    let album: StreamedAlbum
+    @Environment(ServerStore.self) private var servers
+    @Environment(\.palette) private var palette
+    @State private var image: UIImage?
+    @State private var revision = 0
+
+    var body: some View {
+        let file = album.coverFile
+        ZStack {
+            if let image {
+                FillImage(image: image)
+            } else {
+                Rectangle().fill(palette.surfaceVariant)
+                Image(systemName: "square.stack").font(.system(size: 20, weight: .medium)).foregroundStyle(palette.onSurfaceVariant)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ServerCovers.didChange)) { note in
+            if note.object as? String == file.path { revision += 1 }
+        }
+        .task(id: "\(file.path)|\(revision)") {
+            if FileManager.default.fileExists(atPath: file.path) {
+                image = await ArtworkLoader.shared.image(atPath: file.path, maxPixels: 400)
+            } else {
+                servers.saveCover(of: album)
+            }
+        }
+        .accessibilityHidden(true)
     }
 }

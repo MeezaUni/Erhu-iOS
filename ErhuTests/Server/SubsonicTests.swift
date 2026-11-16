@@ -185,18 +185,32 @@ final class SubsonicTests: XCTestCase {
 
     // MARK: Streaming and downloads
 
-    func testRecentlyStreamedAlbumsAreNewestFirstOncePerAlbumAndCapped() throws {
-        func item(_ song: Int, album: Int?) throws -> StreamedSong {
-            let albumField = album.map { ",\"albumId\":\"al-\($0)\",\"album\":\"Album \($0)\"" } ?? ""
+    func testRecentlyStreamedAlbumsKeepTheLastFiveAndDropTheOldest() throws {
+        func album(_ song: Int, album: Int?, server: String = "http://192.168.1.20:4533") throws -> StreamedAlbum? {
+            let albumField = album.map { ",\"albumId\":\"al-\($0)\",\"album\":\"Album \($0)\",\"coverArt\":\"al-\($0)_c\"" } ?? ""
             let data = Data("{\"id\":\"s\(song)\",\"title\":\"Song \(song)\"\(albumField)}".utf8)
-            return StreamedSong(accountId: account.id, song: try JSONDecoder().decode(ServerSong.self, from: data), playedAt: Date())
+            let song = try JSONDecoder().decode(ServerSong.self, from: data)
+            return StreamedAlbum(StreamedSong(accountId: UUID(), song: song, playedAt: Date(), server: server, username: "listener"))
         }
-        let recent = [try item(1, album: 1), try item(2, album: 1), try item(3, album: nil), try item(4, album: 2),
-                      try item(5, album: 3), try item(6, album: 4), try item(7, album: 5), try item(8, album: 6)]
-        let albums = ServerStore.recentAlbums(from: recent)
-        XCTAssertEqual(["al-1", "al-2", "al-3", "al-4", "al-5"], albums.map(\.albumId))
-        XCTAssertEqual("Album 1", albums[0].title)
-        XCTAssertEqual("s1", albums[0].item.song.id)
+        XCTAssertNil(try album(9, album: nil), "a song with no album adds nothing")
+        var list: [StreamedAlbum] = []
+        var dropped: [StreamedAlbum] = []
+        for (song, number) in [(1, 1), (2, 2), (3, 1), (4, 3), (5, 4), (6, 5)] {
+            (list, dropped) = ServerStore.addingAlbum(try XCTUnwrap(try album(song, album: number)), to: list)
+            XCTAssertTrue(dropped.isEmpty)
+        }
+        XCTAssertEqual(["al-5", "al-4", "al-3", "al-1", "al-2"], list.map(\.albumId), "newest first, once per album")
+        // A sixth album pushes the oldest off; its cover is what gets deleted.
+        (list, dropped) = ServerStore.addingAlbum(try XCTUnwrap(try album(7, album: 6)), to: list)
+        XCTAssertEqual(5, list.count)
+        XCTAssertEqual(["al-2"], dropped.map(\.albumId))
+        XCTAssertEqual("Album 6", list[0].title)
+        // The same album streamed again after the server was added again (new account ID) is one entry.
+        let again = try XCTUnwrap(try album(8, album: 6))
+        XCTAssertEqual(again.id, list[0].id)
+        XCTAssertEqual(again.coverFile, list[0].coverFile)
+        XCTAssertTrue(again.coverFile.path.hasPrefix(LibraryPaths.supportFolder.path), "covers aren't in Caches, which iOS may clear")
+        XCTAssertEqual(list, try JSONDecoder().decode([StreamedAlbum].self, from: JSONEncoder().encode(list)))
     }
 
     func testRecentSearchesKeepServerItemsAndLibraryIdsBetweenLaunches() throws {
