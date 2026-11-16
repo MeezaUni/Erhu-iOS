@@ -2774,6 +2774,160 @@
         }
       }
     },
+    "%@ isn't connected right now. Its songs play again once it's back." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ غير متصل الآن. ستعمل أغانيه مجددًا عند عودته."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ এখন সংযুক্ত নেই। ফিরে এলে এর গানগুলো আবার বাজবে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ist gerade nicht verbunden. Seine Songs spielen wieder, sobald er zurück ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ no está conectado ahora. Sus canciones volverán a sonar cuando vuelva."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ اکنون وصل نیست. وقتی برگردد، آهنگ‌هایش دوباره پخش می‌شوند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi nakakonekta ang %@ ngayon. Tutugtog muli ang mga kanta nito kapag bumalik na ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n’est pas connecté pour le moment. Ses morceaux seront à nouveau lisibles dès son retour."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ अभी कनेक्ट नहीं है। वापस आने पर इसके गाने फिर चलेंगे।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sedang tidak terhubung. Lagunya bisa diputar lagi setelah kembali."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ non è connesso al momento. I suoi brani torneranno a suonare quando sarà di nuovo disponibile."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ は現在接続されていません。戻ると曲を再び再生できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@에 지금 연결되어 있지 않습니다. 다시 연결되면 곡을 재생할 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is nu niet verbonden. De nummers spelen weer zodra hij terug is."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ nie jest teraz połączony. Utwory zagrają ponownie, gdy wróci."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ não está conectado agora. As músicas voltam a tocar quando ele voltar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ сейчас не подключён. Песни снова будут играть, когда он вернётся."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ இப்போது இணைப்பில் இல்லை. அது திரும்பியதும் அதன் பாடல்கள் மீண்டும் இயங்கும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ఇప్పుడు కనెక్ట్ కాలేదు. తిరిగి వచ్చాక దాని పాటలు మళ్లీ ప్లే అవుతాయి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ไม่ได้เชื่อมต่ออยู่ในขณะนี้ เพลงจะเล่นได้อีกครั้งเมื่อกลับมา"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ şu anda bağlı değil. Geri geldiğinde şarkıları yeniden çalınır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ зараз не підключений. Пісні знову гратимуть, щойно він повернеться."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ابھی منسلک نہیں ہے۔ واپس آنے پر اس کے گانے پھر چلیں گے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ hiện không được kết nối. Các bài hát sẽ phát lại khi máy chủ trở lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 目前未连接。恢复后即可再次播放其中的歌曲。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 目前未連線。恢復後即可再次播放其中的歌曲。"
+          }
+        }
+      }
+    },
     "%@ loaded %@–%@" : {
       "localizations" : {
         "ar" : {
@@ -36497,6 +36651,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已繞過"
+          }
+        }
+      }
+    },
+    "Can't reach your music server. It may be turned off or disconnected." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر الوصول إلى خادم الموسيقى. قد يكون مطفأً أو غير متصل."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "আপনার মিউজিক সার্ভারে পৌঁছানো যাচ্ছে না। এটি বন্ধ বা সংযোগ বিচ্ছিন্ন থাকতে পারে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Musikserver ist nicht erreichbar. Er ist vielleicht ausgeschaltet oder nicht verbunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede conectar con tu servidor de música. Puede que esté apagado o desconectado."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دسترسی به سرور موسیقی ممکن نیست. شاید خاموش یا قطع باشد."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi maabot ang iyong music server. Maaaring nakapatay o hindi nakakonekta ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de joindre ton serveur de musique. Il est peut-être éteint ou déconnecté."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके म्यूज़िक सर्वर तक नहीं पहुँचा जा सका। हो सकता है वह बंद हो या कनेक्ट न हो।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server musikmu tidak dapat dijangkau. Mungkin sedang mati atau tidak terhubung."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile raggiungere il tuo server musicale. Potrebbe essere spento o scollegato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽サーバに接続できません。電源が切れているか、接続されていない可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 서버에 연결할 수 없습니다. 꺼져 있거나 연결이 끊겼을 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je muziekserver is niet bereikbaar. Misschien staat hij uit of is hij niet verbonden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można połączyć się z serwerem muzyki. Może być wyłączony lub rozłączony."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível acessar seu servidor de música. Ele pode estar desligado ou desconectado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удаётся связаться с музыкальным сервером. Возможно, он выключен или не подключён."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "உங்கள் இசை சர்வரை அடைய முடியவில்லை. அது அணைக்கப்பட்டிருக்கலாம் அல்லது இணைப்பில் இல்லாமல் இருக்கலாம்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "మీ మ్యూజిక్ సర్వర్‌ను చేరుకోలేకపోయాం. అది ఆఫ్ అయి ఉండవచ్చు లేదా కనెక్ట్ కాకపోవచ్చు."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ติดต่อเซิร์ฟเวอร์เพลงไม่ได้ อาจปิดอยู่หรือไม่ได้เชื่อมต่อ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Müzik sunucuna ulaşılamıyor. Kapalı ya da bağlantısı kesik olabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдається зв’язатися з музичним сервером. Можливо, він вимкнений або не підключений."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ کے میوزک سرور تک رسائی نہیں ہو سکی۔ ہو سکتا ہے وہ بند ہو یا منقطع ہو۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể kết nối với máy chủ nhạc. Có thể máy chủ đã tắt hoặc mất kết nối."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到你的音乐服务器。它可能已关闭或断开连接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線到你的音樂伺服器。它可能已關閉或中斷連線。"
           }
         }
       }
@@ -219007,6 +219315,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的音樂檔案、資料庫索引和 VYBE 處理都保留在此裝置上。線上歌詞、後設資料和插圖搜尋只使用請求所需的歌曲或藝人資訊。"
+          }
+        }
+      }
+    },
+    "Your music server isn't sending this song right now. Try again in a moment." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خادم الموسيقى لا يرسل هذه الأغنية الآن. حاول مجددًا بعد قليل."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "আপনার মিউজিক সার্ভার এখন এই গানটি পাঠাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Musikserver sendet diesen Song gerade nicht. Versuch es gleich noch einmal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu servidor de música no está enviando esta canción ahora. Inténtalo de nuevo en un momento."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرور موسیقی اکنون این آهنگ را نمی‌فرستد. کمی بعد دوباره امتحان کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi ipinapadala ng iyong music server ang kantang ito ngayon. Subukan muli mamaya."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton serveur de musique n’envoie pas ce morceau pour le moment. Réessaie dans un instant."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका म्यूज़िक सर्वर अभी यह गाना नहीं भेज रहा है। थोड़ी देर में फिर कोशिश करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server musikmu belum mengirim lagu ini. Coba lagi sebentar lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo server musicale non sta inviando questo brano. Riprova tra poco."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽サーバがこの曲を送信していません。少し待ってからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 서버가 지금 이 곡을 보내지 않고 있습니다. 잠시 후 다시 시도하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je muziekserver stuurt dit nummer nu niet. Probeer het zo opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer muzyki nie wysyła teraz tego utworu. Spróbuj ponownie za chwilę."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu servidor de música não está enviando esta música agora. Tente de novo em instantes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Музыкальный сервер сейчас не отправляет эту песню. Попробуйте ещё раз чуть позже."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "உங்கள் இசை சர்வர் இப்போது இந்தப் பாடலை அனுப்பவில்லை. சிறிது நேரத்தில் மீண்டும் முயலவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "మీ మ్యూజిక్ సర్వర్ ఇప్పుడు ఈ పాటను పంపడం లేదు. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เซิร์ฟเวอร์เพลงยังไม่ส่งเพลงนี้ในตอนนี้ ลองอีกครั้งในอีกสักครู่"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Müzik sunucun şu anda bu şarkıyı göndermiyor. Birazdan yeniden dene."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Музичний сервер зараз не надсилає цю пісню. Спробуйте ще раз трохи згодом."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ کا میوزک سرور ابھی یہ گانا نہیں بھیج رہا۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ nhạc hiện không gửi bài hát này. Hãy thử lại sau giây lát."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的音乐服务器暂时没有发送这首歌。请稍后再试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的音樂伺服器暫時沒有傳送這首歌。請稍後再試。"
           }
         }
       }

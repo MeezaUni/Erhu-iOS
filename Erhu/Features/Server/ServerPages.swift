@@ -124,6 +124,13 @@ private struct ServerCollectionPage: View {
                                      onShuffle: { servers.play(tracks, shuffled: true, account: account, source: source) }) {
                     ServerCoverView(accountId: account.id, coverArt: coverArt, maxPixels: 1200, placeholder: "square.stack")
                 }
+                if !servers.isReachable(account.id) {
+                    Label(String(localized: "\(account.name) isn't connected right now. Its songs play again once it's back."),
+                          systemImage: "wifi.exclamationmark")
+                        .font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, Spacing.gutter).padding(.bottom, Spacing.sm)
+                }
                 if songs.isEmpty { EmptyState(message: String(localized: "No songs.")) }
                 ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
                     TrackRow(song: song, isCurrent: song.id == currentId, showTrackNumber: numbered,
@@ -152,6 +159,8 @@ private struct ServerCollectionPage: View {
         }
         .background { CollectionPageBackground() }
         .collectionArtworkTheme(.image(themeCover))
+        // A server that was off may be back: check as the page opens.
+        .task { if !servers.isReachable(account.id) { servers.chooseRoutes() } }
         // On Wi-Fi, start fetching the first song as the page opens, so Play starts at once.
         .task(id: songs.first?.path) {
             guard !servers.networkIsExpensive, !player.isStreamingDirectly, let first = songs.first else { return }

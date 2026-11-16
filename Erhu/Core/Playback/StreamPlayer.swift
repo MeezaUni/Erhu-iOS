@@ -20,6 +20,8 @@ final class StreamPlayer {
     /// Enough of the song is buffered (all of it, or a minute ahead) that other downloads can
     /// start without making it stall. Called once per song.
     var onBufferedEnough: ((UUID) -> Void)?
+    /// Playback stopped to wait for more of the song (the connection fell behind or dropped).
+    var onWaiting: ((UUID) -> Void)?
 
     var volume: Float = 1 { didSet { player?.volume = volume } }
 
@@ -108,6 +110,7 @@ final class StreamPlayer {
                 guard let self, self.entryId == entryId else { return }
                 switch status {
                 case .playing: self.onPlaying?(entryId)
+                case .waitingToPlayAtSpecifiedRate: if self.wantsToPlay { self.onWaiting?(entryId) }
                 case .paused:
                     // Paused without being asked here, before the end: the system interrupted.
                     if self.wantsToPlay, item.status == .readyToPlay,
