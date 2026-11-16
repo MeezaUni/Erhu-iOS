@@ -214,12 +214,8 @@ private struct CarouselCard: View, Equatable {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(song.title).font(.title2.weight(.bold)).foregroundStyle(colors.content).lineLimit(1)
                     // On the current card the artist and album open their pages.
-                    Button { router.showArtist(of: song) } label: {
-                        Text(song.artist).font(.subheadline).foregroundStyle(colors.secondary).lineLimit(1)
-                    }
-                    .buttonStyle(.plain)
-                    .allowsHitTesting(isCurrent)
-                    .accessibilityHint(isCurrent ? "Opens the artist" : "")
+                    // Each artist named opens their own page.
+                    ArtistCreditLinks(song: song, color: colors.secondary, enabled: isCurrent)
                     if metrics.showAlbum, !song.album.isBlank {
                         Button { router.showAlbum(of: song) } label: {
                             Text(song.album).font(.caption.weight(.medium)).foregroundStyle(colors.secondary.opacity(0.8)).lineLimit(1)
@@ -270,5 +266,57 @@ private struct PlayerNeighbourFade: ViewModifier {
     @Environment(PlayerDragState.self) private var drag
     func body(content: Content) -> some View {
         content.modifier(PlayerChromeOpacity(progress: isCurrent ? 1 : drag.progress))
+    }
+}
+
+
+/// A song's artist line where each artist named is a link to their page ("Alicia Keys" and
+/// "Kendrick Lamar" separately): the library's artist, else the connected server's.
+private struct ArtistCreditLinks: View {
+    let song: Song
+    let color: Color
+    let enabled: Bool
+    @Environment(ServerStore.self) private var servers
+    @Environment(AppRouter.self) private var router
+
+    var body: some View {
+        let names = servers.artistNames(in: song.artist)
+        Group {
+            if names.count > 1 {
+                Text(linked(names))
+                    .environment(\.openURL, OpenURLAction { url in
+                        if let index = Int(url.lastPathComponent), names.indices.contains(index) { open(names[index]) }
+                        return .handled
+                    })
+            } else {
+                Button { open(names.first ?? song.artist) } label: { Text(song.artist) }
+                    .buttonStyle(.plain)
+            }
+        }
+        .font(.subheadline)
+        .foregroundStyle(color)
+        .tint(color)
+        .lineLimit(1)
+        .allowsHitTesting(enabled)
+        .accessibilityHint(enabled ? "Opens the artist" : "")
+    }
+
+    /// The credit as written, each name a link (erhu-artist://open/<index>).
+    private func linked(_ names: [String]) -> AttributedString {
+        var text = AttributedString(song.artist)
+        var searchFrom = text.startIndex
+        for (index, name) in names.enumerated() {
+            guard let range = text[searchFrom...].range(of: name, options: .caseInsensitive) else { continue }
+            text[range].link = URL(string: "erhu-artist://open/\(index)")
+            searchFrom = range.upperBound
+        }
+        return text
+    }
+
+    private func open(_ name: String) {
+        let song = song
+        Task {
+            if let route = await servers.artistRoute(named: name, of: song) { router.showArtist(route) }
+        }
     }
 }

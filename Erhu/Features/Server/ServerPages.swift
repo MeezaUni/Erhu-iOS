@@ -199,6 +199,75 @@ struct ServerArtistPage: View {
     }
 }
 
+/// A server artist by name: Play / Shuffle, their albums, then every song crediting them
+/// (their own and features), from the saved catalog.
+struct NamedServerArtistPage: View {
+    let ref: ServerRef
+    @Environment(ServerStore.self) private var servers
+    @Environment(AppRouter.self) private var router
+    @Environment(PlayerController.self) private var player
+    @State private var artist: NamedServerArtist?
+    @State private var loaded = false
+
+    var body: some View {
+        if let account = servers.account(ref.accountId), let index = servers.catalog(for: account.id) {
+            let albums = (artist?.albumIds ?? []).compactMap { index.albumEntry($0) }
+                .sorted { ($0.year ?? 0) == ($1.year ?? 0) ? $0.name < $1.name : ($0.year ?? 0) > ($1.year ?? 0) }
+            let remote = index.songs(artist?.songIds ?? [])
+            let songs = servers.streamSongs(remote, account: account)
+            let source = PlaybackSource.server(account: account.id, album: nil, title: ref.title)
+            let rowActions = servers.songActions(source: source)
+            let currentId = player.state.currentSong?.id
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    CollectionHeroHeader(title: ref.title, subtitle: nil,
+                                         facts: "\(countLabel(songs.count, .song)) · \(countLabel(albums.count, .album))",
+                                         canPlay: !songs.isEmpty,
+                                         onPlay: { servers.play(remote, shuffled: false, account: account, source: source) },
+                                         onShuffle: { servers.play(remote, shuffled: true, account: account, source: source) }) {
+                        ServerCoverView(accountId: account.id, coverArt: artist?.coverArt, maxPixels: 1200, placeholder: "person")
+                    }
+                    if !albums.isEmpty {
+                        Shelf(title: String(localized: "Albums")) {
+                            ForEach(albums, id: \.id) { album in
+                                ServerTile(accountId: account.id, title: album.name,
+                                           subtitle: album.year.flatMap { $0 > 0 ? String($0) : nil } ?? album.artist,
+                                           coverArt: album.coverArt, showsStreamBadge: true) {
+                                    router.open(.serverAlbum(ServerRef(accountId: account.id, id: album.id, title: album.name)))
+                                }
+                                .frame(width: 128)
+                            }
+                        }
+                        .padding(.bottom, Spacing.sm)
+                    }
+                    if !songs.isEmpty {
+                        SectionHeading(title: String(localized: "Songs"))
+                        ForEach(Array(songs.enumerated()), id: \.offset) { position, song in
+                            TrackRow(song: song, isCurrent: song.id == currentId, actions: rowActions) {
+                                servers.play(remote, startAt: position, account: account, source: source)
+                            }
+                        }
+                    } else if loaded {
+                        EmptyState(message: String(localized: "No songs."))
+                    }
+                }
+            }
+            .tracksLibraryScrolling()
+            .ignoresSafeArea(.container, edges: .top)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .modifier(CollectionTopEdgeEffect())
+            .navigationBarTitleDisplayMode(.inline)
+            .background { CollectionPageBackground() }
+            .task(id: servers.catalogVersion) {
+                artist = await servers.namedArtists()[ref.id]
+                loaded = true
+            }
+        } else {
+            ServerNotConnectedView()
+        }
+    }
+}
+
 /// Every album on a server, by name, as the library's album grid; more load as you scroll.
 struct ServerAlbumsPage: View {
     let accountId: UUID

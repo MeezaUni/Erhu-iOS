@@ -176,6 +176,7 @@ struct RootView: View {
             case .transitionStudio(let collection): TransitionStudioView(collection: collection).tracksLibraryScrolling(usesUIKit: true)
             case .serverAlbum(let ref): ServerAlbumPage(ref: ref)
             case .serverArtist(let ref): ServerArtistPage(ref: ref)
+            case .serverArtistNamed(let ref): NamedServerArtistPage(ref: ref)
             case .serverPlaylist(let ref): ServerPlaylistPage(ref: ref)
             case .serverAlbums(let account): ServerAlbumsPage(accountId: account)
             }

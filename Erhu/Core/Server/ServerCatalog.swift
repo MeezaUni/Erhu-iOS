@@ -83,6 +83,7 @@ final class ServerCatalogIndex: @unchecked Sendable {
     private let songsByAlbum: [String: [Int]]
     private let albumsById: [String: Int]
     private let artistsById: [String: Int]
+    private let songsById: [String: Int]
 
     init(_ catalog: ServerCatalog) {
         self.catalog = catalog
@@ -91,6 +92,7 @@ final class ServerCatalogIndex: @unchecked Sendable {
         songsByAlbum = byAlbum
         albumsById = Dictionary(catalog.albums.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
         artistsById = Dictionary(catalog.artists.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
+        songsById = Dictionary(catalog.songs.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
         songTitles = catalog.songs.map { SearchNormalizer.normalizeWords($0.title) }
         songArtists = catalog.songs.map { SearchNormalizer.normalizeWords($0.artist ?? "") }
         albumNames = catalog.albums.map { SearchNormalizer.normalizeWords($0.name) }
@@ -131,6 +133,14 @@ final class ServerCatalogIndex: @unchecked Sendable {
     }
 
     /// An album as the catalog knows it (songs in disc and track order), to show at once.
+    /// The songs with [ids], in that order (unknown ones left out).
+    func songs(_ ids: [String]) -> [ServerSong] { ids.compactMap { songsById[$0].map { catalog.songs[$0] } } }
+
+    /// The catalog's entry for album [id].
+    func albumEntry(_ id: String) -> ServerCatalog.Album? { albumsById[id].map { catalog.albums[$0] } }
+
+    func songCount(ofAlbum id: String) -> Int { songsByAlbum[id]?.count ?? 0 }
+
     func album(_ id: String) -> ServerAlbum? {
         guard let index = albumsById[id] else { return nil }
         let album = catalog.albums[index]

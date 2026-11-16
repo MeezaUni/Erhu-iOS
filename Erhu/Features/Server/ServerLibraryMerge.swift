@@ -184,3 +184,80 @@ enum ServerLibraryMerge {
         return merge(local, streamed.sorted(by: before), by: before)
     }
 }
+
+/// An artist on a server, by name: credits naming several artists ("Alicia Keys, Kendrick
+/// Lamar") count for each of them.
+struct NamedServerArtist: Hashable, Sendable, Identifiable {
+    /// The normalized name.
+    let key: String
+    let name: String
+    var albumIds: [String] = []
+    var songIds: [String] = []
+    /// The server's picture of the artist, or the cover of one of their albums.
+    var coverArt: String?
+    var id: String { key }
+}
+
+extension ServerLibraryMerge {
+    static func artistKey(_ name: String) -> String { SearchNormalizer.normalize(name) }
+
+    /// The artists a credit names, in order: split at commas, "&", "feat." and the like, except
+    /// where the joined text is one artist: one in the library ([local]), or one the server
+    /// lists ([server]) that isn't a comma list or made of artists the library knows.
+    static func artistNames(_ credit: String, local: Set<String>, server: Set<String> = []) -> [String] {
+        var names: [String] = []
+        var seen = Set<String>()
+        func add(_ name: String) {
+            let key = artistKey(name)
+            if !key.isEmpty, seen.insert(key).inserted { names.append(name) }
+        }
+        for run in CreditText.runs(credit) {
+            let segments = run.segments
+            var i = 0
+            while i < segments.count {
+                var end = i
+                for j in stride(from: segments.count - 1, to: i, by: -1) {
+                    let joined = run.raw.substring16(segments[i].start, segments[j].end)
+                    let key = artistKey(joined)
+                    let pieces = segments[i...j].map { artistKey($0.text) }
+                    if local.contains(key) || (server.contains(key) && !joined.contains(",") && !pieces.contains(where: local.contains)) {
+                        end = j
+                        break
+                    }
+                }
+                add(end == i ? segments[i].text : run.raw.substring16(segments[i].start, segments[end].end))
+                i = end + 1
+            }
+        }
+        return names
+    }
+
+    /// Every artist on a server by name, with their albums and songs.
+    static func namedArtists(in index: ServerCatalogIndex, local: Set<String>) -> [String: NamedServerArtist] {
+        let catalog = index.catalog
+        let server = Set(catalog.artists.map { artistKey($0.name) })
+        var pictures: [String: String] = [:]
+        for artist in catalog.artists { if let cover = artist.coverArt { pictures[artistKey(artist.name)] = cover } }
+        var artists: [String: NamedServerArtist] = [:]
+        func credit(_ text: String?, _ update: (inout NamedServerArtist) -> Void) {
+            guard let text, !text.isEmpty else { return }
+            for name in artistNames(text, local: local, server: server) {
+                let key = artistKey(name)
+                update(&artists[key, default: NamedServerArtist(key: key, name: name, coverArt: pictures[key])])
+            }
+        }
+        for album in catalog.albums {
+            credit(album.artist) { artist in
+                artist.albumIds.append(album.id)
+                if artist.coverArt == nil { artist.coverArt = album.coverArt }
+            }
+        }
+        for song in catalog.songs where song.isVideo != true {
+            credit(song.artist) { artist in
+                artist.songIds.append(song.id)
+                if artist.coverArt == nil { artist.coverArt = song.coverArt }
+            }
+        }
+        return artists
+    }
+}
