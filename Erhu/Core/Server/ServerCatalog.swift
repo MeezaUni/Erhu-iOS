@@ -17,6 +17,8 @@ struct ServerCatalog: Codable, Sendable {
         let artist: String?
         let coverArt: String?
         let year: Int?
+        /// Missing in catalogs saved by earlier versions.
+        var artistId: String? = nil
     }
 
     var artists: [Artist] = []
@@ -54,7 +56,7 @@ struct ServerCatalog: Codable, Sendable {
                                                     songOffset: songOffset, size: pageSize)
             let artists = page?.artist ?? [], albums = page?.album ?? [], songs = page?.song ?? []
             catalog.artists += artists.map { Artist(id: $0.id, name: $0.name, coverArt: $0.coverArt, albumCount: $0.albumCount) }
-            catalog.albums += albums.map { Album(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt, year: $0.year) }
+            catalog.albums += albums.map { Album(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt, year: $0.year, artistId: $0.artistId) }
             catalog.songs += songs.filter { $0.isVideo != true }
             // A kind is done when a page comes back short; -1 stops asking for it.
             artistOffset = artistOffset < 0 || artists.count < pageSize ? -1 : artistOffset + artists.count
@@ -78,8 +80,17 @@ final class ServerCatalogIndex: @unchecked Sendable {
     private let albumArtists: [String]
     private let artistNames: [String]
 
+    private let songsByAlbum: [String: [Int]]
+    private let albumsById: [String: Int]
+    private let artistsById: [String: Int]
+
     init(_ catalog: ServerCatalog) {
         self.catalog = catalog
+        var byAlbum: [String: [Int]] = [:]
+        for (index, song) in catalog.songs.enumerated() { if let album = song.albumId { byAlbum[album, default: []].append(index) } }
+        songsByAlbum = byAlbum
+        albumsById = Dictionary(catalog.albums.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
+        artistsById = Dictionary(catalog.artists.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
         songTitles = catalog.songs.map { SearchNormalizer.normalizeWords($0.title) }
         songArtists = catalog.songs.map { SearchNormalizer.normalizeWords($0.artist ?? "") }
         albumNames = catalog.albums.map { SearchNormalizer.normalizeWords($0.name) }
@@ -117,5 +128,29 @@ final class ServerCatalogIndex: @unchecked Sendable {
         let albums = ranked(catalog.albums.count) { max(SearchNormalizer.score(self.albumNames[$0], text), qualified(self.albumNames[$0], self.albumArtists[$0])) }
         let artists = ranked(catalog.artists.count) { SearchNormalizer.score(self.artistNames[$0], text) }
         return (artists.map { catalog.artists[$0] }, albums.map { catalog.albums[$0] }, songs.map { catalog.songs[$0] })
+    }
+
+    /// An album as the catalog knows it (songs in disc and track order), to show at once.
+    func album(_ id: String) -> ServerAlbum? {
+        guard let index = albumsById[id] else { return nil }
+        let album = catalog.albums[index]
+        let songs = (songsByAlbum[id] ?? []).map { catalog.songs[$0] }.sorted {
+            ($0.discNumber ?? 1, $0.track ?? 0, $0.title) < ($1.discNumber ?? 1, $1.track ?? 0, $1.title)
+        }
+        return ServerAlbum(id: album.id, name: album.name, artist: album.artist, artistId: album.artistId,
+                           coverArt: album.coverArt, year: album.year, song: songs)
+    }
+
+    /// An artist and their albums as the catalog knows them (albums need an artist ID, which
+    /// catalogs saved by earlier versions lack: then nil, and the page waits for the server).
+    func artist(_ id: String) -> ServerArtist? {
+        guard let index = artistsById[id] else { return nil }
+        let albums = catalog.albums.filter { $0.artistId == id }
+        guard !albums.isEmpty else { return nil }
+        let artist = catalog.artists[index]
+        return ServerArtist(id: artist.id, name: artist.name, coverArt: artist.coverArt,
+                            album: albums.sorted { ($0.year ?? 0) > ($1.year ?? 0) }.map {
+                                ServerAlbum(id: $0.id, name: $0.name, artist: $0.artist, artistId: $0.artistId, coverArt: $0.coverArt, year: $0.year, song: [])
+                            })
     }
 }

@@ -68,6 +68,15 @@ struct ServerArtist: Decodable, Sendable, Hashable, Identifiable {
     let coverArt: String?
     let album: [ServerAlbum]
 
+    /// An artist put together on this device (from the saved catalog), before the server answers.
+    init(id: String, name: String, coverArt: String?, album: [ServerAlbum]) {
+        self.id = id
+        self.name = name
+        self.coverArt = coverArt
+        self.album = album
+        albumCount = album.count
+    }
+
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeFlexibleString(forKey: .id)
@@ -90,6 +99,20 @@ struct ServerAlbum: Decodable, Sendable, Hashable, Identifiable {
     let year: Int?
     let genre: String?
     let song: [ServerSong]
+
+    /// An album put together on this device (from the saved catalog), before the server answers.
+    init(id: String, name: String, artist: String?, artistId: String?, coverArt: String?, year: Int?, song: [ServerSong]) {
+        self.id = id
+        self.name = name
+        self.artist = artist
+        self.artistId = artistId
+        self.coverArt = coverArt
+        self.year = year
+        self.song = song
+        songCount = song.count
+        duration = song.reduce(0) { $0 + ($1.duration ?? 0) }
+        genre = nil
+    }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)

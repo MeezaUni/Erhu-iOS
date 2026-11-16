@@ -149,9 +149,12 @@ struct SubsonicClient: Sendable {
     }
 
     /// Calls [method] and returns the response, or throws the server's error.
-    func call(_ method: String, _ items: [URLQueryItem] = [], timeout: TimeInterval = 20) async throws -> SubsonicResponse {
+    /// [background]: a large request that may wait (the catalog): it yields the connection to
+    /// what the listener is waiting for.
+    func call(_ method: String, _ items: [URLQueryItem] = [], timeout: TimeInterval = 20, background: Bool = false) async throws -> SubsonicResponse {
         var request = URLRequest(url: url(method, items))
         request.timeoutInterval = timeout
+        request.networkServiceType = background ? .background : .responsiveData
         let (data, response) = try await session.data(for: request)
         return try Self.decode(data, response: response)
     }
@@ -224,7 +227,7 @@ struct SubsonicClient: Sendable {
                                    URLQueryItem(name: "albumOffset", value: String(max(albumOffset, 0))),
                                    URLQueryItem(name: "songCount", value: String(songOffset < 0 ? 0 : size)),
                                    URLQueryItem(name: "songOffset", value: String(max(songOffset, 0)))],
-                       timeout: 60).searchResult3
+                       timeout: 60, background: true).searchResult3
     }
 
     func playlists() async throws -> [ServerPlaylist] {
