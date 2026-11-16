@@ -29,6 +29,9 @@ final class StreamPlayer {
     private var observations: [NSKeyValueObservation] = []
     private var tokens: [NSObjectProtocol] = []
     private var wantsToPlay = false
+    /// Where in the song the stream starts (a converted stream started part-way); the player's
+    /// own clock counts from there.
+    private var offsetMs: Int64 = 0
     private var reportedBuffered = false
     /// The next song, connected and buffering ahead while paused, so skipping to it starts at once.
     private var prepared: (entryId: UUID, url: URL, player: AVPlayer, item: AVPlayerItem)?
@@ -77,9 +80,11 @@ final class StreamPlayer {
         prepared = nil
     }
 
-    func play(entryId: UUID, url: URL, fileExtension: String, positionMs: Int64, startPlaying: Bool) {
+    /// [offsetMs]: [url] is a stream that starts that far into the song.
+    func play(entryId: UUID, url: URL, fileExtension: String, positionMs: Int64, startPlaying: Bool, offsetMs: Int64 = 0) {
         stop()
         self.entryId = entryId
+        self.offsetMs = offsetMs
         let item: AVPlayerItem, player: AVPlayer
         if let ready = prepared, ready.entryId == entryId, ready.url == url, ready.item.status != .failed {
             // Prepared while the previous song played: already connected and buffered.
@@ -96,8 +101,8 @@ final class StreamPlayer {
         player.volume = volume
         self.player = player
         observe(player: player, item: item, entryId: entryId)
-        if positionMs > 0 {
-            player.seek(to: CMTime(value: positionMs, timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero)
+        if positionMs - offsetMs > 0 {
+            player.seek(to: CMTime(value: positionMs - offsetMs, timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero)
         }
         wantsToPlay = startPlaying
         // Start at once with what has arrived; later stalls wait to refill rather than stutter.
@@ -115,7 +120,19 @@ final class StreamPlayer {
     }
 
     func seek(toMs positionMs: Int64) {
-        player?.seek(to: CMTime(value: max(positionMs, 0), timescale: 1000), toleranceBefore: .zero, toleranceAfter: .zero)
+        // A little leeway lets the player land on the nearest frame it has, which is much quicker.
+        let leeway = CMTime(value: 250, timescale: 1000)
+        player?.seek(to: CMTime(value: max(positionMs - offsetMs, 0), timescale: 1000), toleranceBefore: leeway, toleranceAfter: leeway)
+    }
+
+    /// Whether the part of the song at [positionMs] has already arrived (a seek there is instant).
+    func hasLoaded(positionMs: Int64) -> Bool {
+        guard let item = player?.currentItem else { return false }
+        let seconds = Double(positionMs - offsetMs) / 1000
+        guard seconds >= 0 else { return false }
+        return item.loadedTimeRanges.map(\.timeRangeValue).contains {
+            seconds >= $0.start.seconds && seconds <= CMTimeRangeGetEnd($0).seconds - 1
+        }
     }
 
     func stop() {
@@ -129,13 +146,14 @@ final class StreamPlayer {
         entryId = nil
         wantsToPlay = false
         reportedBuffered = false
+        offsetMs = 0
     }
 
     /// The position of [entryId]'s song, in milliseconds.
     func positionMs(of entryId: UUID) -> Int64? {
         guard entryId == self.entryId, let player else { return nil }
         let seconds = player.currentTime().seconds
-        return seconds.isFinite ? Int64(seconds * 1000) : nil
+        return seconds.isFinite ? offsetMs + Int64(seconds * 1000) : nil
     }
 
     private func observe(player: AVPlayer, item: AVPlayerItem, entryId: UUID) {

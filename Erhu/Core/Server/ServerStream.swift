@@ -237,9 +237,16 @@ final class ServerStream {
 
     /// Where the player can stream [song] from directly (nil: its server isn't connected, or the
     /// song isn't one known in this session).
-    func streamURL(for song: Song) -> URL? {
+    func streamURL(for song: Song, offsetSeconds: Int = 0) -> URL? {
         guard let source = sources[song.path], let client = clientProvider?(source.accountId) else { return nil }
-        return client.streamURL(source.remoteId, quality: source.quality)
+        return client.streamURL(source.remoteId, quality: source.quality, offsetSeconds: offsetSeconds)
+    }
+
+    /// Whether [song] streams converted (a smaller copy made as it plays), which can start
+    /// part-way into the song rather than seek within the file.
+    func isConverted(_ song: Song) -> Bool {
+        guard let source = sources[song.path] else { return false }
+        return source.quality.transcoding != nil
     }
 
     /// The original file's format for [song] streamed unchanged (its extension), so the player
