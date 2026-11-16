@@ -252,6 +252,51 @@ final class SubsonicTests: XCTestCase {
         if case .server(let id, _) = byTitle[1] { XCTAssertEqual(account, id) } else { XCTFail("Banana is the server's") }
     }
 
+    func testServerMusicJoinsTheLibrarysOwnAlbumsWithoutDuplicates() throws {
+        func remote(_ id: String, _ title: String, track: Int, album: String = "Parachutes", albumId: String = "p") throws -> ServerSong {
+            let json = #"{"id":"\#(id)","title":"\#(title)","artist":"Coldplay","album":"\#(album)","albumId":"\#(albumId)","track":\#(track)}"#
+            return try JSONDecoder().decode(ServerSong.self, from: Data(json.utf8))
+        }
+        let account = UUID()
+        let parachutes = Album(id: 1, title: "Parachutes", artist: "Coldplay", artistId: 0, songCount: 2, year: 2000)
+        var catalog = ServerCatalog()
+        catalog.albums = [.init(id: "p", name: "parachutes", artist: "Coldplay, Guest", coverArt: nil, year: 2000),
+                          .init(id: "x", name: "X&Y", artist: "Coldplay", coverArt: nil, year: 2005)]
+        catalog.songs = [try remote("1", "Don't Panic", track: 1), try remote("2", "Shiver", track: 2),
+                         try remote("3", "Yellow", track: 5), try remote("4", "Fix You", track: 4, album: "X&Y", albumId: "x")]
+        let index = ServerCatalogIndex(catalog)
+
+        // An album the library has shows once, as the library's; one only on the server joins.
+        let grid = ServerLibraryMerge.albums(local: [parachutes], server: catalog.albums, accountId: account, sort: .title, searching: false)
+        XCTAssertEqual(["Parachutes", "X&Y"], grid.map(\.title))
+        if case .local = grid[0] {} else { XCTFail("Parachutes is the library's") }
+        XCTAssertEqual(["Parachutes"], ServerLibraryMerge.albums(local: [parachutes], server: catalog.albums, accountId: account,
+                                                                 sort: .title, searching: false, source: .local).map(\.title))
+        XCTAssertEqual(["X&Y"], ServerLibraryMerge.albums(local: [parachutes], server: catalog.albums, accountId: account,
+                                                          sort: .title, searching: false, source: .streamed).map(\.title))
+
+        // The library's album gains the server's songs it lacks, in track order.
+        let local = [Song(id: 1, title: "Dont Panic", artist: "Coldplay", album: "Parachutes", durationMs: 1, path: "a.mp3", trackNumber: 1),
+                     Song(id: 2, title: "Shiver", artist: "Coldplay", album: "Parachutes", durationMs: 1, path: "b.mp3", trackNumber: 2)]
+        let extras = ServerLibraryMerge.extraSongs(for: parachutes, localSongs: local, in: index)
+        XCTAssertEqual(["Yellow"], extras.map(\.title))
+        let yellow = Song(id: -3, title: "Yellow", artist: "Coldplay", album: "Parachutes", durationMs: 1, path: "erhu-stream:y", trackNumber: 5)
+        let unnumbered = Song(id: 3, title: "Bonus", artist: "Coldplay", album: "Parachutes", durationMs: 1, path: "c.mp3")
+        XCTAssertEqual(["Dont Panic", "Shiver", "Yellow", "Bonus"],
+                       ServerLibraryMerge.albumTracks([local[0], unnumbered, local[1]], [yellow]).map(\.title))
+
+        // Songs: one list without the library's songs twice, and the Source filter.
+        let songs = ServerLibraryMerge.songs(in: index, query: "", genre: "", excluding: .init(local))
+        XCTAssertEqual(["Fix You", "Yellow"], songs.map(\.title))
+        let fixYou = Song(id: -4, title: "Fix You", artist: "Coldplay", album: "X&Y", durationMs: 1, path: "erhu-stream:f")
+        XCTAssertEqual(["Dont Panic", "Fix You", "Shiver", "Yellow"],
+                       ServerLibraryMerge.songList(local: local, streamed: [fixYou, yellow], sort: .title, searching: false, source: .all).map(\.title))
+        XCTAssertEqual(["Dont Panic", "Shiver"],
+                       ServerLibraryMerge.songList(local: local, streamed: [fixYou, yellow], sort: .title, searching: false, source: .local).map(\.title))
+        XCTAssertEqual(["Fix You", "Yellow"],
+                       ServerLibraryMerge.songList(local: local, streamed: [fixYou, yellow], sort: .title, searching: false, source: .streamed).map(\.title))
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#

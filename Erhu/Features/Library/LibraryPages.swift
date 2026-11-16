@@ -8,6 +8,7 @@ struct AlbumsView: View {
     @Environment(AppRouter.self) private var router
     @Environment(ServerStore.self) private var servers
     @AppStorage("library.albums.sort") private var sort = LibrarySort.title.rawValue
+    @AppStorage("library.albums.source") private var source = LibrarySource.all.rawValue
     @State private var query = ""
     @State private var showsSearch = false
     /// The library's albums with the connected server's (marked as streamed), searched and sorted.
@@ -17,6 +18,7 @@ struct AlbumsView: View {
         let request: AlbumBrowseRequest
         let catalog: Int
         let account: UUID?
+        let source: String
     }
 
     private var request: AlbumBrowseRequest {
@@ -27,6 +29,7 @@ struct AlbumsView: View {
     var body: some View {
         LibraryBrowseScrollView(title: "Albums", isTabRoot: true, query: $query, showsSearch: $showsSearch) {
             LibrarySortMenu(selection: $sort, options: LibrarySort.albums)
+            if servers.selected != nil { LibrarySourceMenu(selection: $source) }
         } content: {
             if library.albums.isEmpty && (results ?? []).isEmpty {
                 EmptyState(message: library.isScanning ? "Scanning your music…" : "No albums yet.", systemImage: "square.stack")
@@ -56,9 +59,11 @@ struct AlbumsView: View {
                 ProgressView().frame(maxWidth: .infinity).padding()
             }
         }
-        .task(id: Key(request: request, catalog: servers.catalogVersion, account: servers.selected?.id)) {
+        .task(id: Key(request: request, catalog: servers.catalogVersion, account: servers.connectedAccount?.id, source: source)) {
             let snapshot = request
-            let account = servers.selected?.id
+            let chosen = LibrarySource(rawValue: source) ?? .all
+            // Albums only on the server show while it answers; the library's always show.
+            let account = servers.connectedAccount?.id
             let index = account.flatMap { servers.catalog(for: $0) }
             // Typing cancels the previous delivery; large libraries never sort on the UI thread.
             if !snapshot.query.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
@@ -67,7 +72,8 @@ struct AlbumsView: View {
                 let query = snapshot.query.trimmingCharacters(in: .whitespaces)
                 let server = index.map { query.isEmpty ? $0.catalog.albums : $0.search(query, limit: 500).albums } ?? []
                 return ServerLibraryMerge.albums(local: snapshot.results(), server: server, accountId: account,
-                                                 sort: snapshot.sort, searching: !query.isEmpty)
+                                                 sort: snapshot.sort, searching: !query.isEmpty, source: chosen,
+                                                 allLocal: snapshot.albums)
             }.value
             guard !Task.isCancelled else { return }
             results = updated
@@ -176,14 +182,15 @@ struct LibraryShelfView: View {
     }
 }
 
-/// Every track, with a local query, remembered sorting, and tag-based genre/mood filters.
+/// Every track, with a local query, remembered sorting, and tag-based genre/mood filters. While
+/// a server answers, its songs the library lacks join the list, each marked as streamed.
 struct AllSongsView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(ServerStore.self) private var servers
-    @Environment(PlayerController.self) private var player
     @AppStorage("library.songs.sort") private var sort = LibrarySort.title.rawValue
+    @AppStorage("library.songs.source") private var source = LibrarySource.all.rawValue
     /// The connected server's songs matching the search and genre (moods need the library's tags).
-    @State private var serverSongs: [ServerSong] = []
+    @State private var serverSongs: [Song] = []
     @State private var query = ""
     @State private var showsSearch = false
     @State private var genre = ""
@@ -196,9 +203,22 @@ struct AllSongsView: View {
                           sort: LibrarySort(rawValue: sort) ?? .title, genre: genre, mood: mood)
     }
 
+    private var selectedSource: LibrarySource { LibrarySource(rawValue: source) ?? .all }
+
+    /// The library's results and the server's in one list, as the Source filter asks.
+    @State private var shown: [Song]?
+
+    private func updateShown() {
+        shown = results.map {
+            ServerLibraryMerge.songList(local: $0, streamed: serverSongs, sort: LibrarySort(rawValue: sort) ?? .title,
+                                        searching: !query.trimmingCharacters(in: .whitespaces).isEmpty, source: selectedSource)
+        }
+    }
+
     var body: some View {
         LibraryBrowseScrollView(title: "Songs", query: $query, showsSearch: $showsSearch) {
             LibrarySortMenu(selection: $sort, options: LibrarySort.songs)
+            if servers.selected != nil { LibrarySourceMenu(selection: $source) }
             genreMenu
             Menu {
                 Picker("Mood", selection: $mood) {
@@ -218,15 +238,10 @@ struct AllSongsView: View {
                      : "Mood matches use your songs’ genre and tempo tags.")
                     .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.gutter)
             }
-            if let results {
-                Text(countLabel(results.count + serverSongs.count, .song)).font(.caption).foregroundStyle(.secondary)
+            if let shown {
+                Text(countLabel(shown.count, .song)).font(.caption).foregroundStyle(.secondary)
                     .padding(.horizontal, Spacing.gutter)
-                if !(results.isEmpty && !serverSongs.isEmpty) {
-                    SongList(songs: results, emptyMessage: library.songs.isEmpty ? String(localized: "No songs found.") : String(localized: "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood."), emptyIcon: "music.note")
-                }
-                if let account = servers.selected, !serverSongs.isEmpty {
-                    serverSection(account)
-                }
+                SongList(songs: shown, emptyMessage: library.songs.isEmpty && serverSongs.isEmpty ? String(localized: "No songs found.") : String(localized: "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood."), emptyIcon: "music.note")
             } else {
                 ProgressView().frame(maxWidth: .infinity).padding()
             }
@@ -242,39 +257,25 @@ struct AllSongsView: View {
             guard !Task.isCancelled else { return }
             results = updated.0
             genres = updated.1
+            updateShown()
         }
+        .onChange(of: source) { updateShown() }
         .refreshable { library.scan() }
-        .task(id: "\(query)|\(genre)|\(mood.rawValue)|\(servers.catalogVersion)|\(servers.selected?.id.uuidString ?? "")") {
-            guard mood == .all, let account = servers.selected, let index = servers.catalog(for: account.id) else {
-                serverSongs = []
+        .task(id: "\(query)|\(genre)|\(mood.rawValue)|\(servers.catalogVersion)|\(servers.connectedAccount?.id.uuidString ?? "")|\(library.songs.count)") {
+            // Only while the server answers; moods need the library's tags.
+            guard mood == .all, let account = servers.connectedAccount, let index = servers.catalog(for: account.id) else {
+                if !serverSongs.isEmpty { serverSongs = []; updateShown() }
                 return
             }
-            let text = query, genre = genre
+            let text = query, genre = genre, library = library.songs
             if !text.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
             guard !Task.isCancelled else { return }
-            let found = await Task.detached(priority: .userInitiated) { ServerLibraryMerge.songs(in: index, query: text, genre: genre) }.value
+            let found = await Task.detached(priority: .userInitiated) {
+                ServerLibraryMerge.songs(in: index, query: text, genre: genre, excluding: ServerLibraryMerge.SongKeys(library))
+            }.value
             guard !Task.isCancelled else { return }
-            serverSongs = found
-        }
-    }
-
-    /// The server's songs, streamed (each row marked), after the library's.
-    @ViewBuilder private func serverSection(_ account: ServerAccount) -> some View {
-        SectionHeading(title: String(localized: "Songs on \(account.name)"))
-        let source = PlaybackSource.server(account: account.id, album: nil, title: account.name)
-        let rowActions = servers.songActions(source: source)
-        LazyVStack(spacing: 0) {
-            ForEach(Array(serverSongs.enumerated()), id: \.offset) { index, remote in
-                let song = servers.streamSongs([remote], account: account).first
-                if let song {
-                    TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
-                        // This song and the next ones (a bounded queue, not the whole server).
-                        let upcoming = Array(serverSongs[index...].prefix(100))
-                        servers.play(upcoming, account: account,
-                                     source: .server(account: account.id, album: remote.albumId, title: remote.album ?? account.name))
-                    }
-                }
-            }
+            serverSongs = servers.streamSongs(found, account: account)
+            updateShown()
         }
     }
 
