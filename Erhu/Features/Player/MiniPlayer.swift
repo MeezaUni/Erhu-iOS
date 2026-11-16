@@ -22,7 +22,7 @@ struct MiniPlayer: View {
                         .accessibilityLabel("Album artwork")
                     VStack(alignment: .leading, spacing: 1) {
                         Text(song.title).font(.subheadline.weight(.semibold)).foregroundStyle(palette.onSurface).lineLimit(1)
-                        Text(song.artist).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
+                        Text(loadingText ?? song.artist).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
                     }
                     Spacer(minLength: 0)
                 }
@@ -39,9 +39,16 @@ struct MiniPlayer: View {
                     .accessibilityHidden(compactness >= 0.5)
                     .accessibilityLabel("Previous track")
                 Button { player.togglePlayPause() } label: {
-                    Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.title2).frame(width: 44, height: 48).contentShape(Rectangle())
+                    Group {
+                        if player.isLoading {
+                            LoadingRing(fraction: StreamLoading.shared.fraction(of: song), size: 24)
+                        } else {
+                            Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.title2)
+                        }
+                    }
+                    .frame(width: 44, height: 48).contentShape(Rectangle())
                 }
-                .accessibilityLabel(state.isPlaying ? "Pause" : "Play")
+                .accessibilityLabel(player.isLoading ? "Loading, tap to stop" : (state.isPlaying ? "Pause" : "Play"))
                 Button { player.skipNext() } label: { Image(systemName: "forward.fill").frame(width: 44, height: 48).contentShape(Rectangle()) }
                     .frame(width: 44 * (1 - compactness)).clipped()
                     .opacity(Double(CGFloat(1) - compactness))
@@ -63,6 +70,44 @@ struct MiniPlayer: View {
                 .environment(\.layoutDirection, .leftToRight)
                 .padding(.horizontal, Spacing.md)
         }
+    }
+}
+
+extension MiniPlayer {
+    /// "Loading 45%" while a streamed song is fetched before it plays.
+    fileprivate var loadingText: String? {
+        guard player.isLoading, song.isStream else { return nil }
+        if let fraction = StreamLoading.shared.fraction(of: song) {
+            return String(localized: "Loading \(Int(fraction * 100))%")
+        }
+        return String(localized: "Loading…")
+    }
+}
+
+/// A spinner while a song gets ready; with a known size it fills up as the song arrives.
+struct LoadingRing: View {
+    let fraction: Double?
+    var size: CGFloat = 24
+    var lineWidth: CGFloat = 3
+    var color: Color?
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        Group {
+            if let fraction {
+                ZStack {
+                    Circle().stroke((color ?? palette.onSurface).opacity(0.25), lineWidth: lineWidth)
+                    Circle().trim(from: 0, to: max(fraction, 0.03))
+                        .stroke(color ?? palette.onSurface, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .animation(.linear(duration: 0.2), value: fraction)
+                }
+            } else {
+                ProgressView().tint(color ?? palette.onSurface)
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
     }
 }
 

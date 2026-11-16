@@ -1,4 +1,27 @@
 import Foundation
+import Observation
+
+/// How far each streamed song being fetched has got (0…1), by path, for the player's spinner.
+/// A song whose size the server doesn't send (a converted MP3) has no entry while it loads.
+@MainActor
+@Observable
+final class StreamLoading {
+    static let shared = StreamLoading()
+    private(set) var progress: [String: Double] = [:]
+    private(set) var active: Set<String> = []
+    private init() {}
+
+    func started(_ path: String) { active.insert(path) }
+    func set(_ path: String, _ fraction: Double) { progress[path] = min(max(fraction, 0), 1) }
+    func finished(_ path: String) {
+        active.remove(path)
+        progress[path] = nil
+    }
+
+    /// The fraction loaded of [song], or nil when it isn't loading or its size is unknown.
+    func fraction(of song: Song) -> Double? { progress[song.path] }
+    func isLoading(_ song: Song) -> Bool { active.contains(song.path) }
+}
 
 /// Where streamed songs live. A streamed song is an ordinary [Song] whose path starts with
 /// [prefix]; its file is fetched from the server into the caches folder before it plays, so the
@@ -146,20 +169,60 @@ final class ServerStream {
         let task = Task.detached(priority: .userInitiated) {
             var request = URLRequest(url: client.streamURL(source.remoteId, quality: source.quality))
             request.timeoutInterval = 60
-            let (temporary, response) = try await client.session.download(for: request)
-            defer { try? FileManager.default.removeItem(at: temporary) }
+            let (bytes, response) = try await client.session.bytes(for: request)
             let type = (response.mimeType ?? "").lowercased()
             if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) || type.contains("json") || type.contains("xml") {
                 // An error arrives as a Subsonic response instead of audio.
-                _ = try SubsonicClient.decode((try? Data(contentsOf: temporary)) ?? Data(), response: response)
+                var body = Data()
+                for try await byte in bytes {
+                    body.append(byte)
+                    if body.count > 1 << 20 { break }
+                }
+                _ = try SubsonicClient.decode(body, response: response)
                 throw ServerStreamError.notAudio
             }
-            try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+            // Written to a ".part" file as it arrives (reporting progress), then moved into place,
+            // so the player never sees half a song.
+            let folder = destination.deletingLastPathComponent()
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            let partial = folder.appendingPathComponent(UUID().uuidString + ".part")
+            guard FileManager.default.createFile(atPath: partial.path, contents: nil) else { throw CocoaError(.fileWriteUnknown) }
+            let expected = response.expectedContentLength
+            do {
+                let handle = try FileHandle(forWritingTo: partial)
+                defer { try? handle.close() }
+                var buffer = Data()
+                buffer.reserveCapacity(1 << 16)
+                var written: Int64 = 0
+                var reported = 0.0
+                for try await byte in bytes {
+                    buffer.append(byte)
+                    guard buffer.count >= 1 << 16 else { continue }
+                    try handle.write(contentsOf: buffer)
+                    written += Int64(buffer.count)
+                    buffer.removeAll(keepingCapacity: true)
+                    if expected > 0 {
+                        let fraction = Double(written) / Double(expected)
+                        if fraction - reported >= 0.01 {
+                            reported = fraction
+                            await MainActor.run { StreamLoading.shared.set(path, fraction) }
+                        }
+                    }
+                }
+                try handle.write(contentsOf: buffer)
+            } catch {
+                try? FileManager.default.removeItem(at: partial)
+                throw error
+            }
             try? FileManager.default.removeItem(at: destination)
-            try FileManager.default.moveItem(at: temporary, to: destination)
+            try FileManager.default.moveItem(at: partial, to: destination)
         }
         inFlight[path] = task
-        defer { inFlight[path] = nil }
+        StreamLoading.shared.started(path)
+        defer {
+            inFlight[path] = nil
+            StreamLoading.shared.finished(path)
+        }
         try await task.value
         // Artwork asked for before the file arrived was remembered as missing: look again.
         ArtworkLoader.shared.forget(path: destination.path)

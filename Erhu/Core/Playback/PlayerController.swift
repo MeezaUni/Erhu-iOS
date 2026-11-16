@@ -108,6 +108,10 @@ final class PlayerController {
         playingChanged(false)
     }
 
+    /// Waiting for the current song to be ready to play (a streamed song being fetched, or a
+    /// file being prepared). The play button shows a spinner; tapping it cancels.
+    var isLoading: Bool { state.status == .buffering }
+
     func togglePlayPause() {
         if state.isPlaying || (state.status == .buffering && preparingPlayIntent) { pause() }
         else { play() }
