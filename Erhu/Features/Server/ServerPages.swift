@@ -43,8 +43,14 @@ struct ServerTile: View {
     var showsStreamBadge = false
     let action: () -> Void
 
+    @Environment(ServerStore.self) private var servers
+
     var body: some View {
-        ArtworkTile(title: title, subtitle: subtitle, circular: circular, action: action) {
+        // The page it opens shows the large cover: get it ready as the page slides in.
+        ArtworkTile(title: title, subtitle: subtitle, circular: circular, action: {
+            ServerCovers.prepareLarge(accountId: accountId, coverArt: coverArt, servers: servers)
+            action()
+        }) {
             ServerCoverView(accountId: accountId, coverArt: coverArt, placeholder: placeholder)
                 .overlay(alignment: .topTrailing) {
                     if showsStreamBadge { StreamBadge().padding(6) }

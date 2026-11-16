@@ -118,8 +118,28 @@ struct ServerCoverView: View {
             } else if let client = servers.client(for: accountId) {
                 ServerCovers.fetch(client.coverArtURL(coverArt, size: size.pixels), to: file, session: client.session)
             }
+            // A tile on Wi-Fi also fetches the large cover, so its page opens with it at once.
+            if size == .small, !servers.networkIsExpensive, !ServerCovers.hasCover(at: largeFile),
+               let client = servers.client(for: accountId) {
+                ServerCovers.fetch(client.coverArtURL(coverArt, size: ServerCovers.Size.large.pixels), to: largeFile, session: client.session)
+            }
         }
         .accessibilityHidden(true)
+    }
+}
+
+extension ServerCovers {
+    /// Gets the large cover of [coverArt] ready for a page about to open: decoded from the phone
+    /// while the page slides in, or fetched if it isn't there yet.
+    @MainActor
+    static func prepareLarge(accountId: UUID, coverArt: String?, servers: ServerStore) {
+        guard let coverArt else { return }
+        let file = fileURL(accountId: accountId, coverArt: coverArt, size: .large)
+        if hasCover(at: file) {
+            Task { _ = await ArtworkLoader.shared.image(atPath: file.path, maxPixels: 1200) }
+        } else if let client = servers.client(for: accountId) {
+            fetch(client.coverArtURL(coverArt, size: Size.large.pixels), to: file, session: client.session)
+        }
     }
 }
 
