@@ -23,8 +23,29 @@ struct SongActionItems: View {
     @Environment(\.vybeEnabled) private var vybeEnabled
     let song: Song
     let actions: SongActions
+    @Environment(ServerStore.self) private var servers: ServerStore?
 
     var body: some View {
+        if song.isStream { streamItems } else { libraryItems }
+    }
+
+    /// A streamed song isn't in the library: it can be queued, marked on its server, or downloaded.
+    @ViewBuilder private var streamItems: some View {
+        Button { actions.playNext(song) } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
+        Button { actions.addToQueue(song) } label: { Label("Add to queue", systemImage: "text.badge.plus") }
+        Button { actions.toggleFavorite(song) } label: {
+            Label(song.isFavorite ? "Remove from server favourites" : "Add to server favourites", systemImage: song.isFavorite ? "heart.slash" : "heart")
+        }
+        if let servers {
+            let saved = servers.isDownloaded(stream: song)
+            Button { servers.download(stream: song) } label: {
+                Label(saved ? LocalizedStringKey("Downloaded") : LocalizedStringKey("Download to this device"), systemImage: "arrow.down.circle")
+            }
+            .disabled(saved)
+        }
+    }
+
+    @ViewBuilder private var libraryItems: some View {
         Button { actions.playNext(song) } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
         Button { actions.addToQueue(song) } label: { Label("Add to queue", systemImage: "text.badge.plus") }
         if vybeEnabled { Button { actions.startRadio(song) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }

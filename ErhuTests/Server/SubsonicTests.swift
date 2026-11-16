@@ -123,14 +123,37 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual("mp3", album.song[0].fileExtension, "no suffix falls back to mp3")
     }
 
+    func testAwayAddressMustBeHttpsAndClientsSwitchAddress() throws {
+        XCTAssertEqual("https://pc.tail1234.ts.net", ServerAccount.normalizedRemoteURL(from: " pc.tail1234.ts.net/ ")?.absoluteString)
+        XCTAssertEqual("https://music.example.com/navidrome", ServerAccount.normalizedRemoteURL(from: "https://music.example.com/navidrome/app")?.absoluteString)
+        XCTAssertNil(ServerAccount.normalizedRemoteURL(from: "http://pc.tail1234.ts.net"))
+        XCTAssertNil(ServerAccount.normalizedRemoteURL(from: ""))
+        var account = ServerAccount(id: UUID(), name: "Home", baseURL: URL(string: "http://192.168.1.20:4533")!, username: "listener")
+        account.remoteURL = URL(string: "https://pc.tail1234.ts.net")
+        let home = SubsonicClient(account: account, password: "pw")
+        let away = SubsonicClient(account: account, password: "pw", away: true)
+        XCTAssertTrue(home.url("ping").absoluteString.hasPrefix("http://192.168.1.20:4533/rest/ping?"))
+        XCTAssertTrue(away.url("ping").absoluteString.hasPrefix("https://pc.tail1234.ts.net/rest/ping?"))
+        // An account saved before away addresses existed still loads.
+        let old = #"{"id":"00000000-0000-0000-0000-000000000002","name":"Old","baseURL":"http://10.0.0.2:4533","username":"u"}"#
+        let decoded = try JSONDecoder().decode(ServerAccount.self, from: Data(old.utf8))
+        XCTAssertNil(decoded.remoteURL)
+        XCTAssertEqual(decoded.baseURL, SubsonicClient(account: decoded, password: "", away: true).base, "no away address: home is used")
+    }
+
     // MARK: Pairing links, favourites and recents
 
     func testPairingLinkFillsInTheServerButNeverAPassword() throws {
-        let url = try XCTUnwrap(URL(string: "erhu://server?url=http%3A%2F%2F192.168.1.20%3A4533%2F&user=azeem&name=Living%20room%20PC&password=nope"))
+        let url = try XCTUnwrap(URL(string: "erhu://server?url=http%3A%2F%2F192.168.1.20%3A4533%2F&user=listener&name=Living%20room%20PC&password=nope"))
         let invite = try XCTUnwrap(ServerInvite(url: url))
         XCTAssertEqual("http://192.168.1.20:4533", invite.address)
-        XCTAssertEqual("azeem", invite.username)
+        XCTAssertEqual("listener", invite.username)
         XCTAssertEqual("Living room PC", invite.name)
+        XCTAssertEqual("", invite.remote)
+        let away = try XCTUnwrap(ServerInvite(url: URL(string: "erhu://server?url=http%3A%2F%2F192.168.1.20%3A4533&remote=https%3A%2F%2Fpc.tail1234.ts.net%2F")!))
+        XCTAssertEqual("https://pc.tail1234.ts.net", away.remote)
+        let plain = try XCTUnwrap(ServerInvite(url: URL(string: "erhu://server?url=http%3A%2F%2F192.168.1.20%3A4533&remote=http%3A%2F%2Fpc.example.com")!))
+        XCTAssertEqual("", plain.remote, "an away address must be HTTPS")
         XCTAssertNil(ServerInvite(url: URL(string: "erhu://server?user=a")!), "no address")
         XCTAssertNil(ServerInvite(url: URL(string: "erhu://other?url=http://x")!))
         XCTAssertNil(ServerInvite(url: URL(string: "https://server?url=http://x")!))
@@ -163,6 +186,25 @@ final class SubsonicTests: XCTestCase {
     // MARK: Streaming and downloads
 
     @MainActor
+    func testRecentlyStreamedAlbumsAreNewestFirstOncePerAlbumAndCapped() throws {
+        func item(_ song: Int, album: Int?) throws -> StreamedSong {
+            let albumField = album.map { ",\"albumId\":\"al-\($0)\",\"album\":\"Album \($0)\"" } ?? ""
+            let data = Data("{\"id\":\"s\(song)\",\"title\":\"Song \(song)\"\(albumField)}".utf8)
+            return StreamedSong(accountId: account.id, song: try JSONDecoder().decode(ServerSong.self, from: data), playedAt: Date())
+        }
+        let recent = [try item(1, album: 1), try item(2, album: 1), try item(3, album: nil), try item(4, album: 2),
+                      try item(5, album: 3), try item(6, album: 4), try item(7, album: 5), try item(8, album: 6)]
+        let albums = ServerStore.recentAlbums(from: recent)
+        XCTAssertEqual(["al-1", "al-2", "al-3", "al-4", "al-5"], albums.map(\.albumId))
+        XCTAssertEqual("Album 1", albums[0].title)
+        XCTAssertEqual("s1", albums[0].item.song.id)
+    }
+
+    func testServerPlaybackSourceSurvivesSaving() throws {
+        let source = PlaybackSource.server(account: UUID(), album: "al-1", title: "Live")
+        XCTAssertEqual(source, try JSONDecoder().decode(PlaybackSource.self, from: JSONEncoder().encode(source)))
+    }
+
     func testStreamedSongsLiveInTheCacheWithStableNegativeIds() throws {
         let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
         let remote = album.song[0]

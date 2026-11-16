@@ -81,16 +81,27 @@ final class ServerStream {
     private init() {}
 
     /// A playable song for [remote] on [account].
-    func song(for remote: ServerSong, account: ServerAccount, quality: StreamQuality) -> Song {
+    func song(for remote: ServerSong, account: ServerAccount, quality: StreamQuality, favourite: Bool = false) -> Song {
         let path = ServerStreamPaths.path(accountId: account.id, remoteId: remote.id, quality: quality, originalExtension: remote.fileExtension)
         let id = ServerStreamPaths.songId(accountId: account.id, remoteId: remote.id)
         sources[path] = Source(accountId: account.id, remoteId: remote.id, quality: quality)
         remotes[path] = remote
+        // The cover is fetched now, ahead of the audio, so the song shows artwork everywhere at once.
+        if let coverArt = remote.coverArt {
+            let streamFile = ServerStreamPaths.cacheURL(forPath: path)
+            let cover = ServerCovers.fileURL(accountId: account.id, coverArt: coverArt)
+            ServerCovers.register(streamFile: streamFile, cover: cover)
+            if let client = clientProvider?(account.id) {
+                ServerCovers.fetch(client.coverArtURL(coverArt, size: 800), to: cover, session: client.session) {
+                    ArtworkLoader.shared.forget(path: streamFile.path)
+                }
+            }
+        }
         pathsById[id] = path
         return Song(id: id, title: remote.title, artist: remote.artist ?? "", album: remote.album ?? "",
                     durationMs: Int64(remote.duration ?? 0) * 1000, path: path,
                     trackNumber: remote.track ?? 0, discNumber: remote.discNumber ?? 1, year: remote.year ?? 0,
-                    genre: remote.genre, bpm: (remote.bpm ?? 0) > 0 ? remote.bpm : nil,
+                    isFavorite: favourite, genre: remote.genre, bpm: (remote.bpm ?? 0) > 0 ? remote.bpm : nil,
                     fileSize: quality == .original ? (remote.size ?? 0) : 0,
                     codec: quality.transcoding?.format ?? remote.suffix, bitrate: quality.transcoding?.maxBitRate ?? remote.bitRate ?? 0)
     }
@@ -126,6 +137,8 @@ final class ServerStream {
         inFlight[path] = task
         defer { inFlight[path] = nil }
         try await task.value
+        // Artwork asked for before the file arrived was remembered as missing: look again.
+        ArtworkLoader.shared.forget(path: destination.path)
         trimCache()
     }
 
@@ -140,6 +153,12 @@ final class ServerStream {
                 try? await self?.fetch(song)
             }
         }
+    }
+
+    /// The server and server song behind a streamed [song], while it is known in this session.
+    func remote(for song: Song) -> (accountId: UUID, song: ServerSong)? {
+        guard let source = sources[song.path], let remote = remotes[song.path] else { return nil }
+        return (source.accountId, remote)
     }
 
     /// A streamed song became the current song.

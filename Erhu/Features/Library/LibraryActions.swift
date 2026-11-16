@@ -16,6 +16,8 @@ final class LibraryActions {
     var message: String?
     private(set) var messageID = UUID()
     private(set) var radio: RadioSession?
+    /// Changes a streamed song's favourite on its server (set by [ServerStore]).
+    @ObservationIgnored var streamFavorite: ((Song) -> Void)?
 
     private let database: LibraryDatabase
     private let player: PlayerController
@@ -77,6 +79,8 @@ final class LibraryActions {
     }
 
     func toggleFavorite(_ song: Song) {
+        // A streamed song's favourite lives on its server.
+        if song.isStream { streamFavorite?(song); return }
         do {
             try database.toggleFavorite(songId: song.id)
             // Read the database result rather than trusting a potentially older row snapshot.

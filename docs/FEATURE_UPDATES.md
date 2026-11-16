@@ -217,11 +217,14 @@ Settings → Library → **Music Server** (also in the side menu) connects to Er
 
 | Part | Behaviour |
 | --- | --- |
-| Accounts | Address, username and password; the server is checked before saving. Passwords stay in the Keychain; requests use Subsonic token authentication with a fresh salt, so the password is never sent. Plain `http://` is allowed only on the local network (`NSAllowsLocalNetworking`); remote servers need HTTPS. |
-| Browsing | Albums (A–Z, recently added, random), artists, playlists and search on the server. |
+| Accounts | Home address, optional HTTPS away address, username and password; the server is checked before saving (either address answering is enough). Passwords stay in the Keychain; requests use Subsonic token authentication with a fresh salt, so the password is never sent. Plain `http://` is allowed only on the local network (`NSAllowsLocalNetworking`); the away address must be HTTPS. Music Server holds only the connection, quality, cache and downloads. |
+| Home and away | On launch and whenever the network changes, Erhu pings the home address (3 s) and falls back to the away address. Music Server shows which is in use. Erhu Server's *Listen away from home* turns on `tailscale serve` for a private `https://…ts.net` address and adds it to the pairing QR code. |
+| In the app's own screens | Search also queries the connected server (artists, albums, songs on *name*); Library shows the server's newest albums (*More*: all, A–Z) and playlists; server albums, artists and playlists open as the library's own pages (hero cover, Play / Shuffle, rows numbered by position). Home shows *Recently streamed albums* (five, newest first) under *Recently played albums*, also when disconnected; opening one then says the server isn't connected. |
+| Song actions | A streamed song's menu offers Play next, Add to queue, the server favourite (also the row heart and swipe) and Download to this device; library-only actions are hidden. Now Playing reads *Streaming: album* and its ⋮ menu has Download to this device. |
+| Artwork | Server covers are cached on disk (`Caches/Erhu/server-covers`) as soon as a streamed song is created, so the mini player, Now Playing and tiles show art at once and offline. |
 | Streaming | A streamed song is a normal queue entry whose file is fetched to a cache (`Caches/Erhu/server-stream`) just before it plays, with the next two songs fetched ahead, so the existing engine keeps the equalizer, waveform, transitions and gapless playback. Quality: original file or MP3 320/192/128 kbps converted by the server. The cache stays under 2 GB, oldest first, and can be cleared. Counted plays are reported to the server. Streamed songs don't join the library and aren't restored after the app is closed. |
 | Downloads | Original files are saved to the Erhu folder under *From Server/Artist/Album/*, then one library scan adds them. Already-saved songs are skipped; failures are listed. |
 
 Limitations of this test build: a song starts once its file has been fetched (true progressive
-streaming would need a second playback path); server playlists and favourites are not synced into
-the library; tested against Navidrome 0.64.2 responses recorded from its public demo server.
+streaming would need a second playback path); server playlists and favourites are shown from the
+server, not copied into the library; tested against Navidrome 0.64.2 responses recorded from its public demo server.

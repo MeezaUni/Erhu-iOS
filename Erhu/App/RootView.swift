@@ -172,6 +172,10 @@ struct RootView: View {
             case .tool(let tool): ToolView(tool: tool).tracksLibraryScrolling(usesUIKit: true)
             case .settingsPage(let page): SettingsDestinationView(page: page).tracksLibraryScrolling(usesUIKit: true)
             case .transitionStudio(let collection): TransitionStudioView(collection: collection).tracksLibraryScrolling(usesUIKit: true)
+            case .serverAlbum(let ref): ServerAlbumPage(ref: ref)
+            case .serverArtist(let ref): ServerArtistPage(ref: ref)
+            case .serverPlaylist(let ref): ServerPlaylistPage(ref: ref)
+            case .serverAlbums(let account): ServerAlbumsPage(accountId: account)
             }
         }
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: chromeHeight) }

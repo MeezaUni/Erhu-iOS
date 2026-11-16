@@ -89,6 +89,7 @@ struct LibraryOverviewView: View {
                         SongTile(song: song) { actions.play(library.songs, startIndex: index) }.frame(width: 136)
                     }
                 }
+                ServerLibraryShelves()
             }
             .padding(.vertical, Spacing.sm)
         }

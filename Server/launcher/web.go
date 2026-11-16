@@ -30,6 +30,7 @@ var logoPNG []byte
 type Control struct {
 	store    *Store
 	server   *Server
+	remote   *Remote
 	token    string
 	listener net.Listener
 	quit     func()
@@ -54,7 +55,7 @@ func newControl(store *Store, server *Server, quit func()) (*Control, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Control{store: store, server: server, token: hex.EncodeToString(raw), listener: listener, quit: quit, chooseFolder: pickFolder}, nil
+	return &Control{store: store, server: server, remote: newRemote(), token: hex.EncodeToString(raw), listener: listener, quit: quit, chooseFolder: pickFolder}, nil
 }
 
 func (c *Control) Port() int { return c.listener.Addr().(*net.TCPAddr).Port }
@@ -153,6 +154,22 @@ func (c *Control) handler() http.Handler {
 		}
 		return c.state(), nil
 	}))
+	mux.HandleFunc("POST /api/remote", c.api(func(r *http.Request) (any, error) {
+		var in struct{ Enabled bool }
+		if err := json.NewDecoder(http.MaxBytesReader(nil, r.Body, 1<<16)).Decode(&in); err != nil {
+			return nil, errors.New("bad request")
+		}
+		var err error
+		if in.Enabled {
+			err = c.remote.Enable(r.Context(), c.store.Get().Port)
+		} else {
+			err = c.remote.Disable(r.Context())
+		}
+		if err != nil {
+			return nil, err
+		}
+		return c.state(), nil
+	}))
 	mux.HandleFunc("POST /api/quit", c.api(func(r *http.Request) (any, error) {
 		go func() { time.Sleep(200 * time.Millisecond); c.quit() }()
 		return map[string]bool{"quitting": true}, nil
@@ -206,18 +223,19 @@ func (c *Control) api(fn func(*http.Request) (any, error)) http.HandlerFunc {
 
 // PageState is everything the page shows.
 type PageState struct {
-	State          State    `json:"state"`
-	Problem        string   `json:"problem"`
-	MusicFolder    string   `json:"musicFolder"`
-	Username       string   `json:"username"`
-	AccountCreated bool     `json:"accountCreated"`
-	Addresses      []string `json:"addresses"`
-	Invite         string   `json:"invite"`
-	WebPlayer      string   `json:"webPlayer"`
-	Autostart      bool     `json:"autostart"`
-	AutostartKnown bool     `json:"autostartSupported"`
-	Version        string   `json:"version"`
-	Name           string   `json:"name"`
+	State          State       `json:"state"`
+	Problem        string      `json:"problem"`
+	MusicFolder    string      `json:"musicFolder"`
+	Username       string      `json:"username"`
+	AccountCreated bool        `json:"accountCreated"`
+	Addresses      []string    `json:"addresses"`
+	Invite         string      `json:"invite"`
+	WebPlayer      string      `json:"webPlayer"`
+	Autostart      bool        `json:"autostart"`
+	AutostartKnown bool        `json:"autostartSupported"`
+	Remote         RemoteState `json:"remote"`
+	Version        string      `json:"version"`
+	Name           string      `json:"name"`
 }
 
 func (c *Control) state() PageState {
@@ -229,8 +247,9 @@ func (c *Control) state() PageState {
 	for _, ip := range lanAddresses() {
 		out.Addresses = append(out.Addresses, serverURL(ip, cfg.Port))
 	}
+	out.Remote = c.remote.State(cfg.Port)
 	if len(out.Addresses) > 0 && state == StateRunning {
-		out.Invite = inviteURL(out.Addresses[0], cfg.Username, out.Name)
+		out.Invite = inviteURL(out.Addresses[0], out.Remote.Address, cfg.Username, out.Name)
 	}
 	out.Autostart, out.AutostartKnown = autostartEnabled()
 	return out

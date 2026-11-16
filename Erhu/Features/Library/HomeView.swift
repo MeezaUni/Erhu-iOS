@@ -86,6 +86,7 @@ struct HomeView: View {
             }
             .padding(.bottom, Spacing.lg)
         }
+        RecentlyStreamedShelf()
         if !library.recentPlaylists.isEmpty {
             Shelf(title: "Recently played playlists") {
                 ForEach(library.recentPlaylists) { playlist in
