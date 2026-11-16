@@ -124,8 +124,14 @@ final class ServerStore {
     @ObservationIgnored private var albumCache: [String: ServerAlbum] = [:]
     @ObservationIgnored private var artistCache: [String: ServerArtist] = [:]
 
-    func cachedAlbum(_ id: String, account: UUID) -> ServerAlbum? { albumCache["\(account.uuidString)/\(id)"] }
-    func cachedArtist(_ id: String, account: UUID) -> ServerArtist? { artistCache["\(account.uuidString)/\(id)"] }
+    /// What can be shown at once for an album: as last loaded, or else as the catalog knows it.
+    func cachedAlbum(_ id: String, account: UUID) -> ServerAlbum? {
+        albumCache["\(account.uuidString)/\(id)"] ?? catalogs[account]?.album(id)
+    }
+
+    func cachedArtist(_ id: String, account: UUID) -> ServerArtist? {
+        artistCache["\(account.uuidString)/\(id)"] ?? catalogs[account]?.artist(id)
+    }
 
     /// An album from the server, remembered for this session so opening it again is instant.
     func album(_ id: String, account: ServerAccount) async throws -> ServerAlbum {
@@ -171,7 +177,10 @@ final class ServerStore {
                 }
                 guard let self else { return }
                 let stale = saved.map { Date().timeIntervalSince($0.fetchedAt) > ServerCatalog.maxAge } ?? true
-                guard force || stale, saved == nil || !self.networkIsExpensive, !self.player.isStreamingDirectly,
+                // A refresh is large: only at home on Wi-Fi (away or on mobile data only when there
+                // is no catalog yet), and never while a song streams.
+                let atHome = !self.usingAway.contains(id) && !self.networkIsExpensive
+                guard force || stale, saved == nil || atHome, !self.player.isStreamingDirectly,
                       let client = self.client(for: id) else { return }
                 guard let fresh = try? await ServerCatalog.fetch(client) else { return }
                 let index = await Task.detached(priority: .utility) { () -> ServerCatalogIndex in

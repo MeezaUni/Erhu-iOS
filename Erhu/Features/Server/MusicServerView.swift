@@ -219,6 +219,7 @@ struct ServerContent<Value, Content: View>: View {
     @ViewBuilder let content: (Value) -> Content
     @State private var value: Value?
     @State private var error: String?
+    @State private var slow = false
 
     /// [cached] is shown at once (and refreshed from the server in the background).
     init(cached: Value? = nil, load: @escaping () async throws -> Value, @ViewBuilder content: @escaping (Value) -> Content) {
@@ -239,7 +240,19 @@ struct ServerContent<Value, Content: View>: View {
                 }
                 .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: Spacing.md) {
+                    ProgressView()
+                    if slow {
+                        Text("The server is taking a while to answer.").font(.subheadline).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Try again") { Task { await reload() } }.buttonStyle(.bordered)
+                    }
+                }
+                .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
+                .task {
+                    try? await Task.sleep(for: .seconds(6))
+                    slow = true
+                }
             }
         }
         .task { await reload() }

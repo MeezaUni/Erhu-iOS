@@ -273,6 +273,19 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual(["s3"], index.search("addic", limit: 20).songs.map(\.id))
         XCTAssertEqual("s2", index.search("somebody else 1975", limit: 20).songs.first?.id, "title and artist together come first")
         XCTAssertTrue(index.search("zzzz", limit: 20).songs.isEmpty)
+        // Album pages show at once from the catalog: songs in track order.
+        let page = try XCTUnwrap(index.album("al1"))
+        XCTAssertEqual(["s1"], page.song.map(\.id))
+        XCTAssertEqual("Somebody Else", page.name)
+        XCTAssertNil(index.album("missing"))
+        XCTAssertNil(index.artist("ar1"), "catalogs saved before artist IDs: the page waits for the server")
+        var withArtists = catalog
+        withArtists.albums = catalog.albums.map { ServerCatalog.Album(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt, year: $0.year,
+                                                                     artistId: $0.id == "al1" ? "ar1" : "ar2") }
+        XCTAssertEqual(["al1"], ServerCatalogIndex(withArtists).artist("ar1")?.album.map(\.id))
+        // A catalog saved without artist IDs still loads.
+        let old = #"{"artists":[],"albums":[{"id":"a","name":"A"}],"songs":[],"fetchedAt":0}"#
+        XCTAssertNil(try JSONDecoder().decode(ServerCatalog.self, from: Data(old.utf8)).albums.first?.artistId)
         let reloaded = try JSONDecoder().decode(ServerCatalog.self, from: JSONEncoder().encode(catalog))
         XCTAssertEqual(catalog.songs.map(\.id), reloaded.songs.map(\.id))
         XCTAssertEqual(catalog.albums, reloaded.albums)
