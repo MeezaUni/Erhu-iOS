@@ -96,6 +96,13 @@
       return tr;
     };
     body.insertBefore(row("Erhu Server:", version && version !== "dev" ? "Version " + version : "Development build"), first);
+    var erhu = [
+      ["Home page:", "github.com/MeezaUni/Erhu-iOS", "https://github.com/MeezaUni/Erhu-iOS"],
+      ["Releases:", "github.com/MeezaUni/Erhu-iOS/releases", "https://github.com/MeezaUni/Erhu-iOS/releases"],
+      ["Bug reports:", "github.com/MeezaUni/Erhu-iOS/issues", "https://github.com/MeezaUni/Erhu-iOS/issues"],
+      ["Support Erhu:", "ko-fi.com/erhu", "https://ko-fi.com/erhu"]
+    ];
+    erhu.forEach(function (item) { body.insertBefore(row(item[0], item[1], item[2]), first); });
     first.replaceWith(row("Music server:", "Navidrome " + navidrome, navidromeLink));
     var credit = document.createElement("p");
     credit.className = "erhu-about-credit";
