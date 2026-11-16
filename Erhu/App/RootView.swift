@@ -13,6 +13,7 @@ struct RootView: View {
     @Environment(SoundStore.self) private var sound
     @Environment(FixTagsStore.self) private var fixTags
     @Environment(WifiTransferStore.self) private var transfer
+    @Environment(ServerStore.self) private var servers
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -115,7 +116,12 @@ struct RootView: View {
         }
         .onAppear { library.scan(); Task { await releases.checkOnOpen() } }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { library.scan(); Task { await releases.checkOnOpen() } }
+            if phase == .active {
+                library.scan()
+                // A server may have started or stopped while the app was away.
+                servers.chooseRoutes()
+                Task { await releases.checkOnOpen() }
+            }
             if phase == .background {
                 transfer.stop(.backgrounded)
                 player.persistNow()

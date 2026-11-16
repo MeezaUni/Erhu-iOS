@@ -67,26 +67,31 @@ struct AlbumDetailView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
     @Environment(AppRouter.self) private var router
+    @Environment(ServerStore.self) private var servers
     @Environment(\.dismiss) private var dismiss
+    /// The album's songs on this phone.
     @State private var songs: [Song] = []
+    /// The connected server's songs of this album that the phone lacks (streamed, each marked).
+    @State private var streamed: [Song] = []
     @State private var artworkTarget: ArtworkTarget?
     @State private var confirmingDelete = false
 
     var body: some View {
         let origin = CollectionRef.album(albumId)
+        let tracks = ServerLibraryMerge.albumTracks(songs, streamed)
         ScrollView {
             if let album = library.album(albumId) {
-                let facts = collectionFacts(year: album.year, songs: songs)
+                let facts = collectionFacts(year: album.year, songs: tracks)
                 VStack(spacing: 0) {
                     CollectionHeroHeader(title: album.title, subtitle: album.artist, facts: songs.contains(where: \.isLossless) ? "\(facts) · Lossless" : facts,
-                                     canPlay: !songs.isEmpty, onPlay: { actions.playInOrder(songs, origin: origin) },
-                                     onShuffle: { actions.playShuffled(songs, origin: origin) }) {
+                                     canPlay: !tracks.isEmpty, onPlay: { actions.playInOrder(tracks, origin: origin) },
+                                     onShuffle: { actions.playShuffled(tracks, origin: origin) }) {
                         AlbumArtworkView(albumId: albumId, maxPixels: 1200)
                     }
                     TransitionStudioRow(collection: origin).padding(.bottom, Spacing.sm)
                     ScopedTagRepairSummary(songs: songs)
                     CollectionTransitionTrackList(collection: origin,
-                                                  tracks: songs.map { StudioTrack(song: $0, occurrence: TrackOccurrence($0.id)) },
+                                                  tracks: tracks.map { StudioTrack(song: $0, occurrence: TrackOccurrence($0.id)) },
                                                   showTrackNumbers: true)
                 }
             } else {
@@ -100,8 +105,8 @@ struct AlbumDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             Menu {
-                Button { songs.reversed().forEach { actions.playNext($0) } } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
-                Button { songs.forEach { actions.addToQueue($0) } } label: { Label("Add to queue", systemImage: "text.badge.plus") }
+                Button { ServerLibraryMerge.albumTracks(songs, streamed).reversed().forEach { actions.playNext($0) } } label: { Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward") }
+                Button { ServerLibraryMerge.albumTracks(songs, streamed).forEach { actions.addToQueue($0) } } label: { Label("Add to queue", systemImage: "text.badge.plus") }
                 if vybeEnabled { Button { router.open(.radio(.album(albumId))) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
                 Button { router.songsForPlaylist = songs } label: { Label("Add to playlist", systemImage: "music.note.list") }
                 Button { actions.fixTags(songs) } label: {
@@ -129,6 +134,20 @@ struct AlbumDetailView: View {
             Text("\(countLabel(songs.count, .song)) will be removed from the Erhu folder in Files for good, and leave your library, your playlists and the queue.")
         }
         .task(id: library.songs) { songs = (try? library.database.songsOfAlbum(albumId)) ?? [] }
+        .task(id: "\(songs.count)|\(servers.catalogVersion)|\(servers.connectedAccount?.id.uuidString ?? "")") {
+            // Only while the server answers, so every song shown can play.
+            guard let album = library.album(albumId), let account = servers.connectedAccount,
+                  let index = servers.catalog(for: account.id) else {
+                streamed = []
+                return
+            }
+            let local = songs
+            let extras = await Task.detached(priority: .userInitiated) {
+                ServerLibraryMerge.extraSongs(for: album, localSongs: local, in: index)
+            }.value
+            guard !Task.isCancelled else { return }
+            streamed = servers.streamSongs(extras, account: account)
+        }
         .background { CollectionPageBackground() }
         .collectionArtworkTheme(.track(library.albumCoverSong[albumId]?.url))
     }

@@ -99,8 +99,11 @@ private struct LibraryBrowseHeader<Controls: View>: View {
                 .allowsHitTesting(!drawer.collapsed)
                 .accessibilityHidden(drawer.collapsed)
             if showsControls {
-                HStack(alignment: .top, spacing: 10) {
-                    BrowseControlFlow { controls }
+                HStack(alignment: .center, spacing: 10) {
+                    // One row that scrolls sideways, so every filter stays beside the search button.
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) { controls }
+                    }
                     Button(action: reveal) {
                         Image(systemName: "magnifyingglass")
                             .frame(width: 44, height: 44).contentShape(Rectangle())
@@ -129,33 +132,6 @@ private struct SearchDrawerClip: Shape {
     }
 }
 
-/// Wrap filters on small phones and at large text sizes instead of hiding them offscreen.
-private struct BrowseControlFlow: Layout {
-    private let gap: CGFloat = 8
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = max(proposal.width ?? 320, 1)
-        let items = arrangement(width: width, subviews: subviews)
-        return CGSize(width: width, height: items.map { $0.maxY }.max() ?? 0)
-    }
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        for (index, frame) in arrangement(width: bounds.width, subviews: subviews).enumerated() {
-            subviews[index].place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
-                                 proposal: ProposedViewSize(frame.size))
-        }
-    }
-    private func arrangement(width: CGFloat, subviews: Subviews) -> [CGRect] {
-        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
-        return subviews.map { view in
-            let ideal = view.sizeThatFits(.unspecified)
-            let size = view.sizeThatFits(ProposedViewSize(width: min(ideal.width, width), height: nil))
-            if x > 0 && x + size.width > width { x = 0; y += rowHeight + gap; rowHeight = 0 }
-            let frame = CGRect(x: x, y: y, width: size.width, height: size.height)
-            x += size.width + gap; rowHeight = max(rowHeight, size.height)
-            return frame
-        }
-    }
-}
-
 struct LibrarySortMenu: View {
     @Binding var selection: String
     let options: [LibrarySort]
@@ -169,6 +145,25 @@ struct LibrarySortMenu: View {
             BrowseControlLabel(title: (LibrarySort(rawValue: selection) ?? .title).shortLabel, icon: "arrow.up.arrow.down")
         }
         .accessibilityLabel(String(localized: "Sort by \((LibrarySort(rawValue: selection) ?? .title).label)"))
+    }
+}
+
+/// Which music a library page shows: everything, only what's on this phone, or only streamed.
+struct LibrarySourceMenu: View {
+    @Binding var selection: String
+
+    private var source: LibrarySource { LibrarySource(rawValue: selection) ?? .all }
+
+    var body: some View {
+        Menu {
+            Picker("Source", selection: $selection) {
+                ForEach(LibrarySource.allCases, id: \.rawValue) { Text($0.label).tag($0.rawValue) }
+            }
+        } label: {
+            BrowseControlLabel(title: source == .all ? String(localized: "Source") : source.label,
+                               icon: source == .streamed ? "dot.radiowaves.up.forward" : "iphone", selected: source != .all)
+        }
+        .accessibilityLabel(String(localized: "Source: \(source.label)"))
     }
 }
 

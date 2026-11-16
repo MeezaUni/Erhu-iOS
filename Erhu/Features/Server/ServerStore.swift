@@ -27,6 +27,8 @@ final class ServerStore {
     var pendingInvite: ServerInvite?
     /// Servers reached through their away-from-home address right now.
     private(set) var usingAway: Set<UUID> = []
+    /// Servers that answered the last check.
+    private(set) var reachable: Set<UUID> = []
     /// Whether each server converts songs to MP3 (checked once per session; see [quality]).
     private(set) var convertsToMP3: [UUID: Bool] = [:]
     /// Changes whenever a server's catalog (for search) is loaded or refreshed.
@@ -207,11 +209,17 @@ final class ServerStore {
 
     // MARK: Home and away addresses
 
-    /// For each server with an away address: the home address when it answers quickly, otherwise
-    /// the away address. Runs at launch and whenever the network changes.
+    /// Whether [id]'s server answered the last check (music only on it shows in Albums and
+    /// Songs while it does).
+    func isReachable(_ id: UUID) -> Bool { reachable.contains(id) }
+    /// The selected server while it answers: its music joins the library's pages only then.
+    var connectedAccount: ServerAccount? { selected.flatMap { reachable.contains($0.id) ? $0 : nil } }
+
+    /// Checks which servers answer and, for each with an away address, uses the home address when
+    /// it answers quickly, otherwise the away one. Runs at launch and whenever the network changes.
     func chooseRoutes() {
         routeTask?.cancel()
-        let candidates = accounts.filter { $0.remoteURL != nil }
+        let candidates = accounts
         guard !candidates.isEmpty else { return }
         routeTask = Task { [weak self] in
             // Let a new Wi-Fi connection settle before asking.
@@ -219,8 +227,13 @@ final class ServerStore {
             for account in candidates {
                 guard !Task.isCancelled, let self, let password = ServerKeychain.password(for: account.id) else { return }
                 let away = await Self.prefersAway(account: account, password: password)
-                guard !Task.isCancelled, let away else { continue }
-                self.setRoute(account.id, away: away)
+                guard !Task.isCancelled else { return }
+                guard let away else {
+                    self.reachable.remove(account.id)
+                    continue
+                }
+                self.reachable.insert(account.id)
+                if account.remoteURL != nil { self.setRoute(account.id, away: away) }
             }
         }
     }
@@ -228,7 +241,8 @@ final class ServerStore {
     /// true: use the away address; false: the home one; nil: neither answered (left as it is).
     private nonisolated static func prefersAway(account: ServerAccount, password: String) async -> Bool? {
         let home = SubsonicClient(account: account, password: password)
-        if (try? await home.ping(timeout: 3)) != nil { return false }
+        if (try? await home.ping(timeout: account.remoteURL == nil ? 8 : 3)) != nil { return false }
+        guard account.remoteURL != nil else { return nil }
         let away = SubsonicClient(account: account, password: password, away: true)
         if (try? await away.ping(timeout: 8)) != nil { return true }
         return nil
@@ -294,6 +308,7 @@ final class ServerStore {
             throw SubsonicError.server(code: 0, message: String(localized: "Couldn't save the password in the Keychain."))
         }
         if away { usingAway.insert(account.id) }
+        reachable.insert(account.id)
         clients[account.id] = SubsonicClient(account: account, password: password, away: away)
         accounts.append(account)
         saveAccounts()
@@ -319,6 +334,7 @@ final class ServerStore {
         clients[account.id] = nil
         accounts.removeAll { $0.id == account.id }
         usingAway.remove(account.id)
+        reachable.remove(account.id)
         saveAccounts()
         if selectedId == account.id { selectedId = accounts.first?.id }
     }
