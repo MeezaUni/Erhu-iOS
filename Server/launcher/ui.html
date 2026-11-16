@@ -141,9 +141,10 @@
     <label class="check" id="autostart-row"><input type="checkbox" id="autostart"> Start Erhu Server when I sign in to this computer</label>
     <div class="row" style="margin-top:14px">
       <button class="secondary" id="restart">Restart server</button>
-      <a id="player" target="_blank" rel="noopener"><button class="secondary" type="button">Open web player</button></a>
+      <a id="player" target="_blank" rel="noopener"><button class="secondary" type="button">Open the Erhu web player</button></a>
       <button class="secondary" id="quit">Quit Erhu Server</button>
     </div>
+    <p id="player-others" hidden style="margin-top:12px"></p>
     <p style="margin-top:12px">Keep this computer on and awake while you listen. If Windows asks whether to allow <span class="mono">navidrome</span> on the network, choose <strong>Allow</strong> for private networks.</p>
     <div class="error" id="options-error" role="alert"></div>
   </section>
@@ -219,6 +220,9 @@ function show(s) {
   $("autostart-row").hidden = !s.autostartSupported;
   $("autostart").checked = s.autostart;
   $("player").href = s.webPlayer;
+  const others = s.webPlayerOthers || [];
+  $("player-others").hidden = others.length === 0;
+  $("player-others").textContent = others.length ? "The web player on other computers, tablets and phones on this network: " + others[0] : "";
 }
 
 async function refresh() { try { show(await api("/api/state")); } catch (e) { $("pill").textContent = "Erhu Server was closed"; $("pill").className = "pill failed"; } }
