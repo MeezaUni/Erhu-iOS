@@ -14,10 +14,18 @@ enum ServerCovers {
 
     static var folder: URL { LibraryPaths.cachesFolder.appendingPathComponent("server-covers", isDirectory: true) }
 
-    /// Where the cover [coverArt] of a server is kept.
-    static func fileURL(accountId: UUID, coverArt: String) -> URL {
+    /// Covers are kept in two sizes: small ones for tiles and rows (quick to fetch, even on
+    /// mobile data) and large ones for pages and Now Playing.
+    enum Size: Sendable {
+        case small, large
+        var pixels: Int { self == .small ? 300 : 800 }
+        init(maxPixels: Int) { self = maxPixels <= 400 ? .small : .large }
+    }
+
+    /// Where the cover [coverArt] of a server is kept, at [size].
+    static func fileURL(accountId: UUID, coverArt: String, size: Size = .large) -> URL {
         folder.appendingPathComponent(accountId.uuidString, isDirectory: true)
-            .appendingPathComponent(String(ServerStreamPaths.hash(coverArt), radix: 16) + ".img")
+            .appendingPathComponent(String(ServerStreamPaths.hash(coverArt), radix: 16) + (size == .small ? "-s.img" : ".img"))
     }
 
     static func register(streamFile: URL, cover: URL) {
@@ -25,10 +33,12 @@ enum ServerCovers {
     }
 
     /// The saved cover of a streamed song's file, for [ArtworkLoader] when the audio file has no
-    /// embedded picture or hasn't been fetched yet.
+    /// embedded picture or hasn't been fetched yet: the large one, or the small one until then.
     static func data(forStreamFile url: URL) -> Data? {
         guard let cover = lock.withLock({ coverByStreamFile[url.path] }) else { return nil }
-        return try? Data(contentsOf: cover)
+        if let data = try? Data(contentsOf: cover) { return data }
+        let small = cover.deletingPathExtension().path + "-s.img"
+        return try? Data(contentsOf: URL(fileURLWithPath: small))
     }
 
     static func hasCover(at file: URL) -> Bool { FileManager.default.fileExists(atPath: file.path) }
@@ -54,7 +64,8 @@ enum ServerCovers {
     }
 }
 
-/// A server cover: from the disk cache when it is there, otherwise fetched once from the server.
+/// A server cover: from the disk cache when it is there, otherwise fetched once from the server
+/// (small for tiles and rows, large for pages). A large copy already saved is used for tiles too.
 struct ServerCoverView: View {
     let accountId: UUID
     let coverArt: String?
@@ -65,13 +76,15 @@ struct ServerCoverView: View {
     @State private var image: UIImage?
     @State private var revision = 0
 
-    private var file: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0) } }
+    private var size: ServerCovers.Size { ServerCovers.Size(maxPixels: maxPixels) }
+    private var file: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0, size: size) } }
+    private var largeFile: URL? { coverArt.map { ServerCovers.fileURL(accountId: accountId, coverArt: $0, size: .large) } }
 
     var body: some View {
         // A cover already decoded shows at once, without a placeholder flash.
-        let shown = image ?? file.flatMap { file in
-            [maxPixels, 1200, 800, 400, 144].lazy.compactMap { ArtworkLoader.shared.cachedImage(atPath: file.path, maxPixels: $0) }.first
-        }
+        let shown = image ?? [file, largeFile].compactMap { $0 }.lazy.compactMap { file in
+            [maxPixels, 1200, 800, 400, 300, 144].lazy.compactMap { ArtworkLoader.shared.cachedImage(atPath: file.path, maxPixels: $0) }.first
+        }.first
         ZStack {
             if let image = shown {
                 FillImage(image: image)
@@ -81,16 +94,33 @@ struct ServerCoverView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: ServerCovers.didChange)) { note in
-            if note.object as? String == file?.path { revision += 1 }
+            let path = note.object as? String
+            if path == file?.path || path == largeFile?.path { revision += 1 }
         }
         .task(id: "\(file?.path ?? "")|\(maxPixels)|\(revision)") {
-            guard let file, let coverArt else { image = nil; return }
-            if ServerCovers.hasCover(at: file) {
+            guard let file, let largeFile, let coverArt else { image = nil; return }
+            if ServerCovers.hasCover(at: largeFile) {
+                image = await ArtworkLoader.shared.image(atPath: largeFile.path, maxPixels: maxPixels)
+            } else if ServerCovers.hasCover(at: file) {
                 image = await ArtworkLoader.shared.image(atPath: file.path, maxPixels: maxPixels)
             } else if let client = servers.client(for: accountId) {
-                ServerCovers.fetch(client.coverArtURL(coverArt, size: 800), to: file, session: client.session)
+                ServerCovers.fetch(client.coverArtURL(coverArt, size: size.pixels), to: file, session: client.session)
             }
         }
         .accessibilityHidden(true)
+    }
+}
+
+/// Marks music that streams from a server rather than living on this device.
+struct StreamBadge: View {
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        Image(systemName: "dot.radiowaves.up.forward")
+            .font(.system(size: 11, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(5)
+            .background(Circle().fill(.black.opacity(0.55)))
+            .accessibilityLabel("Streams from your server")
     }
 }

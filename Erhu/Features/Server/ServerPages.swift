@@ -39,11 +39,16 @@ struct ServerTile: View {
     let coverArt: String?
     var placeholder = "square.stack"
     var circular = false
+    /// Marks it as streamed, where it sits among the library's own music.
+    var showsStreamBadge = false
     let action: () -> Void
 
     var body: some View {
         ArtworkTile(title: title, subtitle: subtitle, circular: circular, action: action) {
             ServerCoverView(accountId: accountId, coverArt: coverArt, placeholder: placeholder)
+                .overlay(alignment: .topTrailing) {
+                    if showsStreamBadge { StreamBadge().padding(6) }
+                }
         }
     }
 }

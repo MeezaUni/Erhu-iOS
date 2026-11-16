@@ -234,6 +234,24 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual(source, try JSONDecoder().decode(PlaybackSource.self, from: JSONEncoder().encode(source)))
     }
 
+    func testServerAlbumsJoinTheLibrarysInItsOrder() {
+        let account = UUID()
+        let local = [Album(id: 1, title: "Apple", artist: "B", artistId: 0, songCount: 1, year: 2001),
+                     Album(id: 2, title: "Cherry", artist: "A", artistId: 0, songCount: 1, year: 1999)]
+        let server = [ServerCatalog.Album(id: "x", name: "Banana", artist: "C", coverArt: nil, year: 2010),
+                      ServerCatalog.Album(id: "y", name: "Date", artist: "A", coverArt: nil, year: nil)]
+        let byTitle = ServerLibraryMerge.albums(local: local, server: server, accountId: account, sort: .title, searching: false)
+        XCTAssertEqual(["Apple", "Banana", "Cherry", "Date"], byTitle.map(\.title))
+        let newest = ServerLibraryMerge.albums(local: local.sorted { $0.year > $1.year }, server: server, accountId: account, sort: .newestYear, searching: false)
+        XCTAssertEqual(["Banana", "Apple", "Cherry", "Date"], newest.map(\.title))
+        // Sorts only the library knows (most played) and searches: the server's follow.
+        XCTAssertEqual(["Apple", "Cherry", "Banana", "Date"],
+                       ServerLibraryMerge.albums(local: local, server: server, accountId: account, sort: .mostPlayed, searching: false).map(\.title))
+        XCTAssertEqual(2, ServerLibraryMerge.albums(local: local, server: server, accountId: nil, sort: .title, searching: false).count,
+                       "no server connected: only the library")
+        if case .server(let id, _) = byTitle[1] { XCTAssertEqual(account, id) } else { XCTFail("Banana is the server's") }
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#
