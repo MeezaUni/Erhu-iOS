@@ -30,6 +30,8 @@ final class StreamPlayer {
     private var tokens: [NSObjectProtocol] = []
     private var wantsToPlay = false
     private var reportedBuffered = false
+    /// The next song, connected and buffering ahead while paused, so skipping to it starts at once.
+    private var prepared: (entryId: UUID, url: URL, player: AVPlayer, item: AVPlayerItem)?
 
     /// Formats iOS's player streams; others (Ogg Vorbis, Opus) are fetched in full first.
     static func canStream(fileExtension ext: String) -> Bool {
@@ -49,13 +51,46 @@ final class StreamPlayer {
         }
     }
 
+    private static func makeItem(url: URL, fileExtension: String) -> AVPlayerItem {
+        var options: [String: Any] = [:]
+        if let type = mimeType(for: fileExtension) { options[AVURLAssetOverrideMIMETypeKey] = type }
+        return AVPlayerItem(asset: AVURLAsset(url: url, options: options))
+    }
+
+    /// Connects to [url] and buffers its start while paused, for [play] of the same entry to start
+    /// without waiting. Replaces an earlier prepared song.
+    func prepare(entryId: UUID, url: URL, fileExtension: String) {
+        if prepared?.entryId == entryId, prepared?.url == url { return }
+        discardPrepared()
+        let item = Self.makeItem(url: url, fileExtension: fileExtension)
+        // Enough to start smoothly; the rest streams once it plays.
+        item.preferredForwardBufferDuration = 20
+        let player = AVPlayer(playerItem: item)
+        player.automaticallyWaitsToMinimizeStalling = true
+        player.volume = 0
+        prepared = (entryId, url, player, item)
+    }
+
+    func discardPrepared() {
+        prepared?.player.pause()
+        prepared?.player.replaceCurrentItem(with: nil)
+        prepared = nil
+    }
+
     func play(entryId: UUID, url: URL, fileExtension: String, positionMs: Int64, startPlaying: Bool) {
         stop()
         self.entryId = entryId
-        var options: [String: Any] = [:]
-        if let type = Self.mimeType(for: fileExtension) { options[AVURLAssetOverrideMIMETypeKey] = type }
-        let item = AVPlayerItem(asset: AVURLAsset(url: url, options: options))
-        let player = AVPlayer(playerItem: item)
+        let item: AVPlayerItem, player: AVPlayer
+        if let ready = prepared, ready.entryId == entryId, ready.url == url, ready.item.status != .failed {
+            // Prepared while the previous song played: already connected and buffered.
+            (item, player) = (ready.item, ready.player)
+            item.preferredForwardBufferDuration = 0
+            prepared = nil
+        } else {
+            if prepared?.entryId == entryId { discardPrepared() }
+            item = Self.makeItem(url: url, fileExtension: fileExtension)
+            player = AVPlayer(playerItem: item)
+        }
         // If the connection falls behind, wait for more instead of stopping (see [play]).
         player.automaticallyWaitsToMinimizeStalling = true
         player.volume = volume

@@ -95,6 +95,7 @@ final class PlayerController {
             guard let self, id == self.state.currentEntry?.id else { return }
             ServerStream.shared.prefetch(self.prefetchAfterBuffering)
             self.prefetchAfterBuffering = []
+            self.prepareNextStream()
         }
         configureAudioSession()
         configureRemoteCommands()
@@ -731,6 +732,7 @@ final class PlayerController {
         } else {
             prefetchAfterBuffering = []
             ServerStream.shared.prefetch(upcoming)
+            prepareNextStream()
         }
         fileWarmup = Task { [weak self] in await self?.engine.warmFiles(urls) }
         artworkWarmup?.cancel()
@@ -744,6 +746,24 @@ final class PlayerController {
                 }
             }
         }
+    }
+
+    /// Connects to the next song ahead of time if it will stream (not fetched yet), so skipping or
+    /// moving on to it starts at once instead of after a second or two of loading.
+    private func prepareNextStream() {
+        guard let next = PlayOrder.next(after: state.currentIndex, count: state.queue.count, repeatMode: state.repeatMode, userSkip: true),
+              state.queue.indices.contains(next), state.queue[next].id != state.currentEntry?.id else {
+            streamPlayer.discardPrepared()
+            return
+        }
+        let entry = state.queue[next]
+        let format = ServerStream.shared.streamFormat(of: entry.song)
+        guard entry.song.isStream, !ServerStream.shared.isCached(entry.song), StreamPlayer.canStream(fileExtension: format),
+              let url = ServerStream.shared.streamURL(for: entry.song) else {
+            streamPlayer.discardPrepared()
+            return
+        }
+        streamPlayer.prepare(entryId: entry.id, url: url, fileExtension: format)
     }
 
     // MARK: Position polling
