@@ -157,7 +157,7 @@ final class SearchStore {
         server = ServerSearchResults(account: account,
                                      artists: found.artist.prefix(limit).map { RecentServerArtist(id: $0.id, name: $0.name, coverArt: $0.coverArt, albumCount: $0.albumCount) },
                                      albums: found.album.prefix(limit).map { RecentServerAlbum(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt) },
-                                     songs: Array(found.song.filter { $0.isVideo != true }.prefix(limit)))
+                                     songs: Array(ServerCatalog.uniqueSongs(found.song.filter { $0.isVideo != true }).prefix(limit)))
     }
 
     func remember(_ item: RecentSearchItem) {

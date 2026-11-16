@@ -108,7 +108,7 @@ private struct ServerCollectionPage: View {
     @State private var coverRevision = 0
 
     var body: some View {
-        let tracks = remote.filter { $0.isVideo != true }
+        let tracks = ServerCatalog.uniqueSongs(remote.filter { $0.isVideo != true })
         let songs = servers.streamSongs(tracks, account: account)
         let songActions = servers.songActions(source: source)
         let currentId = player.state.currentSong?.id
