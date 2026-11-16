@@ -185275,6 +185275,160 @@
         }
       }
     },
+    "This song's server isn't connected in Erhu. Add the server again in Music Server to play it." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خادم هذه الأغنية غير متصل في Erhu. أضف الخادم مرة أخرى من خادم الموسيقى لتشغيلها."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই গানের সার্ভার Erhu-তে সংযুক্ত নেই। চালাতে মিউজিক সার্ভারে সার্ভারটি আবার যোগ করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server dieses Songs ist in Erhu nicht verbunden. Füge den Server unter Musikserver wieder hinzu, um ihn abzuspielen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor de esta canción no está conectado en Erhu. Vuelve a añadir el servidor en Servidor de música para reproducirla."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرور این آهنگ در Erhu وصل نیست. برای پخش، سرور را دوباره در سرور موسیقی اضافه کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi nakakonekta sa Erhu ang server ng kantang ito. Idagdag ulit ang server sa Music Server para i-play ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur de ce morceau n’est pas connecté dans Erhu. Ajoutez de nouveau le serveur dans Serveur de musique pour l’écouter."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस गाने का सर्वर Erhu में जुड़ा नहीं है। इसे चलाने के लिए म्यूज़िक सर्वर में सर्वर फिर से जोड़ें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server lagu ini tidak terhubung di Erhu. Tambahkan server lagi di Server musik untuk memutarnya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server di questo brano non è collegato in Erhu. Aggiungi di nuovo il server in Server musicale per riprodurlo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この曲のサーバは Erhu に接続されていません。再生するには、ミュージックサーバでサーバをもう一度追加してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 노래의 서버가 Erhu에 연결되어 있지 않습니다. 재생하려면 음악 서버에서 서버를 다시 추가하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De server van dit nummer is niet verbonden met Erhu. Voeg de server opnieuw toe bij Muziekserver om het af te spelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer tego utworu nie jest połączony w Erhu. Dodaj serwer ponownie w Serwerze muzyki, aby go odtworzyć."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor desta música não está conectado no Erhu. Adicione o servidor de novo em Servidor de música para tocá-la."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер этой песни не подключён в Erhu. Чтобы воспроизвести её, снова добавьте сервер в разделе «Музыкальный сервер»."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இந்தப் பாடலின் சர்வர் Erhu-இல் இணைக்கப்படவில்லை. இயக்க, இசை சர்வரில் சர்வரை மீண்டும் சேர்க்கவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈ పాట సర్వర్ Erhu లో కనెక్ట్ కాలేదు. ప్లే చేయడానికి మ్యూజిక్ సర్వర్‌లో సర్వర్‌ను మళ్లీ జోడించండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เซิร์ฟเวอร์ของเพลงนี้ไม่ได้เชื่อมต่อกับ Erhu เพิ่มเซิร์ฟเวอร์อีกครั้งในเซิร์ฟเวอร์เพลงเพื่อเล่น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu şarkının sunucusu Erhu’ya bağlı değil. Çalmak için sunucuyu Müzik Sunucusu’nda yeniden ekleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер цієї пісні не під’єднано в Erhu. Щоб відтворити її, знову додайте сервер у розділі «Музичний сервер»."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اس گانے کا سرور Erhu میں منسلک نہیں۔ چلانے کے لیے میوزک سرور میں سرور دوبارہ شامل کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ của bài hát này không kết nối trong Erhu. Hãy thêm lại máy chủ trong Máy chủ nhạc để phát."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这首歌的服务器未连接到 Erhu。请在“音乐服务器”中重新添加该服务器后播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這首歌的伺服器未連接到 Erhu。請在「音樂伺服器」中重新加入該伺服器後播放。"
+          }
+        }
+      }
+    },
     "This track is instrumental." : {
       "localizations" : {
         "ar" : {
