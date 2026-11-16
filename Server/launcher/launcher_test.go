@@ -343,9 +343,8 @@ func TestRemoteEnableAsksForApprovalOnce(t *testing.T) {
 	if got := r.State(4533); got.Status != "off" || got.ApproveURL != "https://login.tailscale.com/f/funnel?node=abc123" {
 		t.Fatalf("%+v", got)
 	}
-	last := fake.calls[0]
-	if strings.Join(last, " ") != "funnel --bg 4533" {
-		t.Fatalf("ran %v", last)
+	if got := funnelCalls(fake); len(got) != 1 || got[0] != "funnel --bg --https=443 4533" {
+		t.Fatalf("ran %v", got)
 	}
 	// Once allowed, the next try works and the link goes away.
 	fake.enable, fake.enableErr = "Available on the internet:\nhttps://pc.tail1234.ts.net/\n", nil
@@ -439,5 +438,61 @@ func TestOneButtonSetup(t *testing.T) {
 	}
 	if opened, installed := seen(); len(installed) != 1 || len(opened) != 2 {
 		t.Fatalf("extra steps: installed %v opened %v", installed, opened)
+	}
+}
+
+func funnelCalls(f *fakeTailscale) []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	var out []string
+	for _, call := range f.calls {
+		if call[0] == "funnel" {
+			out = append(out, strings.Join(call, " "))
+		}
+	}
+	return out
+}
+
+// Someone who already publishes other things through Tailscale keeps them: Erhu Server takes
+// the next free Funnel port, shows that address, and turns off only its own port.
+func TestRemoteLeavesOtherFunnelEntriesAlone(t *testing.T) {
+	other := `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:3000"}}}},"AllowFunnel":{"pc.tail1234.ts.net:443":true}}`
+	fake := &fakeTailscale{status: tsRunning, serve: other, enable: "Available on the internet:\nhttps://pc.tail1234.ts.net:8443/\n"}
+	r := &Remote{run: fake.run, setup: newSetup()}
+	if got := r.State(4533); got.Status != "off" {
+		t.Fatalf("someone else's site on 443 is not Erhu Server: %+v", got)
+	}
+	if err := r.Enable(context.Background(), 4533); err != nil {
+		t.Fatal(err)
+	}
+	if got := funnelCalls(fake); len(got) != 1 || got[0] != "funnel --bg --https=8443 4533" {
+		t.Fatalf("ran %v", got)
+	}
+	fake.set(func(f *fakeTailscale) {
+		f.serve = `{"TCP":{"443":{"HTTPS":true},"8443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:3000"}}},"pc.tail1234.ts.net:8443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}},"AllowFunnel":{"pc.tail1234.ts.net:443":true,"pc.tail1234.ts.net:8443":true}}`
+	})
+	r.forget()
+	if got := r.State(4533); got != (RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net:8443"}) {
+		t.Fatalf("%+v", got)
+	}
+	if err := r.Disable(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if got := funnelCalls(fake); got[len(got)-1] != "funnel --https=8443 off" {
+		t.Fatalf("turned off %v", got)
+	}
+
+	// All three Funnel ports taken by other things: nothing is changed, and the page says why.
+	full := &fakeTailscale{status: tsRunning, serve: `{"TCP":{"443":{"HTTPS":true},"8443":{"HTTPS":true},"10000":{"HTTPS":true}}}`}
+	r = &Remote{run: full.run, setup: newSetup()}
+	if err := r.Enable(context.Background(), 4533); err == nil || !strings.Contains(err.Error(), "all used") {
+		t.Fatalf("want a message about the ports, got %v", err)
+	}
+	if got := funnelCalls(full); len(got) != 0 {
+		t.Fatalf("changed Tailscale anyway: %v", got)
+	}
+	// Turning off when Erhu Server never published anything changes nothing either.
+	if err := r.Disable(context.Background()); err != nil || len(funnelCalls(full)) != 0 {
+		t.Fatalf("Disable touched Tailscale: %v %v", err, funnelCalls(full))
 	}
 }

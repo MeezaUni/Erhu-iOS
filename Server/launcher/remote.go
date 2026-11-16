@@ -48,6 +48,11 @@ type Remote struct {
 	checked time.Time
 	approve string
 	setup   *tsSetup
+	// From the last check: this computer's Tailscale name, its serve config, and the Funnel
+	// port that publishes the server (0: none).
+	host  string
+	serve tsServe
+	port  int
 }
 
 func newRemote() *Remote { return &Remote{run: runTailscale, setup: newSetup()} }
@@ -120,6 +125,11 @@ type tsServe struct {
 	}
 }
 
+// funnelPorts are the HTTPS ports Tailscale Funnel can publish on, in the order Erhu Server
+// tries them. A port already used for something else is never touched: listeners who serve
+// other things through Tailscale keep them.
+var funnelPorts = []int{443, 8443, 10000}
+
 func (r *Remote) check(port int) RemoteState {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -139,35 +149,60 @@ func (r *Remote) check(port int) RemoteState {
 		return RemoteState{Status: "signedOut"}
 	}
 	host := strings.TrimSuffix(status.Self.DNSName, ".")
+	r.host = host
 	state := RemoteState{Status: "off", ApproveURL: r.approve}
 	out, err = r.run(ctx, "serve", "status", "--json")
-	if err == nil && serving(jsonPart(out), host, port) {
+	var cfg tsServe
+	if err == nil {
+		_ = json.Unmarshal(jsonPart(out), &cfg)
+	}
+	r.serve = cfg
+	r.port = 0
+	if https, ok := servingPort(cfg, host, port); ok {
 		r.approve = ""
-		return RemoteState{Status: "on", Address: "https://" + host}
+		r.port = https
+		return RemoteState{Status: "on", Address: httpsAddress(host, https)}
 	}
 	return state
 }
 
-// serving reports whether Tailscale Funnel publishes https://host (port 443) by forwarding to
-// the server. Served only inside the tailnet (no funnel) doesn't count: phones without
-// Tailscale couldn't reach it.
-func serving(data []byte, host string, port int) bool {
-	var cfg tsServe
-	if json.Unmarshal(data, &cfg) != nil || !cfg.TCP["443"].HTTPS || !cfg.AllowFunnel[host+":443"] {
-		return false
+func httpsAddress(host string, port int) string {
+	if port == 443 {
+		return "https://" + host
 	}
-	web, ok := cfg.Web[host+":443"]
-	if !ok {
-		return false
-	}
+	return "https://" + host + ":" + strconv.Itoa(port)
+}
+
+// servingPort is the Funnel port that publishes the server (forwards to [port]), if any.
+// Served only inside the tailnet (no funnel) doesn't count: phones without Tailscale couldn't
+// reach it.
+func servingPort(cfg tsServe, host string, port int) (int, bool) {
 	target := ":" + strconv.Itoa(port)
-	for _, handler := range web.Handlers {
-		proxy := strings.TrimSuffix(handler.Proxy, "/")
-		if proxy == strconv.Itoa(port) || strings.HasSuffix(proxy, target) {
-			return true
+	for _, https := range funnelPorts {
+		key := host + ":" + strconv.Itoa(https)
+		if !cfg.TCP[strconv.Itoa(https)].HTTPS || !cfg.AllowFunnel[key] {
+			continue
+		}
+		for _, handler := range cfg.Web[key].Handlers {
+			proxy := strings.TrimSuffix(handler.Proxy, "/")
+			if proxy == strconv.Itoa(port) || strings.HasSuffix(proxy, target) {
+				return https, true
+			}
 		}
 	}
-	return false
+	return 0, false
+}
+
+// freeFunnelPort is the first Funnel port nothing else uses (0: all are taken).
+func freeFunnelPort(cfg tsServe, host string) int {
+	for _, https := range funnelPorts {
+		_, tcp := cfg.TCP[strconv.Itoa(https)]
+		_, web := cfg.Web[host+":"+strconv.Itoa(https)]
+		if !tcp && !web {
+			return https
+		}
+	}
+	return 0
 }
 
 // jsonPart drops anything Tailscale prints before its JSON (warnings about the client version).
@@ -185,7 +220,17 @@ var approveLink = regexp.MustCompile(`https://login\.tailscale\.com/\S+`)
 func (r *Remote) Enable(ctx context.Context, port int) error {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	out, err := r.run(ctx, "funnel", "--bg", strconv.Itoa(port))
+	r.forget()
+	if r.State(port).Status == "on" {
+		return nil
+	}
+	r.mu.Lock()
+	https := freeFunnelPort(r.serve, r.host)
+	r.mu.Unlock()
+	if https == 0 {
+		return errors.New("Tailscale Funnel's ports (443, 8443 and 10000) are all used for other things on this computer. Free one of them in Tailscale, then press the button again.")
+	}
+	out, err := r.run(ctx, "funnel", "--bg", "--https="+strconv.Itoa(https), strconv.Itoa(port))
 	defer r.forget()
 	if link := approveLink.FindString(string(out)); link != "" {
 		r.mu.Lock()
@@ -206,7 +251,13 @@ func (r *Remote) Enable(ctx context.Context, port int) error {
 func (r *Remote) Disable(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	out, err := r.run(ctx, "funnel", "--https=443", "off")
+	r.mu.Lock()
+	https := r.port
+	r.mu.Unlock()
+	if https == 0 {
+		return nil // not published by Erhu Server: nothing to turn off
+	}
+	out, err := r.run(ctx, "funnel", "--https="+strconv.Itoa(https), "off")
 	r.forget()
 	if err != nil {
 		return errors.New("Tailscale couldn't turn this off: " + firstLine(out, err))
