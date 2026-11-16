@@ -395,16 +395,19 @@ final class ServerStore {
     /// The library's album [remote] belongs to (same title, same artist), and the song whose
     /// cover it shows.
     private func libraryAlbum(of remote: ServerSong) -> (albumId: Int64, coverSong: URL?)? {
-        guard let title = remote.album, !title.isEmpty else { return nil }
+        guard let title = remote.album, !title.isEmpty, let album = libraryAlbum(named: title, artist: remote.artist ?? "") else { return nil }
+        return (album.id, library.albumCoverSong[album.id]?.url)
+    }
+
+    /// The library's album titled [title] by [artist], if it has one.
+    func libraryAlbum(named title: String, artist: String) -> Album? {
         let albums = library.albums
         // Cheap to compare for every song; a rescan that changes albums changes these.
         let signature = [Int64(albums.count), albums.first?.id ?? 0, albums.last?.id ?? 0]
         if signature != albumsByTitle.signature {
             albumsByTitle = (signature, Dictionary(grouping: albums) { SearchNormalizer.normalize($0.title) })
         }
-        guard let album = albumsByTitle.albums[SearchNormalizer.normalize(title)]?
-            .first(where: { ServerLibraryMerge.sameArtist($0.artist, remote.artist ?? "") }) else { return nil }
-        return (album.id, library.albumCoverSong[album.id]?.url)
+        return albumsByTitle.albums[SearchNormalizer.normalize(title)]?.first { ServerLibraryMerge.sameArtist($0.artist, artist) }
     }
 
     // MARK: Artists
