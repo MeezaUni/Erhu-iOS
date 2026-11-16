@@ -44,11 +44,16 @@ final class LibraryDatabase: @unchecked Sendable {
             // Playlist order is kept separately from an entry's position, as in the Android app:
             // the position stays the entry's identity (transitions and saved queues refer to it),
             // and reordering only changes sort_order.
+            // Safe to run again: a database whose version was reset already has the column, and
+            // its saved order must not be overwritten.
             try db.transaction {
-                try db.executeScript("""
-                    ALTER TABLE playlist_song_cross_ref ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;
-                    UPDATE playlist_song_cross_ref SET sort_order = position;
-                    """)
+                let columns = try db.query("PRAGMA table_info(playlist_song_cross_ref)") { $0.string("name") }
+                if !columns.contains("sort_order") {
+                    try db.executeScript("""
+                        ALTER TABLE playlist_song_cross_ref ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;
+                        UPDATE playlist_song_cross_ref SET sort_order = position;
+                        """)
+                }
                 try db.execute("PRAGMA user_version = 3")
             }
         }

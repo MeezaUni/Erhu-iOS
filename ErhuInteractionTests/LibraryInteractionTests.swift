@@ -163,10 +163,20 @@ final class LibraryInteractionTests: XCTestCase {
         let toggle = inner.exists ? inner : wrapper
         XCTAssertTrue(toggle.isHittable)
         let before = toggle.value as? String
+        func flipped(within seconds: TimeInterval) -> Bool {
+            let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                (toggle.value as? String) != before
+            }, object: nil)
+            return XCTWaiter.wait(for: [changed], timeout: seconds) == .completed
+        }
+        // On the CI simulator a synthesized tap is sometimes dropped (the same build passed and
+        // failed on the same day). Try the switch itself, then its centre by coordinate, then the
+        // wrapper, and fail only if none of them changes the value.
         toggle.tap()
-        let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            (toggle.value as? String) != before
-        }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 3), .completed)
+        if !flipped(within: 3) {
+            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            if !flipped(within: 3) { wrapper.tap() }
+        }
+        XCTAssertTrue(flipped(within: 3), "the transition switch never changed after three taps")
     }
 }
