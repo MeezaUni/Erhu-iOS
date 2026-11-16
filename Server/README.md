@@ -133,6 +133,10 @@ Server asks for at least 12 characters; use a password you don't use anywhere el
 5. Done. The page shows your `https://….ts.net` address. On the iPhone, **scan the QR code again**
    (it now carries both addresses) and tap *Connect*, or in Erhu: Music Server → *Away address*.
 
+Already publish other things with Tailscale Serve or Funnel? Erhu Server leaves them alone: if
+port 443 is taken it uses 8443 (or 10000), so the address ends in `:8443`, and *Turn off* removes
+only its own entry.
+
 You don't need to press anything between the steps: the page shows what is happening and moves on
 by itself as soon as each step is done. If a step fails, the page says why and the button becomes
 *Try again*. Already have Tailscale? Then steps 2–3 are skipped.
@@ -150,7 +154,8 @@ Tailscale app in Synology / QNAP / Unraid / TrueNAS app centres), sign in, then 
 sudo tailscale funnel --bg 4533
 ```
 
-It prints the `https://<machine>.<tailnet>.ts.net` address (the first time it may print a link
+(If you already publish something else on port 443, add `--https=8443` and use the address
+with `:8443`.) It prints the `https://<machine>.<tailnet>.ts.net` address (the first time it may print a link
 to allow Funnel; open it, allow, and run the command again). In Erhu, add that address as the
 server's **Away address**. The setting is kept across restarts. To stop:
 `sudo tailscale funnel --https=443 off`.
