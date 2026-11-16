@@ -90,6 +90,7 @@ struct LibraryOverviewView: View {
     @Environment(AppRouter.self) private var router
 
     private static let previewLimit = 15
+    @State private var serverArtists: [NamedServerArtist] = []
 
     var body: some View {
         LibraryRootScrollView {
@@ -111,6 +112,7 @@ struct LibraryOverviewView: View {
                     ForEach(library.artists) { artist in
                         ArtistTile(artist: artist) { router.open(.artist(artist.id)) }.frame(width: 136)
                     }
+                    ServerArtistTiles(artists: serverArtists, limit: Self.previewLimit, width: 136)
                 }
                 section("Songs", empty: library.songs.isEmpty,
                         message: library.isScanning ? "Scanning your music…" : String(localized: "No songs found. Pull down to rescan."), more: { router.open(.allSongs) }) {
@@ -124,6 +126,7 @@ struct LibraryOverviewView: View {
         }
         .tracksLibraryScrolling()
         .refreshable { library.scan() }
+        .loadsServerArtists($serverArtists)
     }
 
     @ViewBuilder
@@ -150,6 +153,7 @@ struct LibraryShelfView: View {
 
     @State private var query = ""
     @State private var showsSearch = false
+    @State private var serverArtists: [NamedServerArtist] = []
 
     var body: some View {
         LibraryBrowseScrollView(title: shelf.label, showsControls: false, query: $query, showsSearch: $showsSearch) {
@@ -173,12 +177,14 @@ struct LibraryShelfView: View {
                     ForEach(library.artists.filter { query.isBlank || SearchNormalizer.matches($0.name, query) }) { artist in
                         ArtistTile(artist: artist) { router.open(.artist(artist.id)) }
                     }
+                    ServerArtistTiles(artists: serverArtists, query: query)
                 }
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.sm)
             }
         }
         .navigationTitle("")
+        .loadsServerArtists($serverArtists)
     }
 }
 
@@ -319,4 +325,49 @@ struct SongList: View {
             }
         }
     }
+}
+
+/// The connected server's artists the library doesn't have, among the library's (each marked as
+/// streamed), by name. Nothing while the server doesn't answer. [artists] comes from
+/// [loadsServerArtists] on the page.
+struct ServerArtistTiles: View {
+    let artists: [NamedServerArtist]
+    var query = ""
+    var limit: Int?
+    var width: CGFloat?
+    @Environment(ServerStore.self) private var servers
+    @Environment(AppRouter.self) private var router
+
+    var body: some View {
+        let shown = artists.filter { query.isBlank || SearchNormalizer.matches($0.name, query) }
+        if let account = servers.connectedAccount {
+            ForEach(limit.map { Array(shown.prefix($0)) } ?? shown) { artist in
+                ServerTile(accountId: account.id, title: artist.name, subtitle: countLabel(artist.songIds.count, .song),
+                           coverArt: artist.coverArt, placeholder: "person", circular: true, showsStreamBadge: true) {
+                    router.open(.serverArtistNamed(ServerRef(accountId: account.id, id: artist.key, title: artist.name)))
+                }
+                .frame(width: width)
+            }
+        }
+    }
+}
+
+private struct ServerArtistsLoader: ViewModifier {
+    @Binding var artists: [NamedServerArtist]
+    @Environment(ServerStore.self) private var servers
+    @Environment(LibraryStore.self) private var library
+
+    func body(content: Content) -> some View {
+        content.task(id: "\(servers.catalogVersion)|\(servers.connectedAccount?.id.uuidString ?? "")|\(library.artists.count)") {
+            let named = await servers.namedArtists()
+            let local = servers.libraryArtistKeys
+            artists = named.values.filter { !local.contains($0.key) && !$0.songIds.isEmpty }
+                .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }
+    }
+}
+
+extension View {
+    /// Loads the connected server's artists that the library doesn't have into [artists].
+    func loadsServerArtists(_ artists: Binding<[NamedServerArtist]>) -> some View { modifier(ServerArtistsLoader(artists: artists)) }
 }

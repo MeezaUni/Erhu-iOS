@@ -390,6 +390,56 @@ final class ServerStore {
         return (album.id, library.albumCoverSong[album.id]?.url)
     }
 
+    // MARK: Artists
+
+    /// The library's artists by normalized name, rebuilt when the artists change.
+    @ObservationIgnored private var artistsByKey: (signature: [Int64], artists: [String: Artist]) = ([], [:])
+    @ObservationIgnored private var namedArtistsCache: (key: String, artists: [String: NamedServerArtist])?
+
+    private var libraryArtistsByKey: [String: Artist] {
+        let artists = library.artists
+        let signature = [Int64(artists.count), artists.first?.id ?? 0, artists.last?.id ?? 0]
+        if signature != artistsByKey.signature {
+            artistsByKey = (signature, Dictionary(artists.map { (ServerLibraryMerge.artistKey($0.name), $0) },
+                                                  uniquingKeysWith: { a, b in a.songCount >= b.songCount ? a : b }))
+        }
+        return artistsByKey.artists
+    }
+
+    var libraryArtistKeys: Set<String> { Set(libraryArtistsByKey.keys) }
+
+    func libraryArtist(named name: String) -> Artist? { libraryArtistsByKey[ServerLibraryMerge.artistKey(name)] }
+
+    /// The artists [credit] names, each to open on its own.
+    func artistNames(in credit: String) -> [String] {
+        let server = connectedAccount.flatMap { catalog(for: $0.id) }.map { Set($0.catalog.artists.map { ServerLibraryMerge.artistKey($0.name) }) } ?? []
+        return ServerLibraryMerge.artistNames(credit, local: libraryArtistKeys, server: server)
+    }
+
+    /// The connected server's artists by name (empty while it doesn't answer).
+    func namedArtists() async -> [String: NamedServerArtist] {
+        guard let account = connectedAccount, let index = catalog(for: account.id) else { return [:] }
+        let local = libraryArtistKeys
+        let key = "\(account.id)|\(catalogVersion)|\(artistsByKey.signature)"
+        if let cached = namedArtistsCache, cached.key == key { return cached.artists }
+        let artists = await Task.detached(priority: .userInitiated) { ServerLibraryMerge.namedArtists(in: index, local: local) }.value
+        namedArtistsCache = (key, artists)
+        return artists
+    }
+
+    /// The page for artist [name] of [song]: the library's artist (which lists their streamed
+    /// music too), else the connected server's, else the server artist the song names.
+    func artistRoute(named name: String, of song: Song) async -> Route? {
+        if let artist = libraryArtist(named: name) { return .artist(artist.id) }
+        if let account = connectedAccount, await namedArtists()[ServerLibraryMerge.artistKey(name)] != nil {
+            return .serverArtistNamed(ServerRef(accountId: account.id, id: ServerLibraryMerge.artistKey(name), title: name))
+        }
+        if song.isStream, let found = ServerStream.shared.remote(for: song), let id = found.song.artistId {
+            return .serverArtist(ServerRef(accountId: found.accountId, id: id, title: found.song.artist ?? song.artist))
+        }
+        return song.artistId > 0 ? .artist(song.artistId) : nil
+    }
+
     /// What a streamed song's row menu offers: queueing, the server favourite and downloading.
     func songActions(source: PlaybackSource) -> SongActions {
         SongActions(toggleFavorite: { [weak self] in self?.toggleFavourite(stream: $0) },

@@ -184,7 +184,12 @@ struct ArtistDetailView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
     @Environment(AppRouter.self) private var router
+    @Environment(ServerStore.self) private var servers
     @State private var albums: [Album] = []
+    /// While a server answers: its albums of this artist the library lacks (with song counts)
+    /// and its songs of theirs the library lacks, streamed and marked.
+    @State private var serverAlbums: [(album: ServerCatalog.Album, songs: Int)] = []
+    @State private var streamed: [Song] = []
     @State private var primary: [Song] = []
     @State private var featured: [Song] = []
     @State private var unverified: [Song] = []
@@ -193,23 +198,24 @@ struct ArtistDetailView: View {
     var body: some View {
         ScrollView {
             if let artist = library.artist(artistId) {
-                let all = primary.isEmpty ? featured : primary
+                let all = (primary.isEmpty ? featured : primary) + streamed
+                let tracks = primary + streamed
                 LazyVStack(alignment: .leading, spacing: 0) {
                     CollectionHeroHeader(title: artist.name, subtitle: nil,
-                                     facts: "\(countLabel(artist.songCount, .song)) · \(countLabel(artist.albumCount, .album))",
+                                     facts: "\(countLabel(artist.songCount + streamed.count, .song)) · \(countLabel(artist.albumCount + serverAlbums.count, .album))",
                                      canPlay: !all.isEmpty,
                                      onPlay: { actions.playInOrder(all, source: .artist(artistId)) },
                                      onShuffle: { actions.playShuffled(all, source: .artist(artistId)) }) {
                         ArtistArtworkView(artist: artist, fontSize: 96, maxPixels: 1200)
                     }
                     ScopedTagRepairSummary(songs: primary + featured + unverified)
-                    albumRow("Albums", albums.filter { $0.songCount >= 7 })
-                    albumRow("EPs", albums.filter { (3...6).contains($0.songCount) })
-                    albumRow(String(localized: "Singles"), albums.filter { (1...2).contains($0.songCount) })
+                    albumRow("Albums", albumItems { $0 >= 7 })
+                    albumRow("EPs", albumItems { (3...6).contains($0) })
+                    albumRow(String(localized: "Singles"), albumItems { (1...2).contains($0) })
                     songSection(String(localized: "Features"), featured)
                     songSection(String(localized: "Credited"), unverified)
-                    songSection("Tracks", primary, numbers: true)
-                    if primary.isEmpty && featured.isEmpty {
+                    songSection("Tracks", tracks, numbers: true)
+                    if tracks.isEmpty && featured.isEmpty {
                         EmptyState(message: "No tracks found for this artist.")
                     }
                 }
@@ -241,6 +247,9 @@ struct ArtistDetailView: View {
         }
         .sheet(item: $artworkTarget) { ArtworkPickerSheet(target: $0) }
         .task(id: library.songs) { load() }
+        .task(id: "\(primary.count)|\(albums.count)|\(servers.catalogVersion)|\(servers.connectedAccount?.id.uuidString ?? "")") {
+            await loadServer()
+        }
         .background { CollectionPageBackground() }
         .collectionArtworkTheme(.image(library.artist(artistId)?.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) }))
     }
@@ -255,12 +264,55 @@ struct ArtistDetailView: View {
         }
     }
 
+    /// The library's albums and the server's with a song count [size] accepts.
+    private func albumItems(_ size: (Int) -> Bool) -> [AlbumGridItem] {
+        let mine: [AlbumGridItem] = albums.filter { size($0.songCount) }.map { .local($0) }
+        guard let account = servers.connectedAccount?.id else { return mine }
+        let theirs: [AlbumGridItem] = serverAlbums.filter { size($0.songs) }.map { .server(accountId: account, album: $0.album) }
+        return mine + theirs
+    }
+
+    /// The connected server's music of this artist that the library doesn't have.
+    private func loadServer() async {
+        guard let artist = library.artist(artistId), let account = servers.connectedAccount,
+              let index = servers.catalog(for: account.id),
+              let named = await servers.namedArtists()[ServerLibraryMerge.artistKey(artist.name)] else {
+            serverAlbums = []
+            streamed = []
+            return
+        }
+        let localAlbums = library.albums, localSongs = library.songs
+        let found = await Task.detached(priority: .userInitiated) { () -> ([(album: ServerCatalog.Album, songs: Int)], [ServerSong]) in
+            var byTitle: [String: [Album]] = [:]
+            for album in localAlbums { byTitle[SearchNormalizer.normalize(album.title), default: []].append(album) }
+            let albums = named.albumIds.compactMap { index.albumEntry($0) }
+                .filter { album in !(byTitle[SearchNormalizer.normalize(album.name)]?.contains { ServerLibraryMerge.sameAlbum($0, album) } ?? false) }
+                .sorted { ($0.year ?? 0) > ($1.year ?? 0) }
+                .map { (album: $0, songs: index.songCount(ofAlbum: $0.id)) }
+            let have = ServerLibraryMerge.SongKeys(localSongs)
+            let songs = index.songs(named.songIds).filter { !have.contains(title: $0.title, artist: $0.artist ?? "") }
+            return (albums, songs)
+        }.value
+        guard !Task.isCancelled else { return }
+        serverAlbums = found.0
+        streamed = servers.streamSongs(found.1, account: account)
+    }
+
     @ViewBuilder
-    private func albumRow(_ title: String, _ albums: [Album]) -> some View {
-        if !albums.isEmpty {
+    private func albumRow(_ title: String, _ items: [AlbumGridItem]) -> some View {
+        if !items.isEmpty {
             Shelf(title: title) {
-                ForEach(albums) { album in
-                    AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: 128)
+                ForEach(items) { item in
+                    switch item {
+                    case .local(let album):
+                        AlbumTile(album: album) { router.open(.album(album.id)) }.frame(width: 128)
+                    case .server(let account, let album):
+                        ServerTile(accountId: account, title: album.name, subtitle: album.artist, coverArt: album.coverArt,
+                                   showsStreamBadge: true) {
+                            router.open(.serverAlbum(ServerRef(accountId: account, id: album.id, title: album.name)))
+                        }
+                        .frame(width: 128)
+                    }
                 }
             }
             .padding(.bottom, Spacing.sm)

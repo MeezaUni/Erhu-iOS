@@ -95,6 +95,8 @@ enum Route: Hashable {
     case transitionStudio(CollectionRef)
     case serverAlbum(ServerRef)
     case serverArtist(ServerRef)
+    /// A server artist by name (id: the normalized name), with every credit naming them.
+    case serverArtistNamed(ServerRef)
     case serverPlaylist(ServerRef)
     case serverAlbums(UUID)
 }
@@ -182,6 +184,11 @@ final class AppRouter {
         } else if song.artistId > 0 {
             go(.artist(song.artistId), in: .library)
         }
+    }
+
+    /// Opens an artist's page and closes Now Playing.
+    func showArtist(_ route: Route) {
+        if case .artist = route { go(route, in: .library) } else { go(route, in: .home) }
     }
 
     private func go(_ route: Route, in target: LibrarySection) {

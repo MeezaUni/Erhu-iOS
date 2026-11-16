@@ -297,6 +297,38 @@ final class SubsonicTests: XCTestCase {
                        ServerLibraryMerge.songList(local: local, streamed: [fixYou, yellow], sort: .title, searching: false, source: .streamed).map(\.title))
     }
 
+    func testArtistCreditsOpenEachArtistAndServerArtistsMergeByName() throws {
+        func names(_ credit: String, local: Set<String> = [], server: Set<String> = []) -> [String] {
+            ServerLibraryMerge.artistNames(credit, local: Set(local.map(ServerLibraryMerge.artistKey)),
+                                           server: Set(server.map(ServerLibraryMerge.artistKey)))
+        }
+        XCTAssertEqual(["Alicia Keys", "Kendrick Lamar"], names("Alicia Keys, Kendrick Lamar", local: ["Kendrick Lamar"]))
+        XCTAssertEqual(["Drake", "Future"], names("Drake feat. Future"))
+        // One artist whose name has a separator stays whole, from the library or the server.
+        XCTAssertEqual(["Simon & Garfunkel"], names("Simon & Garfunkel", local: ["Simon & Garfunkel"]))
+        XCTAssertEqual(["Simon & Garfunkel", "Paul Simon"], names("Simon & Garfunkel, Paul Simon", server: ["Simon & Garfunkel"]))
+        // ...but not a server's comma list of artists.
+        XCTAssertEqual(["Alicia Keys", "Kendrick Lamar"],
+                       names("Alicia Keys, Kendrick Lamar", local: ["Kendrick Lamar"], server: ["Alicia Keys, Kendrick Lamar"]))
+
+        func remote(_ id: String, _ title: String, artist: String, album: String, albumId: String) throws -> ServerSong {
+            let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","coverArt":"c-\#(albumId)"}"#
+            return try JSONDecoder().decode(ServerSong.self, from: Data(json.utf8))
+        }
+        var catalog = ServerCatalog()
+        catalog.artists = [.init(id: "a1", name: "Alicia Keys, Kendrick Lamar", coverArt: nil, albumCount: 1)]
+        catalog.albums = [.init(id: "al1", name: "It's On Again", artist: "Alicia Keys, Kendrick Lamar", coverArt: "c-al1", year: 2014)]
+        catalog.songs = [try remote("s1", "It's On Again", artist: "Alicia Keys, Kendrick Lamar", album: "It's On Again", albumId: "al1"),
+                         try remote("s2", "Fallin'", artist: "Alicia Keys", album: "Songs in A Minor", albumId: "al2")]
+        let artists = ServerLibraryMerge.namedArtists(in: ServerCatalogIndex(catalog), local: [ServerLibraryMerge.artistKey("Kendrick Lamar")])
+        let alicia = try XCTUnwrap(artists[ServerLibraryMerge.artistKey("Alicia Keys")])
+        XCTAssertEqual(["s1", "s2"], alicia.songIds)
+        XCTAssertEqual(["al1"], alicia.albumIds)
+        XCTAssertEqual("c-al1", alicia.coverArt)
+        XCTAssertEqual(["s1"], artists[ServerLibraryMerge.artistKey("Kendrick Lamar")]?.songIds)
+        XCTAssertNil(artists[ServerLibraryMerge.artistKey("Alicia Keys, Kendrick Lamar")], "a credit of two is not an artist")
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#
