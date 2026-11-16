@@ -89,6 +89,8 @@ struct TrackRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
     @State private var swipe: CGFloat = 0
+    /// A brief highlight when the row is tapped, so the tap visibly registered.
+    @State private var pressed = false
 
     /// The finger's movement in reading order: touches are measured left to right, while the row
     /// (and its offset) is mirrored in right-to-left languages.
@@ -131,7 +133,7 @@ struct TrackRow: View {
                                    }
                                },
                                cancel: resetSwipe,
-                               tap: { _ in onTap() })
+                               tap: { _ in tapped() })
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel([song.title, song.artist].filter { !$0.isBlank }.joined(separator: ", "))
@@ -156,6 +158,12 @@ struct TrackRow: View {
         }
         .padding(.horizontal, Spacing.gutter)
         .padding(.vertical, Spacing.xs)
+        .background {
+            RoundedRectangle(cornerRadius: Radius.small, style: .continuous)
+                .fill(palette.onSurface.opacity(pressed ? 0.12 : 0))
+                .padding(.horizontal, Spacing.sm)
+                .allowsHitTesting(false)
+        }
         .offset(x: swipe)
         .background(alignment: swipe >= 0 ? .leading : .trailing) {
             if swipe != 0 {
@@ -174,6 +182,15 @@ struct TrackRow: View {
         .accessibilityAction(named: "Add to queue") { actions.addToQueue(song) }
         .accessibilityAction(named: song.isFavorite ? "Remove from Liked Songs" : "Add to Liked Songs") { actions.toggleFavorite(song) }
         .contextMenu { SongActionItems(song: song, actions: actions) }
+    }
+
+    private func tapped() {
+        pressed = true
+        onTap()
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(140))
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.3)) { pressed = false }
+        }
     }
 
     private func resetSwipe() {

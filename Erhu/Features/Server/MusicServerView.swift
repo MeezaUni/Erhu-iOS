@@ -220,6 +220,13 @@ struct ServerContent<Value, Content: View>: View {
     @State private var value: Value?
     @State private var error: String?
 
+    /// [cached] is shown at once (and refreshed from the server in the background).
+    init(cached: Value? = nil, load: @escaping () async throws -> Value, @ViewBuilder content: @escaping (Value) -> Content) {
+        self.load = load
+        self.content = content
+        _value = State(initialValue: cached)
+    }
+
     var body: some View {
         Group {
             if let value {
@@ -235,7 +242,7 @@ struct ServerContent<Value, Content: View>: View {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .task { if value == nil { await reload() } }
+        .task { await reload() }
         .refreshable { await reload() }
     }
 

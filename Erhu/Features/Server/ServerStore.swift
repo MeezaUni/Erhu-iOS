@@ -29,6 +29,10 @@ final class ServerStore {
     private(set) var usingAway: Set<UUID> = []
     /// Whether each server converts songs to MP3 (checked once per session; see [quality]).
     private(set) var convertsToMP3: [UUID: Bool] = [:]
+    /// Changes whenever a server's catalog (for search) is loaded or refreshed.
+    private(set) var catalogVersion = 0
+    @ObservationIgnored private var catalogs: [UUID: ServerCatalogIndex] = [:]
+    @ObservationIgnored private var catalogTasks: [UUID: Task<Void, Never>] = [:]
 
     @ObservationIgnored private var clients: [UUID: SubsonicClient] = [:]
     @ObservationIgnored private var downloadTask: Task<Void, Never>?
@@ -88,6 +92,7 @@ final class ServerStore {
                 self?.networkIsExpensive = expensive
                 self?.chooseRoutes()
                 self?.checkConversions()
+                self?.refreshCatalogs()
             }
         }
         pathMonitor.start(queue: DispatchQueue(label: "erhu.server.path"))
@@ -112,6 +117,71 @@ final class ServerStore {
         guard quality == .automatic else { return quality }
         let away = usingAway.contains(account.id) || networkIsExpensive
         return away && convertsToMP3[account.id] == true ? .mp3_192 : .original
+    }
+
+    // MARK: Album and artist pages
+
+    @ObservationIgnored private var albumCache: [String: ServerAlbum] = [:]
+    @ObservationIgnored private var artistCache: [String: ServerArtist] = [:]
+
+    func cachedAlbum(_ id: String, account: UUID) -> ServerAlbum? { albumCache["\(account.uuidString)/\(id)"] }
+    func cachedArtist(_ id: String, account: UUID) -> ServerArtist? { artistCache["\(account.uuidString)/\(id)"] }
+
+    /// An album from the server, remembered for this session so opening it again is instant.
+    func album(_ id: String, account: ServerAccount) async throws -> ServerAlbum {
+        let album = try await requireClient(self, account).album(id)
+        albumCache["\(account.id.uuidString)/\(id)"] = album
+        return album
+    }
+
+    func artist(_ id: String, account: ServerAccount) async throws -> ServerArtist {
+        let artist = try await requireClient(self, account).artist(id)
+        artistCache["\(account.id.uuidString)/\(id)"] = artist
+        return artist
+    }
+
+    /// Loads the album of a song that started streaming, so opening it from Now Playing is instant.
+    private func warmAlbum(of song: ServerSong, accountId: UUID) {
+        guard let albumId = song.albumId, cachedAlbum(albumId, account: accountId) == nil, let account = account(accountId) else { return }
+        Task { _ = try? await self.album(albumId, account: account) }
+    }
+
+    // MARK: Catalog (search)
+
+    /// [account]'s catalog for search, if one has been loaded.
+    func catalog(for accountId: UUID) -> ServerCatalogIndex? { catalogs[accountId] }
+
+    /// Loads each server's saved catalog, and refreshes it from the server when it is older than
+    /// [ServerCatalog.maxAge] (or missing). Not while a song streams straight from a server, and on
+    /// mobile data only when there is no catalog yet.
+    func refreshCatalogs(force: Bool = false) {
+        for account in accounts where catalogTasks[account.id] == nil {
+            let id = account.id
+            catalogTasks[id] = Task { [weak self] in
+                defer { self?.catalogTasks[id] = nil }
+                var saved = self?.catalogs[id]?.catalog
+                if saved == nil {
+                    let loaded = await Task.detached(priority: .utility) { ServerCatalog.load(id).map(ServerCatalogIndex.init) }.value
+                    guard let self else { return }
+                    if let loaded {
+                        self.catalogs[id] = loaded
+                        self.catalogVersion &+= 1
+                        saved = loaded.catalog
+                    }
+                }
+                guard let self else { return }
+                let stale = saved.map { Date().timeIntervalSince($0.fetchedAt) > ServerCatalog.maxAge } ?? true
+                guard force || stale, saved == nil || !self.networkIsExpensive, !self.player.isStreamingDirectly,
+                      let client = self.client(for: id) else { return }
+                guard let fresh = try? await ServerCatalog.fetch(client) else { return }
+                let index = await Task.detached(priority: .utility) { () -> ServerCatalogIndex in
+                    fresh.save(id)
+                    return ServerCatalogIndex(fresh)
+                }.value
+                self.catalogs[id] = index
+                self.catalogVersion &+= 1
+            }
+        }
     }
 
     /// Finds out once per session which servers convert to MP3 (for Automatic).
@@ -221,6 +291,7 @@ final class ServerStore {
         selectedId = account.id
         adoptRecents(of: account)
         checkConversions()
+        refreshCatalogs()
         return account
     }
 
@@ -233,6 +304,8 @@ final class ServerStore {
     }
 
     func remove(_ account: ServerAccount) {
+        catalogs[account.id] = nil
+        try? FileManager.default.removeItem(at: ServerCatalog.file(for: account.id))
         ServerKeychain.removePassword(for: account.id)
         clients[account.id] = nil
         accounts.removeAll { $0.id == account.id }
@@ -291,6 +364,7 @@ final class ServerStore {
         recentlyStreamed = Self.addingRecent(item, to: recentlyStreamed)
         saveRecent()
         if let album = StreamedAlbum(item) { noteAlbum(album) }
+        warmAlbum(of: song, accountId: accountId)
     }
 
     /// Puts [album] first on Home's Recently streamed albums. An album pushed off the list loses

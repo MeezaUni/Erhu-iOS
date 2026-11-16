@@ -215,6 +215,18 @@ struct SubsonicClient: Sendable {
                                    URLQueryItem(name: "albumCount", value: "20"), URLQueryItem(name: "songCount", value: "40")]).searchResult3
     }
 
+    /// One page of everything on the server (OpenSubsonic: search3 with an empty query lists all).
+    func catalogPage(artistOffset: Int, albumOffset: Int, songOffset: Int, size: Int) async throws -> SubsonicSearchResult? {
+        try await call("search3", [URLQueryItem(name: "query", value: "\"\""),
+                                   URLQueryItem(name: "artistCount", value: String(artistOffset < 0 ? 0 : size)),
+                                   URLQueryItem(name: "artistOffset", value: String(max(artistOffset, 0))),
+                                   URLQueryItem(name: "albumCount", value: String(albumOffset < 0 ? 0 : size)),
+                                   URLQueryItem(name: "albumOffset", value: String(max(albumOffset, 0))),
+                                   URLQueryItem(name: "songCount", value: String(songOffset < 0 ? 0 : size)),
+                                   URLQueryItem(name: "songOffset", value: String(max(songOffset, 0)))],
+                       timeout: 60).searchResult3
+    }
+
     func playlists() async throws -> [ServerPlaylist] {
         try await call("getPlaylists").playlists?.playlist ?? []
     }

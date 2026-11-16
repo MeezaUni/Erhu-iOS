@@ -22,6 +22,8 @@ final class PlayerController {
     @ObservationIgnored private let streamPlayer = StreamPlayer()
     /// Entries whose direct stream failed: they are fetched in full before playing instead.
     @ObservationIgnored private var fetchFirst: Set<UUID> = []
+    /// Songs to fetch once the streaming song is buffered enough not to stall.
+    @ObservationIgnored private var prefetchAfterBuffering: [Song] = []
     @ObservationIgnored private let database: LibraryDatabase
     @ObservationIgnored let transitions: TransitionSettingsStore
     @ObservationIgnored private let persistence = JSONStore<PersistedPlaybackState>(name: "playback.json", debounce: .milliseconds(250))
@@ -89,6 +91,11 @@ final class PlayerController {
         streamPlayer.onFinished = { [weak self] id in self?.entryFinished(id) }
         streamPlayer.onFailed = { [weak self] id, message in self?.streamFailed(id, message) }
         streamPlayer.onPausedBySystem = { [weak self] id in self?.streamPausedBySystem(id) }
+        streamPlayer.onBufferedEnough = { [weak self] id in
+            guard let self, id == self.state.currentEntry?.id else { return }
+            ServerStream.shared.prefetch(self.prefetchAfterBuffering)
+            self.prefetchAfterBuffering = []
+        }
         configureAudioSession()
         configureRemoteCommands()
         observeAudioSession()
@@ -517,6 +524,10 @@ final class PlayerController {
         }
     }
 
+    /// The current song is streaming straight from a server (nothing else should use the
+    /// connection meanwhile).
+    var isStreamingDirectly: Bool { isStreaming }
+
     /// The current entry is playing through [streamPlayer] rather than the engine.
     private var isStreaming: Bool {
         guard let id = streamPlayer.entryId else { return false }
@@ -655,11 +666,14 @@ final class PlayerController {
             return state.queue[index].song
         }
         if isStreaming, let current = state.currentSong {
-            // The current song is streaming: leave it the connection for a few seconds, and
-            // cache it too (unless on mobile data) so playing it again uses the full player.
+            // The current song is streaming: nothing else uses the connection until it is buffered
+            // well ahead (it would stall otherwise). Then the next songs are fetched, and the
+            // current one too (unless on mobile data) so playing it again uses the full player.
             let extra = ServerStream.shared.allowsCaching() ? [current] : []
-            ServerStream.shared.prefetch(upcoming + extra, after: .seconds(8))
+            prefetchAfterBuffering = upcoming + extra
+            ServerStream.shared.stopFetching()
         } else {
+            prefetchAfterBuffering = []
             ServerStream.shared.prefetch(upcoming)
         }
         fileWarmup = Task { [weak self] in await self?.engine.warmFiles(urls) }

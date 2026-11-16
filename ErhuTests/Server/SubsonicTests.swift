@@ -234,6 +234,32 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual(source, try JSONDecoder().decode(PlaybackSource.self, from: JSONEncoder().encode(source)))
     }
 
+    func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
+        func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
+            let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#
+            return try JSONDecoder().decode(ServerSong.self, from: Data(json.utf8))
+        }
+        var catalog = ServerCatalog()
+        catalog.artists = [.init(id: "ar1", name: "Vancouver Sleep Clinic", coverArt: nil, albumCount: 1),
+                           .init(id: "ar2", name: "The 1975", coverArt: nil, albumCount: 1)]
+        catalog.albums = [.init(id: "al1", name: "Somebody Else", artist: "Vancouver Sleep Clinic", coverArt: "al1", year: 2022),
+                          .init(id: "al2", name: "I like it when you sleep", artist: "The 1975", coverArt: "al2", year: 2016)]
+        catalog.songs = [try song("s1", "Somebody Else", artist: "Vancouver Sleep Clinic", album: "Somebody Else", albumId: "al1", artistId: "ar1"),
+                         try song("s2", "Somebody Else", artist: "The 1975", album: "I like it when you sleep", albumId: "al2", artistId: "ar2"),
+                         try song("s3", "Addicted to You", artist: "Avicii", album: "True", albumId: "al3", artistId: "ar3")]
+        let index = ServerCatalogIndex(catalog)
+        // A few letters are enough, as in the library.
+        XCTAssertEqual(["s1", "s2"], index.search("somebo", limit: 20).songs.map(\.id), "both songs of that name")
+        XCTAssertEqual(["al1"], index.search("somebo", limit: 20).albums.map(\.id))
+        XCTAssertEqual(["s1", "s2"], index.search("somebdy els", limit: 20).songs.map(\.id), "a small typo still matches")
+        XCTAssertEqual(["s3"], index.search("addic", limit: 20).songs.map(\.id))
+        XCTAssertEqual("s2", index.search("somebody else 1975", limit: 20).songs.first?.id, "title and artist together come first")
+        XCTAssertTrue(index.search("zzzz", limit: 20).songs.isEmpty)
+        let reloaded = try JSONDecoder().decode(ServerCatalog.self, from: JSONEncoder().encode(catalog))
+        XCTAssertEqual(catalog.songs.map(\.id), reloaded.songs.map(\.id))
+        XCTAssertEqual(catalog.albums, reloaded.albums)
+    }
+
     @MainActor
     func testDirectStreamingCoversTheFormatsIOSCanPlayAndHasTheSongsAddress() throws {
         for ext in ["mp3", "flac", "m4a", "aac", "wav", "MP3"] { XCTAssertTrue(StreamPlayer.canStream(fileExtension: ext), ext) }
