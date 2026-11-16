@@ -27,6 +27,8 @@ final class ServerStore {
     var pendingInvite: ServerInvite?
     /// Servers reached through their away-from-home address right now.
     private(set) var usingAway: Set<UUID> = []
+    /// Whether each server converts songs to MP3 (checked once per session; see [quality]).
+    private(set) var convertsToMP3: [UUID: Bool] = [:]
 
     @ObservationIgnored private var clients: [UUID: SubsonicClient] = [:]
     @ObservationIgnored private var downloadTask: Task<Void, Never>?
@@ -52,7 +54,7 @@ final class ServerStore {
         self.library = library
         self.actions = actions
         self.player = player
-        quality = StreamQuality(rawValue: UserDefaults.standard.string(forKey: Keys.quality) ?? "") ?? .original
+        quality = StreamQuality(rawValue: UserDefaults.standard.string(forKey: Keys.quality) ?? "") ?? .automatic
         if let data = UserDefaults.standard.data(forKey: Keys.accounts),
            let saved = try? JSONDecoder().decode([ServerAccount].self, from: data) {
             accounts = saved
@@ -85,6 +87,7 @@ final class ServerStore {
             Task { @MainActor in
                 self?.networkIsExpensive = expensive
                 self?.chooseRoutes()
+                self?.checkConversions()
             }
         }
         pathMonitor.start(queue: DispatchQueue(label: "erhu.server.path"))
@@ -100,6 +103,27 @@ final class ServerStore {
         let client = SubsonicClient(account: account, password: password, away: usingAway.contains(id))
         clients[id] = client
         return client
+    }
+
+    /// The quality to stream [account]'s songs at right now: [quality], with Automatic meaning
+    /// the original file at home and a 192 kbps MP3 away from home or on mobile data (only when
+    /// the server converts, so nothing ever plays worse than it can).
+    func streamQuality(for account: ServerAccount) -> StreamQuality {
+        guard quality == .automatic else { return quality }
+        let away = usingAway.contains(account.id) || networkIsExpensive
+        return away && convertsToMP3[account.id] == true ? .mp3_192 : .original
+    }
+
+    /// Finds out once per session which servers convert to MP3 (for Automatic).
+    func checkConversions() {
+        for account in accounts where convertsToMP3[account.id] == nil {
+            guard let client = client(for: account.id) else { continue }
+            let id = account.id
+            Task { [weak self] in
+                guard let converts = await client.convertsToMP3() else { return }
+                self?.convertsToMP3[id] = converts
+            }
+        }
     }
 
     // MARK: Home and away addresses
@@ -135,6 +159,10 @@ final class ServerStore {
         guard usingAway.contains(id) != away else { return }
         if away { usingAway.insert(id) } else { usingAway.remove(id) }
         clients[id] = nil
+        // The other address may reach a different setup (rare), and the first check may have
+        // failed for lack of a connection: check again.
+        convertsToMP3[id] = nil
+        checkConversions()
     }
 
     /// Sets (or, with an empty [address], removes) a server's away-from-home address after
@@ -192,6 +220,7 @@ final class ServerStore {
         saveAccounts()
         selectedId = account.id
         adoptRecents(of: account)
+        checkConversions()
         return account
     }
 
@@ -240,7 +269,7 @@ final class ServerStore {
     /// Playable songs for [songs], with each one's favourite mark as the server (or this session) has it.
     func streamSongs(_ songs: [ServerSong], account: ServerAccount) -> [Song] {
         songs.filter { $0.isVideo != true }.map {
-            ServerStream.shared.song(for: $0, account: account, quality: quality, favourite: isFavourite($0, account: account))
+            ServerStream.shared.song(for: $0, account: account, quality: streamQuality(for: account), favourite: isFavourite($0, account: account))
         }
     }
 

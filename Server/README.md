@@ -45,8 +45,11 @@ Keep the computer on and awake while you listen. Click the tray or menu bar icon
 again or to quit. *Start Erhu Server when I sign in* on the page makes it start with the computer.
 Keep the files in the folder together: the app needs the `navidrome` file beside it.
 
-The MP3 streaming qualities need `ffmpeg` on the computer; without it, use *Original file* in
-Erhu (the default).
+**Smaller streams away from home:** with ffmpeg on the computer, Erhu streams smaller MP3 copies
+away from home and on mobile data (Streaming quality *Automatic*, the default), so songs start
+sooner. On the Erhu Server page click **Install ffmpeg** (it uses winget on Windows and Homebrew on
+a Mac), or install it yourself and press *Restart server*. Without ffmpeg, Erhu simply plays the
+original files everywhere.
 
 ## On a NAS or home server (Docker)
 
@@ -96,8 +99,9 @@ screens, next to your own music:
 - **Now Playing** says *Streaming: (album)* at the top, and its ⋮ menu has *Download to this
   device* for a streamed song.
 
-Streaming fetches each song just before it plays, and the next songs ahead, so the equalizer,
-waveform, transitions and gapless playback work as usual. Streamed songs don't join your library;
+A song you play that isn't on the phone yet starts at once, straight from the server; the next
+songs are fetched meanwhile and play on Erhu's full player (equalizer, waveform, transitions,
+gapless playback), as does anything played again from the cache. Streamed songs don't join your library;
 downloaded songs are saved in the Erhu folder under *From Server* and do. *Streaming quality*:
 *Original file* plays the server's file unchanged; the MP3 settings use less data, the server
 converts each song first.

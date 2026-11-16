@@ -31,6 +31,7 @@ type Control struct {
 	store    *Store
 	server   *Server
 	remote   *Remote
+	ffmpeg   *FFmpeg
 	token    string
 	listener net.Listener
 	quit     func()
@@ -55,7 +56,7 @@ func newControl(store *Store, server *Server, quit func()) (*Control, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Control{store: store, server: server, remote: newRemote(), token: hex.EncodeToString(raw), listener: listener, quit: quit, chooseFolder: pickFolder}, nil
+	return &Control{store: store, server: server, remote: newRemote(), ffmpeg: newFFmpeg(store.DataDir()), token: hex.EncodeToString(raw), listener: listener, quit: quit, chooseFolder: pickFolder}, nil
 }
 
 func (c *Control) Port() int { return c.listener.Addr().(*net.TCPAddr).Port }
@@ -173,6 +174,12 @@ func (c *Control) handler() http.Handler {
 		}
 		return c.state(), nil
 	}))
+	mux.HandleFunc("POST /api/ffmpeg", c.api(func(r *http.Request) (any, error) {
+		if err := c.ffmpeg.Install(func() { _ = c.server.Start() }); err != nil {
+			return nil, err
+		}
+		return c.state(), nil
+	}))
 	mux.HandleFunc("POST /api/quit", c.api(func(r *http.Request) (any, error) {
 		go func() { time.Sleep(200 * time.Millisecond); c.quit() }()
 		return map[string]bool{"quitting": true}, nil
@@ -238,6 +245,7 @@ type PageState struct {
 	Autostart      bool        `json:"autostart"`
 	AutostartKnown bool        `json:"autostartSupported"`
 	Remote         RemoteState `json:"remote"`
+	FFmpeg         FFmpegState `json:"ffmpeg"`
 	Version        string      `json:"version"`
 	Name           string      `json:"name"`
 }
@@ -252,6 +260,7 @@ func (c *Control) state() PageState {
 		out.Addresses = append(out.Addresses, serverURL(ip, cfg.Port))
 	}
 	out.Remote = c.remote.State(cfg.Port)
+	out.FFmpeg = c.ffmpeg.State()
 	wanted, step, problem := c.remote.progress()
 	if wanted {
 		go c.remote.Advance(cfg.Port) // the page refreshes every two seconds, which moves the setup on

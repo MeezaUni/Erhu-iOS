@@ -49,8 +49,13 @@ struct MusicServerView: View {
                     Picker("Streaming quality", selection: $servers.quality) {
                         ForEach(StreamQuality.allCases) { Text($0.label).tag($0) }
                     }
-                    Text("Original plays the server's file unchanged. The MP3 settings use less data; the server converts each song, so it can take a little longer to start.")
+                    Text("Automatic plays the original file at home, and a smaller MP3 away from home or on mobile data when the server can convert (Erhu Server with ffmpeg). Original always plays the server's file unchanged. The MP3 settings use less data; the server converts each song.")
                         .font(.caption).foregroundStyle(.secondary)
+                    if servers.quality == .automatic, let converts = servers.convertsToMP3[account.id] {
+                        Label(converts ? LocalizedStringKey("This server converts to MP3.") : LocalizedStringKey("This server can't convert yet, so Automatic plays original files. In Erhu Server, install ffmpeg."),
+                              systemImage: converts ? "checkmark.circle" : "info.circle")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                     LabeledContent("Streaming cache", value: ByteCountFormatter.string(fromByteCount: cacheSize, countStyle: .file))
                     Button("Clear streaming cache") {
                         ServerStream.shared.clearCache()

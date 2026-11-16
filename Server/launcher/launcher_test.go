@@ -496,3 +496,70 @@ func TestRemoteLeavesOtherFunnelEntriesAlone(t *testing.T) {
 		t.Fatalf("Disable touched Tailscale: %v %v", err, funnelCalls(full))
 	}
 }
+
+func TestFFmpegIsFoundOrInstalledWithTheSystemsPackageManager(t *testing.T) {
+	dir := t.TempDir()
+	files := map[string]bool{}
+	f := newFFmpeg(dir)
+	f.exists = func(path string) bool { return files[path] }
+	f.lookPath = func(name string) (string, error) { return "", errors.New("not found") }
+	if f.State().Found {
+		t.Fatal("nothing installed yet")
+	}
+	// One in Erhu Server's own folder is used.
+	own := filepath.Join(dir, exeName("ffmpeg"))
+	files[own] = true
+	if got := f.Path(); got != own {
+		t.Fatalf("path %q", got)
+	}
+	delete(files, own)
+	// ERHU_FFMPEG wins when it points at a file.
+	t.Setenv("ERHU_FFMPEG", "/custom/ffmpeg")
+	files["/custom/ffmpeg"] = true
+	if got := f.Path(); got != "/custom/ffmpeg" {
+		t.Fatalf("path %q", got)
+	}
+	t.Setenv("ERHU_FFMPEG", "")
+	delete(files, "/custom/ffmpeg")
+
+	// Installing runs the package manager, then restarts the server once ffmpeg is there.
+	var ran []string
+	var mu sync.Mutex
+	f.run = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		mu.Lock()
+		defer mu.Unlock()
+		ran = append([]string{name}, args...)
+		files[own] = true // the stand-in "installs" it
+		return nil, nil
+	}
+	f.lookPath = func(name string) (string, error) {
+		if name == "winget" {
+			return `C:\winget.exe`, nil
+		}
+		return "", errors.New("not found")
+	}
+	files["/opt/homebrew/bin/brew"] = true
+	if f.installer() == nil {
+		if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+			t.Fatal("an installer should be available")
+		}
+		if err := f.Install(func() {}); err == nil {
+			t.Fatal("no installer: Install should say so")
+		}
+		return
+	}
+	restarted := make(chan struct{})
+	if err := f.Install(func() { close(restarted) }); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-restarted:
+	case <-time.After(5 * time.Second):
+		t.Fatal("not restarted after installing")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if len(ran) == 0 || !(strings.Contains(ran[0], "winget") || strings.Contains(ran[0], "brew")) {
+		t.Fatalf("ran %v", ran)
+	}
+}

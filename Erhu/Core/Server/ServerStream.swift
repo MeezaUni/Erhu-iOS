@@ -218,9 +218,12 @@ final class ServerStream {
         return client.streamURL(source.remoteId, quality: source.quality)
     }
 
-    /// The format the server sends for [song] (its file extension, or the converted format).
+    /// The original file's format for [song] streamed unchanged (its extension), so the player
+    /// knows it from the start; "" for a converted stream, whose format the server's reply states
+    /// (a server that can't convert sends the original instead).
     func streamFormat(of song: Song) -> String {
-        (song.path as NSString).pathExtension
+        guard let source = sources[song.path], source.quality == .original else { return "" }
+        return (song.path as NSString).pathExtension
     }
 
     /// Whether songs may be fetched just in case (not on mobile data or in Low Data Mode; set by

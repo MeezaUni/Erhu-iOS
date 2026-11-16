@@ -78,11 +78,15 @@ enum SubsonicError: LocalizedError, Equatable {
 
 /// How streamed songs are fetched: the original file, or a smaller copy the server converts.
 enum StreamQuality: String, CaseIterable, Codable, Sendable, Identifiable {
+    /// The original file at home; a 192 kbps MP3 away from home or on mobile data, when the
+    /// server can convert (resolved per song by [ServerStore]).
+    case automatic
     case original, mp3_320, mp3_192, mp3_128
     var id: String { rawValue }
 
     var label: String {
         switch self {
+        case .automatic: String(localized: "Automatic")
         case .original: String(localized: "Original file")
         case .mp3_320: String(localized: "MP3 320 kbps")
         case .mp3_192: String(localized: "MP3 192 kbps")
@@ -93,7 +97,7 @@ enum StreamQuality: String, CaseIterable, Codable, Sendable, Identifiable {
     /// The stream request's format and maximum bit rate (nil: the server's original file).
     var transcoding: (format: String, maxBitRate: Int)? {
         switch self {
-        case .original: nil
+        case .automatic, .original: nil
         case .mp3_320: ("mp3", 320)
         case .mp3_192: ("mp3", 192)
         case .mp3_128: ("mp3", 128)
@@ -184,6 +188,21 @@ struct SubsonicClient: Sendable {
     func albumList(_ type: String, size: Int = 60, offset: Int = 0) async throws -> [ServerAlbum] {
         try await call("getAlbumList2", [URLQueryItem(name: "type", value: type), URLQueryItem(name: "size", value: String(size)),
                                          URLQueryItem(name: "offset", value: String(offset))]).albumList2?.album ?? []
+    }
+
+    /// Whether the server converts songs to MP3 (Navidrome needs ffmpeg for it, and sends the
+    /// original file when it can't): asks for the start of one song as an MP3 and looks at what
+    /// comes back. nil when it couldn't be told (no songs, no connection).
+    func convertsToMP3() async -> Bool? {
+        guard let albumId = (try? await albumList("random", size: 1))?.first?.id,
+              let songId = (try? await album(albumId))?.song.first(where: { $0.isVideo != true })?.id else { return nil }
+        var request = URLRequest(url: streamURL(songId, quality: .mp3_192))
+        request.timeoutInterval = 20
+        request.setValue("bytes=0-4095", forHTTPHeaderField: "Range")
+        guard let (bytes, response) = try? await session.bytes(for: request) else { return nil }
+        bytes.task.cancel()
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return nil }
+        return (response.mimeType ?? "").lowercased().contains("mpeg")
     }
 
     func album(_ id: String) async throws -> ServerAlbum {
