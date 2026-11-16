@@ -185,7 +185,6 @@ final class SubsonicTests: XCTestCase {
 
     // MARK: Streaming and downloads
 
-    @MainActor
     func testRecentlyStreamedAlbumsAreNewestFirstOncePerAlbumAndCapped() throws {
         func item(_ song: Int, album: Int?) throws -> StreamedSong {
             let albumField = album.map { ",\"albumId\":\"al-\($0)\",\"album\":\"Album \($0)\"" } ?? ""
@@ -205,6 +204,7 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual(source, try JSONDecoder().decode(PlaybackSource.self, from: JSONEncoder().encode(source)))
     }
 
+    @MainActor
     func testStreamedSongsLiveInTheCacheWithStableNegativeIds() throws {
         let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
         let remote = album.song[0]
