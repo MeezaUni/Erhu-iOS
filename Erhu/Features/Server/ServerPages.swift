@@ -169,10 +169,13 @@ private struct ServerCollectionPage: View {
         .task { if !servers.isReachable(account.id) { servers.chooseRoutes() } }
         // On Wi-Fi, start fetching the first song as the page opens, so Play starts at once.
         .task(id: songs.first?.path) {
-            guard !servers.networkIsExpensive, !player.isStreamingDirectly, let first = songs.first else { return }
+            guard !player.isStreamingDirectly, let first = songs.first else { return }
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, player.state.currentSong?.path != first.path else { return }
-            ServerStream.shared.prefetch([first])
+            // Connected and its start loaded (on mobile data too: a few seconds of audio)...
+            player.prepareToStream(first)
+            // ...and on Wi-Fi fetched whole, so it plays on the full player.
+            if !servers.networkIsExpensive { ServerStream.shared.prefetch([first]) }
         }
         .onReceive(NotificationCenter.default.publisher(for: ServerCovers.didChange)) { note in
             if note.object as? String == coverFile?.path { coverRevision += 1 }

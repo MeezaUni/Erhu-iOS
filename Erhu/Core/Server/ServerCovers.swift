@@ -59,20 +59,27 @@ enum ServerCovers {
     /// with the file's path when it arrives.
     static func fetch(_ remote: URL, to file: URL, session: URLSession, then done: (@Sendable () -> Void)? = nil) {
         if hasCover(at: file) { return }
-        let claimed = lock.withLock { inFlight.insert(file.path).inserted }
-        guard claimed else { return }
         Task.detached(priority: .utility) {
-            defer { lock.withLock { _ = inFlight.remove(file.path) } }
-            var request = URLRequest(url: remote)
-            request.timeoutInterval = 30
-            guard let (data, response) = try? await session.data(for: request),
-                  (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? true,
-                  UIImage(data: data) != nil else { return }
-            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try? data.write(to: file, options: .atomic)
-            done?()
-            await MainActor.run { NotificationCenter.default.post(name: didChange, object: file.path) }
+            if await download(remote, to: file, session: session) { done?() }
         }
+    }
+
+    /// Downloads [remote] to [file] unless it is there or being fetched; true when it arrived now.
+    @discardableResult
+    static func download(_ remote: URL, to file: URL, session: URLSession) async -> Bool {
+        if hasCover(at: file) { return false }
+        let claimed = lock.withLock { inFlight.insert(file.path).inserted }
+        guard claimed else { return false }
+        defer { lock.withLock { _ = inFlight.remove(file.path) } }
+        var request = URLRequest(url: remote)
+        request.timeoutInterval = 30
+        guard let (data, response) = try? await session.data(for: request),
+              (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? true,
+              UIImage(data: data) != nil else { return false }
+        try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? data.write(to: file, options: .atomic)
+        await MainActor.run { NotificationCenter.default.post(name: didChange, object: file.path) }
+        return true
     }
 }
 

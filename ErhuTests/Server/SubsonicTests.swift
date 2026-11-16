@@ -349,6 +349,21 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual(4, ServerCatalogIndex(catalog).catalog.songs.count)
     }
 
+    func testSmallLossySongsStreamUnchangedAndConvertedStreamsCanStartPartway() throws {
+        func remote(_ suffix: String, _ rate: Int) throws -> ServerSong {
+            try JSONDecoder().decode(ServerSong.self, from: Data(#"{"id":"x","title":"t","suffix":"\#(suffix)","bitRate":\#(rate)}"#.utf8))
+        }
+        XCTAssertEqual(.original, StreamQuality.mp3_192.applied(to: try remote("mp3", 320)))
+        XCTAssertEqual(.original, StreamQuality.mp3_128.applied(to: try remote("m4a", 256)))
+        XCTAssertEqual(.mp3_192, StreamQuality.mp3_192.applied(to: try remote("flac", 1000)))
+        XCTAssertEqual(.mp3_192, StreamQuality.mp3_192.applied(to: try remote("m4a", 900)), "ALAC is converted")
+        XCTAssertEqual(.original, StreamQuality.original.applied(to: try remote("flac", 1000)))
+        let client = SubsonicClient(account: account, password: "p")
+        let items = Dictionary(uniqueKeysWithValues: (URLComponents(url: client.streamURL("s1", quality: .mp3_192, offsetSeconds: 95), resolvingAgainstBaseURL: false)?.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+        XCTAssertEqual("95", items["timeOffset"])
+        XCTAssertEqual("true", items["estimateContentLength"])
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#
@@ -393,7 +408,8 @@ final class SubsonicTests: XCTestCase {
         for ext in ["mp3", "flac", "m4a", "aac", "wav", "MP3"] { XCTAssertTrue(StreamPlayer.canStream(fileExtension: ext), ext) }
         for ext in ["ogg", "opus", "oga"] { XCTAssertFalse(StreamPlayer.canStream(fileExtension: ext), "\(ext) is fetched in full first") }
         let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
-        let song = ServerStream.shared.song(for: album.song[0], account: account, quality: .mp3_192)
+        let flac = try JSONDecoder().decode(ServerSong.self, from: Data(#"{"id":"f1","title":"Big","suffix":"flac","bitRate":900}"#.utf8))
+        let song = ServerStream.shared.song(for: flac, account: account, quality: .mp3_192)
         XCTAssertEqual("", ServerStream.shared.streamFormat(of: song), "a converted stream's format comes from the server's reply")
         let original = ServerStream.shared.song(for: album.song[0], account: account, quality: .original)
         XCTAssertEqual("mp3", ServerStream.shared.streamFormat(of: original))
@@ -436,9 +452,13 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual("sad robot", song.title)
         XCTAssertTrue(song.url.path.hasPrefix(ServerStreamPaths.cacheFolder.path))
         XCTAssertTrue(song.url.lastPathComponent.hasSuffix(".original.mp3"))
-        let small = ServerStream.shared.song(for: remote, account: account, quality: .mp3_192)
-        XCTAssertNotEqual(song.url, small.url, "another quality is a separate cached file")
-        XCTAssertTrue(small.url.lastPathComponent.hasSuffix(".mp3_192.mp3"))
+        // A 248 kbps MP3 streams unchanged even when converting is asked for (no wait for it).
+        XCTAssertEqual(song.url, ServerStream.shared.song(for: remote, account: account, quality: .mp3_192).url)
+        let flac = try JSONDecoder().decode(ServerSong.self, from: Data(#"{"id":"f2","title":"Big","suffix":"flac","bitRate":900}"#.utf8))
+        let big = ServerStream.shared.song(for: flac, account: account, quality: .original)
+        let small = ServerStream.shared.song(for: flac, account: account, quality: .mp3_192)
+        XCTAssertNotEqual(big.url, small.url, "another quality is a separate cached file")
+        XCTAssertTrue(small.url.lastPathComponent.hasSuffix(".mp3_192.flac"))
         XCTAssertNil(LibraryPaths.relativePath(of: song.url), "streams never sit in the Erhu folder")
         // A library song is unaffected.
         let local = Song(id: 1, title: "A", artist: "B", album: "C", durationMs: 1, path: "B/C/a.mp3")

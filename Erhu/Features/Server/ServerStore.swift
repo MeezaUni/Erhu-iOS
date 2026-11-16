@@ -90,6 +90,9 @@ final class ServerStore {
         // pages until the server answers again (checked when the app returns or the network changes).
         ServerStream.shared.onServerUnreachable = { [weak self] id in self?.reachable.remove(id) }
         ServerStream.shared.onServerReachable = { [weak self] id in self?.reachable.insert(id) }
+        ServerStream.shared.albumCoverArt = { [weak self] id, remote in
+            remote.albumId.flatMap { self?.catalogs[id]?.albumEntry($0)?.coverArt }
+        }
         // Songs streamed before a server was removed and added again belong to it again.
         for account in accounts { adoptRecents(of: account) }
         // Joining or leaving a Wi-Fi network decides between the home and away addresses.
@@ -167,6 +170,53 @@ final class ServerStore {
     /// Loads each server's saved catalog, and refreshes it from the server when it is older than
     /// [ServerCatalog.maxAge] (or missing). Not while a song streams straight from a server, and on
     /// mobile data only when there is no catalog yet.
+    // MARK: Covers saved ahead
+
+    @ObservationIgnored private var coverSync: Task<Void, Never>?
+    @ObservationIgnored private var coversSyncedFor: [UUID: Int] = [:]
+
+    /// At home on Wi-Fi, saves every album's and artist's cover (small, then large) to the phone
+    /// in the background, so tiles, rows, album pages and Now Playing show covers at once, also
+    /// away from home. A few at a time, pausing while a song streams; covers already saved are
+    /// skipped, so it is quick after the first time.
+    func syncCovers() {
+        guard coverSync == nil, !networkIsExpensive else { return }
+        let due = accounts.filter { account in
+            !usingAway.contains(account.id) && catalogs[account.id] != nil && coversSyncedFor[account.id] != catalogVersion
+        }
+        guard !due.isEmpty else { return }
+        let version = catalogVersion
+        coverSync = Task { [weak self] in
+            defer { self?.coverSync = nil }
+            for account in due {
+                guard let self, let index = self.catalogs[account.id], let client = self.client(for: account.id) else { continue }
+                var covers: [String] = []
+                var seen = Set<String>()
+                for cover in index.catalog.albums.compactMap(\.coverArt) + index.catalog.artists.compactMap(\.coverArt)
+                where seen.insert(cover).inserted { covers.append(cover) }
+                let id = account.id
+                for size in [ServerCovers.Size.small, .large] {
+                    for start in stride(from: 0, to: covers.count, by: 4) {
+                        // Away, on mobile data or cancelled: stop (it carries on next time at home).
+                        guard !Task.isCancelled, !self.networkIsExpensive, !self.usingAway.contains(id) else { return }
+                        while self.player.isStreamingDirectly, !Task.isCancelled { try? await Task.sleep(for: .seconds(2)) }
+                        let batch = covers[start..<min(start + 4, covers.count)]
+                        await withTaskGroup(of: Void.self) { group in
+                            for cover in batch {
+                                let file = ServerCovers.fileURL(accountId: id, coverArt: cover, size: size)
+                                if ServerCovers.hasCover(at: file) { continue }
+                                let url = client.coverArtURL(cover, size: size.pixels)
+                                let session = client.session
+                                group.addTask { _ = await ServerCovers.download(url, to: file, session: session) }
+                            }
+                        }
+                    }
+                }
+                self.coversSyncedFor[id] = version
+            }
+        }
+    }
+
     func refreshCatalogs(force: Bool = false) {
         for account in accounts where catalogTasks[account.id] == nil {
             let id = account.id
@@ -179,6 +229,7 @@ final class ServerStore {
                     if let loaded {
                         self.catalogs[id] = loaded
                         self.catalogVersion &+= 1
+                        self.syncCovers()
                         saved = loaded.catalog
                     }
                 }
@@ -196,8 +247,11 @@ final class ServerStore {
                 }.value
                 self.catalogs[id] = index
                 self.catalogVersion &+= 1
+                self.syncCovers()
             }
         }
+        // Back home on Wi-Fi with the catalog unchanged: covers missing since are saved now.
+        syncCovers()
     }
 
     /// Finds out once per session which servers convert to MP3 (for Automatic).

@@ -10,7 +10,11 @@ import UIKit
 @MainActor
 @Observable
 final class PlayerController {
-    private(set) var state = PlaybackState()
+    private(set) var state = PlaybackState() {
+        didSet { if state.status != oldValue.status { statusChanged() } }
+    }
+    /// Shows loading only once it has lasted a moment, so a song that starts quickly just plays.
+    @ObservationIgnored private var loadingReveal: Task<Void, Never>?
     /// The playing position, published on its own: it changes four times a second, and only the
     /// views showing progress should redraw for it (a menu open elsewhere would otherwise reset).
     let clock = PlaybackClock()
@@ -140,8 +144,28 @@ final class PlayerController {
     }
 
     /// Waiting for the current song to be ready to play (a streamed song being fetched, or a
-    /// file being prepared). The play button shows a spinner; tapping it cancels.
-    var isLoading: Bool { state.status == .buffering }
+    /// file being prepared) for over a second: the play button shows a spinner; tapping it cancels.
+    /// A song that starts sooner shows no loading at all.
+    private(set) var isLoading = false
+
+    /// The play button shows pause: playing, or about to (loading a song asked to play).
+    var showsPause: Bool { state.isPlaying || (state.status == .buffering && !isPausedLoad) }
+    @ObservationIgnored private var isPausedLoad = false
+
+    private func statusChanged() {
+        loadingReveal?.cancel()
+        guard state.status == .buffering else {
+            loadingReveal = nil
+            if isLoading { isLoading = false }
+            return
+        }
+        isPausedLoad = !preparingPlayIntent
+        loadingReveal = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(1200))
+            guard let self, !Task.isCancelled, self.state.status == .buffering else { return }
+            self.isLoading = true
+        }
+    }
 
     func togglePlayPause() {
         if state.isPlaying || (state.status == .buffering && preparingPlayIntent) { pause() }
@@ -793,7 +817,16 @@ final class PlayerController {
             streamPlayer.discardPrepared()
             return
         }
-        streamPlayer.prepare(entryId: entry.id, url: url, fileExtension: format)
+        streamPlayer.prepare(url: url, fileExtension: format)
+    }
+
+    /// Connects to [song] ahead of time (a page about to offer it), so playing it starts at once.
+    /// Only while nothing plays: the next song in the queue has the place otherwise.
+    func prepareToStream(_ song: Song) {
+        guard !state.isPlaying, state.status != .buffering, song.isStream, !ServerStream.shared.isCached(song) else { return }
+        let format = ServerStream.shared.streamFormat(of: song)
+        guard StreamPlayer.canStream(fileExtension: format), let url = ServerStream.shared.streamURL(for: song) else { return }
+        streamPlayer.prepare(url: url, fileExtension: format)
     }
 
     // MARK: Position polling

@@ -302,7 +302,7 @@ struct NowPlayingView: View {
                                 LoadingRing(fraction: state.currentSong.flatMap { StreamLoading.shared.fraction(of: $0) },
                                             size: 34, lineWidth: 4, color: palette.onFilledButton)
                             } else {
-                                Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
+                                Image(systemName: player.showsPause ? "pause.fill" : "play.fill")
                                     .font(.system(size: 32, weight: .bold))
                                     .foregroundStyle(palette.onFilledButton)
                                     .contentTransition(.symbolEffect(.replace))
@@ -481,7 +481,7 @@ private struct ExpandedLyrics: View {
                         if player.isLoading {
                             LoadingRing(fraction: state.currentSong.flatMap { StreamLoading.shared.fraction(of: $0) }, size: 30)
                         } else {
-                            Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 30)).contentTransition(.symbolEffect(.replace))
+                            Image(systemName: player.showsPause ? "pause.fill" : "play.fill").font(.system(size: 30)).contentTransition(.symbolEffect(.replace))
                         }
                     }
                     .frame(width: 56, height: 56).contentShape(Rectangle())

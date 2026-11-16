@@ -43,7 +43,7 @@ struct MiniPlayer: View {
                         if player.isLoading {
                             LoadingRing(fraction: StreamLoading.shared.fraction(of: song), size: 24)
                         } else {
-                            Image(systemName: state.isPlaying ? "pause.fill" : "play.fill").font(.title2)
+                            Image(systemName: player.showsPause ? "pause.fill" : "play.fill").font(.title2)
                         }
                     }
                     .frame(width: 44, height: 48).contentShape(Rectangle())

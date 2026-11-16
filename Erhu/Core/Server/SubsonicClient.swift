@@ -94,6 +94,17 @@ enum StreamQuality: String, CaseIterable, Codable, Sendable, Identifiable {
         }
     }
 
+    /// What [song] actually streams as: a song already small and in a format the phone streams
+    /// (MP3 or AAC up to 320 kbps) comes unchanged even when converting is asked for. Converting
+    /// it would save little data but cost a wait while the server starts the conversion, and an
+    /// unchanged file can be seeked within; large files (FLAC, WAV, ALAC) are still converted.
+    func applied(to song: ServerSong) -> StreamQuality {
+        guard transcoding != nil else { return self }
+        let lossy = ["mp3", "m4a", "aac", "mp4", "m4b"].contains((song.suffix ?? "").lowercased())
+        if lossy, let rate = song.bitRate, rate > 0, rate <= 320 { return .original }
+        return self
+    }
+
     /// The stream request's format and maximum bit rate (nil: the server's original file).
     var transcoding: (format: String, maxBitRate: Int)? {
         switch self {
@@ -265,6 +276,8 @@ struct SubsonicClient: Sendable {
             items += [URLQueryItem(name: "format", value: transcoding.format),
                       URLQueryItem(name: "maxBitRate", value: String(transcoding.maxBitRate))]
             if offsetSeconds > 0 { items.append(URLQueryItem(name: "timeOffset", value: String(offsetSeconds))) }
+            // A length estimate lets the player treat it as a song, not a live stream, and start sooner.
+            items.append(URLQueryItem(name: "estimateContentLength", value: "true"))
         } else {
             items.append(URLQueryItem(name: "format", value: "raw"))
         }

@@ -105,6 +105,13 @@ final class ServerStream {
     var onStarted: ((UUID, ServerSong) -> Void)?
     /// A streamed song's server stopped answering (so pages can stop offering its music).
     var onServerUnreachable: ((UUID) -> Void)?
+    /// The cover of a server song's album, used for the song too: one cover per album (likely
+    /// saved already) instead of one per song, which the server must extract from each file.
+    var albumCoverArt: ((UUID, ServerSong) -> String?)?
+    private var coverArts: [String: String] = [:]
+
+    /// The cover a streamed song shows (its album's, or its own).
+    func coverArt(for song: Song) -> String? { coverArts[song.path] ?? remotes[song.path]?.coverArt }
     /// ...and that it answers again.
     var onServerReachable: ((UUID) -> Void)?
     /// The library's album a server song belongs to, with a song of it whose cover the album
@@ -136,13 +143,16 @@ final class ServerStream {
         song(for: saved.remote, accountId: saved.accountId, quality: saved.quality, favourite: saved.remote.starred != nil)
     }
 
-    private func song(for remote: ServerSong, accountId: UUID, quality: StreamQuality, favourite: Bool) -> Song {
+    private func song(for remote: ServerSong, accountId: UUID, quality asked: StreamQuality, favourite: Bool) -> Song {
+        let quality = asked.applied(to: remote)
         let path = ServerStreamPaths.path(accountId: accountId, remoteId: remote.id, quality: quality, originalExtension: remote.fileExtension)
         let id = ServerStreamPaths.songId(accountId: accountId, remoteId: remote.id)
         sources[path] = Source(accountId: accountId, remoteId: remote.id, quality: quality)
         remotes[path] = remote
         // Its cover is known now (rows show the small one); the large one is fetched once it plays.
-        if let coverArt = remote.coverArt {
+        let cover = albumCoverArt?(accountId, remote) ?? remote.coverArt
+        coverArts[path] = cover
+        if let coverArt = cover {
             ServerCovers.register(streamFile: ServerStreamPaths.cacheURL(forPath: path),
                                   cover: ServerCovers.fileURL(accountId: accountId, coverArt: coverArt))
         }
@@ -269,7 +279,7 @@ final class ServerStream {
 
     /// Fetches the large cover of [song] (Now Playing, the mini player, the lock screen).
     func fetchCover(of song: Song) {
-        guard let source = sources[song.path], let coverArt = remotes[song.path]?.coverArt,
+        guard let source = sources[song.path], let coverArt = coverArt(for: song),
               let client = clientProvider?(source.accountId) else { return }
         let streamFile = ServerStreamPaths.cacheURL(forPath: song.path)
         ServerCovers.fetch(client.coverArtURL(coverArt, size: ServerCovers.Size.large.pixels),

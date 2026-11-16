@@ -215,7 +215,7 @@ struct TrackRow: View {
         } else if song.isStream, ServerCovers.librarySong(forStreamFile: song.url) == nil,
                   let remote = ServerStream.shared.remote(for: song) {
             // The small server cover: quick to fetch, and doesn't wait for the song.
-            ServerCoverView(accountId: remote.accountId, coverArt: remote.song.coverArt, maxPixels: 144)
+            ServerCoverView(accountId: remote.accountId, coverArt: ServerStream.shared.coverArt(for: song) ?? remote.song.coverArt, maxPixels: 144)
                 .frame(width: ArtworkSize.list, height: ArtworkSize.list)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
         } else {
