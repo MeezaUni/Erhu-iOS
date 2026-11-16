@@ -381,7 +381,7 @@ final class ServerStore {
     /// The library's copy of [remote] (same title and artist), if it has one.
     func librarySong(matching remote: ServerSong) -> Song? {
         let songs = library.songs
-        let signature = [Int64(songs.count), songs.first?.id ?? 0, songs.last?.id ?? 0]
+        let signature: [Int64] = [Int64(songs.count), songs.first?.id ?? 0, songs.last?.id ?? 0]
         if signature != songsByTitle.signature {
             songsByTitle = (signature, Dictionary(grouping: songs) { SearchNormalizer.normalize($0.title) })
         }
@@ -403,7 +403,7 @@ final class ServerStore {
     func libraryAlbum(named title: String, artist: String) -> Album? {
         let albums = library.albums
         // Cheap to compare for every song; a rescan that changes albums changes these.
-        let signature = [Int64(albums.count), albums.first?.id ?? 0, albums.last?.id ?? 0]
+        let signature: [Int64] = [Int64(albums.count), albums.first?.id ?? 0, albums.last?.id ?? 0]
         if signature != albumsByTitle.signature {
             albumsByTitle = (signature, Dictionary(grouping: albums) { SearchNormalizer.normalize($0.title) })
         }
@@ -418,7 +418,7 @@ final class ServerStore {
 
     private var libraryArtistsByKey: [String: Artist] {
         let artists = library.artists
-        let signature = [Int64(artists.count), artists.first?.id ?? 0, artists.last?.id ?? 0]
+        let signature: [Int64] = [Int64(artists.count), artists.first?.id ?? 0, artists.last?.id ?? 0]
         if signature != artistsByKey.signature {
             artistsByKey = (signature, Dictionary(artists.map { (ServerLibraryMerge.artistKey($0.name), $0) },
                                                   uniquingKeysWith: { a, b in a.songCount >= b.songCount ? a : b }))
