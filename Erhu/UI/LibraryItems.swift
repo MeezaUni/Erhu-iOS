@@ -212,7 +212,8 @@ struct TrackRow: View {
                 .font(.body.weight(.semibold).monospacedDigit())
                 .foregroundStyle(isCurrent ? Color.accentColor : palette.onSurfaceVariant)
                 .frame(width: ArtworkSize.list, height: ArtworkSize.list)
-        } else if song.isStream, let remote = ServerStream.shared.remote(for: song) {
+        } else if song.isStream, ServerCovers.librarySong(forStreamFile: song.url) == nil,
+                  let remote = ServerStream.shared.remote(for: song) {
             // The small server cover: quick to fetch, and doesn't wait for the song.
             ServerCoverView(accountId: remote.accountId, coverArt: remote.song.coverArt, maxPixels: 144)
                 .frame(width: ArtworkSize.list, height: ArtworkSize.list)

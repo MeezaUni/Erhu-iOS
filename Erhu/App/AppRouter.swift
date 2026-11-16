@@ -165,7 +165,8 @@ final class AppRouter {
     /// Opens the album of [song] (the library's, or its server's for a streamed song) and closes
     /// Now Playing.
     func showAlbum(of song: Song) {
-        if song.isStream {
+        // A streamed song of an album in the library opens the library's album (which lists it).
+        if song.isStream, song.albumId <= 0 {
             guard let found = ServerStream.shared.remote(for: song), let id = found.song.albumId else { return }
             go(.serverAlbum(ServerRef(accountId: found.accountId, id: id, title: found.song.album ?? song.album)), in: .home)
         } else if song.albumId > 0 {

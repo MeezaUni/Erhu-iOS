@@ -10,6 +10,9 @@ enum ServerCovers {
     private static let lock = NSLock()
     /// Stream cache file path → the cover file of that song.
     private static var coverByStreamFile: [String: URL] = [:]
+    /// Stream cache file path → a library song of the same album, whose cover is used instead
+    /// (your own copy is usually sharper, and may be a cover you chose).
+    private static var libraryCoverByStreamFile: [String: URL] = [:]
     private static var inFlight: Set<String> = []
 
     static var folder: URL { LibraryPaths.cachesFolder.appendingPathComponent("server-covers", isDirectory: true) }
@@ -30,6 +33,15 @@ enum ServerCovers {
 
     static func register(streamFile: URL, cover: URL) {
         lock.withLock { coverByStreamFile[streamFile.path] = cover }
+    }
+
+    static func register(streamFile: URL, librarySong: URL?) {
+        lock.withLock { libraryCoverByStreamFile[streamFile.path] = librarySong }
+    }
+
+    /// The library song whose cover a streamed song's file shows (nil: its server's cover).
+    static func librarySong(forStreamFile url: URL) -> URL? {
+        lock.withLock { libraryCoverByStreamFile[url.path] }
     }
 
     /// The saved cover of a streamed song's file, for [ArtworkLoader] when the audio file has no
