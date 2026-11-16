@@ -199,6 +199,22 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual("s1", albums[0].item.song.id)
     }
 
+    func testRecentSearchesKeepServerItemsAndLibraryIdsBetweenLaunches() throws {
+        let album = RecentServerItem(accountId: UUID(), id: "al-1", title: "Live", subtitle: "Band", coverArt: "al-1_x",
+                                     server: "http://192.168.1.20:4533", username: "listener")
+        var list: [SavedRecentSearch] = []
+        for item in [SavedRecentSearch.song(3), .serverAlbum(album), .album(9), .song(3)] {
+            list = SavedRecentSearch.adding(item, to: list, limit: 3)
+        }
+        XCTAssertEqual([.song(3), .album(9), .serverAlbum(album)], list, "newest first, once each")
+        // The same server album saved under a re-added account is the same recent item.
+        let again = RecentServerItem(accountId: UUID(), id: album.id, title: album.title, subtitle: album.subtitle,
+                                     coverArt: album.coverArt, server: album.server, username: album.username)
+        XCTAssertEqual(SavedRecentSearch.serverAlbum(album).key, SavedRecentSearch.serverAlbum(again).key)
+        XCTAssertEqual(list, try JSONDecoder().decode([SavedRecentSearch].self, from: JSONEncoder().encode(list)))
+        XCTAssertEqual(2, SavedRecentSearch.adding(.artist(1), to: list, limit: 2).count)
+    }
+
     func testServerPlaybackSourceSurvivesSaving() throws {
         let source = PlaybackSource.server(account: UUID(), album: "al-1", title: "Live")
         XCTAssertEqual(source, try JSONDecoder().decode(PlaybackSource.self, from: JSONEncoder().encode(source)))

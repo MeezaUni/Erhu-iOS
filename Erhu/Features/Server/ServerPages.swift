@@ -309,7 +309,9 @@ struct RecentlyStreamedShelf: View {
         if !albums.isEmpty {
             Shelf(title: String(localized: "Recently streamed albums")) {
                 ForEach(albums) { album in
-                    ServerTile(accountId: album.accountId, title: album.title, subtitle: album.artist, coverArt: album.coverArt) {
+                    // A server added again has a new ID: covers and pages follow the current one.
+                    ServerTile(accountId: servers.account(for: album.item)?.id ?? album.accountId,
+                               title: album.title, subtitle: album.artist, coverArt: album.coverArt) {
                         if let account = servers.account(for: album.item) {
                             router.open(.serverAlbum(ServerRef(accountId: account.id, id: album.albumId, title: album.title)))
                         } else {

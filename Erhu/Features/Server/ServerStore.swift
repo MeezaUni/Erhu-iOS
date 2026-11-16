@@ -60,6 +60,8 @@ final class ServerStore {
         ServerStream.shared.onStarted = { [weak self] accountId, song in self?.noteStreamed(song, accountId: accountId) }
         ServerStream.shared.trimCache()
         actions.streamFavorite = { [weak self] song in self?.toggleFavourite(stream: song) }
+        // Songs streamed before a server was removed and added again belong to it again.
+        for account in accounts { adoptRecents(of: account) }
         // Joining or leaving a Wi-Fi network decides between the home and away addresses.
         pathMonitor.pathUpdateHandler = { [weak self] _ in
             Task { @MainActor in self?.chooseRoutes() }
@@ -168,6 +170,7 @@ final class ServerStore {
         accounts.append(account)
         saveAccounts()
         selectedId = account.id
+        adoptRecents(of: account)
         return account
     }
 
@@ -242,8 +245,13 @@ final class ServerStore {
     /// The server a recently streamed song came from, or nil if that server was removed.
     /// A server that was removed and added again has a new ID, so the address and user also match.
     func account(for item: StreamedSong) -> ServerAccount? {
-        accounts.first { $0.id == item.accountId }
-            ?? accounts.first { !item.server.isEmpty && $0.baseURL.absoluteString == item.server && $0.username == item.username }
+        account(item.accountId, server: item.server, username: item.username)
+    }
+
+    /// The account [id], or the one with the same address and user (a server added again).
+    func account(_ id: UUID, server: String, username: String) -> ServerAccount? {
+        accounts.first { $0.id == id }
+            ?? accounts.first { !server.isEmpty && $0.baseURL.absoluteString == server && $0.username == username }
     }
 
     /// Streams the recent songs from [item]'s server, starting with [item]. False if that server
@@ -269,6 +277,20 @@ final class ServerStore {
             if albums.count == limit { break }
         }
         return albums
+    }
+
+    /// Songs streamed from a server that was removed and is now added again (same address and
+    /// user) move to the new account, so Recently streamed shows their covers and plays them.
+    private func adoptRecents(of account: ServerAccount) {
+        let server = account.baseURL.absoluteString
+        var changed = false
+        recentlyStreamed = recentlyStreamed.map { item in
+            guard item.accountId != account.id, item.server == server, item.username == account.username,
+                  !accounts.contains(where: { $0.id == item.accountId }) else { return item }
+            changed = true
+            return StreamedSong(accountId: account.id, song: item.song, playedAt: item.playedAt, server: item.server, username: item.username)
+        }
+        if changed { saveRecent() }
     }
 
     func clearRecentlyStreamed() {
