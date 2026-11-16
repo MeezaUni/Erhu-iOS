@@ -75,6 +75,11 @@ final class DatabaseTests: XCTestCase {
         for id in Int64(1)...2 { try insertSong(db, id) }
         XCTAssertEqual([2, 1, 2], try db.playlistEntries(7).map(\.song.id))
         XCTAssertEqual([0, 1, 2], try db.playlistOrder(7))
+        // Running the migration again (a version reset) keeps the column and a saved order.
+        XCTAssertTrue(try db.reorderPlaylist(7, from: [0, 1, 2], to: [2, 0, 1]))
+        raw.userVersion = 2
+        let again = try LibraryDatabase(db: raw)
+        XCTAssertEqual([2, 0, 1], try again.playlistOrder(7))
     }
 
     func testListeningStatsRankAndCountStreaks() throws {

@@ -118,7 +118,7 @@ final class LibraryBrowseHistoryTests: XCTestCase {
         try sqlite.execute("DROP TABLE library_imports")
         try sqlite.execute("PRAGMA user_version = 1")
         database = try LibraryDatabase(db: sqlite)
-        XCTAssertEqual(sqlite.userVersion, 2)
+        XCTAssertEqual(sqlite.userVersion, LibraryDatabase.schemaVersion)
         XCTAssertEqual(try database.libraryBrowseFacts()[1]?.addedAt, 123)
         try sqlite.execute("UPDATE songs SET date_modified = 999 WHERE id = 1")
         database = try LibraryDatabase(db: sqlite)
