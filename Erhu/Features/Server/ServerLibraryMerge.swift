@@ -56,9 +56,13 @@ enum ServerLibraryMerge {
     private static func norm(_ text: String) -> String { SearchNormalizer.normalize(text) }
 
     /// The same artist, allowing "Coldplay" against "Coldplay, Guest".
+    /// Also "Alicia Keys feat. Kendrick Lamar" against "Alicia Keys, Kendrick Lamar": credits
+    /// sharing an artist.
     static func sameArtist(_ a: String, _ b: String) -> Bool {
         let x = norm(a), y = norm(b)
-        return x.isEmpty || y.isEmpty || x == y || x.contains(y) || y.contains(x)
+        if x.isEmpty || y.isEmpty || x == y || x.contains(y) || y.contains(x) { return true }
+        let names = Set(artistNames(a, local: []).map(artistKey))
+        return artistNames(b, local: []).contains { names.contains(artistKey($0)) }
     }
 
     static func sameAlbum(_ local: Album, _ server: ServerCatalog.Album) -> Bool {
