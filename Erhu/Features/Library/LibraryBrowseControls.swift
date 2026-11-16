@@ -99,22 +99,29 @@ private struct LibraryBrowseHeader<Controls: View>: View {
                 .allowsHitTesting(!drawer.collapsed)
                 .accessibilityHidden(drawer.collapsed)
             if showsControls {
-                HStack(alignment: .center, spacing: 10) {
-                    // One row that scrolls sideways, so every filter stays beside the search button.
+                HStack(alignment: .center, spacing: 0) {
+                    // One row that scrolls sideways, edge to edge, so every filter stays beside the
+                    // search button; while the search field is open the row takes its place too.
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) { controls }
                     }
+                    .contentMargins(.leading, Spacing.gutter, for: .scrollContent)
+                    .contentMargins(.trailing, drawer.collapsed ? 10 : Spacing.gutter, for: .scrollContent)
                     Button(action: reveal) {
                         Image(systemName: "magnifyingglass")
                             .frame(width: 44, height: 44).contentShape(Rectangle())
                     }
+                    // Kept in place (zero width) while hidden, so tests and VoiceOver find it at once.
+                    .frame(width: drawer.collapsed ? 44 : 0)
+                    .clipped()
+                    .padding(.trailing, drawer.collapsed ? Spacing.gutter : 0)
                     .accessibilityLabel(String(localized: "Search \(title.ui.lowercased())"))
                     .accessibilityIdentifier("sectionSearchButton")
                     .opacity(drawer.collapsed ? 1 : 0)
                     .allowsHitTesting(drawer.collapsed)
                     .accessibilityHidden(!drawer.collapsed)
                 }
-                .padding(.horizontal, Spacing.gutter).padding(.vertical, 8)
+                .padding(.vertical, 8)
             }
         }
     }
