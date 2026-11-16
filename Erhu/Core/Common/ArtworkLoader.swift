@@ -35,7 +35,9 @@ final class ArtworkLoader: @unchecked Sendable {
         if misses.object(forKey: missKey) != nil { return nil }
         return await withCheckedContinuation { continuation in
             queue.async {
-                guard let data = TagReader.artwork(url) else {
+                // A streamed song may not be fetched yet, or have no embedded picture: use the
+                // cover saved from its server.
+                guard let data = TagReader.artwork(url) ?? ServerCovers.data(forStreamFile: url) else {
                     self.misses.setObject(1, forKey: missKey)
                     continuation.resume(returning: nil)
                     return

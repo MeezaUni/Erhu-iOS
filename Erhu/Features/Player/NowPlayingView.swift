@@ -11,6 +11,7 @@ struct NowPlayingView: View {
     @Environment(MixStore.self) private var mixes
     @Environment(AppRouter.self) private var router
     @Environment(LibraryStore.self) private var library
+    @Environment(ServerStore.self) private var servers
     @Environment(\.palette) private var palette
     @Environment(\.playerArtworkFrames) private var artworkFrames
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -215,6 +216,7 @@ struct NowPlayingView: View {
         case .library: return String(localized: "Library")
         case .favorites: return String(localized: "Liked Songs")
         case .vybe: return "VYBE"
+        case .server(_, _, let title): return String(localized: "Streaming: \(title)")
         }
     }
 
@@ -234,8 +236,14 @@ struct NowPlayingView: View {
                 Button { showsMarks = true } label: {
                     Label(player.state.abLoop?.enabled == true ? "Bookmarks & A–B loop (on)" : "Bookmarks & A–B loop", systemImage: "bookmark.square")
                 }
-                Button { if let song { router.songsForPlaylist = [song] } } label: { Label("Add to playlist", systemImage: "text.badge.plus") }
-                if let song {
+                if let song, song.isStream {
+                    let saved = servers.isDownloaded(stream: song)
+                    Button { servers.download(stream: song) } label: {
+                        Label(saved ? LocalizedStringKey("Downloaded") : LocalizedStringKey("Download to this device"), systemImage: "arrow.down.circle")
+                    }
+                    .disabled(saved)
+                } else if let song {
+                    Button { router.songsForPlaylist = [song] } label: { Label("Add to playlist", systemImage: "text.badge.plus") }
                     Button { mixes.setHidden(song.id, !hidden) } label: {
                         Label(hidden ? "Show in Smart Playlists again" : "Hide from Smart Playlists", systemImage: hidden ? "eye" : "eye.slash")
                     }

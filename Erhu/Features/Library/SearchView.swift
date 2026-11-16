@@ -32,6 +32,10 @@ final class SearchStore {
     private(set) var albums: [Album] = []
     private(set) var artists: [Artist] = []
     private(set) var recents: [RecentSearchItem] = []
+    /// Matches on the connected music server (nil without one, or while it can't be reached).
+    private(set) var server: ServerSearchResults?
+    /// Searched as well as the library, when a server is connected (set by AppServices).
+    @ObservationIgnored weak var servers: ServerStore?
 
     private let library: LibraryStore
     @ObservationIgnored private var pending: Task<Void, Never>?
@@ -57,6 +61,23 @@ final class SearchStore {
         }.value
         guard !Task.isCancelled, request == generation, text == query.trimmed else { return }
         self.songs = result.songs; self.albums = result.albums; self.artists = result.artists
+        await searchServer(text, request: request)
+    }
+
+    /// The same query on the connected server. Without a server, or when it can't be reached,
+    /// search simply shows the library.
+    private func searchServer(_ text: String, request: UInt64) async {
+        guard !text.isEmpty, let servers, let account = servers.selected, let client = servers.client(for: account.id) else {
+            server = nil
+            return
+        }
+        let found = try? await client.search(text)
+        guard !Task.isCancelled, request == generation, text == query.trimmed else { return }
+        guard let found, !(found.artist.isEmpty && found.album.isEmpty && found.song.isEmpty) else { server = nil; return }
+        server = ServerSearchResults(account: account,
+                                     artists: Array(found.artist.prefix(Self.sectionLimit)),
+                                     albums: Array(found.album.prefix(Self.sectionLimit)),
+                                     songs: Array(found.song.filter { $0.isVideo != true }.prefix(Self.sectionLimit)))
     }
 
     func remember(_ item: RecentSearchItem) {
@@ -70,6 +91,14 @@ final class SearchStore {
     func clearRecents() { recents = [] }
 }
 
+/// What the connected server found for the search.
+struct ServerSearchResults {
+    let account: ServerAccount
+    let artists: [ServerArtist]
+    let albums: [ServerAlbum]
+    let songs: [ServerSong]
+}
+
 /// Search over the library: artists, albums and songs as you type, recent items before you do.
 struct SearchView: View {
     @Environment(SearchStore.self) private var search
@@ -77,6 +106,7 @@ struct SearchView: View {
     @Environment(LibraryActions.self) private var actions
     @Environment(PlayerController.self) private var player
     @Environment(AppRouter.self) private var router
+    @Environment(ServerStore.self) private var servers
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
 
@@ -87,7 +117,7 @@ struct SearchView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     if search.query.trimmed.isEmpty {
                         recents
-                    } else if search.songs.isEmpty && search.albums.isEmpty && search.artists.isEmpty {
+                    } else if search.songs.isEmpty && search.albums.isEmpty && search.artists.isEmpty && search.server == nil {
                         EmptyState(message: String(localized: "Nothing in your library matches \"\(search.query.trimmed)\"."), systemImage: "magnifyingglass")
                     } else {
                         results
@@ -133,6 +163,51 @@ struct SearchView: View {
                 }
             }
         }
+        if let server = search.server { serverResults(server) }
+    }
+
+    /// The server's matches, after the library's, in the same shelves and rows.
+    @ViewBuilder private func serverResults(_ server: ServerSearchResults) -> some View {
+        let account = server.account
+        if !server.artists.isEmpty {
+            Shelf(title: String(localized: "Artists on \(account.name)")) {
+                ForEach(server.artists) { artist in
+                    ServerTile(accountId: account.id, title: artist.name, subtitle: artist.albumCount.map { countLabel($0, .album) },
+                               coverArt: artist.coverArt, placeholder: "music.mic", circular: true) {
+                        openServer(.serverArtist(ServerRef(accountId: account.id, id: artist.id, title: artist.name)))
+                    }
+                    .frame(width: 112)
+                }
+            }
+        }
+        if !server.albums.isEmpty {
+            Shelf(title: String(localized: "Albums on \(account.name)")) {
+                ForEach(server.albums) { album in
+                    ServerTile(accountId: account.id, title: album.name, subtitle: album.artist, coverArt: album.coverArt) {
+                        openServer(.serverAlbum(ServerRef(accountId: account.id, id: album.id, title: album.name)))
+                    }
+                    .frame(width: 128)
+                }
+            }
+        }
+        if !server.songs.isEmpty {
+            SectionHeading(title: String(localized: "Songs on \(account.name)"))
+            let source = PlaybackSource.server(account: account.id, album: nil, title: account.name)
+            let songs = servers.streamSongs(server.songs, account: account)
+            let rowActions = servers.songActions(source: source)
+            ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
+                TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
+                    let remote = server.songs[index]
+                    servers.play([remote], account: account,
+                                 source: .server(account: account.id, album: remote.albumId, title: remote.album ?? account.name))
+                }
+            }
+        }
+    }
+
+    private func openServer(_ route: Route) {
+        dismiss()
+        router.open(route)
     }
 
     @ViewBuilder private var recents: some View {

@@ -9,6 +9,16 @@ struct ServerAccount: Codable, Identifiable, Hashable, Sendable {
     /// The server's address without the API path, e.g. http://192.168.1.20:4533
     var baseURL: URL
     var username: String
+    /// The HTTPS address used away from home (for example Tailscale's https://pc.tailnet.ts.net).
+    var remoteURL: URL? = nil
+
+    /// An away address must be HTTPS: iOS only lets apps use plain HTTP on the local network.
+    static func normalizedRemoteURL(from input: String) -> URL? {
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = normalizedURL(from: text.lowercased().hasPrefix("http") ? text : "https://" + text),
+              url.scheme == "https" else { return nil }
+        return url
+    }
 
     /// Turns what the listener typed into a server address: adds http:// when no scheme is
     /// given, drops trailing slashes and a pasted web-app path ("/app", "/rest").
@@ -37,6 +47,7 @@ struct ServerAccount: Codable, Identifiable, Hashable, Sendable {
 
 enum SubsonicError: LocalizedError, Equatable {
     case invalidAddress
+    case invalidRemoteAddress
     case missingPassword
     case http(Int)
     case server(code: Int, message: String?)
@@ -46,6 +57,8 @@ enum SubsonicError: LocalizedError, Equatable {
         switch self {
         case .invalidAddress:
             String(localized: "That server address doesn't look right. Use the address shown by Erhu Server, for example http://192.168.1.20:4533.")
+        case .invalidRemoteAddress:
+            String(localized: "The away-from-home address must start with https://, for example the Tailscale address Erhu Server shows.")
         case .missingPassword:
             String(localized: "The password for this server is missing. Remove the server and add it again.")
         case .http(let status):
@@ -100,6 +113,11 @@ struct SubsonicClient: Sendable {
     /// One salt for this client's media URLs, so a cover's URL stays the same between redraws and
     /// image caches work. API calls still use a fresh salt each time.
     var mediaSalt = SubsonicClient.makeSalt()
+    /// Use the account's away-from-home address instead of its home address.
+    var away = false
+
+    /// The address this client talks to.
+    var base: URL { away ? (account.remoteURL ?? account.baseURL) : account.baseURL }
 
     /// md5(password + salt) as lower-case hex: the Subsonic token.
     static func token(password: String, salt: String) -> String {
@@ -112,7 +130,7 @@ struct SubsonicClient: Sendable {
 
     /// The URL of API method [method] with [items], authenticated.
     func url(_ method: String, _ items: [URLQueryItem] = [], salt: String = SubsonicClient.makeSalt(), json: Bool = true) -> URL {
-        var components = URLComponents(url: account.baseURL.appendingPathComponent("rest").appendingPathComponent(method),
+        var components = URLComponents(url: base.appendingPathComponent("rest").appendingPathComponent(method),
                                        resolvingAgainstBaseURL: false)!
         var query = [
             URLQueryItem(name: "u", value: account.username),
@@ -127,9 +145,9 @@ struct SubsonicClient: Sendable {
     }
 
     /// Calls [method] and returns the response, or throws the server's error.
-    func call(_ method: String, _ items: [URLQueryItem] = []) async throws -> SubsonicResponse {
+    func call(_ method: String, _ items: [URLQueryItem] = [], timeout: TimeInterval = 20) async throws -> SubsonicResponse {
         var request = URLRequest(url: url(method, items))
-        request.timeoutInterval = 20
+        request.timeoutInterval = timeout
         let (data, response) = try await session.data(for: request)
         return try Self.decode(data, response: response)
     }
@@ -151,7 +169,7 @@ struct SubsonicClient: Sendable {
 
     // MARK: Methods
 
-    func ping() async throws -> SubsonicResponse { try await call("ping") }
+    func ping(timeout: TimeInterval = 20) async throws -> SubsonicResponse { try await call("ping", timeout: timeout) }
 
     func artists() async throws -> [ServerArtist] {
         try await call("getArtists").artists?.allArtists ?? []
@@ -229,6 +247,7 @@ struct SubsonicClient: Sendable {
 struct ServerInvite: Identifiable, Hashable, Sendable {
     let id = UUID()
     var address: String
+    var remote: String
     var username: String
     var name: String
 
@@ -238,6 +257,7 @@ struct ServerInvite: Identifiable, Hashable, Sendable {
               let address = items.first(where: { $0.name == "url" })?.value,
               let server = ServerAccount.normalizedURL(from: address) else { return nil }
         self.address = server.absoluteString
+        remote = items.first { $0.name == "remote" }?.value.flatMap(ServerAccount.normalizedRemoteURL(from:))?.absoluteString ?? ""
         username = items.first { $0.name == "user" }?.value ?? ""
         name = items.first { $0.name == "name" }?.value ?? ""
     }

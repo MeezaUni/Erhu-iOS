@@ -91,6 +91,10 @@ enum Route: Hashable {
     case tool(Tool)
     case settingsPage(SettingsPageRoute)
     case transitionStudio(CollectionRef)
+    case serverAlbum(ServerRef)
+    case serverArtist(ServerRef)
+    case serverPlaylist(ServerRef)
+    case serverAlbums(UUID)
 }
 
 /// Where the app is: the section, each section's own back stack, and what is presented on top.
@@ -144,6 +148,11 @@ final class AppRouter {
         case .library: section = .library; destination = .allSongs
         case .favorites: section = .library; destination = .shelf(.favorites)
         case .vybe: section = vybeEnabled ? .vybe : .home; destination = nil
+        case .server(let account, let album, let title):
+            // A server album opens as a page; other server lists have no page of their own.
+            guard let album else { return }
+            section = .home
+            destination = .serverAlbum(ServerRef(accountId: account, id: album, title: title))
         }
         paths[section] = destination.map { NavigationPath([$0]) } ?? NavigationPath()
         showsDrawer = false

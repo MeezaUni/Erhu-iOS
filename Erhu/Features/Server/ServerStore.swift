@@ -1,4 +1,5 @@
 import Foundation
+import Network
 import Observation
 
 /// The listener's music servers (Erhu Server or another Subsonic-compatible server), the chosen
@@ -21,9 +22,13 @@ final class ServerStore {
     private(set) var favouriteChanges: [String: Bool] = [:]
     /// A pairing link (QR code from the Erhu Server app) waiting to be shown as a filled-in Add server sheet.
     var pendingInvite: ServerInvite?
+    /// Servers reached through their away-from-home address right now.
+    private(set) var usingAway: Set<UUID> = []
 
     @ObservationIgnored private var clients: [UUID: SubsonicClient] = [:]
     @ObservationIgnored private var downloadTask: Task<Void, Never>?
+    @ObservationIgnored private var routeTask: Task<Void, Never>?
+    @ObservationIgnored private let pathMonitor = NWPathMonitor()
     @ObservationIgnored private let library: LibraryStore
     @ObservationIgnored private let actions: LibraryActions
     @ObservationIgnored private let player: PlayerController
@@ -54,30 +59,112 @@ final class ServerStore {
         ServerStream.shared.clientProvider = { [weak self] id in self?.client(for: id) }
         ServerStream.shared.onStarted = { [weak self] accountId, song in self?.noteStreamed(song, accountId: accountId) }
         ServerStream.shared.trimCache()
+        actions.streamFavorite = { [weak self] song in self?.toggleFavourite(stream: song) }
+        // Joining or leaving a Wi-Fi network decides between the home and away addresses.
+        pathMonitor.pathUpdateHandler = { [weak self] _ in
+            Task { @MainActor in self?.chooseRoutes() }
+        }
+        pathMonitor.start(queue: DispatchQueue(label: "erhu.server.path"))
     }
 
     var selected: ServerAccount? { accounts.first { $0.id == selectedId } }
 
+    func account(_ id: UUID) -> ServerAccount? { accounts.first { $0.id == id } }
+
     func client(for id: UUID) -> SubsonicClient? {
         if let client = clients[id] { return client }
         guard let account = accounts.first(where: { $0.id == id }), let password = ServerKeychain.password(for: id) else { return nil }
-        let client = SubsonicClient(account: account, password: password)
+        let client = SubsonicClient(account: account, password: password, away: usingAway.contains(id))
         clients[id] = client
         return client
     }
 
-    /// Checks the address and sign-in with the server, then saves the account (password in the Keychain).
-    func add(name: String, address: String, username: String, password: String) async throws -> ServerAccount {
+    // MARK: Home and away addresses
+
+    /// For each server with an away address: the home address when it answers quickly, otherwise
+    /// the away address. Runs at launch and whenever the network changes.
+    func chooseRoutes() {
+        routeTask?.cancel()
+        let candidates = accounts.filter { $0.remoteURL != nil }
+        guard !candidates.isEmpty else { return }
+        routeTask = Task { [weak self] in
+            // Let a new Wi-Fi connection settle before asking.
+            try? await Task.sleep(for: .milliseconds(600))
+            for account in candidates {
+                guard !Task.isCancelled, let self, let password = ServerKeychain.password(for: account.id) else { return }
+                let away = await Self.prefersAway(account: account, password: password)
+                guard !Task.isCancelled, let away else { continue }
+                self.setRoute(account.id, away: away)
+            }
+        }
+    }
+
+    /// true: use the away address; false: the home one; nil: neither answered (left as it is).
+    private nonisolated static func prefersAway(account: ServerAccount, password: String) async -> Bool? {
+        let home = SubsonicClient(account: account, password: password)
+        if (try? await home.ping(timeout: 3)) != nil { return false }
+        let away = SubsonicClient(account: account, password: password, away: true)
+        if (try? await away.ping(timeout: 8)) != nil { return true }
+        return nil
+    }
+
+    private func setRoute(_ id: UUID, away: Bool) {
+        guard usingAway.contains(id) != away else { return }
+        if away { usingAway.insert(id) } else { usingAway.remove(id) }
+        clients[id] = nil
+    }
+
+    /// Sets (or, with an empty [address], removes) a server's away-from-home address after
+    /// checking that it answers.
+    func setRemote(_ address: String, for account: ServerAccount) async throws {
+        var updated = account
+        let text = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty {
+            updated.remoteURL = nil
+        } else {
+            guard let url = ServerAccount.normalizedRemoteURL(from: text) else { throw SubsonicError.invalidRemoteAddress }
+            updated.remoteURL = url
+            guard let password = ServerKeychain.password(for: account.id) else { throw SubsonicError.missingPassword }
+            _ = try await SubsonicClient(account: updated, password: password, away: true).ping(timeout: 15)
+        }
+        guard let index = accounts.firstIndex(where: { $0.id == account.id }) else { return }
+        accounts[index] = updated
+        saveAccounts()
+        usingAway.remove(account.id)
+        clients[account.id] = nil
+        chooseRoutes()
+    }
+
+    /// Checks the address and sign-in with the server, then saves the account (password in the
+    /// Keychain). With an away address, either address answering is enough, so a server can be
+    /// added from anywhere.
+    func add(name: String, address: String, remote: String = "", username: String, password: String) async throws -> ServerAccount {
         guard let url = ServerAccount.normalizedURL(from: address) else { throw SubsonicError.invalidAddress }
+        let remoteText = remote.trimmingCharacters(in: .whitespacesAndNewlines)
+        var remoteURL: URL?
+        if !remoteText.isEmpty {
+            guard let parsed = ServerAccount.normalizedRemoteURL(from: remoteText) else { throw SubsonicError.invalidRemoteAddress }
+            remoteURL = parsed
+        }
         let user = username.trimmingCharacters(in: .whitespaces)
         let label = name.trimmingCharacters(in: .whitespaces)
-        let account = ServerAccount(id: UUID(), name: label.isEmpty ? (url.host ?? "Erhu Server") : label, baseURL: url, username: user)
-        let client = SubsonicClient(account: account, password: password)
-        _ = try await client.ping()
+        let account = ServerAccount(id: UUID(), name: label.isEmpty ? (url.host ?? "Erhu Server") : label, baseURL: url,
+                                    username: user, remoteURL: remoteURL)
+        var away = false
+        do {
+            _ = try await SubsonicClient(account: account, password: password).ping(timeout: remoteURL == nil ? 20 : 5)
+        } catch {
+            // A wrong password is wrong at either address; otherwise try the away address.
+            if case .server(40, _)? = error as? SubsonicError { throw error }
+            guard remoteURL != nil else { throw error }
+            _ = try await SubsonicClient(account: account, password: password, away: true).ping()
+            away = true
+        }
         guard ServerKeychain.setPassword(password, for: account.id) else {
             throw SubsonicError.server(code: 0, message: String(localized: "Couldn't save the password in the Keychain."))
         }
-        clients[account.id] = client
+        if away { usingAway.insert(account.id) }
+        clients[account.id] = SubsonicClient(account: account, password: password, away: away)
         accounts.append(account)
         saveAccounts()
         selectedId = account.id
@@ -96,6 +183,7 @@ final class ServerStore {
         ServerKeychain.removePassword(for: account.id)
         clients[account.id] = nil
         accounts.removeAll { $0.id == account.id }
+        usingAway.remove(account.id)
         saveAccounts()
         if selectedId == account.id { selectedId = accounts.first?.id }
     }
@@ -107,24 +195,30 @@ final class ServerStore {
     // MARK: Streaming
 
     /// Streams [songs] from [account], starting with the song at [index].
-    func play(_ songs: [ServerSong], startAt index: Int = 0, shuffled: Bool = false, account: ServerAccount) {
+    /// Now Playing names [source] ("Streaming: <album>").
+    /// [shuffled] nil keeps the shuffle mode as it is (tapping a song), as the library's lists do.
+    func play(_ songs: [ServerSong], startAt index: Int = 0, shuffled: Bool? = nil, account: ServerAccount, source: PlaybackSource? = nil) {
         let playable = streamSongs(songs, account: account)
         guard !playable.isEmpty else { return }
-        player.setShuffleModeEnabled(shuffled)
-        let start = shuffled ? Int.random(in: 0..<playable.count) : min(max(index, 0), playable.count - 1)
-        player.playCollection(playable, startIndex: start, origin: nil)
+        if let shuffled { player.setShuffleModeEnabled(shuffled) }
+        let start = shuffled == true ? Int.random(in: 0..<playable.count) : min(max(index, 0), playable.count - 1)
+        player.playCollection(playable, startIndex: start, origin: nil,
+                              source: source ?? .server(account: account.id, album: nil, title: account.name))
     }
 
-    func playNext(_ song: ServerSong, account: ServerAccount) {
-        if let stream = streamSongs([song], account: account).first { actions.playNext(stream) }
+    /// Playable songs for [songs], with each one's favourite mark as the server (or this session) has it.
+    func streamSongs(_ songs: [ServerSong], account: ServerAccount) -> [Song] {
+        songs.filter { $0.isVideo != true }.map {
+            ServerStream.shared.song(for: $0, account: account, quality: quality, favourite: isFavourite($0, account: account))
+        }
     }
 
-    func addToQueue(_ song: ServerSong, account: ServerAccount) {
-        if let stream = streamSongs([song], account: account).first { actions.addToQueue(stream) }
-    }
-
-    private func streamSongs(_ songs: [ServerSong], account: ServerAccount) -> [Song] {
-        songs.filter { $0.isVideo != true }.map { ServerStream.shared.song(for: $0, account: account, quality: quality) }
+    /// What a streamed song's row menu offers: queueing, the server favourite and downloading.
+    func songActions(source: PlaybackSource) -> SongActions {
+        SongActions(toggleFavorite: { [weak self] in self?.toggleFavourite(stream: $0) },
+                    playNext: { [weak self] in self?.actions.playNext($0, source: source) },
+                    addToQueue: { [weak self] in self?.actions.addToQueue($0, source: source) },
+                    startRadio: { _ in }, addToPlaylist: { _ in })
     }
 
     // MARK: Recently streamed
@@ -163,6 +257,20 @@ final class ServerStore {
         return true
     }
 
+    /// The last five albums streamed, newest first (Home's Recently streamed albums).
+    var recentAlbums: [StreamedAlbum] { Self.recentAlbums(from: recentlyStreamed) }
+
+    nonisolated static func recentAlbums(from recent: [StreamedSong], limit: Int = 5) -> [StreamedAlbum] {
+        var seen = Set<String>()
+        var albums: [StreamedAlbum] = []
+        for item in recent {
+            guard let albumId = item.song.albumId, seen.insert("\(item.accountId.uuidString)/\(albumId)").inserted else { continue }
+            albums.append(StreamedAlbum(item: item, albumId: albumId))
+            if albums.count == limit { break }
+        }
+        return albums
+    }
+
     func clearRecentlyStreamed() {
         recentlyStreamed = []
         saveRecent()
@@ -173,6 +281,17 @@ final class ServerStore {
     }
 
     // MARK: Favourites
+
+    /// Flips a streamed song's favourite on its server.
+    func toggleFavourite(stream song: Song) {
+        guard let found = ServerStream.shared.remote(for: song), let account = account(found.accountId) else {
+            actions.show(String(localized: "Server not connected"))
+            return
+        }
+        let favourite = !isFavourite(found.song, account: account)
+        setFavourite(found.song, favourite, account: account)
+        actions.show(favourite ? String(localized: "Added to server favourites") : String(localized: "Removed from server favourites"))
+    }
 
     func isFavourite(_ song: ServerSong, account: ServerAccount) -> Bool {
         favouriteChanges["\(account.id.uuidString)/\(song.id)"] ?? (song.starred != nil)
@@ -216,6 +335,20 @@ final class ServerStore {
 
     func isDownloaded(_ song: ServerSong) -> Bool {
         FileManager.default.fileExists(atPath: LibraryPaths.musicFolder.appendingPathComponent(Self.downloadPath(for: song)).path)
+    }
+
+    /// Whether a streamed song's original file is already in the Erhu folder.
+    func isDownloaded(stream song: Song) -> Bool {
+        ServerStream.shared.remote(for: song).map { isDownloaded($0.song) } ?? false
+    }
+
+    /// Saves a streamed song (Now Playing's or a row's menu) to this device.
+    func download(stream song: Song) {
+        guard let found = ServerStream.shared.remote(for: song), let account = account(found.accountId) else {
+            actions.show(String(localized: "Server not connected"))
+            return
+        }
+        download([found.song], account: account)
     }
 
     var isDownloading: Bool { downloads.contains { $0.state == .waiting || $0.state == .downloading } }
@@ -318,4 +451,15 @@ struct StreamedSong: Codable, Hashable, Identifiable, Sendable {
     var server = ""
     var username = ""
     var id: String { "\(accountId.uuidString)/\(song.id)" }
+}
+
+/// An album on Home's Recently streamed shelf, from the newest song streamed from it.
+struct StreamedAlbum: Identifiable, Hashable, Sendable {
+    let item: StreamedSong
+    let albumId: String
+    var id: String { "\(item.accountId.uuidString)/\(albumId)" }
+    var accountId: UUID { item.accountId }
+    var title: String { item.song.album ?? String(localized: "Unknown") }
+    var artist: String? { item.song.artist }
+    var coverArt: String? { item.song.coverArt }
 }

@@ -16460,6 +16460,160 @@
         }
       }
     },
+    "Added to server favourites" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أُضيفت إلى مفضلة الخادم"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সার্ভারের প্রিয়তে যোগ হয়েছে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu den Serverfavoriten hinzugefügt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadida a los favoritos del servidor"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "به علاقه‌مندی‌های سرور اضافه شد"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idinagdag sa mga paborito ng server"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté aux favoris du serveur"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सर्वर पसंदीदा में जोड़ा गया"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditambahkan ke favorit server"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiunto ai preferiti del server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバのお気に入りに追加しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버 즐겨찾기에 추가됨"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toegevoegd aan serverfavorieten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodano do ulubionych na serwerze"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionada aos favoritos do servidor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавлено в избранное сервера"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "சர்வர் பிடித்தவையில் சேர்க்கப்பட்டது"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "సర్వర్ ఇష్టమైనవాటికి జోడించబడింది"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพิ่มในรายการโปรดของเซิร์ฟเวอร์แล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu favorilerine eklendi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додано до улюблених на сервері"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرور کی پسندیدہ میں شامل کر دیا گیا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã thêm vào mục yêu thích trên máy chủ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已添加到服务器收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加入伺服器收藏"
+          }
+        }
+      }
+    },
     "Address" : {
       "localizations" : {
         "ar" : {
@@ -18920,6 +19074,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "專輯（%lld）"
+          }
+        }
+      }
+    },
+    "Albums on %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الألبومات على %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-এ অ্যালবাম"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alben auf %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Álbumes en %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آلبوم‌ها در %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga album sa %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums sur %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ पर एल्बम"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album di %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album su %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ のアルバム"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@의 앨범"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums op %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumy na %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Álbuns em %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбомы на %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ இல் ஆல்பங்கள்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ లో ఆల్బమ్‌లు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัลบั้มใน %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ üzerindeki albümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбоми на %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ پر البمز"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album trên %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的专辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的專輯"
           }
         }
       }
@@ -24006,6 +24314,160 @@
         }
       }
     },
+    "Artists on %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الفنانون على %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-এ শিল্পী"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Künstler auf %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artistas en %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنرمندان در %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga artist sa %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artistes sur %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ पर कलाकार"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artis di %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artisti su %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ のアーティスト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@의 아티스트"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artiesten op %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wykonawcy na %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artistas em %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Исполнители на %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ இல் கலைஞர்கள்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ లో కళాకారులు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ศิลปินใน %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ üzerindeki sanatçılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виконавці на %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ پر فنکار"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nghệ sĩ trên %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的艺人"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的藝人"
+          }
+        }
+      }
+    },
     "Artists, albums and songs" : {
       "localizations" : {
         "ar" : {
@@ -27390,6 +27852,468 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自動化疊加層"
+          }
+        }
+      }
+    },
+    "Away address" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عنوان خارج المنزل"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাইরের ঠিকানা"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse unterwegs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección fuera de casa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نشانی بیرون از خانه"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address sa labas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse à l’extérieur"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाहर का पता"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat di luar rumah"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indirizzo fuori casa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出先のアドレス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외부 주소"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres onderweg"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres poza domem"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço fora de casa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес вне дома"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வெளியே முகவரி"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "బయటి చిరునామా"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่นอกบ้าน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dışarıdaki adres"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адреса поза домом"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "باہر کا پتا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ khi ra ngoài"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出地址"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出位址"
+          }
+        }
+      }
+    },
+    "Away address (optional)" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عنوان خارج المنزل (اختياري)"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাইরের ঠিকানা (ঐচ্ছিক)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse unterwegs (optional)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección fuera de casa (opcional)"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نشانی بیرون از خانه (اختیاری)"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address sa labas (opsyonal)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse à l’extérieur (facultatif)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाहर का पता (वैकल्पिक)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat di luar rumah (opsional)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indirizzo fuori casa (facoltativo)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出先のアドレス（任意）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외부 주소(선택 사항)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres onderweg (optioneel)"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres poza domem (opcjonalnie)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço fora de casa (opcional)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес вне дома (необязательно)"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வெளியே முகவரி (விருப்பம்)"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "బయటి చిరునామా (ఐచ్ఛికం)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่นอกบ้าน (ไม่บังคับ)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dışarıdaki adres (isteğe bağlı)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адреса поза домом (необов’язково)"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "باہر کا پتا (اختیاری)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ khi ra ngoài (không bắt buộc)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出地址（可选）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出位址（選填）"
+          }
+        }
+      }
+    },
+    "Away from home" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خارج المنزل"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাড়ির বাইরে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterwegs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuera de casa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بیرون از خانه"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sa labas ng bahay"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors de chez vous"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "घर से बाहर"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Di luar rumah"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuori casa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出先"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외부에서"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onderweg"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poza domem"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fora de casa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вне дома"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வீட்டுக்கு வெளியே"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఇంటి బయట"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "นอกบ้าน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evden uzakta"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поза домом"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گھر سے باہر"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi ra ngoài"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出時"
           }
         }
       }
@@ -44817,6 +45741,160 @@
         }
       }
     },
+    "Connected through" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متصل عبر"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "যার মাধ্যমে সংযুক্ত"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbunden über"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado mediante"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متصل از طریق"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nakakonekta sa pamamagitan ng"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecté via"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इसके ज़रिए जुड़ा"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terhubung melalui"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collegato tramite"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続経路"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 경로"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbonden via"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połączono przez"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado por"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключено через"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இணைப்பு வழி"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "దీని ద్వారా కనెక్ట్ అయింది"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อผ่าน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlantı yolu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Під’єднано через"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کے ذریعے منسلک"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối qua"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接方式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連線方式"
+          }
+        }
+      }
+    },
     "Connection failed: %@" : {
       "localizations" : {
         "ar" : {
@@ -48509,6 +49587,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法連線到提供方"
+          }
+        }
+      }
+    },
+    "Couldn't save the away address" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر حفظ عنوان خارج المنزل"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাইরের ঠিকানা সংরক্ষণ করা যায়নি"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Adresse unterwegs konnte nicht gespeichert werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo guardar la dirección fuera de casa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ذخیرهٔ نشانی بیرون از خانه ممکن نشد"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi ma-save ang address sa labas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’enregistrer l’adresse à l’extérieur"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाहर का पता सहेजा नहीं जा सका"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak dapat menyimpan alamat di luar rumah"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile salvare l’indirizzo fuori casa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出先のアドレスを保存できませんでした"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외부 주소를 저장할 수 없습니다"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan het adres onderweg niet bewaren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się zapisać adresu poza domem"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível salvar o endereço fora de casa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить адрес вне дома"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வெளியே முகவரியைச் சேமிக்க முடியவில்லை"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "బయటి చిరునామాను సేవ్ చేయలేకపోయాం"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "บันทึกที่อยู่นอกบ้านไม่ได้"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dışarıdaki adres kaydedilemedi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося зберегти адресу поза домом"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "باہر کا پتا محفوظ نہیں ہو سکا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể lưu địa chỉ khi ra ngoài"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存外出地址"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存外出位址"
           }
         }
       }
@@ -78857,6 +80089,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "主頁"
+          }
+        }
+      }
+    },
+    "Home address" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "العنوان المنزلي"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাড়ির ঠিকানা"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse zu Hause"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección en casa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نشانی خانه"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address sa bahay"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse à la maison"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "घर का पता"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat di rumah"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indirizzo di casa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自宅のアドレス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "집 주소"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres thuis"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres w domu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço em casa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Домашний адрес"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வீட்டு முகவரி"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఇంటి చిరునామా"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่ที่บ้าน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ev adresi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Домашня адреса"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گھر کا پتا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ ở nhà"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "家中地址"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "家中位址"
           }
         }
       }
@@ -115975,6 +117361,160 @@
         }
       }
     },
+    "Not set" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غير مضبوط"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সেট করা নেই"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht festgelegt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin configurar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تنظیم نشده"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi nakatakda"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non défini"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सेट नहीं"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belum diatur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non impostato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 안 됨"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niet ingesteld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie ustawiono"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não definido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не задан"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "அமைக்கப்படவில்லை"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "సెట్ చేయలేదు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยังไม่ได้ตั้ง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarlanmadı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не задано"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سیٹ نہیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa đặt"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
+          }
+        }
+      }
+    },
     "Not stated" : {
       "localizations" : {
         "ar" : {
@@ -120437,6 +121977,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在此裝置上"
+          }
+        }
+      }
+    },
+    "Once connected, the server's music appears in Search, on Library and on Home, next to your own." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بعد الاتصال، تظهر موسيقى الخادم في البحث وفي المكتبة وفي الرئيسية بجانب موسيقاك."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সংযুক্ত হলে সার্ভারের গান আপনার নিজের গানের পাশেই সার্চ, লাইব্রেরি ও হোমে দেখা যাবে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach dem Verbinden erscheint die Musik des Servers in der Suche, in der Mediathek und auf Start, neben deiner eigenen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una vez conectado, la música del servidor aparece en Buscar, Biblioteca e Inicio, junto a la tuya."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پس از اتصال، موسیقی سرور در جست‌وجو، کتابخانه و خانه کنار موسیقی خودتان نمایش داده می‌شود."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapag nakakonekta na, lalabas ang musika ng server sa Search, Library at Home, katabi ng sarili mong musika."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une fois connecté, la musique du serveur apparaît dans Recherche, Bibliothèque et Accueil, à côté de la vôtre."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जुड़ने के बाद सर्वर का संगीत आपके अपने संगीत के साथ सर्च, लाइब्रेरी और होम में दिखता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setelah terhubung, musik server muncul di Cari, Pustaka, dan Beranda, di samping musik Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una volta collegato, la musica del server compare in Cerca, Libreria e Home, accanto alla tua."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続すると、サーバの音楽が自分の音楽と並んで検索、ライブラリ、ホームに表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결되면 서버의 음악이 내 음악과 함께 검색, 보관함, 홈에 표시됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na verbinden verschijnt de muziek van de server in Zoeken, Bibliotheek en Start, naast je eigen muziek."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po połączeniu muzyka z serwera pojawia się w Wyszukiwaniu, Bibliotece i na stronie głównej, obok twojej."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depois de conectar, as músicas do servidor aparecem em Buscar, Biblioteca e Início, ao lado das suas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После подключения музыка с сервера появляется в поиске, медиатеке и на главной рядом с вашей."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இணைந்ததும், சர்வரின் இசை உங்கள் இசையுடன் தேடல், நூலகம் மற்றும் முகப்பில் தோன்றும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "కనెక్ట్ అయ్యాక, సర్వర్ సంగీతం మీ సంగీతంతో పాటు సెర్చ్, లైబ్రరీ, హోమ్‌లో కనిపిస్తుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อเชื่อมต่อแล้ว เพลงจากเซิร์ฟเวอร์จะแสดงในค้นหา คลังเพลง และหน้าหลัก ข้างเพลงของคุณ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlandıktan sonra sunucunun müziği Ara, Arşiv ve Ana Sayfa’da kendi müziğinizin yanında görünür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Після під’єднання музика з сервера з’являється в пошуку, медіатеці та на головній поруч із вашою."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "منسلک ہونے کے بعد سرور کی موسیقی آپ کی اپنی موسیقی کے ساتھ تلاش، لائبریری اور ہوم میں نظر آتی ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sau khi kết nối, nhạc trên máy chủ xuất hiện trong Tìm kiếm, Thư viện và Trang chủ, bên cạnh nhạc của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接后，服务器上的音乐会和你自己的音乐一起出现在搜索、资料库和主页中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連接後，伺服器上的音樂會和你自己的音樂一起出現在搜尋、資料庫和首頁中。"
           }
         }
       }
@@ -130297,6 +131991,160 @@
         }
       }
     },
+    "Playlists on %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قوائم التشغيل على %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-এ প্লেলিস্ট"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists auf %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listas en %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فهرست‌های پخش در %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga playlist sa %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists sur %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ पर प्लेलिस्ट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist di %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist su %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ のプレイリスト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@의 플레이리스트"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afspeellijsten op %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlisty na %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists em %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Плейлисты на %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ இல் பிளேலிஸ்ட்கள்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ లో ప్లేలిస్ట్‌లు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพลย์ลิสต์ใน %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ üzerindeki çalma listeleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Плейлисти на %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ پر پلے لسٹس"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danh sách phát trên %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的播放列表"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的播放列表"
+          }
+        }
+      }
+    },
     "Plays from %@" : {
       "localizations" : {
         "ar" : {
@@ -139229,6 +141077,160 @@
         }
       }
     },
+    "Recently streamed albums" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ألبومات تم بثها مؤخرًا"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সম্প্রতি স্ট্রিম করা অ্যালবাম"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuletzt gestreamte Alben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Álbumes escuchados en streaming recientemente"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آلبوم‌های اخیراً پخش‌شده از سرور"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga album na kamakailang na-stream"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums écoutés récemment en streaming"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हाल में स्ट्रीम किए गए एल्बम"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album yang baru di-streaming"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album ascoltati di recente in streaming"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近ストリーミングしたアルバム"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 스트리밍한 앨범"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onlangs gestreamde albums"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatnio streamowane albumy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Álbuns transmitidos recentemente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недавно прослушанные по сети альбомы"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "சமீபத்தில் ஸ்ட்ரீம் செய்த ஆல்பங்கள்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఇటీవల స్ట్రీమ్ చేసిన ఆల్బమ్‌లు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัลบั้มที่สตรีมล่าสุด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son yayınlanan albümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нещодавно прослухані з сервера альбоми"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حال ہی میں اسٹریم کیے گئے البمز"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album phát trực tuyến gần đây"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近串流播放的专辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近串流播放的專輯"
+          }
+        }
+      }
+    },
     "Recommended" : {
       "localizations" : {
         "ar" : {
@@ -142613,6 +144615,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已從「喜歡的歌曲」中移除"
+          }
+        }
+      }
+    },
+    "Removed from server favourites" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أُزيلت من مفضلة الخادم"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সার্ভারের প্রিয় থেকে সরানো হয়েছে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus den Serverfavoriten entfernt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitada de los favoritos del servidor"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "از علاقه‌مندی‌های سرور حذف شد"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inalis sa mga paborito ng server"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retiré des favoris du serveur"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सर्वर पसंदीदा से हटाया गया"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dihapus dari favorit server"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimosso dai preferiti del server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバのお気に入りから削除しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버 즐겨찾기에서 제거됨"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwijderd uit serverfavorieten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usunięto z ulubionych na serwerze"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removida dos favoritos do servidor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалено из избранного сервера"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "சர்வர் பிடித்தவையிலிருந்து அகற்றப்பட்டது"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "సర్వర్ ఇష్టమైనవాటి నుండి తీసివేయబడింది"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "นำออกจากรายการโปรดของเซิร์ฟเวอร์แล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu favorilerinden kaldırıldı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вилучено з улюблених на сервері"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرور کی پسندیدہ سے ہٹا دیا گیا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xóa khỏi mục yêu thích trên máy chủ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已从服务器收藏中移除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已從伺服器收藏中移除"
           }
         }
       }
@@ -160635,6 +162791,160 @@
         }
       }
     },
+    "Songs on %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأغاني على %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-এ গান"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songs auf %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canciones en %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آهنگ‌ها در %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga kanta sa %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morceaux sur %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ पर गाने"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagu di %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brani su %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の曲"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@의 노래"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nummers op %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utwory na %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Músicas em %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Песни на %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ இல் பாடல்கள்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ లో పాటలు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพลงใน %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ üzerindeki şarkılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пісні на %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ پر گانے"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bài hát trên %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的歌曲"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 上的歌曲"
+          }
+        }
+      }
+    },
     "Songs with similar styles and tempo." : {
       "localizations" : {
         "ar" : {
@@ -169105,6 +171415,160 @@
         }
       }
     },
+    "Streaming: %@" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بث: %@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "স্ট্রিমিং: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En streaming: %@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پخش از سرور: %@"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nag-i-stream: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming : %@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "स्ट्रीमिंग: %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming: %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In streaming: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストリーミング: %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스트리밍: %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streamen: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmitindo: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Потоковое воспроизведение: %@"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஸ்ட்ரீமிங்: %@"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "స్ట్రీమింగ్: %@"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กำลังสตรีม: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akış: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Потокове відтворення: %@"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسٹریمنگ: %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang phát trực tuyến: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "串流播放：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "串流播放：%@"
+          }
+        }
+      }
+    },
     "Style" : {
       "localizations" : {
         "ar" : {
@@ -172493,6 +174957,314 @@
         }
       }
     },
+    "The HTTPS address Erhu Server shows under “Listen away from home”. Erhu uses your home address on your Wi-Fi and this one everywhere else." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عنوان HTTPS الذي يعرضه Erhu Server تحت «الاستماع خارج المنزل». يستخدم Erhu عنوانك المنزلي على شبكة Wi-Fi لديك وهذا العنوان في أي مكان آخر."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server “বাড়ির বাইরে শুনুন” অংশে যে HTTPS ঠিকানা দেখায়। আপনার Wi-Fi-তে Erhu বাড়ির ঠিকানা আর অন্য সব জায়গায় এটি ব্যবহার করে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die HTTPS-Adresse, die Erhu Server unter „Unterwegs hören“ anzeigt. Erhu nutzt in deinem WLAN die Adresse zu Hause und überall sonst diese."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La dirección HTTPS que muestra Erhu Server en «Escuchar fuera de casa». Erhu usa la dirección de casa en tu Wi-Fi y esta en cualquier otro lugar."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نشانی HTTPS که Erhu Server زیر «گوش دادن بیرون از خانه» نشان می‌دهد. Erhu روی Wi-Fi شما از نشانی خانه و در هر جای دیگر از این نشانی استفاده می‌کند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ang HTTPS address na ipinapakita ng Erhu Server sa ilalim ng “Makinig sa labas ng bahay”. Ginagamit ng Erhu ang address sa bahay sa iyong Wi-Fi at ito sa ibang lugar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’adresse HTTPS qu’Erhu Server affiche sous « Écouter hors de chez vous ». Erhu utilise l’adresse de la maison sur votre Wi-Fi et celle-ci partout ailleurs."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "वह HTTPS पता जो Erhu Server “घर से बाहर सुनें” में दिखाता है। आपके Wi-Fi पर Erhu घर का पता और बाकी हर जगह यह पता इस्तेमाल करता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat HTTPS yang ditampilkan Erhu Server di bawah “Dengarkan di luar rumah”. Erhu memakai alamat rumah di Wi-Fi Anda dan alamat ini di tempat lain."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’indirizzo HTTPS che Erhu Server mostra in «Ascolta fuori casa». Erhu usa l’indirizzo di casa sul tuo Wi-Fi e questo ovunque altrove."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server の「外出先で聴く」に表示される HTTPS アドレスです。Erhu は自宅の Wi-Fi では自宅のアドレスを、それ以外ではこのアドレスを使います。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server의 ‘외부에서 듣기’에 표시되는 HTTPS 주소입니다. Erhu는 집 Wi-Fi에서는 집 주소를, 그 밖의 곳에서는 이 주소를 사용합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het HTTPS-adres dat Erhu Server toont onder ‘Onderweg luisteren’. Erhu gebruikt het adres thuis op je wifi en dit adres overal anders."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres HTTPS, który Erhu Server pokazuje w sekcji „Słuchaj poza domem”. W twojej sieci Wi-Fi Erhu używa adresu domowego, a wszędzie indziej tego."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O endereço HTTPS que o Erhu Server mostra em “Ouvir fora de casa”. O Erhu usa o endereço de casa no seu Wi-Fi e este em qualquer outro lugar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTPS-адрес, который Erhu Server показывает в разделе «Слушать вне дома». В вашей сети Wi-Fi Erhu использует домашний адрес, а везде ещё — этот."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server “வீட்டுக்கு வெளியே கேளுங்கள்” பகுதியில் காட்டும் HTTPS முகவரி. உங்கள் Wi-Fi-இல் Erhu வீட்டு முகவரியையும், மற்ற இடங்களில் இதையும் பயன்படுத்தும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server “ఇంటి బయట వినండి” కింద చూపించే HTTPS చిరునామా. మీ Wi-Fi లో Erhu ఇంటి చిరునామాను, మిగతా అన్ని చోట్లా దీనిని ఉపయోగిస్తుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่ HTTPS ที่ Erhu Server แสดงในส่วน “ฟังนอกบ้าน” Erhu ใช้ที่อยู่ที่บ้านเมื่ออยู่ใน Wi-Fi ของคุณ และใช้ที่อยู่นี้ในที่อื่น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server’ın “Evden uzakta dinle” altında gösterdiği HTTPS adresi. Erhu, Wi-Fi’nizde ev adresini, başka her yerde bunu kullanır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTPS-адреса, яку Erhu Server показує в розділі «Слухати поза домом». У вашій мережі Wi-Fi Erhu використовує домашню адресу, а деінде — цю."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وہ HTTPS پتا جو Erhu Server “گھر سے باہر سنیں” کے تحت دکھاتا ہے۔ آپ کے Wi-Fi پر Erhu گھر کا پتا اور باقی ہر جگہ یہ پتا استعمال کرتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ HTTPS mà Erhu Server hiển thị trong mục “Nghe khi ra ngoài”. Erhu dùng địa chỉ ở nhà khi ở Wi-Fi nhà bạn và dùng địa chỉ này ở mọi nơi khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server 在“外出时收听”下显示的 HTTPS 地址。连接家中 Wi-Fi 时 Erhu 使用家中地址，其他地方使用此地址。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server 在「外出時收聽」下顯示的 HTTPS 位址。連接家中 Wi-Fi 時 Erhu 使用家中位址，其他地方使用此位址。"
+          }
+        }
+      }
+    },
+    "The HTTPS address Erhu Server shows under “Listen away from home”. Leave it empty to use only your home address." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عنوان HTTPS الذي يعرضه Erhu Server تحت «الاستماع خارج المنزل». اتركه فارغًا لاستخدام عنوانك المنزلي فقط."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server “বাড়ির বাইরে শুনুন” অংশে যে HTTPS ঠিকানা দেখায়। শুধু বাড়ির ঠিকানা ব্যবহার করতে এটি খালি রাখুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die HTTPS-Adresse, die Erhu Server unter „Unterwegs hören“ anzeigt. Leer lassen, um nur die Adresse zu Hause zu nutzen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La dirección HTTPS que muestra Erhu Server en «Escuchar fuera de casa». Déjala vacía para usar solo la dirección de casa."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نشانی HTTPS که Erhu Server زیر «گوش دادن بیرون از خانه» نشان می‌دهد. برای استفاده فقط از نشانی خانه، خالی بگذارید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ang HTTPS address na ipinapakita ng Erhu Server sa ilalim ng “Makinig sa labas ng bahay”. Iwanang blangko para gamitin lang ang address sa bahay."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’adresse HTTPS qu’Erhu Server affiche sous « Écouter hors de chez vous ». Laissez vide pour n’utiliser que l’adresse de la maison."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "वह HTTPS पता जो Erhu Server “घर से बाहर सुनें” में दिखाता है। केवल घर का पता इस्तेमाल करने के लिए इसे खाली छोड़ें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat HTTPS yang ditampilkan Erhu Server di bawah “Dengarkan di luar rumah”. Biarkan kosong untuk hanya memakai alamat rumah."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’indirizzo HTTPS che Erhu Server mostra in «Ascolta fuori casa». Lascialo vuoto per usare solo l’indirizzo di casa."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server の「外出先で聴く」に表示される HTTPS アドレスです。自宅のアドレスだけを使う場合は空のままにします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server의 ‘외부에서 듣기’에 표시되는 HTTPS 주소입니다. 집 주소만 사용하려면 비워 두세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het HTTPS-adres dat Erhu Server toont onder ‘Onderweg luisteren’. Laat leeg om alleen het adres thuis te gebruiken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres HTTPS, który Erhu Server pokazuje w sekcji „Słuchaj poza domem”. Zostaw puste, aby używać tylko adresu domowego."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O endereço HTTPS que o Erhu Server mostra em “Ouvir fora de casa”. Deixe vazio para usar só o endereço de casa."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTPS-адрес, который Erhu Server показывает в разделе «Слушать вне дома». Оставьте пустым, чтобы использовать только домашний адрес."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server “வீட்டுக்கு வெளியே கேளுங்கள்” பகுதியில் காட்டும் HTTPS முகவரி. வீட்டு முகவரியை மட்டும் பயன்படுத்த இதைக் காலியாக விடுங்கள்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server “ఇంటి బయట వినండి” కింద చూపించే HTTPS చిరునామా. ఇంటి చిరునామా మాత్రమే ఉపయోగించాలంటే దీన్ని ఖాళీగా వదలండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่ HTTPS ที่ Erhu Server แสดงในส่วน “ฟังนอกบ้าน” เว้นว่างไว้เพื่อใช้เฉพาะที่อยู่ที่บ้าน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server’ın “Evden uzakta dinle” altında gösterdiği HTTPS adresi. Yalnızca ev adresini kullanmak için boş bırakın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTPS-адреса, яку Erhu Server показує в розділі «Слухати поза домом». Залиште порожнім, щоб використовувати лише домашню адресу."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وہ HTTPS پتا جو Erhu Server “گھر سے باہر سنیں” کے تحت دکھاتا ہے۔ صرف گھر کا پتا استعمال کرنے کے لیے اسے خالی چھوڑیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ HTTPS mà Erhu Server hiển thị trong mục “Nghe khi ra ngoài”. Để trống để chỉ dùng địa chỉ ở nhà."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server 在“外出时收听”下显示的 HTTPS 地址。留空则只使用家中地址。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu Server 在「外出時收聽」下顯示的 HTTPS 位址。留空則只使用家中位址。"
+          }
+        }
+      }
+    },
     "The album has no songs" : {
       "localizations" : {
         "ar" : {
@@ -173259,6 +176031,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法分析音訊（%@）"
+          }
+        }
+      }
+    },
+    "The away-from-home address must start with https://, for example the Tailscale address Erhu Server shows." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يجب أن يبدأ عنوان خارج المنزل بـ https://، مثل عنوان Tailscale الذي يعرضه Erhu Server."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাইরের ঠিকানা https:// দিয়ে শুরু হতে হবে, যেমন Erhu Server যে Tailscale ঠিকানা দেখায়।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Adresse unterwegs muss mit https:// beginnen, zum Beispiel die Tailscale-Adresse, die Erhu Server anzeigt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La dirección fuera de casa debe empezar por https://, por ejemplo la dirección de Tailscale que muestra Erhu Server."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نشانی بیرون از خانه باید با https:// شروع شود، مثلاً نشانی Tailscale که Erhu Server نشان می‌دهد."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dapat magsimula sa https:// ang address sa labas, halimbawa ang Tailscale address na ipinapakita ng Erhu Server."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’adresse à l’extérieur doit commencer par https://, par exemple l’adresse Tailscale qu’affiche Erhu Server."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाहर का पता https:// से शुरू होना चाहिए, जैसे Erhu Server द्वारा दिखाया गया Tailscale पता।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat di luar rumah harus diawali https://, misalnya alamat Tailscale yang ditampilkan Erhu Server."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’indirizzo fuori casa deve iniziare con https://, ad esempio l’indirizzo Tailscale mostrato da Erhu Server."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出先のアドレスは https:// で始まる必要があります。たとえば Erhu Server に表示される Tailscale のアドレスです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외부 주소는 https://로 시작해야 합니다. 예: Erhu Server에 표시되는 Tailscale 주소."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het adres onderweg moet met https:// beginnen, bijvoorbeeld het Tailscale-adres dat Erhu Server toont."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres poza domem musi zaczynać się od https://, na przykład adres Tailscale pokazany przez Erhu Server."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O endereço fora de casa precisa começar com https://, por exemplo o endereço do Tailscale que o Erhu Server mostra."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес вне дома должен начинаться с https://, например адрес Tailscale, который показывает Erhu Server."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "வெளியே முகவரி https:// என்று தொடங்க வேண்டும், உதாரணமாக Erhu Server காட்டும் Tailscale முகவரி."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "బయటి చిరునామా https:// తో మొదలవ్వాలి, ఉదాహరణకు Erhu Server చూపించే Tailscale చిరునామా."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ที่อยู่นอกบ้านต้องขึ้นต้นด้วย https:// เช่น ที่อยู่ Tailscale ที่ Erhu Server แสดง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dışarıdaki adres https:// ile başlamalıdır; örneğin Erhu Server’ın gösterdiği Tailscale adresi."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адреса поза домом має починатися з https://, наприклад адреса Tailscale, яку показує Erhu Server."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "باہر کا پتا https:// سے شروع ہونا چاہیے، مثلاً Erhu Server کا دکھایا گیا Tailscale پتا۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ khi ra ngoài phải bắt đầu bằng https://, ví dụ địa chỉ Tailscale mà Erhu Server hiển thị."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出地址必须以 https:// 开头，例如 Erhu Server 显示的 Tailscale 地址。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外出位址必須以 https:// 開頭，例如 Erhu Server 顯示的 Tailscale 位址。"
           }
         }
       }
@@ -178345,6 +181271,160 @@
         }
       }
     },
+    "The server's music appears in Search, on Library and on Home, next to your own." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تظهر موسيقى الخادم في البحث وفي المكتبة وفي الرئيسية بجانب موسيقاك."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "সার্ভারের গান আপনার নিজের গানের পাশেই সার্চ, লাইব্রেরি ও হোমে দেখা যায়।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Musik des Servers erscheint in der Suche, in der Mediathek und auf Start, neben deiner eigenen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La música del servidor aparece en Buscar, Biblioteca e Inicio, junto a la tuya."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "موسیقی سرور در جست‌وجو، کتابخانه و خانه کنار موسیقی خودتان نمایش داده می‌شود."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lumalabas ang musika ng server sa Search, Library at Home, katabi ng sarili mong musika."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La musique du serveur apparaît dans Recherche, Bibliothèque et Accueil, à côté de la vôtre."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सर्वर का संगीत आपके अपने संगीत के साथ सर्च, लाइब्रेरी और होम में दिखता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik server muncul di Cari, Pustaka, dan Beranda, di samping musik Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La musica del server compare in Cerca, Libreria e Home, accanto alla tua."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバの音楽は自分の音楽と並んで検索、ライブラリ、ホームに表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버의 음악은 내 음악과 함께 검색, 보관함, 홈에 표시됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De muziek van de server verschijnt in Zoeken, Bibliotheek en Start, naast je eigen muziek."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muzyka z serwera pojawia się w Wyszukiwaniu, Bibliotece i na stronie głównej, obok twojej."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As músicas do servidor aparecem em Buscar, Biblioteca e Início, ao lado das suas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Музыка с сервера появляется в поиске, медиатеке и на главной рядом с вашей."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "சர்வரின் இசை உங்கள் இசையுடன் தேடல், நூலகம் மற்றும் முகப்பில் தோன்றும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "సర్వర్ సంగీతం మీ సంగీతంతో పాటు సెర్చ్, లైబ్రరీ, హోమ్‌లో కనిపిస్తుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพลงจากเซิร์ฟเวอร์จะแสดงในค้นหา คลังเพลง และหน้าหลัก ข้างเพลงของคุณ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucunun müziği Ara, Arşiv ve Ana Sayfa’da kendi müziğinizin yanında görünür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Музика з сервера з’являється в пошуку, медіатеці та на головній поруч із вашою."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرور کی موسیقی آپ کی اپنی موسیقی کے ساتھ تلاش، لائبریری اور ہوم میں نظر آتی ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhạc trên máy chủ xuất hiện trong Tìm kiếm, Thư viện và Trang chủ, bên cạnh nhạc của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器上的音乐会和你自己的音乐一起出现在搜索、资料库和主页中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器上的音樂會和你自己的音樂一起出現在搜尋、資料庫和首頁中。"
+          }
+        }
+      }
+    },
     "The session reached its time limit." : {
       "localizations" : {
         "ar" : {
@@ -180193,6 +183273,160 @@
         }
       }
     },
+    "This album was streamed from a server that is no longer connected in Erhu. Add the server again in Music Server to play it." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم بث هذا الألبوم من خادم لم يعد متصلًا في Erhu. أضف الخادم مرة أخرى من خادم الموسيقى لتشغيله."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই অ্যালবামটি এমন একটি সার্ভার থেকে স্ট্রিম হয়েছিল যা Erhu-তে আর সংযুক্ত নেই। চালাতে মিউজিক সার্ভারে সার্ভারটি আবার যোগ করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Album wurde von einem Server gestreamt, der in Erhu nicht mehr verbunden ist. Füge den Server unter Musikserver wieder hinzu, um es abzuspielen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este álbum se escuchó desde un servidor que ya no está conectado en Erhu. Vuelve a añadir el servidor en Servidor de música para reproducirlo."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این آلبوم از سروری پخش شد که دیگر در Erhu وصل نیست. برای پخش، سرور را دوباره در سرور موسیقی اضافه کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na-stream ang album na ito mula sa server na hindi na nakakonekta sa Erhu. Idagdag ulit ang server sa Music Server para i-play ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet album a été écouté depuis un serveur qui n’est plus connecté dans Erhu. Ajoutez de nouveau le serveur dans Serveur de musique pour l’écouter."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह एल्बम ऐसे सर्वर से स्ट्रीम हुआ था जो अब Erhu में जुड़ा नहीं है। इसे चलाने के लिए म्यूज़िक सर्वर में सर्वर फिर से जोड़ें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album ini di-streaming dari server yang sudah tidak terhubung di Erhu. Tambahkan server lagi di Server musik untuk memutarnya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo album è stato ascoltato da un server non più collegato in Erhu. Aggiungi di nuovo il server in Server musicale per riprodurlo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアルバムは Erhu に接続されていないサーバからストリーミングされました。再生するには、ミュージックサーバでサーバをもう一度追加してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앨범은 더 이상 Erhu에 연결되지 않은 서버에서 스트리밍되었습니다. 재생하려면 음악 서버에서 서버를 다시 추가하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit album is gestreamd van een server die niet meer met Erhu is verbonden. Voeg de server opnieuw toe bij Muziekserver om het af te spelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten album był streamowany z serwera, który nie jest już połączony w Erhu. Dodaj serwer ponownie w Serwerze muzyki, aby go odtworzyć."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este álbum foi transmitido de um servidor que não está mais conectado no Erhu. Adicione o servidor de novo em Servidor de música para tocá-lo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот альбом воспроизводился с сервера, который больше не подключён в Erhu. Чтобы воспроизвести его, снова добавьте сервер в разделе «Музыкальный сервер»."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இந்த ஆல்பம் Erhu-இல் இனி இணைக்கப்படாத சர்வரிலிருந்து ஸ்ட்ரீம் செய்யப்பட்டது. இயக்க, இசை சர்வரில் சர்வரை மீண்டும் சேர்க்கவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈ ఆల్బమ్ Erhu లో ఇక కనెక్ట్ కాని సర్వర్ నుండి స్ట్రీమ్ అయింది. ప్లే చేయడానికి మ్యూజిక్ సర్వర్‌లో సర్వర్‌ను మళ్లీ జోడించండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัลบั้มนี้สตรีมจากเซิร์ฟเวอร์ที่ไม่ได้เชื่อมต่อกับ Erhu แล้ว เพิ่มเซิร์ฟเวอร์อีกครั้งในเซิร์ฟเวอร์เพลงเพื่อเล่น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu albüm, Erhu’da artık bağlı olmayan bir sunucudan yayınlandı. Çalmak için sunucuyu Müzik Sunucusu’nda yeniden ekleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей альбом відтворювався з сервера, який більше не під’єднано в Erhu. Щоб відтворити його, знову додайте сервер у розділі «Музичний сервер»."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "یہ البم ایسے سرور سے اسٹریم ہوا تھا جو اب Erhu میں منسلک نہیں۔ چلانے کے لیے میوزک سرور میں سرور دوبارہ شامل کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album này được phát từ máy chủ không còn kết nối trong Erhu. Hãy thêm lại máy chủ trong Máy chủ nhạc để phát."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此专辑来自已不再连接到 Erhu 的服务器。请在“音乐服务器”中重新添加该服务器后播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此專輯來自已不再連接到 Erhu 的伺服器。請在「音樂伺服器」中重新加入該伺服器後播放。"
+          }
+        }
+      }
+    },
     "This artist is no longer in your library." : {
       "localizations" : {
         "ar" : {
@@ -181113,6 +184347,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此混音目前不可用。隨著你的聆聽和資料庫增長，它會回來。"
+          }
+        }
+      }
+    },
+    "This music is on a server that is no longer connected in Erhu. Add the server again in Music Server to play it." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذه الموسيقى على خادم لم يعد متصلًا في Erhu. أضف الخادم مرة أخرى من خادم الموسيقى لتشغيلها."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই গানগুলো এমন একটি সার্ভারে আছে যা Erhu-তে আর সংযুক্ত নেই। চালাতে মিউজিক সার্ভারে সার্ভারটি আবার যোগ করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Musik liegt auf einem Server, der in Erhu nicht mehr verbunden ist. Füge den Server unter Musikserver wieder hinzu, um sie abzuspielen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta música está en un servidor que ya no está conectado en Erhu. Vuelve a añadir el servidor en Servidor de música para reproducirla."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این موسیقی روی سروری است که دیگر در Erhu وصل نیست. برای پخش، سرور را دوباره در سرور موسیقی اضافه کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nasa server na hindi na nakakonekta sa Erhu ang musikang ito. Idagdag ulit ang server sa Music Server para i-play ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette musique se trouve sur un serveur qui n’est plus connecté dans Erhu. Ajoutez de nouveau le serveur dans Serveur de musique pour l’écouter."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह संगीत ऐसे सर्वर पर है जो अब Erhu में जुड़ा नहीं है। इसे चलाने के लिए म्यूज़िक सर्वर में सर्वर फिर से जोड़ें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik ini ada di server yang sudah tidak terhubung di Erhu. Tambahkan server lagi di Server musik untuk memutarnya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa musica si trova su un server non più collegato in Erhu. Aggiungi di nuovo il server in Server musicale per riprodurla."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この音楽は Erhu に接続されていないサーバにあります。再生するには、ミュージックサーバでサーバをもう一度追加してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 음악은 더 이상 Erhu에 연결되지 않은 서버에 있습니다. 재생하려면 음악 서버에서 서버를 다시 추가하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze muziek staat op een server die niet meer met Erhu is verbonden. Voeg de server opnieuw toe bij Muziekserver om ze af te spelen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta muzyka jest na serwerze, który nie jest już połączony w Erhu. Dodaj serwer ponownie w Serwerze muzyki, aby ją odtworzyć."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta música está em um servidor que não está mais conectado no Erhu. Adicione o servidor de novo em Servidor de música para tocá-la."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта музыка на сервере, который больше не подключён в Erhu. Чтобы воспроизвести её, снова добавьте сервер в разделе «Музыкальный сервер»."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இந்த இசை Erhu-இல் இனி இணைக்கப்படாத சர்வரில் உள்ளது. இயக்க, இசை சர்வரில் சர்வரை மீண்டும் சேர்க்கவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈ సంగీతం Erhu లో ఇక కనెక్ట్ కాని సర్వర్‌లో ఉంది. ప్లే చేయడానికి మ్యూజిక్ సర్వర్‌లో సర్వర్‌ను మళ్లీ జోడించండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เพลงนี้อยู่บนเซิร์ฟเวอร์ที่ไม่ได้เชื่อมต่อกับ Erhu แล้ว เพิ่มเซิร์ฟเวอร์อีกครั้งในเซิร์ฟเวอร์เพลงเพื่อเล่น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu müzik, Erhu’da artık bağlı olmayan bir sunucuda. Çalmak için sunucuyu Müzik Sunucusu’nda yeniden ekleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ця музика на сервері, який більше не під’єднано в Erhu. Щоб відтворити її, знову додайте сервер у розділі «Музичний сервер»."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "یہ موسیقی ایسے سرور پر ہے جو اب Erhu میں منسلک نہیں۔ چلانے کے لیے میوزک سرور میں سرور دوبارہ شامل کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhạc này nằm trên máy chủ không còn kết nối trong Erhu. Hãy thêm lại máy chủ trong Máy chủ nhạc để phát."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些音乐位于已不再连接到 Erhu 的服务器上。请在“音乐服务器”中重新添加该服务器后播放。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這些音樂位於已不再連接到 Erhu 的伺服器上。請在「音樂伺服器」中重新加入該伺服器後播放。"
           }
         }
       }
@@ -190969,6 +194357,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 Erhu Server 在電腦上顯示的位址。在外面時請使用 HTTPS 位址，例如透過 Tailscale。Erhu Server、Navidrome 以及其他相容 Subsonic 的伺服器都可以使用。"
+          }
+        }
+      }
+    },
+    "Use the address Erhu Server shows on your computer. Erhu Server and Navidrome work, and so do other Subsonic-compatible servers." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استخدم العنوان الذي يعرضه Erhu Server على حاسوبك. يعمل Erhu Server وNavidrome، وكذلك الخوادم الأخرى المتوافقة مع Subsonic."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "আপনার কম্পিউটারে Erhu Server যে ঠিকানা দেখায় সেটি ব্যবহার করুন। Erhu Server ও Navidrome কাজ করে, অন্যান্য Subsonic-সমর্থিত সার্ভারও।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutze die Adresse, die Erhu Server auf deinem Computer anzeigt. Erhu Server und Navidrome funktionieren, ebenso andere Subsonic-kompatible Server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la dirección que muestra Erhu Server en tu ordenador. Funcionan Erhu Server y Navidrome, y también otros servidores compatibles con Subsonic."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "از نشانی‌ای که Erhu Server روی رایانهٔ شما نشان می‌دهد استفاده کنید. Erhu Server و Navidrome کار می‌کنند و سرورهای سازگار با Subsonic هم."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gamitin ang address na ipinapakita ng Erhu Server sa iyong computer. Gumagana ang Erhu Server at Navidrome, pati ang ibang server na compatible sa Subsonic."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez l’adresse qu’Erhu Server affiche sur votre ordinateur. Erhu Server et Navidrome fonctionnent, ainsi que les autres serveurs compatibles Subsonic."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अपने कंप्यूटर पर Erhu Server जो पता दिखाता है उसे इस्तेमाल करें। Erhu Server और Navidrome काम करते हैं, और दूसरे Subsonic-संगत सर्वर भी।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gunakan alamat yang ditampilkan Erhu Server di komputer Anda. Erhu Server dan Navidrome bisa dipakai, begitu juga server lain yang kompatibel dengan Subsonic."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa l’indirizzo che Erhu Server mostra sul computer. Funzionano Erhu Server e Navidrome, e anche altri server compatibili con Subsonic."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コンピュータの Erhu Server に表示されるアドレスを使ってください。Erhu Server と Navidrome のほか、Subsonic 互換のサーバも使えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "컴퓨터의 Erhu Server에 표시되는 주소를 사용하세요. Erhu Server와 Navidrome은 물론 다른 Subsonic 호환 서버도 사용할 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruik het adres dat Erhu Server op je computer toont. Erhu Server en Navidrome werken, net als andere Subsonic-compatibele servers."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj adresu, który Erhu Server pokazuje na komputerze. Działają Erhu Server i Navidrome, a także inne serwery zgodne z Subsonic."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use o endereço que o Erhu Server mostra no seu computador. Erhu Server e Navidrome funcionam, assim como outros servidores compatíveis com Subsonic."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Используйте адрес, который Erhu Server показывает на компьютере. Подходят Erhu Server и Navidrome, а также другие серверы, совместимые с Subsonic."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "உங்கள் கணினியில் Erhu Server காட்டும் முகவரியைப் பயன்படுத்தவும். Erhu Server, Navidrome மற்றும் பிற Subsonic-இணக்க சர்வர்களும் வேலை செய்யும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "మీ కంప్యూటర్‌లో Erhu Server చూపించే చిరునామాను ఉపయోగించండి. Erhu Server, Navidrome తో పాటు ఇతర Subsonic-అనుకూల సర్వర్లు కూడా పనిచేస్తాయి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ใช้ที่อยู่ที่ Erhu Server แสดงบนคอมพิวเตอร์ของคุณ ใช้ได้ทั้ง Erhu Server, Navidrome และเซิร์ฟเวอร์อื่นที่รองรับ Subsonic"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bilgisayarınızda Erhu Server’ın gösterdiği adresi kullanın. Erhu Server ve Navidrome çalışır; Subsonic uyumlu diğer sunucular da."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Використовуйте адресу, яку Erhu Server показує на комп’ютері. Підходять Erhu Server і Navidrome, а також інші сервери, сумісні з Subsonic."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اپنے کمپیوٹر پر Erhu Server جو پتا دکھاتا ہے وہ استعمال کریں۔ Erhu Server اور Navidrome کام کرتے ہیں، اور دوسرے Subsonic سے مطابقت رکھنے والے سرور بھی۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng địa chỉ mà Erhu Server hiển thị trên máy tính. Erhu Server và Navidrome đều dùng được, cả các máy chủ tương thích Subsonic khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用电脑上 Erhu Server 显示的地址。Erhu Server 和 Navidrome 都可以使用，其他兼容 Subsonic 的服务器也可以。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用電腦上 Erhu Server 顯示的位址。Erhu Server 和 Navidrome 都可以使用，其他相容 Subsonic 的伺服器也可以。"
           }
         }
       }

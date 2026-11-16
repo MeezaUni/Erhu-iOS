@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -53,6 +55,8 @@ func setup(t *testing.T) (*Store, *Server, *Control) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { control.listener.Close() })
+	// Never reach a real Tailscale on the test machine.
+	control.remote.run = (&fakeTailscale{statusErr: errNoTailscale}).run
 	return store, server, control
 }
 
@@ -223,8 +227,13 @@ func TestServerCrashIsReported(t *testing.T) {
 }
 
 func TestInviteLinkAndAddresses(t *testing.T) {
-	got := inviteURL("http://192.168.1.20:4533", "azeem", "Living room PC")
-	want := "erhu://server?name=Living%20room%20PC&url=http%3A%2F%2F192.168.1.20%3A4533&user=azeem"
+	got := inviteURL("http://192.168.1.20:4533", "", "listener", "Living room PC")
+	want := "erhu://server?name=Living%20room%20PC&url=http%3A%2F%2F192.168.1.20%3A4533&user=listener"
+	if got != want {
+		t.Fatalf("got  %s\nwant %s", got, want)
+	}
+	got = inviteURL("http://192.168.1.20:4533", "https://pc.tail1234.ts.net", "listener", "")
+	want = "erhu://server?remote=https%3A%2F%2Fpc.tail1234.ts.net&url=http%3A%2F%2F192.168.1.20%3A4533&user=listener"
 	if got != want {
 		t.Fatalf("got  %s\nwant %s", got, want)
 	}
@@ -258,5 +267,80 @@ func TestConfigSurvivesRestartAndDamage(t *testing.T) {
 	damaged, err := openStore()
 	if err != nil || damaged.Get().Port != defaultPort || damaged.Get().MusicFolder != "" {
 		t.Fatalf("a damaged file should fall back to defaults: %v %+v", err, damaged.Get())
+	}
+}
+
+// fakeTailscale answers like the Tailscale command line, from canned output.
+type fakeTailscale struct {
+	status, serve, enable string
+	statusErr, enableErr  error
+	calls                 [][]string
+}
+
+func (f *fakeTailscale) run(ctx context.Context, args ...string) ([]byte, error) {
+	f.calls = append(f.calls, args)
+	switch {
+	case args[0] == "status":
+		return []byte(f.status), f.statusErr
+	case len(args) > 1 && args[0] == "serve" && args[1] == "status":
+		return []byte(f.serve), nil
+	case args[0] == "serve":
+		return []byte(f.enable), f.enableErr
+	}
+	return nil, errors.New("unexpected command")
+}
+
+const tsRunning = `Warning: client version differs
+{"BackendState":"Running","Self":{"DNSName":"pc.tail1234.ts.net."}}`
+
+func TestRemoteStates(t *testing.T) {
+	cases := []struct {
+		name string
+		fake fakeTailscale
+		want RemoteState
+	}{
+		{"missing", fakeTailscale{statusErr: errNoTailscale}, RemoteState{Status: "missing"}},
+		{"stopped", fakeTailscale{status: "Tailscale is stopped.", statusErr: errors.New("exit status 1")}, RemoteState{Status: "signedOut"}},
+		{"signed out", fakeTailscale{status: `{"BackendState":"NeedsLogin","Self":{"DNSName":""}}`}, RemoteState{Status: "signedOut"}},
+		{"off", fakeTailscale{status: tsRunning, serve: `{}`}, RemoteState{Status: "off"}},
+		{"other port", fakeTailscale{status: tsRunning,
+			serve: `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:8080"}}}}}`},
+			RemoteState{Status: "off"}},
+		{"on", fakeTailscale{status: tsRunning,
+			serve: `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}}}`},
+			RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net"}},
+	}
+	for _, c := range cases {
+		fake := c.fake
+		r := &Remote{run: fake.run}
+		if got := r.State(4533); got != c.want {
+			t.Errorf("%s: got %+v, want %+v", c.name, got, c.want)
+		}
+	}
+}
+
+func TestRemoteEnableAsksForApprovalOnce(t *testing.T) {
+	fake := &fakeTailscale{status: tsRunning, serve: `{}`,
+		enable: "Serve is not enabled on your tailnet.\nTo enable, visit:\n\n         https://login.tailscale.com/f/serve?node=abc123\n", enableErr: context.DeadlineExceeded}
+	r := &Remote{run: fake.run}
+	err := r.Enable(context.Background(), 4533)
+	if err == nil || !strings.Contains(err.Error(), "permission") {
+		t.Fatalf("want a permission message, got %v", err)
+	}
+	if got := r.State(4533); got.Status != "off" || got.ApproveURL != "https://login.tailscale.com/f/serve?node=abc123" {
+		t.Fatalf("%+v", got)
+	}
+	last := fake.calls[0]
+	if strings.Join(last, " ") != "serve --bg 4533" {
+		t.Fatalf("ran %v", last)
+	}
+	// Once allowed, the next try works and the link goes away.
+	fake.enable, fake.enableErr = "Available within your tailnet:\nhttps://pc.tail1234.ts.net/\n", nil
+	fake.serve = `{"TCP":{"443":{"HTTPS":true}},"Web":{"pc.tail1234.ts.net:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:4533"}}}}}`
+	if err := r.Enable(context.Background(), 4533); err != nil {
+		t.Fatal(err)
+	}
+	if got := r.State(4533); got != (RemoteState{Status: "on", Address: "https://pc.tail1234.ts.net"}) {
+		t.Fatalf("%+v", got)
 	}
 }

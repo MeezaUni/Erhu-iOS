@@ -64,9 +64,13 @@ func serverURL(ip string, port int) string {
 
 // inviteURL is the pairing link shown as a QR code. Erhu on the iPhone opens it as a filled-in
 // "Add server" form. It never contains the password.
-func inviteURL(address, username, name string) string {
+// remote is the away-from-home HTTPS address, if one is on.
+func inviteURL(address, remote, username, name string) string {
 	q := url.Values{}
 	q.Set("url", address)
+	if remote != "" {
+		q.Set("remote", remote)
+	}
 	if username != "" {
 		q.Set("user", username)
 	}

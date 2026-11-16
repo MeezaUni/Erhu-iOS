@@ -46,6 +46,7 @@ final class AppServices {
         artwork = ArtworkFetcherStore(library: library, service: fixTags.service)
         waveforms = WaveformStore(database: database)
         servers = ServerStore(library: library, actions: actions, player: player)
+        search.servers = servers
         router.section = settings.startSection
         artwork.startAutomaticMatching()
     }

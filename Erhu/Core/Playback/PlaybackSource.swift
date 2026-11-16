@@ -5,6 +5,8 @@ import Foundation
 enum PlaybackSource: Hashable, Codable, Sendable {
     case album(Int64), playlist(Int64), artist(Int64), smartPlaylist(String)
     case library, favorites, vybe
+    /// Streamed from a music server: an album there ([album]) or another list, named [title].
+    case server(account: UUID, album: String?, title: String)
 
     init(_ collection: CollectionRef) {
         self = collection.kind == .album ? .album(collection.id) : .playlist(collection.id)

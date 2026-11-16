@@ -94,7 +94,7 @@
       <img id="qr" alt="QR code that opens Erhu with this server filled in">
       <div>
         <ol>
-          <li>Put the iPhone on the same Wi-Fi as this computer.</li>
+          <li>Put the iPhone on the same Wi-Fi as this computer (or turn on step 4 first).</li>
           <li>Point the iPhone's <strong>Camera</strong> at the QR code and tap <strong>Open in Erhu</strong>.</li>
           <li>Type your password and tap <strong>Connect</strong>.</li>
         </ol>
@@ -103,6 +103,32 @@
         <p id="more-addresses" hidden></p>
       </div>
     </div>
+  </section>
+
+  <section id="s-away">
+    <h2><span class="num" id="n4">4</span>Listen away from home (optional)</h2>
+    <p>At home, Erhu uses the address above. To stream and download anywhere, Erhu Server uses <a href="https://tailscale.com" target="_blank" rel="noopener">Tailscale</a>, a free private network between your own devices. Nothing is opened on your router, and only devices signed in to your Tailscale account can reach this server.</p>
+    <div id="away-missing" hidden>
+      <ol>
+        <li>Install Tailscale on this computer from <a href="https://tailscale.com/download" target="_blank" rel="noopener">tailscale.com/download</a> and sign in.</li>
+        <li>Install Tailscale on your iPhone from the App Store and sign in with the same account.</li>
+        <li>Come back here; this page notices Tailscale by itself.</li>
+      </ol>
+    </div>
+    <div id="away-signedout" hidden>
+      <p>Tailscale is installed but not connected. Open Tailscale on this computer and sign in (or switch it on).</p>
+    </div>
+    <div id="away-off" hidden>
+      <button id="away-on">Turn on away-from-home access</button>
+      <p id="away-approve" hidden>Tailscale needs your permission once. Open <a id="away-approve-link" target="_blank" rel="noopener">this Tailscale page</a>, allow HTTPS, then press the button again.</p>
+    </div>
+    <div id="away-on-box" hidden>
+      <p>On. Away from home, Erhu uses this address (the QR code above now includes it):</p>
+      <div class="value mono" id="away-address"></div>
+      <p>Keep Tailscale signed in and switched on, on this computer and on your iPhone. Erhu tries your home address first and switches to this one by itself.</p>
+      <button class="secondary" id="away-turn-off">Turn off</button>
+    </div>
+    <div class="error" id="away-error" role="alert"></div>
   </section>
 
   <section>
@@ -166,6 +192,16 @@ function show(s) {
     $("more-addresses").textContent = more.length ? "If that doesn't connect, try: " + more.join("  ·  ") : "";
     if (s.invite !== lastInvite) { lastInvite = s.invite; $("qr").src = "/qr.png?t=" + TOKEN + "&v=" + encodeURIComponent(s.invite); }
   }
+  const remote = s.remote || { status: "missing" };
+  $("away-missing").hidden = remote.status !== "missing";
+  $("away-signedout").hidden = remote.status !== "signedOut";
+  $("away-off").hidden = remote.status !== "off" && remote.status !== "error";
+  $("away-on-box").hidden = remote.status !== "on";
+  $("away-address").textContent = remote.address || "";
+  $("away-approve").hidden = !remote.approveUrl;
+  if (remote.approveUrl) $("away-approve-link").href = remote.approveUrl;
+  if (remote.problem && !busy) $("away-error").textContent = remote.problem;
+  $("n4").className = "num" + (remote.status === "on" ? " done" : ""); $("n4").textContent = remote.status === "on" ? "✓" : "4";
   $("autostart-row").hidden = !s.autostartSupported;
   $("autostart").checked = s.autostart;
   $("player").href = s.webPlayer;
@@ -185,6 +221,8 @@ $("account-form").onsubmit = e => {
   if ($("pass").value !== $("pass2").value) { $("account-error").textContent = "The two passwords don't match."; return; }
   act("account-error", () => api("/api/account", { username: $("user").value, password: $("pass").value }));
 };
+$("away-on").onclick = () => act("away-error", () => api("/api/remote", { enabled: true }));
+$("away-turn-off").onclick = () => act("away-error", () => api("/api/remote", { enabled: false }));
 $("restart").onclick = () => act("options-error", () => api("/api/restart", {}));
 $("autostart").onchange = e => act("options-error", () => api("/api/autostart", { enabled: e.target.checked }));
 $("quit").onclick = async () => {

@@ -7,6 +7,9 @@ struct MusicServerView: View {
     @State private var addingServer = false
     @State private var confirmingRemoval: ServerAccount?
     @State private var cacheSize: Int64 = 0
+    @State private var editingRemote: ServerAccount?
+    @State private var remoteDraft = ""
+    @State private var remoteError: String?
 
     var body: some View {
         @Bindable var servers = servers
@@ -16,14 +19,11 @@ struct MusicServerView: View {
                     Label("Stream or download from your own music server", systemImage: "server.rack").font(.headline)
                     Text("Run Erhu Server on your computer or NAS, then connect to it here. Your music stays on your own devices; nothing goes through an Erhu service.")
                         .font(.subheadline).foregroundStyle(.secondary)
+                    Text("Once connected, the server's music appears in Search, on Library and on Home, next to your own.")
+                        .font(.subheadline).foregroundStyle(.secondary)
                     Button { addingServer = true } label: { Label("Add server", systemImage: "plus") }
                     Link(destination: Self.setupGuide) { Label("How to set up Erhu Server", systemImage: "book") }
                 }.toolSectionAppearance()
-                if !servers.recentlyStreamed.isEmpty {
-                    Section {
-                        NavigationLink { RecentlyStreamedView() } label: { Label("Recently streamed", systemImage: "clock.arrow.circlepath") }
-                    }.toolSectionAppearance()
-                }
             } else if let account = servers.selected {
                 Section {
                     if servers.accounts.count > 1 {
@@ -32,26 +32,18 @@ struct MusicServerView: View {
                         }
                     }
                     LabeledContent("Server", value: account.name)
-                    LabeledContent("Address", value: account.baseURL.absoluteString)
+                    LabeledContent("Home address", value: account.baseURL.absoluteString)
+                    Button { remoteDraft = account.remoteURL?.absoluteString ?? ""; editingRemote = account } label: {
+                        LabeledContent("Away address", value: account.remoteURL?.absoluteString ?? String(localized: "Not set"))
+                    }
+                    .foregroundStyle(.primary)
+                    if account.remoteURL != nil {
+                        LabeledContent("Connected through", value: servers.usingAway.contains(account.id)
+                                       ? String(localized: "Away address") : String(localized: "Home address"))
+                    }
                     LabeledContent("User", value: account.username)
-                }.toolSectionAppearance()
-                Section("Browse") {
-                    NavigationLink { ServerSearchView(account: account) } label: { Label("Search", systemImage: "magnifyingglass") }
-                    if !servers.recentlyStreamed.isEmpty {
-                        NavigationLink { RecentlyStreamedView() } label: { Label("Recently streamed", systemImage: "clock.arrow.circlepath") }
-                    }
-                    NavigationLink { ServerFavouritesView(account: account) } label: { Label("Favourites", systemImage: "heart") }
-                    NavigationLink { ServerAlbumListView(account: account, type: "alphabeticalByName", title: String(localized: "Albums")) } label: {
-                        Label("Albums", systemImage: "square.stack")
-                    }
-                    NavigationLink { ServerAlbumListView(account: account, type: "newest", title: String(localized: "Recently added")) } label: {
-                        Label("Recently added", systemImage: "clock")
-                    }
-                    NavigationLink { ServerAlbumListView(account: account, type: "random", title: String(localized: "Random albums")) } label: {
-                        Label("Random albums", systemImage: "shuffle")
-                    }
-                    NavigationLink { ServerArtistsView(account: account) } label: { Label("Artists", systemImage: "music.mic") }
-                    NavigationLink { ServerPlaylistsView(account: account) } label: { Label("Playlists", systemImage: "music.note.list") }
+                } footer: {
+                    Text("The server's music appears in Search, on Library and on Home, next to your own.")
                 }.toolSectionAppearance()
                 Section {
                     Picker("Streaming quality", selection: $servers.quality) {
@@ -86,6 +78,22 @@ struct MusicServerView: View {
             Text("Songs you downloaded stay on this device. The saved password is deleted.")
         }
         .task { cacheSize = ServerStream.shared.cacheSize() }
+        .alert("Away address", isPresented: Binding(get: { editingRemote != nil }, set: { if !$0 { editingRemote = nil } }), presenting: editingRemote) { account in
+            TextField(text: $remoteDraft, prompt: Text(verbatim: "https://computer.tailnet.ts.net")) { Text("Away address") }
+                .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+            Button("Save") {
+                let draft = remoteDraft
+                Task {
+                    do { try await servers.setRemote(draft, for: account) } catch { remoteError = error.localizedDescription }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("The HTTPS address Erhu Server shows under “Listen away from home”. Leave it empty to use only your home address.")
+        }
+        .alert("Couldn't save the away address", isPresented: Binding(get: { remoteError != nil }, set: { if !$0 { remoteError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(remoteError ?? "") }
     }
 
     private var downloadsSection: some View {
@@ -127,6 +135,7 @@ struct AddServerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var address = ""
+    @State private var remote = ""
     @State private var username = ""
     @State private var password = ""
     @State private var connecting = false
@@ -136,7 +145,7 @@ struct AddServerSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Address, e.g. http://192.168.1.20:4533", text: $address)
+                    TextField("Address", text: $address, prompt: Text(verbatim: "http://192.168.1.20:4533"))
                         .keyboardType(.URL).textContentType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                     TextField("Username", text: $username)
                         .textContentType(.username).textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -145,8 +154,14 @@ struct AddServerSheet: View {
                 } footer: {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("With the Erhu Server app on your computer, scan its QR code with the iPhone's Camera to fill this in.")
-                        Text("Use the address Erhu Server shows on your computer. Away from home, use an HTTPS address, for example through Tailscale. Erhu Server and Navidrome work, and so do other Subsonic-compatible servers.")
+                        Text("Use the address Erhu Server shows on your computer. Erhu Server and Navidrome work, and so do other Subsonic-compatible servers.")
                     }
+                }
+                Section {
+                    TextField("Away address (optional)", text: $remote, prompt: Text(verbatim: "https://computer.tailnet.ts.net"))
+                        .keyboardType(.URL).textContentType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                } header: { Text("Away from home") } footer: {
+                    Text("The HTTPS address Erhu Server shows under “Listen away from home”. Erhu uses your home address on your Wi-Fi and this one everywhere else.")
                 }
                 if let error {
                     Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
@@ -155,7 +170,12 @@ struct AddServerSheet: View {
             .navigationTitle("Add server")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) {
+                    // An icon keeps the button whole in every language (the word was cut to "Ca…").
+                    Button { dismiss() } label: { Image(systemName: "xmark").font(.body.weight(.semibold)) }
+                        .accessibilityLabel("Cancel")
+                        .disabled(connecting)
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     if connecting { ProgressView() } else {
                         Button("Connect") { connect() }.disabled(address.isEmpty || username.isEmpty || password.isEmpty)
@@ -167,6 +187,7 @@ struct AddServerSheet: View {
         .onAppear {
             guard let invite, address.isEmpty else { return }
             address = invite.address
+            remote = invite.remote
             username = invite.username
             name = invite.name
         }
@@ -177,7 +198,7 @@ struct AddServerSheet: View {
         error = nil
         Task {
             do {
-                _ = try await servers.add(name: name, address: address, username: username, password: password)
+                _ = try await servers.add(name: name, address: address, remote: remote, username: username, password: password)
                 dismiss()
             } catch {
                 self.error = error.localizedDescription
