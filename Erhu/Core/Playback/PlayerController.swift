@@ -660,6 +660,13 @@ final class PlayerController {
             return url == state.currentSong?.url ? nil : url
         }
         DecodedAudioSource.pin(urls + [state.currentSong?.url].compactMap { $0 })
+        // Streamed songs two either side get their covers now (small downloads), so Now Playing's
+        // cards beside the current one show them instead of waiting until they play.
+        for index in [previous, next, previousTwo, nextTwo] {
+            guard let index, state.queue.indices.contains(index) else { continue }
+            let song = state.queue[index].song
+            if song.isStream { ServerStream.shared.fetchCover(of: song) }
+        }
         // Fetch the next streamed songs ahead of time, so they start without waiting.
         let upcoming = [next, nextTwo].compactMap { index -> Song? in
             guard let index, state.queue.indices.contains(index) else { return nil }
