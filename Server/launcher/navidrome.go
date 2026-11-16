@@ -128,6 +128,10 @@ func (s *Server) Start() error {
 		"ND_SCANNER_SCANONSTARTUP=true",
 		"ND_LOGLEVEL=info",
 	)
+	// With ffmpeg, Navidrome can send smaller MP3 copies (Erhu uses them away from home).
+	if ffmpeg := newFFmpeg(s.store.DataDir()).Path(); ffmpeg != "" {
+		cmd.Env = append(cmd.Env, "ND_FFMPEGPATH="+ffmpeg)
+	}
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
 	hideWindow(cmd)

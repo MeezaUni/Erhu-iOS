@@ -125,6 +125,15 @@
       <button class="secondary" id="away-turn-off">Turn off</button>
     </div>
     <div class="error" id="away-error" role="alert"></div>
+    <h2 style="margin-top:18px">Smaller streams away from home</h2>
+    <p>With ffmpeg (free) on this computer, Erhu streams smaller MP3 copies away from home, so songs start sooner and use less data. At home it still plays your original files.</p>
+    <div class="value" id="ffmpeg-on" hidden>On: ffmpeg found.</div>
+    <div id="ffmpeg-off" hidden>
+      <button id="ffmpeg-install">Install ffmpeg</button>
+      <p id="ffmpeg-manual" hidden>Install ffmpeg yourself, then press <strong>Restart server</strong>: on a Mac with <a href="https://brew.sh" target="_blank" rel="noopener">Homebrew</a> run <span class="mono">brew install ffmpeg</span>; on Windows run <span class="mono">winget install Gyan.FFmpeg.Essentials</span>.</p>
+    </div>
+    <div class="value" id="ffmpeg-installing" hidden role="status">Installing ffmpeg… this can take a few minutes. Erhu Server restarts by itself when it's done.</div>
+    <div class="error" id="ffmpeg-error" role="alert"></div>
   </section>
 
   <section>
@@ -200,6 +209,13 @@ function show(s) {
   if (remote.approveUrl) $("away-approve-link").href = remote.approveUrl;
   if (!busy) $("away-error").textContent = remote.problem || "";
   $("n4").className = "num" + (on ? " done" : ""); $("n4").textContent = on ? "✓" : "4";
+  const ff = s.ffmpeg || {};
+  $("ffmpeg-on").hidden = !ff.found;
+  $("ffmpeg-installing").hidden = !ff.installing;
+  $("ffmpeg-off").hidden = !!ff.found || !!ff.installing;
+  $("ffmpeg-install").hidden = !ff.canInstall;
+  $("ffmpeg-manual").hidden = !!ff.canInstall;
+  if (!busy) $("ffmpeg-error").textContent = ff.problem || "";
   $("autostart-row").hidden = !s.autostartSupported;
   $("autostart").checked = s.autostart;
   $("player").href = s.webPlayer;
@@ -222,6 +238,7 @@ $("account-form").onsubmit = e => {
 $("away-on").onclick = () => act("away-error", () => api("/api/remote", { enabled: true }));
 $("away-turn-off").onclick = () => act("away-error", () => api("/api/remote", { enabled: false }));
 $("away-cancel").onclick = () => act("away-error", () => api("/api/remote", { stop: true }));
+$("ffmpeg-install").onclick = () => act("ffmpeg-error", () => api("/api/ffmpeg", {}));
 $("restart").onclick = () => act("options-error", () => api("/api/restart", {}));
 $("autostart").onchange = e => act("options-error", () => api("/api/autostart", { enabled: e.target.checked }));
 $("quit").onclick = async () => {

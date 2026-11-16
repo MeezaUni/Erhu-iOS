@@ -26778,6 +26778,160 @@
         }
       }
     },
+    "Automatic" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تلقائي"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "স্বয়ংক্রিয়"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automática"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خودکار"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Awtomatiko"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "स्वचालित"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomatis"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatica"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자동"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatycznie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automática"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматически"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "தானியங்கு"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఆటోమేటిక్"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัตโนมัติ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomatik"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматично"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خودکار"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự động"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動"
+          }
+        }
+      }
+    },
     "Automatic (all sources)" : {
       "localizations" : {
         "ar" : {
@@ -27698,6 +27852,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自動模式會針對不同欄位組合經過驗證的 iTunes、MusicBrainz 和 Deezer 匹配結果。Deezer 在可用時為可選項；選擇單一來源會限制目錄匹配。MusicBrainz 提供錄音和專輯類型，目錄類型和關聯的 Wikidata 類型作為備選。僅當所有選定標籤都完整時才儲存修復。缺失標籤檢查涵蓋所有選定欄位。你的音樂絕不會被上傳。每個已更改檔案的原始版本會保留到你清空佇列為止，因此可以還原。"
+          }
+        }
+      }
+    },
+    "Automatic plays the original file at home, and a smaller MP3 away from home or on mobile data when the server can convert (Erhu Server with ffmpeg). Original always plays the server's file unchanged. The MP3 settings use less data; the server converts each song." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يشغّل الوضع التلقائي الملف الأصلي في المنزل، وملف MP3 أصغر خارج المنزل أو على بيانات الجوال إذا كان الخادم يستطيع التحويل (Erhu Server مع ffmpeg). يشغّل خيار الملف الأصلي ملف الخادم دون تغيير دائمًا. تستخدم إعدادات MP3 بيانات أقل؛ إذ يحوّل الخادم كل أغنية."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "স্বয়ংক্রিয় বাড়িতে মূল ফাইল চালায়, আর বাড়ির বাইরে বা মোবাইল ডেটায় সার্ভার রূপান্তর করতে পারলে ছোট MP3 চালায় (ffmpeg সহ Erhu Server)। মূল ফাইল সবসময় সার্ভারের ফাইল অপরিবর্তিত চালায়। MP3 সেটিংস কম ডেটা খরচ করে; সার্ভার প্রতিটি গান রূপান্তর করে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch spielt zu Hause die Originaldatei und unterwegs oder mit Mobilfunk ein kleineres MP3, wenn der Server umwandeln kann (Erhu Server mit ffmpeg). Originaldatei spielt immer die unveränderte Datei des Servers. Die MP3-Einstellungen brauchen weniger Daten; der Server wandelt jeden Song um."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automática reproduce el archivo original en casa y un MP3 más pequeño fuera de casa o con datos móviles si el servidor puede convertir (Erhu Server con ffmpeg). Archivo original reproduce siempre el archivo del servidor sin cambios. Los ajustes MP3 usan menos datos; el servidor convierte cada canción."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حالت خودکار در خانه فایل اصلی را پخش می‌کند و بیرون از خانه یا با داده تلفن همراه، اگر سرور بتواند تبدیل کند، MP3 کوچک‌تر (Erhu Server با ffmpeg). فایل اصلی همیشه فایل سرور را بدون تغییر پخش می‌کند. تنظیمات MP3 داده کمتری مصرف می‌کنند؛ سرور هر آهنگ را تبدیل می‌کند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinapatugtog ng Awtomatiko ang orihinal na file sa bahay, at mas maliit na MP3 sa labas o sa mobile data kapag kayang mag-convert ng server (Erhu Server na may ffmpeg). Laging pinapatugtog ng Orihinal na file ang file ng server nang walang pagbabago. Mas kaunting data ang ginagamit ng mga setting na MP3; kino-convert ng server ang bawat kanta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique lit le fichier original à la maison, et un MP3 plus léger hors de chez vous ou en données mobiles si le serveur peut convertir (Erhu Server avec ffmpeg). Fichier original lit toujours le fichier du serveur sans modification. Les réglages MP3 consomment moins de données ; le serveur convertit chaque morceau."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "स्वचालित घर पर मूल फ़ाइल चलाता है, और घर से बाहर या मोबाइल डेटा पर छोटी MP3, अगर सर्वर बदल सकता हो (ffmpeg वाला Erhu Server)। मूल फ़ाइल हमेशा सर्वर की फ़ाइल बिना बदले चलाती है। MP3 सेटिंग्स कम डेटा लेती हैं; सर्वर हर गाना बदलता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomatis memutar file asli di rumah, dan MP3 yang lebih kecil di luar rumah atau saat memakai data seluler jika server bisa mengonversi (Erhu Server dengan ffmpeg). File asli selalu memutar file server tanpa perubahan. Pengaturan MP3 memakai lebih sedikit data; server mengonversi setiap lagu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatica riproduce il file originale a casa e un MP3 più leggero fuori casa o con i dati mobili, se il server può convertire (Erhu Server con ffmpeg). File originale riproduce sempre il file del server senza modifiche. Le impostazioni MP3 usano meno dati; il server converte ogni brano."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動では、自宅では元のファイルを、外出先やモバイルデータ通信ではサーバが変換できる場合に小さな MP3 を再生します（ffmpeg 付きの Erhu Server）。元のファイルは常にサーバのファイルをそのまま再生します。MP3 の設定はデータ量が少なく、サーバが各曲を変換します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자동은 집에서는 원본 파일을, 외부나 모바일 데이터에서는 서버가 변환할 수 있으면 더 작은 MP3를 재생합니다(ffmpeg가 있는 Erhu Server). 원본 파일은 항상 서버의 파일을 그대로 재생합니다. MP3 설정은 데이터를 덜 쓰며, 서버가 각 노래를 변환합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch speelt thuis het originele bestand en onderweg of met mobiele data een kleiner MP3-bestand als de server kan omzetten (Erhu Server met ffmpeg). Origineel bestand speelt altijd het bestand van de server ongewijzigd. De MP3-instellingen gebruiken minder data; de server zet elk nummer om."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryb Automatycznie odtwarza w domu oryginalny plik, a poza domem lub w sieci komórkowej mniejszy plik MP3, jeśli serwer potrafi konwertować (Erhu Server z ffmpeg). Oryginalny plik zawsze odtwarza plik serwera bez zmian. Ustawienia MP3 zużywają mniej danych; serwer konwertuje każdy utwór."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automática toca o arquivo original em casa e um MP3 menor fora de casa ou nos dados móveis, quando o servidor consegue converter (Erhu Server com ffmpeg). Arquivo original sempre toca o arquivo do servidor sem alterações. As opções MP3 usam menos dados; o servidor converte cada música."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматический режим играет исходный файл дома, а вне дома или в мобильной сети — более лёгкий MP3, если сервер умеет конвертировать (Erhu Server с ffmpeg). «Исходный файл» всегда играет файл сервера без изменений. Настройки MP3 расходуют меньше данных; сервер конвертирует каждую песню."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "தானியங்கு வீட்டில் அசல் கோப்பையும், வீட்டுக்கு வெளியே அல்லது மொபைல் டேட்டாவில் சர்வரால் மாற்ற முடிந்தால் சிறிய MP3-ஐயும் இயக்கும் (ffmpeg உடன் Erhu Server). அசல் கோப்பு எப்போதும் சர்வரின் கோப்பை மாற்றமின்றி இயக்கும். MP3 அமைப்புகள் குறைந்த டேட்டா பயன்படுத்தும்; சர்வர் ஒவ்வொரு பாடலையும் மாற்றும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఆటోమేటిక్ ఇంట్లో అసలు ఫైల్‌ను, ఇంటి బయట లేదా మొబైల్ డేటాలో సర్వర్ మార్చగలిగితే చిన్న MP3 ని ప్లే చేస్తుంది (ffmpeg తో Erhu Server). అసలు ఫైల్ ఎల్లప్పుడూ సర్వర్ ఫైల్‌ను మార్పు లేకుండా ప్లే చేస్తుంది. MP3 సెట్టింగ్‌లు తక్కువ డేటా వాడతాయి; సర్వర్ ప్రతి పాటను మారుస్తుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อัตโนมัติจะเล่นไฟล์ต้นฉบับเมื่ออยู่บ้าน และเล่น MP3 ที่เล็กกว่าเมื่ออยู่นอกบ้านหรือใช้ข้อมูลมือถือ หากเซิร์ฟเวอร์แปลงได้ (Erhu Server ที่มี ffmpeg) ไฟล์ต้นฉบับจะเล่นไฟล์ของเซิร์ฟเวอร์โดยไม่เปลี่ยนแปลงเสมอ การตั้งค่า MP3 ใช้ข้อมูลน้อยกว่า โดยเซิร์ฟเวอร์จะแปลงทีละเพลง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomatik evde orijinal dosyayı, evden uzakta veya mobil veride ise sunucu dönüştürebiliyorsa daha küçük bir MP3'ü çalar (ffmpeg'li Erhu Server). Orijinal dosya her zaman sunucunun dosyasını değiştirmeden çalar. MP3 ayarları daha az veri kullanır; sunucu her şarkıyı dönüştürür."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматичний режим грає оригінальний файл удома, а поза домом чи в мобільній мережі — менший MP3, якщо сервер уміє конвертувати (Erhu Server з ffmpeg). «Оригінальний файл» завжди грає файл сервера без змін. Налаштування MP3 витрачають менше даних; сервер конвертує кожну пісню."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خودکار گھر پر اصل فائل چلاتا ہے، اور گھر سے باہر یا موبائل ڈیٹا پر چھوٹی MP3، اگر سرور تبدیل کر سکے (ffmpeg والا Erhu Server)۔ اصل فائل ہمیشہ سرور کی فائل بغیر تبدیلی کے چلاتی ہے۔ MP3 ترتیبات کم ڈیٹا استعمال کرتی ہیں؛ سرور ہر گانا تبدیل کرتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự động phát tệp gốc khi ở nhà, và MP3 nhỏ hơn khi ra ngoài hoặc dùng dữ liệu di động nếu máy chủ chuyển đổi được (Erhu Server có ffmpeg). Tệp gốc luôn phát tệp của máy chủ không thay đổi. Các tùy chọn MP3 dùng ít dữ liệu hơn; máy chủ chuyển đổi từng bài."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“自动”在家中播放原始文件，在外或使用蜂窝数据时，如果服务器能转换，就播放更小的 MP3（带 ffmpeg 的 Erhu Server）。“原始文件”始终原样播放服务器上的文件。MP3 选项用的数据更少，服务器会逐首转换。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「自動」在家中播放原始檔案，在外或使用行動數據時，若伺服器能轉換，就播放較小的 MP3（含 ffmpeg 的 Erhu Server）。「原始檔案」一律原樣播放伺服器上的檔案。MP3 選項用的數據較少，伺服器會逐首轉換。"
           }
         }
       }
@@ -185271,6 +185579,314 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此播放列表已不存在。"
+          }
+        }
+      }
+    },
+    "This server can't convert yet, so Automatic plays original files. In Erhu Server, install ffmpeg." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يستطيع هذا الخادم التحويل بعد، لذا يشغّل الوضع التلقائي الملفات الأصلية. ثبّت ffmpeg في Erhu Server."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই সার্ভার এখনো রূপান্তর করতে পারে না, তাই স্বয়ংক্রিয় মূল ফাইল চালায়। Erhu Server-এ ffmpeg ইনস্টল করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Server kann noch nicht umwandeln, daher spielt Automatisch die Originaldateien. Installiere ffmpeg in Erhu Server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este servidor aún no puede convertir, así que Automática reproduce los archivos originales. Instala ffmpeg en Erhu Server."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این سرور هنوز نمی‌تواند تبدیل کند، پس حالت خودکار فایل‌های اصلی را پخش می‌کند. در Erhu Server، ffmpeg را نصب کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi pa makapag-convert ang server na ito, kaya orihinal na file ang pinapatugtog ng Awtomatiko. Sa Erhu Server, i-install ang ffmpeg."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce serveur ne peut pas encore convertir : Automatique lit donc les fichiers originaux. Dans Erhu Server, installez ffmpeg."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह सर्वर अभी बदल नहीं सकता, इसलिए स्वचालित मूल फ़ाइलें चलाता है। Erhu Server में ffmpeg इंस्टॉल करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server ini belum bisa mengonversi, jadi Otomatis memutar file asli. Di Erhu Server, instal ffmpeg."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo server non può ancora convertire, quindi Automatica riproduce i file originali. In Erhu Server, installa ffmpeg."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このサーバはまだ変換できないため、自動では元のファイルを再生します。Erhu Server で ffmpeg をインストールしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 서버는 아직 변환할 수 없어 자동은 원본 파일을 재생합니다. Erhu Server에서 ffmpeg를 설치하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze server kan nog niet omzetten, dus Automatisch speelt de originele bestanden. Installeer ffmpeg in Erhu Server."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten serwer nie może jeszcze konwertować, więc tryb Automatycznie odtwarza oryginalne pliki. Zainstaluj ffmpeg w Erhu Server."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este servidor ainda não converte, então Automática toca os arquivos originais. No Erhu Server, instale o ffmpeg."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот сервер пока не умеет конвертировать, поэтому в автоматическом режиме играют исходные файлы. Установите ffmpeg в Erhu Server."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இந்த சர்வரால் இன்னும் மாற்ற முடியாது, எனவே தானியங்கு அசல் கோப்புகளை இயக்கும். Erhu Server-இல் ffmpeg ஐ நிறுவவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈ సర్వర్ ఇంకా మార్చలేదు, కాబట్టి ఆటోమేటిక్ అసలు ఫైళ్లను ప్లే చేస్తుంది. Erhu Server లో ffmpeg ఇన్‌స్టాల్ చేయండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เซิร์ฟเวอร์นี้ยังแปลงไม่ได้ อัตโนมัติจึงเล่นไฟล์ต้นฉบับ ติดตั้ง ffmpeg ใน Erhu Server"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu sunucu henüz dönüştüremiyor, bu yüzden Otomatik orijinal dosyaları çalıyor. Erhu Server'da ffmpeg'i yükleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей сервер поки не вміє конвертувати, тож в автоматичному режимі грають оригінальні файли. Установіть ffmpeg у Erhu Server."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "یہ سرور ابھی تبدیل نہیں کر سکتا، اس لیے خودکار اصل فائلیں چلاتا ہے۔ Erhu Server میں ffmpeg انسٹال کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ này chưa chuyển đổi được, nên Tự động phát tệp gốc. Hãy cài ffmpeg trong Erhu Server."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此服务器暂时无法转换，因此“自动”会播放原始文件。请在 Erhu Server 中安装 ffmpeg。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此伺服器暫時無法轉換，因此「自動」會播放原始檔案。請在 Erhu Server 中安裝 ffmpeg。"
+          }
+        }
+      }
+    },
+    "This server converts to MP3." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا الخادم يحوّل إلى MP3."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এই সার্ভার MP3-তে রূপান্তর করে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Server wandelt in MP3 um."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este servidor convierte a MP3."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این سرور به MP3 تبدیل می‌کند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nagko-convert sa MP3 ang server na ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce serveur convertit en MP3."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह सर्वर MP3 में बदलता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server ini mengonversi ke MP3."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo server converte in MP3."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このサーバは MP3 に変換できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 서버는 MP3로 변환합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze server zet om naar MP3."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten serwer konwertuje do MP3."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este servidor converte para MP3."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот сервер конвертирует в MP3."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இந்த சர்வர் MP3 ஆக மாற்றுகிறது."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈ సర్వర్ MP3 గా మారుస్తుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เซิร์ฟเวอร์นี้แปลงเป็น MP3 ได้"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu sunucu MP3'e dönüştürüyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей сервер конвертує в MP3."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "یہ سرور MP3 میں تبدیل کرتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ này chuyển đổi sang MP3."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此服务器可转换为 MP3。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此伺服器可轉換為 MP3。"
           }
         }
       }

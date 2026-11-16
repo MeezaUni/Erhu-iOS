@@ -240,7 +240,9 @@ final class SubsonicTests: XCTestCase {
         for ext in ["ogg", "opus", "oga"] { XCTAssertFalse(StreamPlayer.canStream(fileExtension: ext), "\(ext) is fetched in full first") }
         let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
         let song = ServerStream.shared.song(for: album.song[0], account: account, quality: .mp3_192)
-        XCTAssertEqual("mp3", ServerStream.shared.streamFormat(of: song))
+        XCTAssertEqual("", ServerStream.shared.streamFormat(of: song), "a converted stream's format comes from the server's reply")
+        let original = ServerStream.shared.song(for: album.song[0], account: account, quality: .original)
+        XCTAssertEqual("mp3", ServerStream.shared.streamFormat(of: original))
         // No client for this test account: the player falls back to fetching (which reports why).
         XCTAssertNil(ServerStream.shared.streamURL(for: song))
     }
