@@ -16,6 +16,10 @@ final class PlayerController {
     let clock = PlaybackClock()
 
     @ObservationIgnored let engine = AudioEngine()
+    /// Plays streamed songs that aren't cached yet straight from the server (see [StreamPlayer]).
+    @ObservationIgnored private let streamPlayer = StreamPlayer()
+    /// Entries whose direct stream failed: they are fetched in full before playing instead.
+    @ObservationIgnored private var fetchFirst: Set<UUID> = []
     @ObservationIgnored private let database: LibraryDatabase
     @ObservationIgnored let transitions: TransitionSettingsStore
     @ObservationIgnored private let persistence = JSONStore<PersistedPlaybackState>(name: "playback.json", debounce: .milliseconds(250))
@@ -75,6 +79,10 @@ final class PlayerController {
         transitions.onChange = { [weak self] in self?.reevaluateTransition() }
         engine.onEntryFinished = { [weak self] id in self?.entryFinished(id) }
         engine.onConfigurationChange = { [weak self] in self?.restartAfterConfigurationChange() }
+        streamPlayer.onPlaying = { [weak self] id in self?.streamStarted(id) }
+        streamPlayer.onFinished = { [weak self] id in self?.entryFinished(id) }
+        streamPlayer.onFailed = { [weak self] id, message in self?.streamFailed(id, message) }
+        streamPlayer.onPausedBySystem = { [weak self] id in self?.streamPausedBySystem(id) }
         configureAudioSession()
         configureRemoteCommands()
         observeAudioSession()
@@ -88,6 +96,14 @@ final class PlayerController {
 
     func play() {
         guard !state.queue.isEmpty else { return }
+        if isStreaming {
+            activateAudioSession()
+            preparingPlayIntent = true
+            streamPlayer.resume()
+            state.status = .buffering
+            updateNowPlaying()
+            return
+        }
         if state.status == .idle || engine.currentPosition() == nil {
             startCurrent(at: state.positionMs, playing: true)
             return
@@ -105,6 +121,7 @@ final class PlayerController {
         audioPreparation?.cancel(); audioPreparation = nil; preparingPlayIntent = false
         refreshPosition()
         engine.pause()
+        streamPlayer.pause()
         playingChanged(false)
     }
 
@@ -147,6 +164,12 @@ final class PlayerController {
     func seek(to positionMs: Int64) {
         guard let entry = state.currentEntry else { return }
         let target = max(positionMs, 0)
+        if isStreaming {
+            streamPlayer.seek(toMs: target)
+            setPosition(target)
+            updateNowPlaying()
+            return
+        }
         if state.status == .buffering { startCurrent(at: target, playing: preparingPlayIntent); return }
         if !engine.isReady {
             setPosition(target)
@@ -218,6 +241,7 @@ final class PlayerController {
 
     func setVolume(_ volume: Float) {
         engine.volume = volume
+        streamPlayer.volume = volume
     }
 
     // MARK: Queue edits
@@ -245,7 +269,7 @@ final class PlayerController {
         removals.push(index: index, item: entry)
         if state.queue.isEmpty {
             state.currentIndex = -1
-            engine.stopAll()
+            stopAudio()
             playingChanged(false)
             currentEntryChanged(sameEntryRepeated: false)
         } else if removingCurrent {
@@ -268,7 +292,7 @@ final class PlayerController {
         state.queue.removeAll { $0.song.id == songId }
         if state.queue.isEmpty {
             state.currentIndex = -1
-            engine.stopAll()
+            stopAudio()
             playingChanged(false)
             currentEntryChanged(sameEntryRepeated: false)
         } else if removingCurrent {
@@ -350,6 +374,7 @@ final class PlayerController {
 
     /// The engine's exact position right now, finer than [state]'s published one.
     func currentPositionMs() -> Int64 {
+        if let entry = state.currentEntry, let position = streamPlayer.positionMs(of: entry.id) { return position }
         guard let position = engine.currentPosition(), position.entryId == state.currentEntry?.id else { return state.positionMs }
         return position.positionMs
     }
@@ -376,6 +401,7 @@ final class PlayerController {
     private func startCurrent(at positionMs: Int64, playing: Bool) {
         audioPreparation?.cancel(); audioPreparation = nil
         playbackError = nil
+        streamPlayer.stop()
         guard let entry = state.currentEntry else { return }
         preparingPlayIntent = playing
         if !playing && !engine.isReady {
@@ -385,11 +411,27 @@ final class PlayerController {
             playingChanged(false)
             return
         }
+        let format = ServerStream.shared.streamFormat(of: entry.song)
+        if entry.song.isStream, !ServerStream.shared.isCached(entry.song), !fetchFirst.contains(entry.id),
+           StreamPlayer.canStream(fileExtension: format), let url = ServerStream.shared.streamURL(for: entry.song) {
+            // Not cached yet: play it straight from the server, starting at once. The songs after it
+            // are fetched meanwhile, so they play on the engine (equalizer, transitions) as usual.
+            engine.stopAll()
+            stopTimer()
+            if playing { activateAudioSession() }
+            preparingPlayIntent = playing
+            state.durationMs = entry.song.durationMs
+            setPosition(positionMs)
+            streamPlayer.play(entryId: entry.id, url: url, fileExtension: format, positionMs: positionMs, startPlaying: playing)
+            state.status = playing ? .buffering : .paused
+            currentEntryChanged(sameEntryRepeated: false)
+            return
+        }
         if entry.song.isStream, !ServerStream.shared.isCached(entry.song) {
             // A song from a music server: fetch it into the streaming cache first (buffering),
             // then start it like any other file. Skipping cancels the wait, not the fetch, which
             // still caches the song for later.
-            engine.stopAll()
+            stopAudio()
             listening.onPlayingChanged(false, durationMs: state.durationMs)
             stopTimer()
             state.status = .buffering
@@ -410,7 +452,7 @@ final class PlayerController {
             return
         }
         if DecodedAudioSource.requiresDecoder(entry.song.url), !DecodedAudioSource.isPrepared(entry.song.url) {
-            engine.stopAll()
+            stopAudio()
             listening.onPlayingChanged(false, durationMs: state.durationMs)
             stopTimer()
             state.status = .buffering
@@ -464,6 +506,38 @@ final class PlayerController {
         }
     }
 
+    /// The current entry is playing through [streamPlayer] rather than the engine.
+    private var isStreaming: Bool {
+        guard let id = streamPlayer.entryId else { return false }
+        return id == state.currentEntry?.id
+    }
+
+    private func stopAudio() {
+        engine.stopAll()
+        streamPlayer.stop()
+    }
+
+    private func streamStarted(_ entryId: UUID) {
+        guard entryId == state.currentEntry?.id, isStreaming else { return }
+        preparingPlayIntent = false
+        consecutiveErrors = 0
+        if state.status != .playing { playingChanged(true) }
+    }
+
+    /// A direct stream failed: fetch the whole song and play it from the cache instead (that path
+    /// explains its own failures).
+    private func streamFailed(_ entryId: UUID, _ message: String) {
+        guard entryId == state.currentEntry?.id else { return }
+        NSLog("Erhu: direct stream failed, fetching instead: \(message)")
+        fetchFirst.insert(entryId)
+        startCurrent(at: state.positionMs, playing: preparingPlayIntent || state.isPlaying)
+    }
+
+    private func streamPausedBySystem(_ entryId: UUID) {
+        guard entryId == state.currentEntry?.id, state.isPlaying else { return }
+        playingChanged(false)
+    }
+
     private func moveTo(_ index: Int, playing: Bool, sameEntryRepeated: Bool) {
         engine.cancelCrossfade()
         state.currentIndex = index
@@ -478,7 +552,7 @@ final class PlayerController {
         else {
             // End of the queue: back to the start of the last track, paused (Media3's ENDED).
             listening.onEnded()
-            engine.stopAll()
+            stopAudio()
             setPosition(0)
             playingChanged(false)
             state.status = .idle
@@ -510,7 +584,7 @@ final class PlayerController {
             startCurrent(at: 0, playing: true)
         } else {
             consecutiveErrors = 0
-            engine.stopAll()
+            stopAudio()
             playingChanged(false)
             state.status = .idle
         }
@@ -569,7 +643,14 @@ final class PlayerController {
             guard let index, state.queue.indices.contains(index) else { return nil }
             return state.queue[index].song
         }
-        ServerStream.shared.prefetch(upcoming)
+        if isStreaming, let current = state.currentSong {
+            // The current song is streaming: leave it the connection for a few seconds, and
+            // cache it too (unless on mobile data) so playing it again uses the full player.
+            let extra = ServerStream.shared.allowsCaching() ? [current] : []
+            ServerStream.shared.prefetch(upcoming + extra, after: .seconds(8))
+        } else {
+            ServerStream.shared.prefetch(upcoming)
+        }
         fileWarmup = Task { [weak self] in await self?.engine.warmFiles(urls) }
         artworkWarmup?.cancel()
         artworkWarmup = Task {
@@ -649,7 +730,7 @@ final class PlayerController {
     }
 
     private func checkTransition(position: Int64) {
-        guard let planned = plannedTransition, planned.entryId == state.currentEntry?.id, state.isPlaying else { return }
+        guard !isStreaming, let planned = plannedTransition, planned.entryId == state.currentEntry?.id, state.isPlaying else { return }
         let untilStart = planned.plan.startAtMs - position
         guard untilStart <= Self.transitionLeadMs else { return }
         plannedTransition = nil
@@ -680,7 +761,7 @@ final class PlayerController {
     }
 
     private func checkGapless(position: Int64) {
-        guard plannedTransition == nil, let current = state.currentEntry,
+        guard !isStreaming, plannedTransition == nil, let current = state.currentEntry,
               current.song.durationMs - position <= Self.gaplessLeadMs,
               let nextIndex = PlayOrder.next(after: state.currentIndex, count: state.queue.count, repeatMode: state.repeatMode, userSkip: false),
               nextIndex != state.currentIndex

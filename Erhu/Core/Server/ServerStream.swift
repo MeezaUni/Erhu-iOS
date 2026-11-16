@@ -196,18 +196,36 @@ final class ServerStream {
         trimCache()
     }
 
-    /// Fetches the next streamed songs in the background, one at a time, replacing any earlier request.
-    func prefetch(_ songs: [Song]) {
+    /// Fetches the next streamed songs in the background, one at a time, replacing any earlier
+    /// request. [delay] leaves the connection to a song that is starting to play.
+    func prefetch(_ songs: [Song], after delay: Duration = .zero) {
         let pending = songs.filter { $0.isStream && !isCached($0) }
         prefetchTask?.cancel()
         guard !pending.isEmpty else { prefetchTask = nil; return }
         prefetchTask = Task { [weak self] in
+            if delay > .zero { try? await Task.sleep(for: delay) }
             for song in pending {
                 guard !Task.isCancelled else { return }
                 try? await self?.fetch(song, background: true)
             }
         }
     }
+
+    /// Where the player can stream [song] from directly (nil: its server isn't connected, or the
+    /// song isn't one known in this session).
+    func streamURL(for song: Song) -> URL? {
+        guard let source = sources[song.path], let client = clientProvider?(source.accountId) else { return nil }
+        return client.streamURL(source.remoteId, quality: source.quality)
+    }
+
+    /// The format the server sends for [song] (its file extension, or the converted format).
+    func streamFormat(of song: Song) -> String {
+        (song.path as NSString).pathExtension
+    }
+
+    /// Whether songs may be fetched just in case (not on mobile data or in Low Data Mode; set by
+    /// [ServerStore]).
+    var allowsCaching: () -> Bool = { true }
 
     /// The server and server song behind a streamed [song], while it is known in this session.
     func remote(for song: Song) -> (accountId: UUID, song: ServerSong)? {

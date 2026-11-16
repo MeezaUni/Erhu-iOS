@@ -235,6 +235,17 @@ final class SubsonicTests: XCTestCase {
     }
 
     @MainActor
+    func testDirectStreamingCoversTheFormatsIOSCanPlayAndHasTheSongsAddress() throws {
+        for ext in ["mp3", "flac", "m4a", "aac", "wav", "MP3"] { XCTAssertTrue(StreamPlayer.canStream(fileExtension: ext), ext) }
+        for ext in ["ogg", "opus", "oga"] { XCTAssertFalse(StreamPlayer.canStream(fileExtension: ext), "\(ext) is fetched in full first") }
+        let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
+        let song = ServerStream.shared.song(for: album.song[0], account: account, quality: .mp3_192)
+        XCTAssertEqual("mp3", ServerStream.shared.streamFormat(of: song))
+        // No client for this test account: the player falls back to fetching (which reports why).
+        XCTAssertNil(ServerStream.shared.streamURL(for: song))
+    }
+
+    @MainActor
     func testStreamedSongsInTheQueueComeBackAfterARestart() throws {
         let album = try XCTUnwrap(try decode(SubsonicFixtures.album).album)
         let streamed = album.song.prefix(2).map { ServerStream.shared.song(for: $0, account: account, quality: .mp3_192) }
