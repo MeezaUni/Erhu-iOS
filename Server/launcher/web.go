@@ -155,18 +155,21 @@ func (c *Control) handler() http.Handler {
 		return c.state(), nil
 	}))
 	mux.HandleFunc("POST /api/remote", c.api(func(r *http.Request) (any, error) {
-		var in struct{ Enabled bool }
+		// Enabled starts the setup; Stop only stops the setup's steps; neither turns it off.
+		var in struct{ Enabled, Stop bool }
 		if err := json.NewDecoder(http.MaxBytesReader(nil, r.Body, 1<<16)).Decode(&in); err != nil {
 			return nil, errors.New("bad request")
 		}
-		var err error
-		if in.Enabled {
-			err = c.remote.Enable(r.Context(), c.store.Get().Port)
-		} else {
-			err = c.remote.Disable(r.Context())
-		}
-		if err != nil {
-			return nil, err
+		switch {
+		case in.Enabled:
+			c.remote.Start(c.store.Get().Port)
+		case in.Stop:
+			c.remote.Cancel()
+		default:
+			c.remote.Cancel()
+			if err := c.remote.Disable(r.Context()); err != nil {
+				return nil, err
+			}
 		}
 		return c.state(), nil
 	}))
@@ -193,8 +196,9 @@ func checkAccount(username, password string) error {
 	switch {
 	case len(username) < 2 || strings.ContainsAny(username, " \t/\\"):
 		return errors.New("Choose a username of at least 2 characters, without spaces.")
-	case len(password) < 8:
-		return errors.New("Choose a password of at least 8 characters.")
+	case len(password) < 12:
+		// Away from home the server is reachable from the internet, so the password matters.
+		return errors.New("Choose a password of at least 12 characters.")
 	}
 	return nil
 }
@@ -248,6 +252,14 @@ func (c *Control) state() PageState {
 		out.Addresses = append(out.Addresses, serverURL(ip, cfg.Port))
 	}
 	out.Remote = c.remote.State(cfg.Port)
+	wanted, step, problem := c.remote.progress()
+	if wanted {
+		go c.remote.Advance(cfg.Port) // the page refreshes every two seconds, which moves the setup on
+	}
+	out.Remote.SettingUp, out.Remote.Step = wanted, step
+	if problem != "" {
+		out.Remote.Problem = problem
+	}
 	if len(out.Addresses) > 0 && state == StateRunning {
 		out.Invite = inviteURL(out.Addresses[0], out.Remote.Address, cfg.Username, out.Name)
 	}

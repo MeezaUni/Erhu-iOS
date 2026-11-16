@@ -10,10 +10,15 @@ Stream or download your own music in Erhu on your iPhone, from this computer.
      If it then says the app is damaged, run this once in Terminal, then open it again:
        xattr -dr com.apple.quarantine "/path/to/Erhu Server.app"
    These warnings appear because this test build isn't code-signed yet.
-2. A page opens in your browser. Choose your music folder, then create a username and password.
+2. A page opens in your browser. Choose your music folder, then create a username and password
+   (at least 12 characters).
    If Windows asks whether to allow "navidrome" on the network, choose Allow (private networks).
 3. On your iPhone (same Wi-Fi), point the Camera at the QR code on the page and tap
    "Open in Erhu". Type your password and tap Connect.
+4. Optional, to listen away from home: on the page, under "Listen away from home", click
+   "Set up away-from-home access". Erhu Server installs Tailscale (free) on this computer and
+   opens a page each time you need to do something: click through the installer, sign in once,
+   allow once. Then scan the QR code again. Your iPhone needs no extra app.
 
 Erhu Server keeps running in the tray (Windows, near the clock) or the menu bar (Mac). Click its
 icon to open the page again or to quit. Keep the computer on and awake while you listen.
