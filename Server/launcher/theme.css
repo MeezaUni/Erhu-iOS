@@ -1,8 +1,9 @@
-/* Erhu Server: Erhu's look for Navidrome's web interface. Added to Navidrome's page by Erhu
-   Server (player.go); Navidrome itself is unchanged and keeps all its features. Written against
-   Navidrome's Dark theme, the default. */
+/* Erhu Server: Erhu's look for Navidrome's web interface: the "Erhu" theme, the default. Any of
+   Navidrome's own themes can be picked instead in Personal settings, and then applies alone
+   (every rule here needs the erhu-theme class, which theme.js sets). Added to Navidrome's page
+   by Erhu Server (player.go); Navidrome itself is unchanged. Written over Navidrome's Dark theme. */
 
-:root {
+html.erhu-theme {
   --erhu-bg: #0E0F12;
   --erhu-surface: #16181D;
   --erhu-raised: #1E2128;
@@ -17,23 +18,21 @@
   color-scheme: dark;
 }
 
-html, body, #root { background: var(--erhu-bg) !important; color: var(--erhu-text); }
-body, .MuiTypography-root, .MuiButton-root, .MuiInputBase-root, .MuiTableCell-root, .MuiMenuItem-root,
-.MuiChip-root, .MuiTab-root, .MuiFormLabel-root, .MuiListItemText-primary, .react-jinke-music-player-main {
+html.erhu-theme, html.erhu-theme body, html.erhu-theme #root { background: var(--erhu-bg) !important; color: var(--erhu-text); }
+html.erhu-theme body, html.erhu-theme .MuiTypography-root, html.erhu-theme .MuiButton-root, html.erhu-theme .MuiInputBase-root, html.erhu-theme .MuiTableCell-root, html.erhu-theme .MuiMenuItem-root, html.erhu-theme .MuiChip-root, html.erhu-theme .MuiTab-root, html.erhu-theme .MuiFormLabel-root, html.erhu-theme .MuiListItemText-primary, html.erhu-theme .react-jinke-music-player-main {
   font-family: var(--erhu-font) !important;
 }
-::selection { background: var(--erhu-accent-soft); }
-* { scrollbar-color: var(--erhu-line) transparent; }
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: var(--erhu-line); border-radius: 10px; border: 2px solid var(--erhu-bg); }
-::-webkit-scrollbar-track { background: transparent; }
+html.erhu-theme ::selection { background: var(--erhu-accent-soft); }
+html.erhu-theme * { scrollbar-color: var(--erhu-line) transparent; }
+html.erhu-theme ::-webkit-scrollbar { width: 10px; height: 10px; }
+html.erhu-theme ::-webkit-scrollbar-thumb { background: var(--erhu-line); border-radius: 10px; border: 2px solid var(--erhu-bg); }
+html.erhu-theme ::-webkit-scrollbar-track { background: transparent; }
 
 /* Page background behind every view. */
-.layout, [class*="RaLayout-root"], [class*="RaLayout-appFrame"], [class*="RaLayout-contentWithSidebar"],
-[class*="RaLayout-content"], main, .layout main > div:not(.MuiDrawer-root) { background: var(--erhu-bg) !important; }
+html.erhu-theme .layout, html.erhu-theme [class*="RaLayout-root"], html.erhu-theme [class*="RaLayout-appFrame"], html.erhu-theme [class*="RaLayout-contentWithSidebar"], html.erhu-theme [class*="RaLayout-content"], html.erhu-theme main, html.erhu-theme .layout main > div:not(.MuiDrawer-root) { background: var(--erhu-bg) !important; }
 
 /* Top bar: no blue slab, just the page with a hairline. */
-.MuiAppBar-root, .MuiAppBar-colorSecondary, .MuiAppBar-colorPrimary {
+html.erhu-theme .MuiAppBar-root, html.erhu-theme .MuiAppBar-colorSecondary, html.erhu-theme .MuiAppBar-colorPrimary {
   background: rgba(14, 15, 18, 0.82) !important;
   backdrop-filter: saturate(160%) blur(18px);
   -webkit-backdrop-filter: saturate(160%) blur(18px);
@@ -41,135 +40,147 @@ body, .MuiTypography-root, .MuiButton-root, .MuiInputBase-root, .MuiTableCell-ro
   box-shadow: none !important;
   border-bottom: 1px solid var(--erhu-line);
 }
-.MuiAppBar-root .MuiTypography-h6 { font-weight: 700 !important; letter-spacing: -0.01em; }
-.MuiAppBar-root .MuiTypography-h6::before {
+html.erhu-theme .MuiAppBar-root .MuiTypography-h6 { font-weight: 700 !important; letter-spacing: -0.01em; }
+html.erhu-theme .MuiAppBar-root .MuiTypography-h6::before {
   content: ""; display: inline-block; width: 26px; height: 26px; margin-right: 10px; vertical-align: -6px;
   background: url("/erhu/logo.png") center / cover no-repeat; border-radius: 7px;
 }
 
 /* Side menu. */
-.MuiDrawer-paper, .MuiDrawer-docked .MuiPaper-root { background: var(--erhu-bg) !important; border-right: 1px solid var(--erhu-line) !important; }
-.MuiDrawer-paper .MuiMenuItem-root, .MuiDrawer-paper .MuiListItem-root {
-  margin: 2px 10px; border-radius: 10px; color: var(--erhu-muted) !important; min-height: 40px;
+html.erhu-theme .MuiDrawer-paper, html.erhu-theme .MuiDrawer-docked .MuiPaper-root { background: var(--erhu-bg) !important; border-right: 1px solid var(--erhu-line) !important; }
+html.erhu-theme .MuiDrawer-paper .MuiMenuItem-root, html.erhu-theme .MuiDrawer-paper .MuiListItem-root {
+  margin: 2px 8px; width: auto; border-radius: 10px; color: var(--erhu-muted) !important; min-height: 40px;
 }
-.MuiDrawer-paper .MuiMenuItem-root:hover, .MuiDrawer-paper .MuiListItem-root:hover { background: var(--erhu-hover) !important; color: var(--erhu-text) !important; }
-.MuiDrawer-paper .MuiListItemIcon-root { color: inherit !important; }
-.MuiDrawer-paper [class*="active"], .MuiDrawer-paper .Mui-selected, .MuiDrawer-paper a[aria-current="page"] {
+/* The narrow (icons only) menu: no indents, each icon centred in its highlight. */
+html.erhu-theme .MuiDrawer-paper:not([class*="Open"]) { overflow-x: hidden; }
+@container erhu-menu (max-width: 90px) {
+  html.erhu-theme .MuiDrawer-paper .MuiMenuItem-root, html.erhu-theme .MuiDrawer-paper .MuiListItem-root {
+    margin: 2px 5px; padding-left: 10px !important; padding-right: 0 !important; overflow: hidden; white-space: nowrap;
+  }
+  html.erhu-theme .MuiDrawer-paper .MuiListItemIcon-root { min-width: 40px !important; }
+}
+html.erhu-theme .MuiDrawer-paper { container: erhu-menu / inline-size; }
+html.erhu-theme .MuiDrawer-paper .MuiMenuItem-root:hover, html.erhu-theme .MuiDrawer-paper .MuiListItem-root:hover { background: var(--erhu-hover) !important; color: var(--erhu-text) !important; }
+html.erhu-theme .MuiDrawer-paper .MuiListItemIcon-root { color: inherit !important; }
+html.erhu-theme .MuiDrawer-paper [class*="active"], html.erhu-theme .MuiDrawer-paper .Mui-selected, html.erhu-theme .MuiDrawer-paper a[aria-current="page"] {
   background: var(--erhu-accent-soft) !important; color: var(--erhu-accent) !important; font-weight: 600;
 }
-.MuiDivider-root { background-color: var(--erhu-line) !important; }
+html.erhu-theme .MuiDivider-root { background-color: var(--erhu-line) !important; }
 
 /* Cards, lists, tables, dialogs, menus. */
-.MuiPaper-root { background-color: var(--erhu-surface) !important; color: var(--erhu-text) !important; }
-.MuiCard-root, .MuiDialog-paper, .MuiPopover-paper, .MuiMenu-paper { border-radius: 16px !important; border: 1px solid var(--erhu-line); }
-.MuiPopover-paper, .MuiMenu-paper { background: var(--erhu-raised) !important; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55) !important; }
-.MuiMenuItem-root:hover, .MuiListItem-button:hover { background: var(--erhu-hover) !important; }
-.list-page .MuiPaper-root, .list-page .MuiToolbar-root, [class*="RaList-content"] { background: transparent !important; box-shadow: none !important; }
-.MuiTableCell-root { border-bottom-color: var(--erhu-line) !important; }
-.MuiTableCell-head { color: var(--erhu-muted) !important; font-weight: 600 !important; background: var(--erhu-bg) !important; }
-.MuiTableRow-hover:hover, .MuiTableRow-root:hover { background: var(--erhu-raised) !important; }
-.MuiTableRow-root.Mui-selected, .MuiTableRow-root.Mui-selected:hover { background: var(--erhu-accent-soft) !important; }
-.MuiTypography-colorTextSecondary, .MuiFormHelperText-root, .MuiTableSortLabel-root { color: var(--erhu-muted) !important; }
-.MuiTableSortLabel-active, .MuiTableSortLabel-icon { color: var(--erhu-text) !important; }
-a { color: var(--erhu-accent); }
+html.erhu-theme .MuiPaper-root { background-color: var(--erhu-surface) !important; color: var(--erhu-text) !important; }
+html.erhu-theme .MuiCard-root, html.erhu-theme .MuiDialog-paper, html.erhu-theme .MuiPopover-paper, html.erhu-theme .MuiMenu-paper { border-radius: 16px !important; border: 1px solid var(--erhu-line); }
+html.erhu-theme .MuiPopover-paper, html.erhu-theme .MuiMenu-paper { background: var(--erhu-raised) !important; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55) !important; }
+html.erhu-theme .MuiMenuItem-root:hover, html.erhu-theme .MuiListItem-button:hover { background: var(--erhu-hover) !important; }
+html.erhu-theme .list-page .MuiPaper-root, html.erhu-theme .list-page .MuiToolbar-root, html.erhu-theme [class*="RaList-content"] { background: transparent !important; box-shadow: none !important; }
+html.erhu-theme .MuiTableCell-root { border-bottom-color: var(--erhu-line) !important; }
+html.erhu-theme .MuiTableCell-head { color: var(--erhu-muted) !important; font-weight: 600 !important; background: var(--erhu-bg) !important; }
+html.erhu-theme .MuiTableRow-hover:hover, html.erhu-theme .MuiTableRow-root:hover { background: var(--erhu-raised) !important; }
+html.erhu-theme .MuiTableRow-root.Mui-selected, html.erhu-theme .MuiTableRow-root.Mui-selected:hover { background: var(--erhu-accent-soft) !important; }
+html.erhu-theme .MuiTypography-colorTextSecondary, html.erhu-theme .MuiFormHelperText-root, html.erhu-theme .MuiTableSortLabel-root { color: var(--erhu-muted) !important; }
+html.erhu-theme .MuiTableSortLabel-active, html.erhu-theme .MuiTableSortLabel-icon { color: var(--erhu-text) !important; }
+html.erhu-theme a { color: var(--erhu-accent); }
 
 /* Album and artist grids: rounded covers, quiet captions. */
-.MuiGridListTile-root img { border-radius: 14px !important; transition: transform 0.25s ease; }
-.MuiGridListTile-root:hover img { transform: translateY(-3px); }
-.MuiGridListTileBar-root { border-radius: 0 0 14px 14px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.6)) !important; }
-.MuiGridListTile-root a, .MuiGridListTile-root p { color: var(--erhu-text) !important; }
-[class*="tileBar"] .MuiIconButton-root, [class*="AlbumGridView"] .MuiIconButton-root { color: var(--erhu-text) !important; }
+html.erhu-theme .MuiGridListTile-root img { border-radius: 14px !important; transition: transform 0.25s ease; }
+html.erhu-theme .MuiGridListTile-root:hover img { transform: translateY(-3px); }
+html.erhu-theme .MuiGridListTileBar-root { border-radius: 0 0 14px 14px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.6)) !important; }
+html.erhu-theme .MuiGridListTile-root a, html.erhu-theme .MuiGridListTile-root p { color: var(--erhu-text) !important; }
+html.erhu-theme [class*="tileBar"] .MuiIconButton-root, html.erhu-theme [class*="AlbumGridView"] .MuiIconButton-root { color: var(--erhu-text) !important; }
 
 /* Album, artist and playlist headers. */
-[class*="AlbumDetails"], [class*="ArtistDetails"], [class*="PlaylistDetails"], [class*="DesktopArtistDetails"] {
+html.erhu-theme [class*="AlbumDetails"], html.erhu-theme [class*="ArtistDetails"], html.erhu-theme [class*="PlaylistDetails"], html.erhu-theme [class*="DesktopArtistDetails"] {
   background: linear-gradient(180deg, var(--erhu-raised), var(--erhu-bg)) !important; border-radius: 24px !important; border: none !important;
 }
-[class*="AlbumDetails"] img, [class*="ArtistDetails"] img, [class*="coverParent"] img { border-radius: 18px !important; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); }
+html.erhu-theme [class*="AlbumDetails"] img, html.erhu-theme [class*="ArtistDetails"] img, html.erhu-theme [class*="coverParent"] img { border-radius: 18px !important; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); }
 
 /* Buttons: amber capsules like the app's Play button. */
-.MuiButton-root { border-radius: 999px !important; text-transform: none !important; font-weight: 600 !important; letter-spacing: 0 !important; }
-.MuiButton-containedPrimary, .MuiButton-containedSecondary, .MuiFab-root, .MuiFab-primary, .MuiFab-secondary {
+html.erhu-theme .MuiButton-root { border-radius: 999px !important; text-transform: none !important; font-weight: 600 !important; letter-spacing: 0 !important; }
+html.erhu-theme .MuiButton-containedPrimary, html.erhu-theme .MuiButton-containedSecondary, html.erhu-theme .MuiFab-root, html.erhu-theme .MuiFab-primary, html.erhu-theme .MuiFab-secondary {
   background: var(--erhu-accent) !important; color: var(--erhu-on-accent) !important; box-shadow: none !important;
 }
-.MuiButton-containedPrimary:hover, .MuiFab-root:hover { filter: brightness(1.08); }
-.MuiButton-textPrimary, .MuiButton-outlinedPrimary, .MuiButton-textSecondary, .MuiIconButton-colorPrimary, .MuiIconButton-colorSecondary,
-.MuiCheckbox-colorPrimary.Mui-checked, .MuiCheckbox-colorSecondary.Mui-checked, .MuiRadio-colorPrimary.Mui-checked, .MuiRadio-colorSecondary.Mui-checked {
+html.erhu-theme .MuiButton-containedPrimary:hover, html.erhu-theme .MuiFab-root:hover { filter: brightness(1.08); }
+html.erhu-theme .MuiButton-textPrimary, html.erhu-theme .MuiButton-outlinedPrimary, html.erhu-theme .MuiButton-textSecondary, html.erhu-theme .MuiIconButton-colorPrimary, html.erhu-theme .MuiIconButton-colorSecondary, html.erhu-theme .MuiCheckbox-colorPrimary.Mui-checked, html.erhu-theme .MuiCheckbox-colorSecondary.Mui-checked, html.erhu-theme .MuiRadio-colorPrimary.Mui-checked, html.erhu-theme .MuiRadio-colorSecondary.Mui-checked {
   color: var(--erhu-accent) !important;
 }
-.MuiButton-outlined { border-color: var(--erhu-line) !important; }
-.MuiIconButton-root:hover, .MuiButton-text:hover { background: var(--erhu-hover) !important; }
-.MuiSwitch-colorPrimary.Mui-checked, .MuiSwitch-colorSecondary.Mui-checked { color: var(--erhu-accent) !important; }
-.MuiSwitch-colorPrimary.Mui-checked + .MuiSwitch-track, .MuiSwitch-colorSecondary.Mui-checked + .MuiSwitch-track { background: var(--erhu-accent) !important; }
-.MuiRating-iconFilled { color: var(--erhu-accent) !important; }
-.MuiBadge-colorPrimary, .MuiBadge-colorSecondary { background: var(--erhu-accent) !important; color: var(--erhu-on-accent) !important; }
-.MuiChip-root { border-radius: 999px !important; background: var(--erhu-raised) !important; color: var(--erhu-text) !important; }
-.MuiTab-textColorPrimary.Mui-selected, .MuiTab-textColorSecondary.Mui-selected { color: var(--erhu-accent) !important; }
-.MuiTabs-indicator { background: var(--erhu-accent) !important; }
-.MuiLinearProgress-barColorPrimary, .MuiLinearProgress-barColorSecondary { background: var(--erhu-accent) !important; }
-.MuiCircularProgress-colorPrimary, .MuiCircularProgress-colorSecondary { color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiButton-outlined { border-color: var(--erhu-line) !important; }
+html.erhu-theme .MuiIconButton-root:hover, html.erhu-theme .MuiButton-text:hover { background: var(--erhu-hover) !important; }
+html.erhu-theme .MuiSwitch-colorPrimary.Mui-checked, html.erhu-theme .MuiSwitch-colorSecondary.Mui-checked { color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiSwitch-colorPrimary.Mui-checked + .MuiSwitch-track, html.erhu-theme .MuiSwitch-colorSecondary.Mui-checked + .MuiSwitch-track { background: var(--erhu-accent) !important; }
+html.erhu-theme .MuiRating-iconFilled { color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiBadge-colorPrimary, html.erhu-theme .MuiBadge-colorSecondary { background: var(--erhu-accent) !important; color: var(--erhu-on-accent) !important; }
+html.erhu-theme .MuiChip-root { border-radius: 999px !important; background: var(--erhu-raised) !important; color: var(--erhu-text) !important; }
+html.erhu-theme .MuiTab-textColorPrimary.Mui-selected, html.erhu-theme .MuiTab-textColorSecondary.Mui-selected { color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiTabs-indicator { background: var(--erhu-accent) !important; }
+html.erhu-theme .MuiLinearProgress-barColorPrimary, html.erhu-theme .MuiLinearProgress-barColorSecondary { background: var(--erhu-accent) !important; }
+html.erhu-theme .MuiCircularProgress-colorPrimary, html.erhu-theme .MuiCircularProgress-colorSecondary { color: var(--erhu-accent) !important; }
 
 /* Search and other fields: soft rounded wells. */
-.MuiFilledInput-root, .MuiOutlinedInput-root { background: var(--erhu-raised) !important; border-radius: 12px !important; }
-.MuiFilledInput-root:hover, .MuiOutlinedInput-root:hover { background: var(--erhu-hover) !important; }
-.MuiFilledInput-underline::before, .MuiFilledInput-underline::after { display: none !important; }
-.MuiOutlinedInput-notchedOutline { border-color: var(--erhu-line) !important; }
-.Mui-focused .MuiOutlinedInput-notchedOutline { border-color: var(--erhu-accent) !important; }
-.MuiInput-underline::after { border-bottom-color: var(--erhu-accent) !important; }
-.MuiFormLabel-root.Mui-focused { color: var(--erhu-accent) !important; }
-.MuiInputBase-root { color: var(--erhu-text) !important; }
+html.erhu-theme .MuiFilledInput-root, html.erhu-theme .MuiOutlinedInput-root { background: var(--erhu-raised) !important; border-radius: 12px !important; }
+html.erhu-theme .MuiFilledInput-root:hover, html.erhu-theme .MuiOutlinedInput-root:hover { background: var(--erhu-hover) !important; }
+html.erhu-theme .MuiFilledInput-underline::before, html.erhu-theme .MuiFilledInput-underline::after { display: none !important; }
+html.erhu-theme .MuiOutlinedInput-notchedOutline { border-color: var(--erhu-line) !important; }
+html.erhu-theme .Mui-focused .MuiOutlinedInput-notchedOutline { border-color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiInput-underline::after { border-bottom-color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiFormLabel-root.Mui-focused { color: var(--erhu-accent) !important; }
+html.erhu-theme .MuiInputBase-root { color: var(--erhu-text) !important; }
 
 /* Sign-in page: Erhu's warm glow instead of a stock photo, and Erhu's icon and name. */
-#root div:has(> .MuiCard-root img[alt="logo"]) {
+html.erhu-theme #root div:has(> .MuiCard-root img[alt="logo"]) {
   background: radial-gradient(1100px 650px at 50% -10%, #3A2A18 0%, #17130E 38%, var(--erhu-bg) 70%) !important;
 }
-.MuiCard-root:has(img[alt="logo"]) {
+html.erhu-theme .MuiCard-root:has(img[alt="logo"]) {
   background: rgba(22, 24, 29, 0.9) !important; backdrop-filter: blur(20px); border-radius: 24px !important;
   border: 1px solid var(--erhu-line); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6) !important; overflow: visible !important;
 }
-.MuiCard-root img[alt="logo"] { content: url("/erhu/logo.png"); border-radius: 22px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55); background: none !important; }
-.MuiCard-root a[href*="navidrome.org"] { color: var(--erhu-text) !important; font-weight: 700; font-size: 1.25rem; text-decoration: none; pointer-events: none; }
+html.erhu-theme .MuiCard-root img[alt="logo"] { content: url("/erhu/logo.png"); border-radius: 22px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55); background: none !important; }
+html.erhu-theme .MuiCard-root a[href*="navidrome.org"] { color: var(--erhu-text) !important; font-weight: 700; font-size: 1.25rem; text-decoration: none; pointer-events: none; }
 
 /* The player bar at the bottom (react-jinke-music-player). */
-.react-jinke-music-player-main .music-player-panel {
+html.erhu-theme .react-jinke-music-player-main .music-player-panel {
   background: rgba(22, 24, 29, 0.9) !important; backdrop-filter: saturate(160%) blur(22px); -webkit-backdrop-filter: saturate(160%) blur(22px);
   color: var(--erhu-text) !important; border-top: 1px solid var(--erhu-line); box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45) !important;
 }
-.react-jinke-music-player-main svg { color: var(--erhu-text); }
-.react-jinke-music-player-main .music-player-panel .panel-content .img-content { border-radius: 12px !important; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
-.react-jinke-music-player-main .music-player-panel .panel-content .img-content.img-rotate { animation: none !important; }
-.react-jinke-music-player-main .audio-title, .react-jinke-music-player-main .audio-title a, .react-jinke-music-player-main .music-player-panel .panel-content .player-content .audio-title { color: var(--erhu-text) !important; font-weight: 600; }
-.react-jinke-music-player-main .audio-title a + a, .react-jinke-music-player-main .audio-title div, .react-jinke-music-player-main .audio-title span a { color: var(--erhu-muted) !important; font-weight: 500; }
-.react-jinke-music-player-main .current-time, .react-jinke-music-player-main .duration { color: var(--erhu-muted) !important; }
-.react-jinke-music-player-main .rc-slider-rail { background: var(--erhu-line) !important; }
-.react-jinke-music-player-main .rc-slider-track, .react-jinke-music-player-main .progress-load-bar + .rc-slider .rc-slider-track { background: var(--erhu-accent) !important; }
-.react-jinke-music-player-main .rc-slider-handle { background: var(--erhu-text) !important; border: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; }
-.react-jinke-music-player-main .progress-load-bar { background: rgba(245, 246, 248, 0.14) !important; }
-.react-jinke-music-player-main .play-btn svg, .react-jinke-music-player-main .loading svg { color: var(--erhu-accent) !important; }
-.react-jinke-music-player-main .audio-lists-panel {
+html.erhu-theme .react-jinke-music-player-main svg { color: var(--erhu-text); }
+html.erhu-theme .react-jinke-music-player-main .music-player-panel .panel-content .img-content { border-radius: 12px !important; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
+html.erhu-theme .react-jinke-music-player-main .music-player-panel .panel-content .img-content.img-rotate { animation: none !important; }
+html.erhu-theme .react-jinke-music-player-main .audio-title, html.erhu-theme .react-jinke-music-player-main .audio-title a, html.erhu-theme .react-jinke-music-player-main .music-player-panel .panel-content .player-content .audio-title { color: var(--erhu-text) !important; font-weight: 600; }
+html.erhu-theme .react-jinke-music-player-main .audio-title a + a, html.erhu-theme .react-jinke-music-player-main .audio-title div, html.erhu-theme .react-jinke-music-player-main .audio-title span a { color: var(--erhu-muted) !important; font-weight: 500; }
+html.erhu-theme .react-jinke-music-player-main .current-time, html.erhu-theme .react-jinke-music-player-main .duration { color: var(--erhu-muted) !important; }
+html.erhu-theme .react-jinke-music-player-main .rc-slider-rail { background: var(--erhu-line) !important; }
+html.erhu-theme .react-jinke-music-player-main .rc-slider-track, html.erhu-theme .react-jinke-music-player-main .progress-load-bar + .rc-slider .rc-slider-track { background: var(--erhu-accent) !important; }
+html.erhu-theme .react-jinke-music-player-main .rc-slider-handle { background: var(--erhu-text) !important; border: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; }
+html.erhu-theme .react-jinke-music-player-main .progress-load-bar { background: rgba(245, 246, 248, 0.14) !important; }
+html.erhu-theme .react-jinke-music-player-main .play-btn svg, html.erhu-theme .react-jinke-music-player-main .loading svg { color: var(--erhu-accent) !important; }
+html.erhu-theme .react-jinke-music-player-main .audio-lists-panel {
   background: rgba(22, 24, 29, 0.96) !important; backdrop-filter: blur(22px); border: 1px solid var(--erhu-line); border-radius: 18px !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6) !important; color: var(--erhu-text) !important;
 }
-.react-jinke-music-player-main .audio-lists-panel-header { background: transparent !important; border-bottom: 1px solid var(--erhu-line) !important; }
-.react-jinke-music-player-main .audio-lists-panel-content .audio-item { background: transparent !important; color: var(--erhu-muted) !important; border-radius: 10px; }
-.react-jinke-music-player-main .audio-lists-panel-content .audio-item:hover { background: var(--erhu-hover) !important; color: var(--erhu-text) !important; }
-.react-jinke-music-player-main .audio-lists-panel-content .audio-item.playing, .react-jinke-music-player-main .audio-lists-panel-content .audio-item.playing svg { color: var(--erhu-accent) !important; }
-.react-jinke-music-player-mobile { background: var(--erhu-bg) !important; }
-.react-jinke-music-player-mobile-cover { border-radius: 24px !important; border: none !important; animation: none !important; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6); }
-.react-jinke-music-player-mobile .rc-slider-track { background: var(--erhu-accent) !important; }
-.react-jinke-music-player .music-player-controller { background: var(--erhu-raised) !important; color: var(--erhu-accent) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important; }
+html.erhu-theme .react-jinke-music-player-main .audio-lists-panel-header { background: transparent !important; border-bottom: 1px solid var(--erhu-line) !important; }
+html.erhu-theme .react-jinke-music-player-main .audio-lists-panel-content .audio-item { background: transparent !important; color: var(--erhu-muted) !important; border-radius: 10px; }
+html.erhu-theme .react-jinke-music-player-main .audio-lists-panel-content .audio-item:hover { background: var(--erhu-hover) !important; color: var(--erhu-text) !important; }
+html.erhu-theme .react-jinke-music-player-main .audio-lists-panel-content .audio-item.playing, html.erhu-theme .react-jinke-music-player-main .audio-lists-panel-content .audio-item.playing svg { color: var(--erhu-accent) !important; }
+html.erhu-theme .react-jinke-music-player-mobile { background: var(--erhu-bg) !important; }
+html.erhu-theme .react-jinke-music-player-mobile-cover { border-radius: 24px !important; border: none !important; animation: none !important; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6); }
+html.erhu-theme .react-jinke-music-player-mobile .rc-slider-track { background: var(--erhu-accent) !important; }
+html.erhu-theme .react-jinke-music-player .music-player-controller { background: var(--erhu-raised) !important; color: var(--erhu-accent) !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important; }
 
 /* Notifications. */
-.MuiSnackbarContent-root { background: var(--erhu-raised) !important; color: var(--erhu-text) !important; border-radius: 14px !important; border: 1px solid var(--erhu-line); }
+html.erhu-theme .MuiSnackbarContent-root { background: var(--erhu-raised) !important; color: var(--erhu-text) !important; border-radius: 14px !important; border: 1px solid var(--erhu-line); }
 
 /* The list pages' content sits on the page, not in a box. */
-.list-page .MuiCard-root, [class*="RaList-content"] { border: none !important; background: transparent !important; box-shadow: none !important; }
+html.erhu-theme .list-page .MuiCard-root, html.erhu-theme [class*="RaList-content"] { border: none !important; background: transparent !important; box-shadow: none !important; }
 
 /* Album page: rounded cover with depth, a warm header. */
-main .MuiCard-root:has(> div .MuiCardMedia-root) {
+html.erhu-theme main .MuiCard-root:has(> div .MuiCardMedia-root) {
   background: linear-gradient(160deg, #2A2119 0%, var(--erhu-surface) 55%) !important; border: none !important; border-radius: 24px !important;
 }
-.MuiCardMedia-root { border-radius: 18px !important; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); }
+html.erhu-theme .MuiCardMedia-root { border-radius: 18px !important; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); }
 
 /* Artist and album links: quiet, warming on hover (Navidrome's are light blue). */
-main a[href*="#/artist"], main a[href*="#/album"], .MuiTableCell-root a, .MuiTableCell-root a span { color: var(--erhu-muted) !important; text-decoration: none; }
-main a[href*="#/artist"]:hover, main a[href*="#/album"]:hover, .MuiTableCell-root a:hover { color: var(--erhu-accent) !important; }
+html.erhu-theme main a[href*="#/artist"], html.erhu-theme main a[href*="#/album"], html.erhu-theme .MuiTableCell-root a, html.erhu-theme .MuiTableCell-root a span { color: var(--erhu-muted) !important; text-decoration: none; }
+html.erhu-theme main a[href*="#/artist"]:hover, html.erhu-theme main a[href*="#/album"]:hover, html.erhu-theme .MuiTableCell-root a:hover { color: var(--erhu-accent) !important; }
+
+/* About: Erhu's details, with the credit to Navidrome under them (theme.js writes them). */
+.erhu-about-credit { margin: 18px 4px 4px; font-size: 0.85rem; line-height: 1.5; opacity: 0.75; }
+.erhu-about-credit a { color: inherit; text-decoration: underline; }

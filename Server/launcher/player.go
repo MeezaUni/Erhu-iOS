@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	_ "embed"
+	"html"
 	"io"
 	"net"
 	"net/http"
@@ -56,8 +57,12 @@ func (p *Player) Serve() error {
 	return srv.Serve(p.listener)
 }
 
-// themeTags go at the end of the page's head, after Navidrome's own styles, so they win.
-const themeTags = `<link rel="stylesheet" href="/erhu/theme.css"><script src="/erhu/theme.js" defer></script>` +
+// themeTags go at the end of the page's head, after Navidrome's own styles, so they win. The
+// Erhu theme is on unless another theme was picked (set before the page draws, so no flash).
+var themeTags = `<link rel="stylesheet" href="/erhu/theme.css">` +
+	`<script>try{if(localStorage.getItem("erhu.theme")!=="off")document.documentElement.classList.add("erhu-theme")}catch(e){document.documentElement.classList.add("erhu-theme")}</script>` +
+	`<script src="/erhu/theme.js" defer></script>` +
+	`<meta name="erhu-server-version" content="` + html.EscapeString(version) + `">` +
 	`<link rel="icon" type="image/png" href="/erhu/logo.png"><meta name="theme-color" content="#0E0F12">`
 
 // isPage tells the requests that may answer with Navidrome's page (no file extension, or
