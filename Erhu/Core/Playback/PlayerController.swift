@@ -190,9 +190,7 @@ final class PlayerController {
         guard let entry = state.currentEntry else { return }
         let target = max(positionMs, 0)
         if isStreaming {
-            streamPlayer.seek(toMs: target)
-            setPosition(target)
-            updateNowPlaying()
+            seekStream(entry, to: target)
             return
         }
         if state.status == .buffering { startCurrent(at: target, playing: preparingPlayIntent); return }
@@ -448,7 +446,14 @@ final class PlayerController {
             preparingPlayIntent = playing
             state.durationMs = entry.song.durationMs
             setPosition(positionMs)
-            streamPlayer.play(entryId: entry.id, url: url, fileExtension: format, positionMs: positionMs, startPlaying: playing)
+            // A converted stream resuming part-way starts there, rather than from the beginning.
+            if ServerStream.shared.isConverted(entry.song), positionMs > 1000,
+               let partway = ServerStream.shared.streamURL(for: entry.song, offsetSeconds: Int(positionMs / 1000)) {
+                streamPlayer.play(entryId: entry.id, url: partway, fileExtension: format, positionMs: positionMs,
+                                  startPlaying: playing, offsetMs: (positionMs / 1000) * 1000)
+            } else {
+                streamPlayer.play(entryId: entry.id, url: url, fileExtension: format, positionMs: positionMs, startPlaying: playing)
+            }
             state.status = playing ? .buffering : .paused
             currentEntryChanged(sameEntryRepeated: false)
             if playing { watchStream(entry) }
@@ -565,6 +570,31 @@ final class PlayerController {
         NSLog("Erhu: direct stream failed, fetching instead: \(message)")
         fetchFirst.insert(entryId)
         startCurrent(at: state.positionMs, playing: preparingPlayIntent || state.isPlaying)
+    }
+
+    /// Seeking a song streaming straight from the server, as quickly as it allows: within what has
+    /// arrived, at once; the whole song fetched meanwhile, from the phone (the full player); a
+    /// converted stream, by starting a new one at that point (rather than waiting for everything
+    /// before it); otherwise the player asks the server for that part of the file.
+    private func seekStream(_ entry: QueueEntry, to target: Int64) {
+        setPosition(target)
+        updateNowPlaying()
+        if streamPlayer.hasLoaded(positionMs: target) {
+            streamPlayer.seek(toMs: target)
+        } else if ServerStream.shared.isCached(entry.song) {
+            startCurrent(at: target, playing: state.isPlaying || preparingPlayIntent)
+        } else if ServerStream.shared.isConverted(entry.song), target > 1000,
+                  let url = ServerStream.shared.streamURL(for: entry.song, offsetSeconds: Int(target / 1000)) {
+            let playing = state.isPlaying || preparingPlayIntent
+            let start = (target / 1000) * 1000
+            streamPlayer.play(entryId: entry.id, url: url, fileExtension: "", positionMs: target, startPlaying: playing, offsetMs: start)
+            if playing {
+                state.status = .buffering
+                watchStream(entry)
+            }
+        } else {
+            streamPlayer.seek(toMs: target)
+        }
     }
 
     /// A direct stream ran out of data mid-song: show it loading, and check on its server.

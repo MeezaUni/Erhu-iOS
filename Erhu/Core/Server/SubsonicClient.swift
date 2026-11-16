@@ -257,11 +257,14 @@ struct SubsonicClient: Sendable {
     // MARK: Media URLs
 
     /// The song as Erhu streams it: the original file, or converted to [quality].
-    func streamURL(_ id: String, quality: StreamQuality) -> URL {
+    /// [offsetSeconds]: a converted stream starting that far into the song (OpenSubsonic
+    /// transcodeOffset; Navidrome supports it).
+    func streamURL(_ id: String, quality: StreamQuality, offsetSeconds: Int = 0) -> URL {
         var items = [URLQueryItem(name: "id", value: id)]
         if let transcoding = quality.transcoding {
             items += [URLQueryItem(name: "format", value: transcoding.format),
                       URLQueryItem(name: "maxBitRate", value: String(transcoding.maxBitRate))]
+            if offsetSeconds > 0 { items.append(URLQueryItem(name: "timeOffset", value: String(offsetSeconds))) }
         } else {
             items.append(URLQueryItem(name: "format", value: "raw"))
         }
