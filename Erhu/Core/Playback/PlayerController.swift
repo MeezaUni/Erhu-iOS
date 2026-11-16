@@ -51,6 +51,11 @@ final class PlayerController {
     @ObservationIgnored private var artworkWarmup: Task<Void, Never>?
     @ObservationIgnored private var fileWarmup: Task<Void, Never>?
     @ObservationIgnored private var audioPreparation: Task<Void, Never>?
+    /// While a streamed song is loading: checks that its server still answers, so a server that
+    /// was turned off ends the wait with a message instead of loading forever.
+    @ObservationIgnored private var streamWatchdog: Task<Void, Never>?
+    /// The entry whose stuck loading was already restarted once.
+    @ObservationIgnored private var streamRetried: UUID?
     @ObservationIgnored private var engineSetup: Task<Void, Never>?
     @ObservationIgnored private var preparingPlayIntent = false
     private(set) var playbackError: String?
@@ -85,6 +90,7 @@ final class PlayerController {
         streamPlayer.onFinished = { [weak self] id in self?.entryFinished(id) }
         streamPlayer.onFailed = { [weak self] id, message in self?.streamFailed(id, message) }
         streamPlayer.onPausedBySystem = { [weak self] id in self?.streamPausedBySystem(id) }
+        streamPlayer.onWaiting = { [weak self] id in self?.streamWaiting(id) }
         streamPlayer.onBufferedEnough = { [weak self] id in
             guard let self, id == self.state.currentEntry?.id else { return }
             ServerStream.shared.prefetch(self.prefetchAfterBuffering)
@@ -407,6 +413,7 @@ final class PlayerController {
     /// Starts the current entry at [positionMs] from a fresh engine start.
     private func startCurrent(at positionMs: Int64, playing: Bool) {
         audioPreparation?.cancel(); audioPreparation = nil
+        streamWatchdog?.cancel(); streamWatchdog = nil
         playbackError = nil
         streamPlayer.stop()
         guard let entry = state.currentEntry else { return }
@@ -432,6 +439,7 @@ final class PlayerController {
             streamPlayer.play(entryId: entry.id, url: url, fileExtension: format, positionMs: positionMs, startPlaying: playing)
             state.status = playing ? .buffering : .paused
             currentEntryChanged(sameEntryRepeated: false)
+            if playing { watchStream(entry) }
             return
         }
         if entry.song.isStream, !ServerStream.shared.isCached(entry.song) {
@@ -445,6 +453,7 @@ final class PlayerController {
             state.durationMs = entry.song.durationMs
             setPosition(positionMs)
             updateNowPlaying()
+            watchStream(entry)
             audioPreparation = Task {
                 var failure: String?
                 do { try await ServerStream.shared.fetch(entry.song) } catch { failure = error.localizedDescription }
@@ -530,6 +539,8 @@ final class PlayerController {
 
     private func streamStarted(_ entryId: UUID) {
         guard entryId == state.currentEntry?.id, isStreaming else { return }
+        streamWatchdog?.cancel(); streamWatchdog = nil
+        streamRetried = nil
         preparingPlayIntent = false
         consecutiveErrors = 0
         if state.status != .playing { playingChanged(true) }
@@ -542,6 +553,55 @@ final class PlayerController {
         NSLog("Erhu: direct stream failed, fetching instead: \(message)")
         fetchFirst.insert(entryId)
         startCurrent(at: state.positionMs, playing: preparingPlayIntent || state.isPlaying)
+    }
+
+    /// A direct stream ran out of data mid-song: show it loading, and check on its server.
+    private func streamWaiting(_ entryId: UUID) {
+        guard entryId == state.currentEntry?.id, isStreaming, state.status == .playing, let entry = state.currentEntry else { return }
+        state.status = .buffering
+        updateNowPlaying()
+        watchStream(entry)
+    }
+
+    /// After a few seconds of loading, asks the song's server whether it is there. Not answering
+    /// ends the wait with a message; answering but still sending nothing ends it later.
+    private func watchStream(_ entry: QueueEntry) {
+        streamWatchdog?.cancel()
+        streamWatchdog = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(8))
+            guard let self, !Task.isCancelled, self.stillLoading(entry) else { return }
+            let answers = await ServerStream.shared.serverAnswers(for: entry.song)
+            guard !Task.isCancelled, self.stillLoading(entry) else { return }
+            if answers, self.streamRetried != entry.id {
+                // The server is there (perhaps just back): the old connection is stuck, so start over.
+                self.streamRetried = entry.id
+                ServerStream.shared.cancelFetch(of: entry.song)
+                self.fetchFirst.remove(entry.id)
+                self.startCurrent(at: self.state.positionMs, playing: true)
+            } else if answers {
+                try? await Task.sleep(for: .seconds(15))
+                guard !Task.isCancelled, self.stillLoading(entry) else { return }
+                self.endLoading(String(localized: "Your music server isn't sending this song right now. Try again in a moment."))
+            } else {
+                self.endLoading(String(localized: "Can't reach your music server. It may be turned off or disconnected."))
+            }
+        }
+    }
+
+    private func stillLoading(_ entry: QueueEntry) -> Bool {
+        state.currentEntry?.id == entry.id && state.status == .buffering
+    }
+
+    private func endLoading(_ message: String) {
+        audioPreparation?.cancel(); audioPreparation = nil
+        streamWatchdog = nil
+        streamPlayer.stop()
+        preparingPlayIntent = false
+        state.status = .paused
+        listening.onPlayingChanged(false, durationMs: state.durationMs)
+        stopTimer()
+        playbackError = message
+        updateNowPlaying()
     }
 
     private func streamPausedBySystem(_ entryId: UUID) {

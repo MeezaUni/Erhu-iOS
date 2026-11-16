@@ -103,6 +103,10 @@ final class ServerStream {
 
     /// Called when a streamed song starts playing (set by [ServerStore], for Recently streamed).
     var onStarted: ((UUID, ServerSong) -> Void)?
+    /// A streamed song's server stopped answering (so pages can stop offering its music).
+    var onServerUnreachable: ((UUID) -> Void)?
+    /// ...and that it answers again.
+    var onServerReachable: ((UUID) -> Void)?
     /// The library's album a server song belongs to, with a song of it whose cover the album
     /// shows: the streamed song joins that album (its cover, animated cover and page).
     var libraryAlbum: ((ServerSong) -> (albumId: Int64, coverSong: URL?)?)?
@@ -174,7 +178,8 @@ final class ServerStream {
         guard let client = clientProvider?(source.accountId) else { throw ServerStreamError.notConnected }
         let destination = song.url
         var request = URLRequest(url: client.streamURL(source.remoteId, quality: source.quality))
-        request.timeoutInterval = 60
+        // Seconds without any data before giving up (a server that went away).
+        request.timeoutInterval = 25
         let fetcher = StreamFetch(destination: destination) { fraction in
             Task { @MainActor in StreamLoading.shared.set(path, fraction) }
         }
@@ -185,9 +190,12 @@ final class ServerStream {
         fetchers[path] = fetcher
         StreamLoading.shared.started(path)
         defer {
-            inFlight[path] = nil
-            fetchers[path] = nil
-            StreamLoading.shared.finished(path)
+            // Unless a newer fetch of the same song replaced this one (see cancelFetch).
+            if fetchers[path] === fetcher {
+                inFlight[path] = nil
+                fetchers[path] = nil
+                StreamLoading.shared.finished(path)
+            }
         }
         try await task.value
         // Artwork asked for before the file arrived was remembered as missing: look again.
@@ -211,6 +219,16 @@ final class ServerStream {
     }
 
     /// Stops every fetch, so a song streaming directly has the whole connection.
+    /// Drops a fetch of [song] that stopped getting data (its server went away and came back),
+    /// so asking again starts a fresh download.
+    func cancelFetch(of song: Song) {
+        fetchers[song.path]?.cancel()
+        inFlight[song.path]?.cancel()
+        inFlight[song.path] = nil
+        fetchers[song.path] = nil
+        StreamLoading.shared.finished(song.path)
+    }
+
     func stopFetching() {
         prefetchTask?.cancel()
         prefetchTask = nil
@@ -251,6 +269,17 @@ final class ServerStream {
                            to: ServerCovers.fileURL(accountId: source.accountId, coverArt: coverArt), session: client.session) {
             ArtworkLoader.shared.forget(path: streamFile.path)
         }
+    }
+
+    /// Whether the server of streamed [song] answers (a quick ping). Reports it if not.
+    func serverAnswers(for song: Song) async -> Bool {
+        guard let source = sources[song.path] else { return false }
+        guard let client = clientProvider?(source.accountId), (try? await client.ping(timeout: 5)) != nil else {
+            onServerUnreachable?(source.accountId)
+            return false
+        }
+        onServerReachable?(source.accountId)
+        return true
     }
 
     /// A streamed song became the current song.

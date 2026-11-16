@@ -86,6 +86,10 @@ final class ServerStore {
         ServerStream.shared.allowsCaching = { [weak self] in !(self?.networkIsExpensive ?? false) }
         actions.streamFavorite = { [weak self] song in self?.toggleFavourite(stream: song) }
         ServerStream.shared.libraryAlbum = { [weak self] remote in self?.libraryAlbum(of: remote) }
+        // A song that couldn't load because its server is off: its music leaves the library's
+        // pages until the server answers again (checked when the app returns or the network changes).
+        ServerStream.shared.onServerUnreachable = { [weak self] id in self?.reachable.remove(id) }
+        ServerStream.shared.onServerReachable = { [weak self] id in self?.reachable.insert(id) }
         // Songs streamed before a server was removed and added again belong to it again.
         for account in accounts { adoptRecents(of: account) }
         // Joining or leaving a Wi-Fi network decides between the home and away addresses.
