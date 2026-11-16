@@ -75,6 +75,7 @@ final class ServerStore {
         ServerStream.shared.clientProvider = { [weak self] id in self?.client(for: id) }
         ServerStream.shared.onStarted = { [weak self] accountId, song in self?.noteStreamed(song, accountId: accountId) }
         ServerStream.shared.trimCache()
+        ServerStream.shared.allowsCaching = { [weak self] in !(self?.networkIsExpensive ?? false) }
         actions.streamFavorite = { [weak self] song in self?.toggleFavourite(stream: song) }
         // Songs streamed before a server was removed and added again belong to it again.
         for account in accounts { adoptRecents(of: account) }
