@@ -248,22 +248,27 @@ struct SearchView: View {
         }
     }
 
+    /// Songs first, then albums, then artists; when the search is an artist's name, that
+    /// artist comes first. The library's and the connected server's matches share each section,
+    /// the library's first; something on both shows once, as the library's.
     @ViewBuilder private var results: some View {
-        if !search.artists.isEmpty {
-            Shelf(title: "Artists") {
-                ForEach(search.artists) { artist in
-                    ArtistTile(artist: artist) { open(.artist(artist)) }.frame(width: 112)
-                }
-            }
-        }
-        if !search.albums.isEmpty {
-            Shelf(title: "Albums") {
-                ForEach(search.albums) { album in
-                    AlbumTile(album: album) { open(.album(album)) }.frame(width: 128)
-                }
-            }
-        }
-        if !search.songs.isEmpty {
+        let server = search.server
+        let account = server?.account
+        // Songs the library has are already among its results.
+        let remoteSongs = (server?.songs ?? []).filter { $0.isVideo != true && servers.librarySong(matching: $0) == nil }
+        let remoteAlbums = (server?.albums ?? []).filter { servers.libraryAlbum(named: $0.name, artist: $0.artist ?? "") == nil }
+        let remoteArtists = (server?.artists ?? []).filter { servers.libraryArtist(named: $0.name) == nil }
+        let typed = SearchNormalizer.normalize(search.query)
+        let artistFirst = search.artists.contains { SearchNormalizer.normalize($0.name) == typed }
+            || remoteArtists.contains { SearchNormalizer.normalize($0.name) == typed }
+        if artistFirst { artistSection(remoteArtists, account: account) }
+        songSection(remoteSongs, account: account)
+        albumSection(remoteAlbums, account: account)
+        if !artistFirst { artistSection(remoteArtists, account: account) }
+    }
+
+    @ViewBuilder private func songSection(_ remoteSongs: [ServerSong], account: ServerAccount?) -> some View {
+        if !search.songs.isEmpty || (account != nil && !remoteSongs.isEmpty) {
             SectionHeading(title: "Songs")
             let songActions = router.songActions(actions)
             ForEach(Array(search.songs.enumerated()), id: \.element.id) { index, song in
@@ -273,55 +278,63 @@ struct SearchView: View {
                     actions.play(search.songs, startIndex: index)
                 }
             }
+            if let account {
+                let source = PlaybackSource.server(account: account.id, album: nil, title: account.name)
+                let songs = servers.streamSongs(remoteSongs, account: account)
+                let rowActions = servers.songActions(source: source)
+                ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
+                    TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
+                        focused = false
+                        let remote = remoteSongs[index]
+                        search.remember(.serverSong(StreamedSong(accountId: account.id, song: remote, playedAt: Date(),
+                                                                 server: account.baseURL.absoluteString, username: account.username)))
+                        servers.play([remote], account: account,
+                                     source: .server(account: account.id, album: remote.albumId, title: remote.album ?? account.name))
+                    }
+                }
+            }
         }
-        if let server = search.server { serverResults(server) }
     }
 
-    /// The server's matches, after the library's, in the same shelves and rows.
-    @ViewBuilder private func serverResults(_ server: ServerSearchResults) -> some View {
-        let account = server.account
-        if !server.artists.isEmpty {
-            Shelf(title: String(localized: "Artists on \(account.name)")) {
-                ForEach(server.artists) { artist in
-                    ServerTile(accountId: account.id, title: artist.name, subtitle: artist.albumCount.map { countLabel($0, .album) },
-                               coverArt: artist.coverArt, placeholder: "music.mic", circular: true) {
-                        search.remember(.serverArtist(RecentServerItem(accountId: account.id, id: artist.id, title: artist.name,
-                                                                       subtitle: nil, coverArt: artist.coverArt,
-                                                                       server: account.baseURL.absoluteString, username: account.username)))
-                        openServer(.serverArtist(ServerRef(accountId: account.id, id: artist.id, title: artist.name)))
+    @ViewBuilder private func albumSection(_ remoteAlbums: [RecentServerAlbum], account: ServerAccount?) -> some View {
+        if !search.albums.isEmpty || (account != nil && !remoteAlbums.isEmpty) {
+            Shelf(title: "Albums") {
+                ForEach(search.albums) { album in
+                    AlbumTile(album: album) { open(.album(album)) }.frame(width: 128)
+                }
+                if let account {
+                    ForEach(remoteAlbums) { album in
+                        ServerTile(accountId: account.id, title: album.name, subtitle: album.artist, coverArt: album.coverArt,
+                                   showsStreamBadge: true) {
+                            search.remember(.serverAlbum(RecentServerItem(accountId: account.id, id: album.id, title: album.name,
+                                                                          subtitle: album.artist, coverArt: album.coverArt,
+                                                                          server: account.baseURL.absoluteString, username: account.username)))
+                            openServer(.serverAlbum(ServerRef(accountId: account.id, id: album.id, title: album.name)))
+                        }
+                        .frame(width: 128)
                     }
-                    .frame(width: 112)
                 }
             }
         }
-        if !server.albums.isEmpty {
-            Shelf(title: String(localized: "Albums on \(account.name)")) {
-                ForEach(server.albums) { album in
-                    ServerTile(accountId: account.id, title: album.name, subtitle: album.artist, coverArt: album.coverArt) {
-                        search.remember(.serverAlbum(RecentServerItem(accountId: account.id, id: album.id, title: album.name,
-                                                                      subtitle: album.artist, coverArt: album.coverArt,
-                                                                      server: account.baseURL.absoluteString, username: account.username)))
-                        openServer(.serverAlbum(ServerRef(accountId: account.id, id: album.id, title: album.name)))
-                    }
-                    .frame(width: 128)
+    }
+
+    @ViewBuilder private func artistSection(_ remoteArtists: [RecentServerArtist], account: ServerAccount?) -> some View {
+        if !search.artists.isEmpty || (account != nil && !remoteArtists.isEmpty) {
+            Shelf(title: "Artists") {
+                ForEach(search.artists) { artist in
+                    ArtistTile(artist: artist) { open(.artist(artist)) }.frame(width: 112)
                 }
-            }
-        }
-        // Songs the library has are already among its results above.
-        let remoteSongs = server.songs.filter { $0.isVideo != true && servers.librarySong(matching: $0) == nil }
-        if !remoteSongs.isEmpty {
-            SectionHeading(title: String(localized: "Songs on \(account.name)"))
-            let source = PlaybackSource.server(account: account.id, album: nil, title: account.name)
-            let songs = servers.streamSongs(remoteSongs, account: account)
-            let rowActions = servers.songActions(source: source)
-            ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
-                TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
-                    focused = false
-                    let remote = remoteSongs[index]
-                    search.remember(.serverSong(StreamedSong(accountId: account.id, song: remote, playedAt: Date(),
-                                                             server: account.baseURL.absoluteString, username: account.username)))
-                    servers.play([remote], account: account,
-                                 source: .server(account: account.id, album: remote.albumId, title: remote.album ?? account.name))
+                if let account {
+                    ForEach(remoteArtists) { artist in
+                        ServerTile(accountId: account.id, title: artist.name, subtitle: artist.albumCount.map { countLabel($0, .album) },
+                                   coverArt: artist.coverArt, placeholder: "music.mic", circular: true, showsStreamBadge: true) {
+                            search.remember(.serverArtist(RecentServerItem(accountId: account.id, id: artist.id, title: artist.name,
+                                                                           subtitle: nil, coverArt: artist.coverArt,
+                                                                           server: account.baseURL.absoluteString, username: account.username)))
+                            openServer(.serverArtist(ServerRef(accountId: account.id, id: artist.id, title: artist.name)))
+                        }
+                        .frame(width: 112)
+                    }
                 }
             }
         }
