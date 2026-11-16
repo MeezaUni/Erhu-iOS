@@ -18,6 +18,9 @@ final class ServerStore {
     private(set) var downloads: [ServerDownload] = []
     /// Songs streamed lately, newest first (kept between launches; only what is needed to play them again).
     private(set) var recentlyStreamed: [StreamedSong] = []
+    /// Home's Recently streamed albums: the last [albumLimit], newest first, each with its cover
+    /// saved on this device, so they show with or without a connection.
+    private(set) var recentAlbums: [StreamedAlbum] = []
     /// Favourite changes made in this session, by "account/song", shown before the server list is reloaded.
     private(set) var favouriteChanges: [String: Bool] = [:]
     /// A pairing link (QR code from the Erhu Server app) waiting to be shown as a filled-in Add server sheet.
@@ -38,7 +41,9 @@ final class ServerStore {
         static let selected = "musicServer.selected"
         static let quality = "musicServer.streamQuality"
         static let recent = "musicServer.recentlyStreamed"
+        static let recentAlbums = "musicServer.recentAlbums"
     }
+    nonisolated static let albumLimit = 5
     static let recentLimit = 100
 
     init(library: LibraryStore, actions: LibraryActions, player: PlayerController) {
@@ -55,6 +60,15 @@ final class ServerStore {
         if let data = UserDefaults.standard.data(forKey: Keys.recent),
            let saved = try? JSONDecoder().decode([StreamedSong].self, from: data) {
             recentlyStreamed = saved
+        }
+        if let data = UserDefaults.standard.data(forKey: Keys.recentAlbums),
+           let saved = try? JSONDecoder().decode([StreamedAlbum].self, from: data) {
+            recentAlbums = saved
+        } else {
+            // First launch with this list: start it from the songs streamed so far.
+            for item in recentlyStreamed.reversed() {
+                if let album = StreamedAlbum(item) { recentAlbums = Self.addingAlbum(album, to: recentAlbums).list }
+            }
         }
         ServerStream.shared.clientProvider = { [weak self] id in self?.client(for: id) }
         ServerStream.shared.onStarted = { [weak self] accountId, song in self?.noteStreamed(song, accountId: accountId) }
@@ -207,6 +221,13 @@ final class ServerStore {
         let start = shuffled == true ? Int.random(in: 0..<playable.count) : min(max(index, 0), playable.count - 1)
         player.playCollection(playable, startIndex: start, origin: nil,
                               source: source ?? .server(account: account.id, album: nil, title: account.name))
+        // Home's Recently streamed albums follows what was played, even before the song arrives.
+        let started = songs.filter { $0.isVideo != true }
+        if started.indices.contains(start),
+           let album = StreamedAlbum(StreamedSong(accountId: account.id, song: started[start], playedAt: Date(),
+                                                  server: account.baseURL.absoluteString, username: account.username)) {
+            noteAlbum(album)
+        }
     }
 
     /// Playable songs for [songs], with each one's favourite mark as the server (or this session) has it.
@@ -233,6 +254,44 @@ final class ServerStore {
                                 server: account?.baseURL.absoluteString ?? "", username: account?.username ?? "")
         recentlyStreamed = Self.addingRecent(item, to: recentlyStreamed)
         saveRecent()
+        if let album = StreamedAlbum(item) { noteAlbum(album) }
+    }
+
+    /// Puts [album] first on Home's Recently streamed albums. An album pushed off the list loses
+    /// its saved cover.
+    private func noteAlbum(_ album: StreamedAlbum) {
+        let (list, dropped) = Self.addingAlbum(album, to: recentAlbums)
+        if list != recentAlbums {
+            recentAlbums = list
+            for gone in dropped { try? FileManager.default.removeItem(at: gone.coverFile) }
+            if let data = try? JSONEncoder().encode(recentAlbums) { UserDefaults.standard.set(data, forKey: Keys.recentAlbums) }
+        }
+        saveCover(of: album)
+    }
+
+    /// [album] first, an earlier entry for the same album replaced, at most [limit]; also returns
+    /// the albums that fell off the end.
+    nonisolated static func addingAlbum(_ album: StreamedAlbum, to list: [StreamedAlbum],
+                                        limit: Int = albumLimit) -> (list: [StreamedAlbum], dropped: [StreamedAlbum]) {
+        let all = [album] + list.filter { $0.id != album.id }
+        return (Array(all.prefix(limit)), Array(all.dropFirst(limit)))
+    }
+
+    /// Keeps a copy of [album]'s cover on this device: from the streaming cover cache when it is
+    /// there, otherwise fetched from its server (when connected).
+    func saveCover(of album: StreamedAlbum) {
+        let target = album.coverFile
+        guard !FileManager.default.fileExists(atPath: target.path), let coverArt = album.coverArt else { return }
+        let account = self.account(album.accountId, server: album.server, username: album.username)
+        let cached = ServerCovers.fileURL(accountId: account?.id ?? album.accountId, coverArt: coverArt)
+        if FileManager.default.fileExists(atPath: cached.path) {
+            try? FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+            if (try? FileManager.default.copyItem(at: cached, to: target)) != nil {
+                NotificationCenter.default.post(name: ServerCovers.didChange, object: target.path)
+            }
+        } else if let account, let client = client(for: account.id) {
+            ServerCovers.fetch(client.coverArtURL(coverArt, size: 800), to: target, session: client.session)
+        }
     }
 
     /// [recent] with [item] first, any earlier entry for the same song removed, capped at [recentLimit].
@@ -265,18 +324,11 @@ final class ServerStore {
         return true
     }
 
-    /// The last five albums streamed, newest first (Home's Recently streamed albums).
-    var recentAlbums: [StreamedAlbum] { Self.recentAlbums(from: recentlyStreamed) }
-
-    nonisolated static func recentAlbums(from recent: [StreamedSong], limit: Int = 5) -> [StreamedAlbum] {
-        var seen = Set<String>()
-        var albums: [StreamedAlbum] = []
-        for item in recent {
-            guard let albumId = item.song.albumId, seen.insert("\(item.accountId.uuidString)/\(albumId)").inserted else { continue }
-            albums.append(StreamedAlbum(item: item, albumId: albumId))
-            if albums.count == limit { break }
-        }
-        return albums
+    /// Plays a Recently streamed album whose server has no album ID for it: the songs of it
+    /// streamed lately.
+    func playRecent(_ album: StreamedAlbum) -> Bool {
+        guard let first = recentlyStreamed.first(where: { StreamedAlbum($0)?.id == album.id }) else { return false }
+        return playRecent(first)
     }
 
     /// Songs streamed from a server that was removed and is now added again (same address and
@@ -475,13 +527,36 @@ struct StreamedSong: Codable, Hashable, Identifiable, Sendable {
     var id: String { "\(accountId.uuidString)/\(song.id)" }
 }
 
-/// An album on Home's Recently streamed shelf, from the newest song streamed from it.
-struct StreamedAlbum: Identifiable, Hashable, Sendable {
-    let item: StreamedSong
-    let albumId: String
-    var id: String { "\(item.accountId.uuidString)/\(albumId)" }
-    var accountId: UUID { item.accountId }
-    var title: String { item.song.album ?? String(localized: "Unknown") }
-    var artist: String? { item.song.artist }
-    var coverArt: String? { item.song.coverArt }
+/// An album on Home's Recently streamed shelf: what is needed to show and open it, also when
+/// its server isn't connected.
+struct StreamedAlbum: Codable, Hashable, Identifiable, Sendable {
+    let accountId: UUID
+    var server = ""
+    var username = ""
+    /// The album's ID on the server (nil if the server didn't say).
+    let albumId: String?
+    let title: String
+    let artist: String?
+    let coverArt: String?
+
+    /// The same album from a server added again is the same entry.
+    var id: String { "\(server)|\(username)|\(albumId ?? "\(title)|\(artist ?? "")")" }
+
+    /// The album of a streamed song (nil when the song names no album).
+    init?(_ item: StreamedSong) {
+        guard item.song.albumId != nil || !(item.song.album ?? "").isEmpty else { return nil }
+        accountId = item.accountId
+        server = item.server
+        username = item.username
+        albumId = item.song.albumId
+        title = item.song.album ?? String(localized: "Unknown")
+        artist = item.song.artist
+        coverArt = item.song.coverArt
+    }
+
+    /// Where its cover is kept on this device (Application Support, so iOS never clears it).
+    var coverFile: URL {
+        LibraryPaths.supportFolder.appendingPathComponent("streamed-album-covers", isDirectory: true)
+            .appendingPathComponent(String(ServerStreamPaths.hash(id), radix: 16) + ".img")
+    }
 }
