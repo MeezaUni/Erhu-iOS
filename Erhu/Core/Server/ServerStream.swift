@@ -134,16 +134,10 @@ final class ServerStream {
         let id = ServerStreamPaths.songId(accountId: accountId, remoteId: remote.id)
         sources[path] = Source(accountId: accountId, remoteId: remote.id, quality: quality)
         remotes[path] = remote
-        // The cover is fetched now, ahead of the audio, so the song shows artwork everywhere at once.
+        // Its cover is known now (rows show the small one); the large one is fetched once it plays.
         if let coverArt = remote.coverArt {
-            let streamFile = ServerStreamPaths.cacheURL(forPath: path)
-            let cover = ServerCovers.fileURL(accountId: accountId, coverArt: coverArt)
-            ServerCovers.register(streamFile: streamFile, cover: cover)
-            if let client = clientProvider?(accountId) {
-                ServerCovers.fetch(client.coverArtURL(coverArt, size: 800), to: cover, session: client.session) {
-                    ArtworkLoader.shared.forget(path: streamFile.path)
-                }
-            }
+            ServerCovers.register(streamFile: ServerStreamPaths.cacheURL(forPath: path),
+                                  cover: ServerCovers.fileURL(accountId: accountId, coverArt: coverArt))
         }
         pathsById[id] = path
         return Song(id: id, title: remote.title, artist: remote.artist ?? "", album: remote.album ?? "",
@@ -243,8 +237,20 @@ final class ServerStream {
         return (source.accountId, remote)
     }
 
+    /// Fetches the large cover of [song] (Now Playing, the mini player, the lock screen).
+    func fetchCover(of song: Song) {
+        guard let source = sources[song.path], let coverArt = remotes[song.path]?.coverArt,
+              let client = clientProvider?(source.accountId) else { return }
+        let streamFile = ServerStreamPaths.cacheURL(forPath: song.path)
+        ServerCovers.fetch(client.coverArtURL(coverArt, size: ServerCovers.Size.large.pixels),
+                           to: ServerCovers.fileURL(accountId: source.accountId, coverArt: coverArt), session: client.session) {
+            ArtworkLoader.shared.forget(path: streamFile.path)
+        }
+    }
+
     /// A streamed song became the current song.
     func noteStarted(_ song: Song) {
+        fetchCover(of: song)
         guard let source = sources[song.path], let remote = remotes[song.path] else { return }
         onStarted?(source.accountId, remote)
     }

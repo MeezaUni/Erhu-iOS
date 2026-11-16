@@ -6,10 +6,18 @@ private let gridColumns = [GridItem(.adaptive(minimum: ArtworkSize.gridMin), spa
 struct AlbumsView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(AppRouter.self) private var router
+    @Environment(ServerStore.self) private var servers
     @AppStorage("library.albums.sort") private var sort = LibrarySort.title.rawValue
     @State private var query = ""
     @State private var showsSearch = false
-    @State private var results: [Album]?
+    /// The library's albums with the connected server's (marked as streamed), searched and sorted.
+    @State private var results: [AlbumGridItem]?
+
+    private struct Key: Hashable {
+        let request: AlbumBrowseRequest
+        let catalog: Int
+        let account: UUID?
+    }
 
     private var request: AlbumBrowseRequest {
         AlbumBrowseRequest(albums: library.albums, songs: library.songs, facts: library.browseFacts,
@@ -20,7 +28,7 @@ struct AlbumsView: View {
         LibraryBrowseScrollView(title: "Albums", isTabRoot: true, query: $query, showsSearch: $showsSearch) {
             LibrarySortMenu(selection: $sort, options: LibrarySort.albums)
         } content: {
-            if library.albums.isEmpty {
+            if library.albums.isEmpty && (results ?? []).isEmpty {
                 EmptyState(message: library.isScanning ? "Scanning your music…" : "No albums yet.", systemImage: "square.stack")
             } else if let results {
                 Text(countLabel(results.count, .album)).font(.caption).foregroundStyle(.secondary)
@@ -29,8 +37,16 @@ struct AlbumsView: View {
                     EmptyState(message: "No albums match your search.", systemImage: "magnifyingglass")
                 } else {
                     LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
-                        ForEach(results) { album in
-                            AlbumTile(album: album) { router.open(.album(album.id)) }
+                        ForEach(results) { item in
+                            switch item {
+                            case .local(let album):
+                                AlbumTile(album: album) { router.open(.album(album.id)) }
+                            case .server(let account, let album):
+                                ServerTile(accountId: account, title: album.name, subtitle: album.artist, coverArt: album.coverArt,
+                                           showsStreamBadge: true) {
+                                    router.open(.serverAlbum(ServerRef(accountId: account, id: album.id, title: album.name)))
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, Spacing.gutter)
@@ -40,12 +56,19 @@ struct AlbumsView: View {
                 ProgressView().frame(maxWidth: .infinity).padding()
             }
         }
-        .task(id: request) {
+        .task(id: Key(request: request, catalog: servers.catalogVersion, account: servers.selected?.id)) {
             let snapshot = request
+            let account = servers.selected?.id
+            let index = account.flatMap { servers.catalog(for: $0) }
             // Typing cancels the previous delivery; large libraries never sort on the UI thread.
             if !snapshot.query.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
             guard !Task.isCancelled else { return }
-            let updated = await Task.detached(priority: .userInitiated) { snapshot.results() }.value
+            let updated = await Task.detached(priority: .userInitiated) { () -> [AlbumGridItem] in
+                let query = snapshot.query.trimmingCharacters(in: .whitespaces)
+                let server = index.map { query.isEmpty ? $0.catalog.albums : $0.search(query, limit: 500).albums } ?? []
+                return ServerLibraryMerge.albums(local: snapshot.results(), server: server, accountId: account,
+                                                 sort: snapshot.sort, searching: !query.isEmpty)
+            }.value
             guard !Task.isCancelled else { return }
             results = updated
         }
@@ -156,7 +179,11 @@ struct LibraryShelfView: View {
 /// Every track, with a local query, remembered sorting, and tag-based genre/mood filters.
 struct AllSongsView: View {
     @Environment(LibraryStore.self) private var library
+    @Environment(ServerStore.self) private var servers
+    @Environment(PlayerController.self) private var player
     @AppStorage("library.songs.sort") private var sort = LibrarySort.title.rawValue
+    /// The connected server's songs matching the search and genre (moods need the library's tags).
+    @State private var serverSongs: [ServerSong] = []
     @State private var query = ""
     @State private var showsSearch = false
     @State private var genre = ""
@@ -192,9 +219,14 @@ struct AllSongsView: View {
                     .font(.caption).foregroundStyle(.secondary).padding(.horizontal, Spacing.gutter)
             }
             if let results {
-                Text(countLabel(results.count, .song)).font(.caption).foregroundStyle(.secondary)
+                Text(countLabel(results.count + serverSongs.count, .song)).font(.caption).foregroundStyle(.secondary)
                     .padding(.horizontal, Spacing.gutter)
-                SongList(songs: results, emptyMessage: library.songs.isEmpty ? String(localized: "No songs found.") : String(localized: "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood."), emptyIcon: "music.note")
+                if !(results.isEmpty && !serverSongs.isEmpty) {
+                    SongList(songs: results, emptyMessage: library.songs.isEmpty ? String(localized: "No songs found.") : String(localized: "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood."), emptyIcon: "music.note")
+                }
+                if let account = servers.selected, !serverSongs.isEmpty {
+                    serverSection(account)
+                }
             } else {
                 ProgressView().frame(maxWidth: .infinity).padding()
             }
@@ -212,6 +244,38 @@ struct AllSongsView: View {
             genres = updated.1
         }
         .refreshable { library.scan() }
+        .task(id: "\(query)|\(genre)|\(mood.rawValue)|\(servers.catalogVersion)|\(servers.selected?.id.uuidString ?? "")") {
+            guard mood == .all, let account = servers.selected, let index = servers.catalog(for: account.id) else {
+                serverSongs = []
+                return
+            }
+            let text = query, genre = genre
+            if !text.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
+            guard !Task.isCancelled else { return }
+            let found = await Task.detached(priority: .userInitiated) { ServerLibraryMerge.songs(in: index, query: text, genre: genre) }.value
+            guard !Task.isCancelled else { return }
+            serverSongs = found
+        }
+    }
+
+    /// The server's songs, streamed (each row marked), after the library's.
+    @ViewBuilder private func serverSection(_ account: ServerAccount) -> some View {
+        SectionHeading(title: String(localized: "Songs on \(account.name)"))
+        let source = PlaybackSource.server(account: account.id, album: nil, title: account.name)
+        let rowActions = servers.songActions(source: source)
+        LazyVStack(spacing: 0) {
+            ForEach(Array(serverSongs.enumerated()), id: \.offset) { index, remote in
+                let song = servers.streamSongs([remote], account: account).first
+                if let song {
+                    TrackRow(song: song, isCurrent: song.id == player.state.currentSong?.id, actions: rowActions) {
+                        // This song and the next ones (a bounded queue, not the whole server).
+                        let upcoming = Array(serverSongs[index...].prefix(100))
+                        servers.play(upcoming, account: account,
+                                     source: .server(account: account.id, album: remote.albumId, title: remote.album ?? account.name))
+                    }
+                }
+            }
+        }
     }
 
     private var genreMenu: some View {

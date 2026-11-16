@@ -109,10 +109,18 @@ struct TrackRow: View {
                         .font(.body.weight(.semibold))
                         .foregroundStyle(isCurrent ? Color.accentColor : palette.onSurface)
                         .lineLimit(1)
-                    Text(subtitle ?? [song.artist, song.album].filter { !$0.isBlank }.joined(separator: " · "))
-                        .font(.subheadline)
-                        .foregroundStyle(palette.onSurfaceVariant)
-                        .lineLimit(1)
+                    HStack(spacing: 4) {
+                        // Streams from a server rather than living on this device.
+                        if song.isStream {
+                            Image(systemName: "dot.radiowaves.up.forward").font(.caption2.weight(.bold))
+                                .foregroundStyle(palette.onSurfaceVariant)
+                                .accessibilityHidden(true)
+                        }
+                        Text(subtitle ?? [song.artist, song.album].filter { !$0.isBlank }.joined(separator: " · "))
+                            .font(.subheadline)
+                            .foregroundStyle(palette.onSurfaceVariant)
+                            .lineLimit(1)
+                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -136,7 +144,8 @@ struct TrackRow: View {
                                tap: { _ in tapped() })
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel([song.title, song.artist].filter { !$0.isBlank }.joined(separator: ", "))
+            .accessibilityLabel(([song.title, song.artist] + (song.isStream ? [String(localized: "Streams from your server")] : []))
+                .filter { !$0.isBlank }.joined(separator: ", "))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onTap() }
             Button { actions.toggleFavorite(song) } label: {
@@ -203,6 +212,11 @@ struct TrackRow: View {
                 .font(.body.weight(.semibold).monospacedDigit())
                 .foregroundStyle(isCurrent ? Color.accentColor : palette.onSurfaceVariant)
                 .frame(width: ArtworkSize.list, height: ArtworkSize.list)
+        } else if song.isStream, let remote = ServerStream.shared.remote(for: song) {
+            // The small server cover: quick to fetch, and doesn't wait for the song.
+            ServerCoverView(accountId: remote.accountId, coverArt: remote.song.coverArt, maxPixels: 144)
+                .frame(width: ArtworkSize.list, height: ArtworkSize.list)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
         } else {
             SongArtworkView(song: song, maxPixels: 144)
                 .frame(width: ArtworkSize.list, height: ArtworkSize.list)
