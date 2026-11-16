@@ -108,6 +108,7 @@ final class ServerStream {
     private var remotes: [String: ServerSong] = [:]
     private var pathsById: [Int64: String] = [:]
     private var inFlight: [String: Task<Void, Error>] = [:]
+    private var fetchers: [String: StreamFetch] = [:]
     private var prefetchTask: Task<Void, Never>?
 
     private init() {}
@@ -158,69 +159,35 @@ final class ServerStream {
         return (values?.fileSize ?? 0) > 0
     }
 
-    /// Fetches [song] into the cache unless it is already there. Concurrent requests share one fetch.
-    func fetch(_ song: Song) async throws {
+    /// Fetches [song] into the cache unless it is already there. Concurrent requests share one
+    /// fetch. The song the player is waiting for ([background] false) gets the connection to
+    /// itself: other fetches (songs fetched ahead, a song skipped while loading) are stopped; the
+    /// songs after the new one are fetched again once it plays.
+    func fetch(_ song: Song, background: Bool = false) async throws {
         guard song.isStream, !isCached(song) else { return }
         let path = song.path
+        if !background {
+            prefetchTask?.cancel()
+            for (other, fetcher) in fetchers where other != path { fetcher.cancel() }
+        }
         if let running = inFlight[path] { return try await running.value }
         guard let source = sources[path] else { throw ServerStreamError.unknownSong }
         guard let client = clientProvider?(source.accountId) else { throw ServerStreamError.notConnected }
         let destination = song.url
-        let task = Task.detached(priority: .userInitiated) {
-            var request = URLRequest(url: client.streamURL(source.remoteId, quality: source.quality))
-            request.timeoutInterval = 60
-            let (bytes, response) = try await client.session.bytes(for: request)
-            let type = (response.mimeType ?? "").lowercased()
-            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) || type.contains("json") || type.contains("xml") {
-                // An error arrives as a Subsonic response instead of audio.
-                var body = Data()
-                for try await byte in bytes {
-                    body.append(byte)
-                    if body.count > 1 << 20 { break }
-                }
-                _ = try SubsonicClient.decode(body, response: response)
-                throw ServerStreamError.notAudio
-            }
-            // Written to a ".part" file as it arrives (reporting progress), then moved into place,
-            // so the player never sees half a song.
-            let folder = destination.deletingLastPathComponent()
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            let partial = folder.appendingPathComponent(UUID().uuidString + ".part")
-            guard FileManager.default.createFile(atPath: partial.path, contents: nil) else { throw CocoaError(.fileWriteUnknown) }
-            let expected = response.expectedContentLength
-            do {
-                let handle = try FileHandle(forWritingTo: partial)
-                defer { try? handle.close() }
-                var buffer = Data()
-                buffer.reserveCapacity(1 << 16)
-                var written: Int64 = 0
-                var reported = 0.0
-                for try await byte in bytes {
-                    buffer.append(byte)
-                    guard buffer.count >= 1 << 16 else { continue }
-                    try handle.write(contentsOf: buffer)
-                    written += Int64(buffer.count)
-                    buffer.removeAll(keepingCapacity: true)
-                    if expected > 0 {
-                        let fraction = Double(written) / Double(expected)
-                        if fraction - reported >= 0.01 {
-                            reported = fraction
-                            await MainActor.run { StreamLoading.shared.set(path, fraction) }
-                        }
-                    }
-                }
-                try handle.write(contentsOf: buffer)
-            } catch {
-                try? FileManager.default.removeItem(at: partial)
-                throw error
-            }
-            try? FileManager.default.removeItem(at: destination)
-            try FileManager.default.moveItem(at: partial, to: destination)
+        var request = URLRequest(url: client.streamURL(source.remoteId, quality: source.quality))
+        request.timeoutInterval = 60
+        let fetcher = StreamFetch(destination: destination) { fraction in
+            Task { @MainActor in StreamLoading.shared.set(path, fraction) }
         }
+        // Detached: leaving the page or the player giving up waiting doesn't stop it; only a newer
+        // song the player waits for does (see above).
+        let task = Task.detached(priority: background ? .utility : .userInitiated) { try await fetcher.run(request) }
         inFlight[path] = task
+        fetchers[path] = fetcher
         StreamLoading.shared.started(path)
         defer {
             inFlight[path] = nil
+            fetchers[path] = nil
             StreamLoading.shared.finished(path)
         }
         try await task.value
@@ -237,7 +204,7 @@ final class ServerStream {
         prefetchTask = Task { [weak self] in
             for song in pending {
                 guard !Task.isCancelled else { return }
-                try? await self?.fetch(song)
+                try? await self?.fetch(song, background: true)
             }
         }
     }
@@ -292,5 +259,132 @@ final class ServerStream {
         var total: Int64 = 0
         for case let url as URL in enumerator { total += Int64((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
         return total
+    }
+}
+
+/// Fetches one streamed song into a file as it arrives (in the chunks the network delivers, so
+/// a fast connection is used at full speed), reports how far it has got, and moves the file into
+/// place only when it is complete, so the player never sees half a song.
+final class StreamFetch: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+    private let destination: URL
+    private let partial: URL
+    private let progress: @Sendable (Double) -> Void
+    // Touched only on the session's own (serial) delegate queue, except [task] and [continuation].
+    private var handle: FileHandle?
+    private var response: URLResponse?
+    private var expected: Int64 = -1
+    private var written: Int64 = 0
+    private var reported = 0.0
+    private var errorBody = Data()
+    private var isErrorResponse = false
+    private var writeError: Error?
+    private let lock = NSLock()
+    private var task: URLSessionDataTask?
+    private var continuation: CheckedContinuation<Void, Error>?
+    private var cancelled = false
+
+    init(destination: URL, progress: @escaping @Sendable (Double) -> Void) {
+        self.destination = destination
+        partial = destination.deletingLastPathComponent().appendingPathComponent(UUID().uuidString + ".part")
+        self.progress = progress
+    }
+
+    func run(_ request: URLRequest) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+            let task = session.dataTask(with: request)
+            let stop = lock.withLock { () -> Bool in
+                self.continuation = continuation
+                self.task = task
+                return cancelled
+            }
+            if stop { task.cancel() }
+            task.resume()
+            // The session lets go of this delegate once the task ends.
+            session.finishTasksAndInvalidate()
+        }
+    }
+
+    /// Stops the fetch; [run] then throws a cancellation error and no file is left behind.
+    func cancel() {
+        let task = lock.withLock { () -> URLSessionDataTask? in
+            cancelled = true
+            return self.task
+        }
+        task?.cancel()
+    }
+
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
+                    completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        self.response = response
+        expected = response.expectedContentLength
+        let type = (response.mimeType ?? "").lowercased()
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) || type.contains("json") || type.contains("xml") {
+            // An error arrives as a Subsonic response instead of audio.
+            isErrorResponse = true
+        } else {
+            do {
+                try FileManager.default.createDirectory(at: partial.deletingLastPathComponent(), withIntermediateDirectories: true)
+                guard FileManager.default.createFile(atPath: partial.path, contents: nil) else { throw CocoaError(.fileWriteUnknown) }
+                handle = try FileHandle(forWritingTo: partial)
+            } catch {
+                writeError = error
+                completionHandler(.cancel)
+                return
+            }
+        }
+        completionHandler(.allow)
+    }
+
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        if isErrorResponse {
+            if errorBody.count < 1 << 20 { errorBody.append(data) }
+            return
+        }
+        do {
+            try handle?.write(contentsOf: data)
+        } catch {
+            writeError = error
+            dataTask.cancel()
+            return
+        }
+        written += Int64(data.count)
+        if expected > 0 {
+            let fraction = Double(written) / Double(expected)
+            if fraction - reported >= 0.01 {
+                reported = fraction
+                progress(fraction)
+            }
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        try? handle?.close()
+        handle = nil
+        let result: Result<Void, Error>
+        if let failure = writeError ?? error {
+            result = .failure(failure)
+        } else if isErrorResponse {
+            do {
+                _ = try SubsonicClient.decode(errorBody, response: response)
+                result = .failure(ServerStreamError.notAudio)
+            } catch {
+                result = .failure(error)
+            }
+        } else {
+            do {
+                try? FileManager.default.removeItem(at: destination)
+                try FileManager.default.moveItem(at: partial, to: destination)
+                result = .success(())
+            } catch {
+                result = .failure(error)
+            }
+        }
+        if case .failure = result { try? FileManager.default.removeItem(at: partial) }
+        let continuation = lock.withLock { () -> CheckedContinuation<Void, Error>? in
+            defer { self.continuation = nil }
+            return self.continuation
+        }
+        continuation?.resume(with: result)
     }
 }
