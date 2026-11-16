@@ -32,6 +32,8 @@ final class ServerStore {
     @ObservationIgnored private var downloadTask: Task<Void, Never>?
     @ObservationIgnored private var routeTask: Task<Void, Never>?
     @ObservationIgnored private let pathMonitor = NWPathMonitor()
+    /// On mobile data or Low Data Mode: nothing is fetched ahead of time just in case.
+    @ObservationIgnored private(set) var networkIsExpensive = false
     @ObservationIgnored private let library: LibraryStore
     @ObservationIgnored private let actions: LibraryActions
     @ObservationIgnored private let player: PlayerController
@@ -77,8 +79,12 @@ final class ServerStore {
         // Songs streamed before a server was removed and added again belong to it again.
         for account in accounts { adoptRecents(of: account) }
         // Joining or leaving a Wi-Fi network decides between the home and away addresses.
-        pathMonitor.pathUpdateHandler = { [weak self] _ in
-            Task { @MainActor in self?.chooseRoutes() }
+        pathMonitor.pathUpdateHandler = { [weak self] path in
+            let expensive = path.isExpensive || path.isConstrained
+            Task { @MainActor in
+                self?.networkIsExpensive = expensive
+                self?.chooseRoutes()
+            }
         }
         pathMonitor.start(queue: DispatchQueue(label: "erhu.server.path"))
     }

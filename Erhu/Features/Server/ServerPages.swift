@@ -146,6 +146,13 @@ private struct ServerCollectionPage: View {
         }
         .background { CollectionPageBackground() }
         .collectionArtworkTheme(.image(themeCover))
+        // On Wi-Fi, start fetching the first song as the page opens, so Play starts at once.
+        .task(id: songs.first?.path) {
+            guard !servers.networkIsExpensive, let first = songs.first else { return }
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, player.state.currentSong?.path != first.path else { return }
+            ServerStream.shared.prefetch([first])
+        }
         .onReceive(NotificationCenter.default.publisher(for: ServerCovers.didChange)) { note in
             if note.object as? String == coverFile?.path { coverRevision += 1 }
         }
