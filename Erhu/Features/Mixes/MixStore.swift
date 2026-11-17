@@ -23,6 +23,7 @@ final class MixStore {
     @ObservationIgnored private let store = JSONStore<Set<Int64>>(name: "hidden_from_mixes.json", debounce: .zero)
     @ObservationIgnored private let cache = JSONStore<SmartMixes>(name: "smart_mixes.json")
     @ObservationIgnored private var observer: NSObjectProtocol?
+    @ObservationIgnored private var feedObserver: NSObjectProtocol?
     @ObservationIgnored private var pending: Task<Void, Never>?
     @ObservationIgnored private var building: Task<Void, Never>?
     @ObservationIgnored private var started = false
@@ -41,6 +42,10 @@ final class MixStore {
         rebuild()
         observer = NotificationCenter.default.addObserver(forName: SQLiteDatabase.didChange, object: database.db, queue: .main) { [weak self] note in
             guard SQLiteDatabase.affects(note, tables: ["songs", "listening_stats"]) else { return }
+            MainActor.assumeIsolated { self?.scheduleRebuild() }
+        }
+        // A server's songs joining or leaving the mixes (connected, disconnected, catalog changed).
+        feedObserver = NotificationCenter.default.addObserver(forName: ServerMusicFeed.didChange, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.scheduleRebuild() }
         }
     }
@@ -62,7 +67,7 @@ final class MixStore {
         let hidden = hidden
         let now = Self.now()
         guard let profile = await Task.detached(priority: .userInitiated, operation: {
-            try? SmartMixEngine.profile(tracks: database.trackFacts(), plays: database.monthlyPlays(), now: now, hidden: hidden)
+            try? SmartMixEngine.profile(tracks: database.trackFacts() + ServerMusicFeed.shared.tracks(), plays: database.monthlyPlays(), now: now, hidden: hidden)
         }).value else { return nil }
         let anchors = RadioEngine.anchors(profile, seed)
         if anchors.isEmpty { return nil }
@@ -99,7 +104,7 @@ final class MixStore {
 
     nonisolated static func build(database: LibraryDatabase, vybe: VybeEngine, hidden: Set<Int64>, now: Int64) async -> SmartMixes? {
         guard let profile = await Task.detached(priority: .utility, operation: {
-            try? SmartMixEngine.profile(tracks: database.trackFacts(), plays: database.monthlyPlays(), now: now, hidden: hidden)
+            try? SmartMixEngine.profile(tracks: database.trackFacts() + ServerMusicFeed.shared.tracks(), plays: database.monthlyPlays(), now: now, hidden: hidden)
         }).value else { return nil }
         // VYBE is an enhancement: the mixes stand on their own without it.
         let taste = profile.isPersonal ? await vybe.tasteNeighbours(SmartMixEngine.tasteSeeds(profile), limit: tasteLimit) : nil

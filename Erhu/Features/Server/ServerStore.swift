@@ -28,11 +28,15 @@ final class ServerStore {
     /// Servers reached through their away-from-home address right now.
     private(set) var usingAway: Set<UUID> = []
     /// Servers that answered the last check.
-    private(set) var reachable: Set<UUID> = []
+    private(set) var reachable: Set<UUID> = [] {
+        didSet { if reachable != oldValue { scheduleFeedUpdate() } }
+    }
     /// Whether each server converts songs to MP3 (checked once per session; see [quality]).
     private(set) var convertsToMP3: [UUID: Bool] = [:]
     /// Changes whenever a server's catalog (for search) is loaded or refreshed.
-    private(set) var catalogVersion = 0
+    private(set) var catalogVersion = 0 {
+        didSet { scheduleFeedUpdate() }
+    }
     @ObservationIgnored private var catalogs: [UUID: ServerCatalogIndex] = [:]
     @ObservationIgnored private var catalogTasks: [UUID: Task<Void, Never>] = [:]
 
@@ -97,6 +101,8 @@ final class ServerStore {
             // Answering but no catalog yet (it failed or was never fetched): get it now.
             if self.catalogs[id] == nil { self.refreshCatalogs() }
         }
+        // Mixes, stations and VYBE results that include server songs play them as streams.
+        ServerMusicFeed.resolve = { [weak self] ids in self?.streamSongs(ids: ids) ?? [:] }
         ServerStream.shared.albumCoverArt = { [weak self] id, remote in
             remote.albumId.flatMap { self?.catalogs[id]?.albumEntry($0)?.coverArt }
         }
@@ -177,6 +183,43 @@ final class ServerStore {
     /// Loads each server's saved catalog, and refreshes it from the server when it is older than
     /// [ServerCatalog.maxAge] (or missing). Not while a song streams straight from a server, and on
     /// mobile data only when there is no catalog yet.
+    // MARK: Server songs for Smart Playlists, radio and VYBE
+
+    @ObservationIgnored private var feedUpdate: Task<Void, Never>?
+
+    /// Offers the connected server's songs that the library doesn't have to Smart Playlists,
+    /// radio stations and VYBE ([ServerMusicFeed]); nothing while no server answers.
+    private func scheduleFeedUpdate() {
+        feedUpdate?.cancel()
+        feedUpdate = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            guard let self, !Task.isCancelled else { return }
+            guard let account = self.connectedAccount, let index = self.catalog(for: account.id) else {
+                ServerMusicFeed.shared.set([], [])
+                return
+            }
+            let songs = index.catalog.songs.filter { $0.isVideo != true && self.librarySong(matching: $0) == nil }
+            let id = account.id
+            let (facts, tags) = await Task.detached(priority: .utility) { ServerMusicFeed.describe(songs, accountId: id) }.value
+            guard !Task.isCancelled else { return }
+            ServerMusicFeed.shared.set(facts, tags)
+        }
+    }
+
+    /// Playable songs for the server song ids in [ids] (from a mix, a station or VYBE).
+    func streamSongs(ids: [Int64]) -> [Int64: Song] {
+        guard let account = connectedAccount, let index = catalog(for: account.id) else { return [:] }
+        let wanted = Set(ids.filter { $0 < 0 })
+        guard !wanted.isEmpty else { return [:] }
+        let remotes = index.catalog.songs.filter { wanted.contains(ServerStreamPaths.songId(accountId: account.id, remoteId: $0.id)) }
+        var found: [Int64: Song] = [:]
+        for remote in remotes {
+            let id = ServerStreamPaths.songId(accountId: account.id, remoteId: remote.id)
+            if let song = streamSongs([remote], account: account).first { found[id] = song }
+        }
+        return found
+    }
+
     // MARK: Covers saved ahead
 
     @ObservationIgnored private var coverSync: Task<Void, Never>?

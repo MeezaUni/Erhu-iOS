@@ -59,7 +59,8 @@ actor VybeEngine {
         guard loadModel() else { return }
         let songs: [SongText]
         do {
-            songs = try database.songTags().map(VybeText.fromTags)
+            // The library's songs and the connected server's that it lacks ([ServerMusicFeed]).
+            songs = try (database.songTags() + ServerMusicFeed.shared.songTags()).map(VybeText.fromTags)
             let aliases = try database.aliases()
             if aliases != artistAliases {
                 artistAliases = aliases
@@ -107,7 +108,7 @@ actor VybeEngine {
         guard let modelId else { return nil }
         tasteModelId = modelId
         guard let dimension = VybeIndexFile.storedDimension(indexURL, modelId: modelId) else { return nil }
-        let songs = library.isEmpty ? ((try? database.songTags().map(VybeText.fromTags)) ?? []) : library
+        let songs = library.isEmpty ? (((try? database.songTags()) ?? []) + ServerMusicFeed.shared.songTags()).map(VybeText.fromTags) : library
         let live = Dictionary(songs.map { ($0.songId, Self.documentHash($0)) }, uniquingKeysWith: { a, _ in a })
         let attributes = try? FileManager.default.attributesOfItem(atPath: indexURL.path)
         let key = TasteKey(seeds: seeds, limit: limit, indexSize: attributes?[.size] as? Int ?? 0,
