@@ -54,6 +54,7 @@ final class VybeStore {
     private let player: PlayerController
     @ObservationIgnored private var running: Task<Void, Never>?
     @ObservationIgnored private var observer: NSObjectProtocol?
+    @ObservationIgnored private var feedObserver: NSObjectProtocol?
     @ObservationIgnored private var pendingRefresh: Task<Void, Never>?
     @ObservationIgnored private var started = false
     @ObservationIgnored private var retryWhenReady: (() -> Void)?
@@ -94,6 +95,10 @@ final class VybeStore {
         Task { await engine.refresh() }
         observer = NotificationCenter.default.addObserver(forName: SQLiteDatabase.didChange, object: database.db, queue: .main) { [weak self] note in
             guard SQLiteDatabase.affects(note, tables: ["songs", "artist_alias"]) else { return }
+            MainActor.assumeIsolated { self?.libraryChanged() }
+        }
+        // A server's songs joining or leaving (connected, disconnected, its catalog changed).
+        feedObserver = NotificationCenter.default.addObserver(forName: ServerMusicFeed.didChange, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.libraryChanged() }
         }
     }
@@ -241,8 +246,13 @@ final class VybeStore {
     }
 
     private func songs(_ hits: [VybeHit]) -> [VybeResult] {
-        let found = (try? database.songs(ids: hits.map(\.songId))) ?? []
-        let byId = Dictionary(found.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let ids = hits.map(\.songId)
+        let found = (try? database.songs(ids: ids.filter { $0 > 0 })) ?? []
+        var byId = Dictionary(found.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        // Server songs VYBE found, while the server is connected.
+        if ids.contains(where: { $0 < 0 }), let streamed = ServerMusicFeed.resolve?(ids) {
+            byId.merge(streamed) { a, _ in a }
+        }
         return hits.compactMap { hit in byId[hit.songId].map { VybeResult(song: $0, reasons: hit.reasons) } }
     }
 

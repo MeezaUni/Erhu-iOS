@@ -32,7 +32,8 @@ struct RadioStationView: View {
                     .font(.headline).controlSize(.large).buttonBorderShape(.capsule)
                     .padding(.horizontal, Spacing.heroGutter)
                     let ids = [plan.startSongId] + plan.songIds
-                    let songs = Dictionary(library.songs.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+                    // The library's and, while connected, the server's songs in this station.
+                    let songs = Dictionary(actions.songs(ids).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
                     ForEach(ids, id: \.self) { id in
                         if let song = songs[id] {
                             TrackRow(song: song, isCurrent: player.state.currentSong?.id == id,

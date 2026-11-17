@@ -146,8 +146,12 @@ final class LibraryActions {
 
     /// The library songs with [ids], in that order (missing ones left out).
     func songs(_ ids: [Int64]) -> [Song] {
-        let found = (try? database.songs(ids: ids)) ?? []
-        let byId = Dictionary(found.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let found = (try? database.songs(ids: ids.filter { $0 > 0 })) ?? []
+        var byId = Dictionary(found.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        // Server songs (negative ids) in a mix or a station, while the server is connected.
+        if ids.contains(where: { $0 < 0 }), let streamed = ServerMusicFeed.resolve?(ids) {
+            byId.merge(streamed) { a, _ in a }
+        }
         return ids.compactMap { byId[$0] }
     }
 
