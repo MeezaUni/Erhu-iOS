@@ -39,6 +39,8 @@ final class ServerStore {
     @ObservationIgnored private var clients: [UUID: SubsonicClient] = [:]
     @ObservationIgnored private var downloadTask: Task<Void, Never>?
     @ObservationIgnored private var routeTask: Task<Void, Never>?
+    /// Asked to check again while a check runs: it runs once more right after.
+    @ObservationIgnored private var routeCheckAgain = false
     @ObservationIgnored private let pathMonitor = NWPathMonitor()
     /// On mobile data or Low Data Mode: nothing is fetched ahead of time just in case.
     @ObservationIgnored private(set) var networkIsExpensive = false
@@ -277,22 +279,33 @@ final class ServerStore {
     /// Checks which servers answer and, for each with an away address, uses the home address when
     /// it answers quickly, otherwise the away one. Runs at launch and whenever the network changes.
     func chooseRoutes() {
-        routeTask?.cancel()
+        // A check already running finishes (cancelling it each time the network or the app
+        // changed meant that on mobile data it often never did, and the server's music left the
+        // library's pages while songs streamed fine); then it runs once more if asked meanwhile.
+        if routeTask != nil {
+            routeCheckAgain = true
+            return
+        }
         let candidates = accounts
         guard !candidates.isEmpty else { return }
         routeTask = Task { [weak self] in
             // Let a new Wi-Fi connection settle before asking.
             try? await Task.sleep(for: .milliseconds(600))
             for account in candidates {
-                guard !Task.isCancelled, let self, let password = ServerKeychain.password(for: account.id) else { return }
+                guard let self, let password = ServerKeychain.password(for: account.id) else { break }
                 let away = await Self.prefersAway(account: account, password: password)
-                guard !Task.isCancelled else { return }
                 guard let away else {
                     self.reachable.remove(account.id)
                     continue
                 }
                 self.reachable.insert(account.id)
                 if account.remoteURL != nil { self.setRoute(account.id, away: away) }
+            }
+            guard let self else { return }
+            self.routeTask = nil
+            if self.routeCheckAgain {
+                self.routeCheckAgain = false
+                self.chooseRoutes()
             }
         }
     }

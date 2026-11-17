@@ -34,7 +34,9 @@ final class StreamPlayer {
     private var offsetMs: Int64 = 0
     private var reportedBuffered = false
     /// The next song, connected and buffering ahead while paused, so skipping to it starts at once.
-    private var prepared: (url: URL, player: AVPlayer, item: AVPlayerItem)?
+    private var prepared: (url: URL, player: AVPlayer, item: AVPlayerItem, loader: StreamResourceLoader?)?
+    /// Feeds the current song through the app's connection (see [StreamMedia]); kept alive here.
+    private var loader: StreamResourceLoader?
 
     /// Formats iOS's player streams; others (Ogg Vorbis, Opus) are fetched in full first.
     static func canStream(fileExtension ext: String) -> Bool {
@@ -54,10 +56,18 @@ final class StreamPlayer {
         }
     }
 
-    private static func makeItem(url: URL, fileExtension: String) -> AVPlayerItem {
+    private static func makeItem(url: URL, fileExtension: String) -> (AVPlayerItem, StreamResourceLoader?) {
+        // A file the server sends unchanged (it answers byte ranges): through the app's own warm
+        // connection, starting from what was fetched ahead.
+        if !fileExtension.isEmpty, url.scheme?.hasPrefix("http") == true {
+            let loader = StreamResourceLoader(remote: url, fileExtension: fileExtension)
+            let asset = AVURLAsset(url: loader.playerURL)
+            asset.resourceLoader.setDelegate(loader, queue: StreamMedia.shared.queue)
+            return (AVPlayerItem(asset: asset), loader)
+        }
         var options: [String: Any] = [:]
         if let type = mimeType(for: fileExtension) { options[AVURLAssetOverrideMIMETypeKey] = type }
-        return AVPlayerItem(asset: AVURLAsset(url: url, options: options))
+        return (AVPlayerItem(asset: AVURLAsset(url: url, options: options)), nil)
     }
 
     /// Connects to [url] and buffers its start while paused, for [play] of the same song to start
@@ -65,13 +75,13 @@ final class StreamPlayer {
     func prepare(url: URL, fileExtension: String) {
         if prepared?.url == url { return }
         discardPrepared()
-        let item = Self.makeItem(url: url, fileExtension: fileExtension)
+        let (item, loader) = Self.makeItem(url: url, fileExtension: fileExtension)
         // Enough to start smoothly; the rest streams once it plays.
         item.preferredForwardBufferDuration = 20
         let player = AVPlayer(playerItem: item)
         player.automaticallyWaitsToMinimizeStalling = true
         player.volume = 0
-        prepared = (url, player, item)
+        prepared = (url, player, item, loader)
     }
 
     func discardPrepared() {
@@ -88,12 +98,12 @@ final class StreamPlayer {
         let item: AVPlayerItem, player: AVPlayer
         if let ready = prepared, ready.url == url, ready.item.status != .failed {
             // Prepared while the previous song played: already connected and buffered.
-            (item, player) = (ready.item, ready.player)
+            (item, player, loader) = (ready.item, ready.player, ready.loader)
             item.preferredForwardBufferDuration = 0
             prepared = nil
         } else {
             if prepared?.url == url { discardPrepared() }
-            item = Self.makeItem(url: url, fileExtension: fileExtension)
+            (item, loader) = Self.makeItem(url: url, fileExtension: fileExtension)
             player = AVPlayer(playerItem: item)
         }
         // If the connection falls behind, wait for more instead of stopping (see [play]).
@@ -143,6 +153,7 @@ final class StreamPlayer {
         player?.pause()
         player?.replaceCurrentItem(with: nil)
         player = nil
+        loader = nil
         entryId = nil
         wantsToPlay = false
         reportedBuffered = false
