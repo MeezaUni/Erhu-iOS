@@ -74,6 +74,11 @@ struct RootView: View {
             if shown && !playerMotion.isPresented { artworkFrames.expanded = .zero }
             playerMotion.setPresented(shown, reduceMotion: reduceMotion)
         }
+        // A player that closed without the router hearing of it must not leave Now Playing marked
+        // open, or tapping the mini player changes nothing and it never comes up again.
+        .onChange(of: playerMotion.isPresented) { _, presented in
+            if !presented && router.showsNowPlaying { router.showsNowPlaying = false }
+        }
         .animation(.easeInOut(duration: 0.2), value: actions.message)
         .environment(chrome)
         .environment(playerMotion)
