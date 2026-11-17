@@ -331,7 +331,13 @@ struct SearchView: View {
                             search.remember(.serverArtist(RecentServerItem(accountId: account.id, id: artist.id, title: artist.name,
                                                                            subtitle: nil, coverArt: artist.coverArt,
                                                                            server: account.baseURL.absoluteString, username: account.username)))
-                            openServer(.serverArtist(ServerRef(accountId: account.id, id: artist.id, title: artist.name)))
+                            // One artist: their full page (albums, EPs, singles, tracks), like a
+                            // library artist; a server entry naming several keeps its album list.
+                            if ServerLibraryMerge.artistNames(artist.name, local: []).count == 1, servers.catalog(for: account.id) != nil {
+                                openServer(.serverArtistNamed(ServerRef(accountId: account.id, id: ServerLibraryMerge.artistKey(artist.name), title: artist.name)))
+                            } else {
+                                openServer(.serverArtist(ServerRef(accountId: account.id, id: artist.id, title: artist.name)))
+                            }
                         }
                         .frame(width: 112)
                     }
