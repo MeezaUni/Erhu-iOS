@@ -230,7 +230,8 @@ struct SubsonicClient: Sendable {
     }
 
     /// One page of everything on the server (OpenSubsonic: search3 with an empty query lists all).
-    func catalogPage(artistOffset: Int, albumOffset: Int, songOffset: Int, size: Int) async throws -> SubsonicSearchResult? {
+    /// [background]: a refresh of a catalog the app has (low priority); the first one isn't.
+    func catalogPage(artistOffset: Int, albumOffset: Int, songOffset: Int, size: Int, background: Bool = true) async throws -> SubsonicSearchResult? {
         try await call("search3", [URLQueryItem(name: "query", value: "\"\""),
                                    URLQueryItem(name: "artistCount", value: String(artistOffset < 0 ? 0 : size)),
                                    URLQueryItem(name: "artistOffset", value: String(max(artistOffset, 0))),
@@ -238,7 +239,7 @@ struct SubsonicClient: Sendable {
                                    URLQueryItem(name: "albumOffset", value: String(max(albumOffset, 0))),
                                    URLQueryItem(name: "songCount", value: String(songOffset < 0 ? 0 : size)),
                                    URLQueryItem(name: "songOffset", value: String(max(songOffset, 0)))],
-                       timeout: 60, background: true).searchResult3
+                       timeout: 60, background: background).searchResult3
     }
 
     func playlists() async throws -> [ServerPlaylist] {
