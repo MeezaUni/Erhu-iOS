@@ -90,7 +90,13 @@ struct TrackCarousel: View {
         .onChange(of: selection, initial: true) { _, next in selectionChanged(next) }
         .onChange(of: stacked) { _, _ in settle() }
         // Media lookup is structural work, never a dependency of the per-touch render path.
-        .onChange(of: artwork.saved) { _, _ in refreshVideos() }
+        // A motion cover downloaded (or removed) meanwhile: the playing card shows it at once,
+        // without waiting for the next song or a quiet moment to build its video.
+        .onChange(of: artwork.saved) { _, _ in
+            refreshVideos()
+            guard scenePhase == .active, !motion.moving, let key = scene.currentKey else { return }
+            videos.configure(videoRequests(), current: key)
+        }
         .onChange(of: scenePhase) { _, _ in refreshVideos() }
         .onChange(of: budget) { _, _ in refreshVideos() }
         .onChange(of: reduceMotion) { _, _ in refreshVideos() }
