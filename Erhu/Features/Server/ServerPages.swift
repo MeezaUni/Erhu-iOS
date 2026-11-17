@@ -253,21 +253,12 @@ struct NamedServerArtistPage: View {
                                          onShuffle: { servers.play(remote, shuffled: true, account: account, source: source) }) {
                         ServerCoverView(accountId: account.id, coverArt: artist?.coverArt, maxPixels: 1200, placeholder: "person")
                     }
-                    if !albums.isEmpty {
-                        Shelf(title: String(localized: "Albums")) {
-                            ForEach(albums, id: \.id) { album in
-                                ServerTile(accountId: account.id, title: album.name,
-                                           subtitle: album.year.flatMap { $0 > 0 ? String($0) : nil } ?? album.artist,
-                                           coverArt: album.coverArt, showsStreamBadge: true) {
-                                    router.open(.serverAlbum(ServerRef(accountId: account.id, id: album.id, title: album.name)))
-                                }
-                                .frame(width: 128)
-                            }
-                        }
-                        .padding(.bottom, Spacing.sm)
-                    }
+                    // Like a library artist: albums, EPs and singles by their number of songs.
+                    albumRow("Albums", albums.filter { index.songCount(ofAlbum: $0.id) >= 7 }, account: account)
+                    albumRow("EPs", albums.filter { (3...6).contains(index.songCount(ofAlbum: $0.id)) }, account: account)
+                    albumRow(String(localized: "Singles"), albums.filter { (1...2).contains(index.songCount(ofAlbum: $0.id)) }, account: account)
                     if !songs.isEmpty {
-                        SectionHeading(title: String(localized: "Songs"))
+                        SectionHeading(title: "Tracks")
                         ForEach(Array(songs.enumerated()), id: \.offset) { position, song in
                             TrackRow(song: song, isCurrent: song.id == currentId, actions: rowActions) {
                                 servers.play(remote, startAt: position, account: account, source: source)
@@ -290,6 +281,23 @@ struct NamedServerArtistPage: View {
             }
         } else {
             ServerNotConnectedView()
+        }
+    }
+
+    @ViewBuilder
+    private func albumRow(_ title: String, _ albums: [ServerCatalog.Album], account: ServerAccount) -> some View {
+        if !albums.isEmpty {
+            Shelf(title: title) {
+                ForEach(albums, id: \.id) { album in
+                    ServerTile(accountId: account.id, title: album.name,
+                               subtitle: album.year.flatMap { $0 > 0 ? String($0) : nil } ?? album.artist,
+                               coverArt: album.coverArt, showsStreamBadge: true) {
+                        router.open(.serverAlbum(ServerRef(accountId: account.id, id: album.id, title: album.name)))
+                    }
+                    .frame(width: 128)
+                }
+            }
+            .padding(.bottom, Spacing.sm)
         }
     }
 }
