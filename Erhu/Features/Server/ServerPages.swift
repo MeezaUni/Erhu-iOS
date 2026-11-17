@@ -174,6 +174,7 @@ private struct ServerCollectionPage: View {
             guard !Task.isCancelled, player.state.currentSong?.path != first.path else { return }
             // Connected and its start loaded (on mobile data too: a few seconds of audio)...
             player.prepareToStream(first)
+            for song in songs.prefix(3) { ServerStream.shared.prefetchHead(song) }
             // ...and on Wi-Fi fetched whole, so it plays on the full player.
             if !servers.networkIsExpensive { ServerStream.shared.prefetch([first]) }
         }

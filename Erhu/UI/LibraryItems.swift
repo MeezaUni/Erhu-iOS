@@ -148,6 +148,14 @@ struct TrackRow: View {
                 .filter { !$0.isBlank }.joined(separator: ", "))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onTap() }
+            // A streamed song that stays on screen a moment gets its first seconds fetched, so
+            // tapping it starts at once (rows scrolled past fetch nothing).
+            .task(id: song.isStream ? song.path : "") {
+                guard song.isStream else { return }
+                try? await Task.sleep(for: .milliseconds(700))
+                guard !Task.isCancelled else { return }
+                ServerStream.shared.prefetchHead(song)
+            }
             Button { actions.toggleFavorite(song) } label: {
                 Image(systemName: song.isFavorite ? "heart.fill" : "heart")
                     .foregroundStyle(song.isFavorite ? palette.primary : palette.onSurfaceVariant)

@@ -364,6 +364,17 @@ final class SubsonicTests: XCTestCase {
         XCTAssertEqual("true", items["estimateContentLength"])
     }
 
+    func testStreamMediaReadsTheFilesLengthFromARangeReply() throws {
+        let url = URL(string: "https://pc.example/rest/stream")!
+        let partial = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 206, httpVersion: nil,
+                                                    headerFields: ["Content-Range": "bytes 0-131071/5123456", "Content-Length": "131072"]))
+        XCTAssertEqual(5_123_456, StreamMedia.totalLength(partial, offset: 0))
+        // A server ignoring the range sends it all: its length is the file's.
+        let whole = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: ["Content-Length": "4000"]))
+        XCTAssertEqual(4_000, StreamMedia.totalLength(whole, offset: 0))
+        XCTAssertNil(StreamMedia.totalLength(try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 206, httpVersion: nil, headerFields: [:])), offset: 0))
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#

@@ -208,6 +208,7 @@ final class ServerStream {
             }
         }
         try await task.value
+        onServerReachable?(source.accountId)
         // Artwork asked for before the file arrived was remembered as missing: look again.
         ArtworkLoader.shared.forget(path: destination.path)
         trimCache()
@@ -252,6 +253,13 @@ final class ServerStream {
         return client.streamURL(source.remoteId, quality: source.quality, offsetSeconds: offsetSeconds)
     }
 
+    /// Fetches the first seconds of [song] ahead (see [StreamMedia]), so playing it starts at
+    /// once. Only for a song sent unchanged and not saved on the phone already.
+    func prefetchHead(_ song: Song) {
+        guard song.isStream, !isCached(song), !streamFormat(of: song).isEmpty, let url = streamURL(for: song) else { return }
+        StreamMedia.shared.prefetchHead(url)
+    }
+
     /// Whether [song] streams converted (a smaller copy made as it plays), which can start
     /// part-way into the song rather than seek within the file.
     func isConverted(_ song: Song) -> Bool {
@@ -291,12 +299,18 @@ final class ServerStream {
     /// Whether the server of streamed [song] answers (a quick ping). Reports it if not.
     func serverAnswers(for song: Song) async -> Bool {
         guard let source = sources[song.path] else { return false }
-        guard let client = clientProvider?(source.accountId), (try? await client.ping(timeout: 5)) != nil else {
+        guard let client = clientProvider?(source.accountId), (try? await client.ping(timeout: 8)) != nil else {
             onServerUnreachable?(source.accountId)
             return false
         }
         onServerReachable?(source.accountId)
         return true
+    }
+
+    /// [song]'s server just sent audio: it is there (whatever the last check said).
+    func noteAnswered(_ song: Song) {
+        guard let source = sources[song.path] else { return }
+        onServerReachable?(source.accountId)
     }
 
     /// A streamed song became the current song.

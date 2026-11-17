@@ -571,6 +571,7 @@ final class PlayerController {
         guard entryId == state.currentEntry?.id, isStreaming else { return }
         streamWatchdog?.cancel(); streamWatchdog = nil
         streamRetried = nil
+        if let song = state.currentSong { ServerStream.shared.noteAnswered(song) }
         preparingPlayIntent = false
         consecutiveErrors = 0
         if state.status != .playing { playingChanged(true) }
@@ -770,6 +771,11 @@ final class PlayerController {
             guard let index, state.queue.indices.contains(index) else { continue }
             let song = state.queue[index].song
             if song.isStream { ServerStream.shared.fetchCover(of: song) }
+        }
+        // Their first seconds too (small), so moving to any of them starts at once.
+        for index in [next, previous, nextTwo] {
+            guard let index, state.queue.indices.contains(index) else { continue }
+            ServerStream.shared.prefetchHead(state.queue[index].song)
         }
         // Fetch the next streamed songs ahead of time, so they start without waiting.
         let upcoming = [next, nextTwo].compactMap { index -> Song? in
