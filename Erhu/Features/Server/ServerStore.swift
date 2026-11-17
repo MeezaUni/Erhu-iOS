@@ -23,13 +23,22 @@ final class ServerStore {
     private(set) var recentAlbums: [StreamedAlbum] = []
     /// Favourite changes made in this session, by "account/song", shown before the server list is reloaded.
     private(set) var favouriteChanges: [String: Bool] = [:]
+    /// Songs marked as favourites on each server, newest first. Kept on this device (with their
+    /// covers) so Favourites lists them also while no server answers.
+    private(set) var serverFavourites: [StreamedSong] = []
+    @ObservationIgnored private var favouritesSyncing: Set<UUID> = []
     /// A pairing link (QR code from the Erhu Server app) waiting to be shown as a filled-in Add server sheet.
     var pendingInvite: ServerInvite?
     /// Servers reached through their away-from-home address right now.
     private(set) var usingAway: Set<UUID> = []
     /// Servers that answered the last check.
     private(set) var reachable: Set<UUID> = [] {
-        didSet { if reachable != oldValue { scheduleFeedUpdate() } }
+        didSet {
+            guard reachable != oldValue else { return }
+            scheduleFeedUpdate()
+            // A server that answers again: favourites marked elsewhere (its web player) show here.
+            for id in reachable.subtracting(oldValue) { syncFavourites(id) }
+        }
     }
     /// Whether each server converts songs to MP3 (checked once per session; see [quality]).
     private(set) var convertsToMP3: [UUID: Bool] = [:]
@@ -58,6 +67,7 @@ final class ServerStore {
         static let quality = "musicServer.streamQuality"
         static let recent = "musicServer.recentlyStreamed"
         static let recentAlbums = "musicServer.recentAlbums"
+        static let favourites = "musicServer.favourites"
     }
     nonisolated static let albumLimit = 5
     static let recentLimit = 100
@@ -76,6 +86,10 @@ final class ServerStore {
         if let data = UserDefaults.standard.data(forKey: Keys.recent),
            let saved = try? JSONDecoder().decode([StreamedSong].self, from: data) {
             recentlyStreamed = saved
+        }
+        if let data = UserDefaults.standard.data(forKey: Keys.favourites),
+           let saved = try? JSONDecoder().decode([StreamedSong].self, from: data) {
+            serverFavourites = saved
         }
         if let data = UserDefaults.standard.data(forKey: Keys.recentAlbums),
            let saved = try? JSONDecoder().decode([StreamedAlbum].self, from: data) {
@@ -468,6 +482,10 @@ final class ServerStore {
         accounts.removeAll { $0.id == account.id }
         usingAway.remove(account.id)
         reachable.remove(account.id)
+        if serverFavourites.contains(where: { $0.accountId == account.id }) {
+            serverFavourites.removeAll { $0.accountId == account.id }
+            saveFavourites()
+        }
         saveAccounts()
         if selectedId == account.id { selectedId = accounts.first?.id }
     }
@@ -733,15 +751,99 @@ final class ServerStore {
         guard let client = client(for: account.id) else { return }
         let key = "\(account.id.uuidString)/\(song.id)"
         let before = favouriteChanges[key]
+        let listed = serverFavourites
         favouriteChanges[key] = favourite
+        noteFavourite(song, favourite, account: account)
         Task {
             do {
                 try await client.setStarred(song.id, favourite)
             } catch {
                 favouriteChanges[key] = before
+                serverFavourites = listed
+                saveFavourites()
                 actions.show(String(localized: "Couldn't change the favourite: \(error.localizedDescription)"))
             }
         }
+    }
+
+    /// The server favourites as songs to list and play (the library's copy where it has one),
+    /// also while their server isn't connected.
+    func favouriteSongs() -> [Song] {
+        var seen = Set<Int64>()
+        return serverFavourites.compactMap { item -> Song? in
+            guard let account = account(item.accountId) else { return nil }
+            let song = librarySong(matching: item.song)
+                ?? ServerStream.shared.song(for: item.song, account: account, quality: streamQuality(for: account), favourite: true)
+            return seen.insert(song.id).inserted ? song : nil
+        }
+    }
+
+    /// Reloads server [id]'s favourites, which may have changed in its web player.
+    func syncFavourites(_ id: UUID) {
+        guard !favouritesSyncing.contains(id), let client = client(for: id) else { return }
+        favouritesSyncing.insert(id)
+        Task { [weak self] in
+            let result = try? await client.starred()
+            guard let self else { return }
+            self.favouritesSyncing.remove(id)
+            if let result { self.replaceFavourites(result.song, accountId: id) }
+        }
+    }
+
+    /// Server [accountId]'s favourites as it lists them now (newest first).
+    private func replaceFavourites(_ songs: [ServerSong], accountId: UUID) {
+        let fetched = songs.filter { $0.isVideo != true }.sorted { ($0.starred ?? "") > ($1.starred ?? "") }
+        let ids = Set(fetched.map(\.id))
+        let prefix = accountId.uuidString + "/"
+        // The server is the truth now, also for songs the saved catalog still marks.
+        for key in Array(favouriteChanges.keys) where key.hasPrefix(prefix) {
+            favouriteChanges[key] = ids.contains(String(key.dropFirst(prefix.count)))
+        }
+        if let index = catalogs[accountId] {
+            for song in index.catalog.songs where song.starred != nil && !ids.contains(song.id) { favouriteChanges[prefix + song.id] = false }
+        }
+        for id in ids { favouriteChanges[prefix + id] = true }
+        let account = account(accountId)
+        let items = fetched.map {
+            StreamedSong(accountId: accountId, song: $0, playedAt: Date(),
+                         server: account?.baseURL.absoluteString ?? "", username: account?.username ?? "")
+        }
+        let old = serverFavourites.filter { $0.accountId == accountId }.map(\.song.id)
+        if old != fetched.map(\.id) {
+            serverFavourites = items + serverFavourites.filter { $0.accountId != accountId }
+            saveFavourites()
+        }
+        saveFavouriteCovers(fetched, accountId: accountId)
+    }
+
+    /// Puts [song] on (or takes it off) the saved favourites at once.
+    private func noteFavourite(_ song: ServerSong, _ favourite: Bool, account: ServerAccount) {
+        serverFavourites.removeAll { $0.accountId == account.id && $0.song.id == song.id }
+        if favourite {
+            serverFavourites.insert(StreamedSong(accountId: account.id, song: song, playedAt: Date(),
+                                                 server: account.baseURL.absoluteString, username: account.username), at: 0)
+            saveFavouriteCovers([song], accountId: account.id)
+        }
+        saveFavourites()
+    }
+
+    /// Saves the small covers of favourites, so they show while the server can't be reached.
+    private func saveFavouriteCovers(_ songs: [ServerSong], accountId: UUID) {
+        guard let client = client(for: accountId) else { return }
+        var seen = Set<String>()
+        let jobs = songs.compactMap { ServerStream.shared.albumCoverArt?(accountId, $0) ?? $0.coverArt }
+            .filter { seen.insert($0).inserted }
+            .map { (client.coverArtURL($0, size: ServerCovers.Size.small.pixels), ServerCovers.fileURL(accountId: accountId, coverArt: $0, size: .small)) }
+            .filter { !ServerCovers.hasCover(at: $0.1) }
+        guard !jobs.isEmpty else { return }
+        let session = client.session
+        Task.detached(priority: .utility) {
+            for (url, file) in jobs { await ServerCovers.download(url, to: file, session: session) }
+        }
+    }
+
+    private func saveFavourites() {
+        if let data = try? JSONEncoder().encode(serverFavourites) { UserDefaults.standard.set(data, forKey: Keys.favourites) }
     }
 
     // MARK: Downloads

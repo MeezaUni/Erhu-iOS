@@ -206,7 +206,16 @@ struct NowPlayingView: View {
         .gesture(pullGesture)
     }
 
+    /// Where the music was started; a streamed song in it says so (an album of yours whose
+    /// next song comes from the server reads "Streaming: Album" while that song plays).
     private var playbackSourceTitle: String {
+        let title = sourceTitle
+        guard player.state.currentSong?.isStream == true else { return title }
+        if case .server = player.state.currentEntry?.source { return title }
+        return String(localized: "Streaming: \(title)")
+    }
+
+    private var sourceTitle: String {
         guard let source = player.state.currentEntry?.source else { return String(localized: "Your music") }
         switch source {
         case .album(let id): return library.album(id)?.title ?? String(localized: "Album unavailable")

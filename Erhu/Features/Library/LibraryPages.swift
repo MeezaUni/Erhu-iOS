@@ -86,6 +86,7 @@ struct AlbumsView: View {
 /// preview with a "More" that opens the full shelf.
 struct LibraryOverviewView: View {
     @Environment(LibraryStore.self) private var library
+    @Environment(ServerStore.self) private var servers
     @Environment(LibraryActions.self) private var actions
     @Environment(AppRouter.self) private var router
 
@@ -101,10 +102,16 @@ struct LibraryOverviewView: View {
                         PlaylistTile(playlist: playlist) { router.open(.playlist(playlist.id)) }.frame(width: 136)
                     }
                 }
-                section(LibraryShelf.favorites.label, empty: library.favorites.isEmpty,
+                let favorites = FavoriteSongs.merged(library.favorites, servers.favouriteSongs())
+                section(LibraryShelf.favorites.label, empty: favorites.isEmpty,
                         message: String(localized: "No favorites yet. Tap the heart on any song to add it here."), more: { router.open(.shelf(.favorites)) }) {
-                    ForEach(Array(library.favorites.prefix(Self.previewLimit).enumerated()), id: \.element.id) { index, song in
-                        SongTile(song: song) { actions.play(library.favorites, startIndex: index, source: .favorites) }.frame(width: 136)
+                    ForEach(Array(favorites.prefix(Self.previewLimit).enumerated()), id: \.element.id) { index, song in
+                        SongTile(song: song) {
+                            if FavoriteSongs.canPlay(song, servers: servers, actions: actions) {
+                                actions.play(favorites, startIndex: index, source: .favorites)
+                            }
+                        }
+                        .frame(width: 136)
                     }
                 }
                 section(LibraryShelf.artists.label, empty: library.artists.isEmpty,
@@ -170,8 +177,8 @@ struct LibraryShelfView: View {
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.sm)
             case .favorites:
-                SongList(songs: library.favorites.filter { query.isBlank || SearchNormalizer.matches($0.title + " " + $0.artist + " " + $0.album, query) }, emptyMessage: String(localized: "No favorites yet. Tap the heart on any song to add it here."),
-                         emptyIcon: "heart", source: .favorites)
+                // Opened as [FavoriteSongsView] (with its own filters).
+                EmptyView()
             case .artists:
                 LazyVGrid(columns: gridColumns, spacing: Spacing.xl) {
                     ForEach(library.artists.filter { query.isBlank || SearchNormalizer.matches($0.name, query) }) { artist in
@@ -307,6 +314,8 @@ struct SongList: View {
     var origin: CollectionRef?
     var showTrackNumbers = false
     var source: PlaybackSource?
+    /// False keeps the tapped song from playing (it says why itself).
+    var canPlay: ((Song) -> Bool)?
     @Environment(LibraryActions.self) private var actions
     @Environment(PlayerController.self) private var player
     @Environment(AppRouter.self) private var router
@@ -320,6 +329,7 @@ struct SongList: View {
             }
             ForEach(Array(songs.enumerated()), id: \.element.id) { index, song in
                 TrackRow(song: song, isCurrent: song.id == currentId, showTrackNumber: showTrackNumbers, displayTrackNumber: showTrackNumbers ? index + 1 : nil, actions: songActions) {
+                    guard canPlay?(song) ?? true else { return }
                     actions.play(songs, startIndex: index, origin: origin, source: source)
                 }
             }
@@ -370,4 +380,119 @@ private struct ServerArtistsLoader: ViewModifier {
 extension View {
     /// Loads the connected server's artists that the library doesn't have into [artists].
     func loadsServerArtists(_ artists: Binding<[NamedServerArtist]>) -> some View { modifier(ServerArtistsLoader(artists: artists)) }
+}
+
+/// Favorites: the library's liked songs and the servers' favourites (saved on this device, so
+/// they show, with their covers, also while no server answers).
+enum FavoriteSongs {
+    /// [local] then [server], each song once (a server favourite the library has is its copy).
+    static func merged(_ local: [Song], _ server: [Song]) -> [Song] {
+        var seen = Set(local.map(\.id))
+        return local + server.filter { seen.insert($0.id).inserted }
+    }
+
+    /// Whether [song] can play now: a streamed one needs its server to answer; otherwise it
+    /// says so and looks for the server again.
+    @MainActor
+    static func canPlay(_ song: Song, servers: ServerStore, actions: LibraryActions) -> Bool {
+        guard song.isStream else { return true }
+        if let found = ServerStream.shared.remote(for: song), servers.isReachable(found.accountId) { return true }
+        actions.show(String(localized: "Server not connected"))
+        servers.chooseRoutes()
+        return false
+    }
+}
+
+/// The full Favorites list, with search, sorting and the Source, genre and mood filters.
+struct FavoriteSongsView: View {
+    @Environment(LibraryStore.self) private var library
+    @Environment(ServerStore.self) private var servers
+    @Environment(LibraryActions.self) private var actions
+    @AppStorage("library.favorites.sort") private var sort = LibrarySort.title.rawValue
+    @AppStorage("library.favorites.source") private var source = LibrarySource.all.rawValue
+    @State private var query = ""
+    @State private var showsSearch = false
+    @State private var genre = ""
+    @State private var mood = LibraryMood.all
+    @State private var shown: [Song]?
+    @State private var genres: [String] = []
+
+    private var selectedSource: LibrarySource { LibrarySource(rawValue: source) ?? .all }
+
+    private var request: SongBrowseRequest {
+        let all = FavoriteSongs.merged(library.favorites, servers.favouriteSongs())
+        let songs: [Song]
+        switch selectedSource {
+        case .all: songs = all
+        case .local: songs = all.filter { !$0.isStream }
+        case .streamed: songs = all.filter(\.isStream)
+        }
+        return SongBrowseRequest(songs: songs, facts: library.browseFacts, query: query,
+                                 sort: LibrarySort(rawValue: sort) ?? .title, genre: genre, mood: mood)
+    }
+
+    var body: some View {
+        LibraryBrowseScrollView(title: LibraryShelf.favorites.label, query: $query, showsSearch: $showsSearch) {
+            LibrarySortMenu(selection: $sort, options: LibrarySort.songs)
+            if servers.selected != nil || !servers.serverFavourites.isEmpty { LibrarySourceMenu(selection: $source) }
+            genreMenu
+            Menu {
+                Picker("Mood", selection: $mood) {
+                    Text("All moods").tag(LibraryMood.all)
+                    ForEach(LibraryMood.allCases.filter { $0 != .all }, id: \.rawValue) { Text($0.label).tag($0) }
+                }
+            } label: {
+                BrowseControlLabel(title: mood.label, icon: "sparkles", selected: mood != .all)
+            }
+            if !genre.isEmpty || mood != .all {
+                Button { genre = ""; mood = .all } label: { BrowseControlLabel(title: "Reset", icon: "xmark") }
+                    .accessibilityLabel("Clear genre and mood filters")
+            }
+        } content: {
+            if let shown {
+                if !shown.isEmpty {
+                    Text(countLabel(shown.count, .song)).font(.caption).foregroundStyle(.secondary)
+                        .padding(.horizontal, Spacing.gutter)
+                }
+                SongList(songs: shown,
+                         emptyMessage: library.favorites.isEmpty && servers.serverFavourites.isEmpty
+                            ? String(localized: "No favorites yet. Tap the heart on any song to add it here.")
+                            : String(localized: "No songs match. Try another search, genre, or mood. Songs need genre tags to match a mood."),
+                         emptyIcon: "heart", source: .favorites,
+                         canPlay: { FavoriteSongs.canPlay($0, servers: servers, actions: actions) })
+            } else {
+                ProgressView().frame(maxWidth: .infinity).padding()
+            }
+        }
+        .navigationTitle("")
+        .task(id: request) {
+            let snapshot = request
+            if !snapshot.query.isEmpty { try? await Task.sleep(for: .milliseconds(120)) }
+            guard !Task.isCancelled else { return }
+            let updated = await Task.detached(priority: .userInitiated) {
+                (snapshot.results(), LibraryBrowse.genres(in: snapshot.songs))
+            }.value
+            guard !Task.isCancelled else { return }
+            shown = updated.0
+            genres = updated.1
+        }
+        .task {
+            // Favourites marked in the server's web player show when the page opens.
+            if let id = servers.selected?.id, servers.isReachable(id) { servers.syncFavourites(id) } else { servers.chooseRoutes() }
+        }
+        .refreshable { library.scan() }
+    }
+
+    private var genreMenu: some View {
+        Menu {
+            Picker("Genre", selection: $genre) {
+                Text("All genres").tag("")
+                Text("Untagged").tag(LibraryBrowse.untaggedGenre)
+                ForEach(genres, id: \.self) { Text($0).tag(SectionSearch.key($0)) }
+            }
+        } label: {
+            BrowseControlLabel(title: genre.isEmpty ? "Genre" : genre == LibraryBrowse.untaggedGenre ? "Untagged" : genres.first { SectionSearch.key($0) == genre } ?? "Genre",
+                               icon: "guitars", selected: !genre.isEmpty)
+        }
+    }
 }

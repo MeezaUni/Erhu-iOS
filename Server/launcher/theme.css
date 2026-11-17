@@ -65,6 +65,8 @@ html.erhu-theme .MuiDrawer-paper .MuiListItemIcon-root { color: inherit !importa
 html.erhu-theme .MuiDrawer-paper [class*="active"], html.erhu-theme .MuiDrawer-paper .Mui-selected, html.erhu-theme .MuiDrawer-paper a[aria-current="page"] {
   background: var(--erhu-accent-soft) !important; color: var(--erhu-accent) !important; font-weight: 600;
 }
+html.erhu-theme .MuiDrawer-paper a.erhu-here, html.erhu-theme .MuiDrawer-paper a.erhu-here:hover { background: var(--erhu-accent-soft) !important; color: var(--erhu-accent) !important; font-weight: 600; }
+html.erhu-theme .MuiDrawer-paper a.erhu-not-here, html.erhu-theme .MuiDrawer-paper a.erhu-not-here * { background: transparent !important; color: var(--erhu-muted) !important; font-weight: 400 !important; }
 html.erhu-theme .MuiDivider-root { background-color: var(--erhu-line) !important; }
 
 /* Cards, lists, tables, dialogs, menus. */
@@ -184,3 +186,13 @@ html.erhu-theme main a[href*="#/artist"]:hover, html.erhu-theme main a[href*="#/
 /* About: Erhu's details, with the credit to Navidrome under them (theme.js writes them). */
 .erhu-about-credit { margin: 18px 4px 4px; font-size: 0.85rem; line-height: 1.5; opacity: 0.75; }
 .erhu-about-credit a { color: inherit; text-decoration: underline; }
+
+/* Filters labelled by an icon (Favourites' heart): the icon sits inside the box, before the
+   choice, instead of floating small above it. */
+html.erhu-theme .MuiFormControl-root:has(> label svg) > label {
+  transform: translateY(-50%) !important; top: 50% !important; left: 14px !important; margin: 0 !important; z-index: 1; pointer-events: none;
+}
+html.erhu-theme .MuiFormControl-root:has(> label svg) > label svg { font-size: 1.2rem !important; color: var(--erhu-accent) !important; display: block; }
+html.erhu-theme .MuiFormControl-root:has(> label svg) .MuiSelect-root,
+html.erhu-theme .MuiFormControl-root:has(> label svg) .MuiInputBase-input { padding-top: 10.5px !important; padding-bottom: 10.5px !important; padding-left: 44px !important; }
+html.erhu-theme .MuiFormControl-root:has(> label svg) { margin-top: 0 !important; }

@@ -112,7 +112,47 @@
     table.parentNode.insertBefore(credit, table.nextSibling);
   };
 
+  // The menu: "Favourite songs" under Songs. Navidrome's Albums → Favourites lists favourite
+  // albums only; songs marked as favourites (here or in the Erhu app) are listed by this.
+  var FAVOURITES = "#/song?filter=%7B%22starred%22%3Atrue%7D&order=DESC&sort=starred_at";
+  var HEART = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
+  var addFavouriteSongs = function () {
+    var songs = document.querySelector("a[href='#/song']");
+    if (!songs || document.querySelector("a[data-erhu=favourite-songs]")) return;
+    var item = songs.cloneNode(true);
+    item.setAttribute("data-erhu", "favourite-songs");
+    item.setAttribute("href", FAVOURITES);
+    item.removeAttribute("aria-current");
+    Array.prototype.slice.call(item.classList).forEach(function (name) { if (/active/i.test(name)) item.classList.remove(name); });
+    var path = item.querySelector("svg path");
+    if (path) {
+      path.setAttribute("d", HEART);
+      item.querySelectorAll("svg path ~ *").forEach(function (extra) { extra.remove(); });
+    }
+    var walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+    for (var node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (node.nodeValue.trim()) { node.nodeValue = "Favourite songs"; break; }
+    }
+    item.setAttribute("title", "Favourite songs");
+    item.addEventListener("click", function (event) {
+      event.preventDefault();
+      window.location.hash = FAVOURITES.slice(1);
+    });
+    songs.parentNode.insertBefore(item, songs.nextSibling);
+  };
+  var markFavouriteSongs = function () {
+    var item = document.querySelector("a[data-erhu=favourite-songs]");
+    var songs = document.querySelector("a[href='#/song']");
+    if (!item || !songs) return;
+    var here = window.location.hash.indexOf("#/song") === 0 && window.location.hash.indexOf("starred") >= 0;
+    // Navidrome marks Songs as the page shown; while it shows favourites, this item is.
+    item.classList.toggle("erhu-here", here);
+    songs.classList.toggle("erhu-not-here", here);
+  };
+
   var fix = function () {
+    addFavouriteSongs();
+    markFavouriteSongs();
     if (document.title.indexOf("Navidrome") >= 0) document.title = document.title.replace(/Navidrome/g, "Erhu");
     // The top bar's title and the sign-in card's heading.
     document.querySelectorAll("header h6, .MuiCard-root a[href*='navidrome.org']").forEach(swapName);
@@ -125,5 +165,6 @@
     pending = true;
     requestAnimationFrame(function () { pending = false; fix(); });
   }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["aria-expanded"] });
+  window.addEventListener("hashchange", fix);
   fix();
 })();
