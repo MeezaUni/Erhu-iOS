@@ -125,6 +125,20 @@
       <button class="secondary" id="away-turn-off">Turn off</button>
     </div>
     <div class="error" id="away-error" role="alert"></div>
+    <h2 style="margin-top:18px">Faster away from home: Cloudflare (free)</h2>
+    <p>Tailscale's public servers can be far from you, which makes songs slow to start. With a domain in a free <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> account (a free domain from DigitalPlat works), Erhu Server gives you a permanent address served from Cloudflare's servers near you. Nothing to install on the phone, and it works behind any router.</p>
+    <div id="cf-setup">
+      <label for="cf-host">Address on your domain (your domain must show Active in Cloudflare)</label>
+      <input type="text" id="cf-host" placeholder="music.yourname.dpdns.org" autocomplete="off" autocapitalize="none" spellcheck="false">
+      <div class="row" style="margin-top:10px"><button id="cf-on">Set up with Cloudflare</button></div>
+      <div class="value" id="cf-step" hidden role="status"></div>
+    </div>
+    <div id="cf-on-box" hidden>
+      <p id="cf-text"></p>
+      <div class="value mono" id="cf-address"></div>
+      <button class="secondary" id="cf-off">Turn off</button>
+    </div>
+    <div class="error" id="cf-error" role="alert"></div>
     <h2 style="margin-top:18px">Smaller streams away from home</h2>
     <p>With ffmpeg (free) on this computer, Erhu streams smaller MP3 copies away from home, so songs start sooner and use less data. At home it still plays your original files.</p>
     <div class="value" id="ffmpeg-on" hidden>On: ffmpeg found.</div>
@@ -209,7 +223,20 @@ function show(s) {
   $("away-approve").hidden = !remote.approveUrl || on;
   if (remote.approveUrl) $("away-approve-link").href = remote.approveUrl;
   if (!busy) $("away-error").textContent = remote.problem || "";
-  $("n4").className = "num" + (on ? " done" : ""); $("n4").textContent = on ? "✓" : "4";
+  const cf = s.cloudflare || { status: "off" };
+  const cfRunning = cf.status === "on" || cf.status === "starting";
+  $("cf-setup").hidden = cfRunning; $("cf-on-box").hidden = !cfRunning;
+  if (cf.host && !$("cf-host").value) $("cf-host").value = cf.host;
+  $("cf-on").disabled = cf.status === "settingUp" || busy;
+  $("cf-on").textContent = cf.status === "settingUp" ? "Setting up…" : (cf.problem ? "Try again" : "Set up with Cloudflare");
+  $("cf-step").hidden = !cf.step; $("cf-step").textContent = cf.step || "";
+  $("cf-address").textContent = cf.address || "";
+  $("cf-text").textContent = cf.status === "on"
+    ? "On. Away from home, Erhu uses this address (the QR code above now includes it, so scan it again in Erhu, or type it as the away address in Erhu's Music Server page):"
+    : "Starting… the address works once Cloudflare reaches this computer (usually within a minute):";
+  if (!busy) $("cf-error").textContent = cf.problem || "";
+  const awayOn = on || cf.status === "on";
+  $("n4").className = "num" + (awayOn ? " done" : ""); $("n4").textContent = awayOn ? "✓" : "4";
   const ff = s.ffmpeg || {};
   $("ffmpeg-on").hidden = !ff.found;
   $("ffmpeg-installing").hidden = !ff.installing;
@@ -242,6 +269,8 @@ $("account-form").onsubmit = e => {
 $("away-on").onclick = () => act("away-error", () => api("/api/remote", { enabled: true }));
 $("away-turn-off").onclick = () => act("away-error", () => api("/api/remote", { enabled: false }));
 $("away-cancel").onclick = () => act("away-error", () => api("/api/remote", { stop: true }));
+$("cf-on").onclick = () => act("cf-error", () => api("/api/cloudflare", { enabled: true, host: $("cf-host").value }));
+$("cf-off").onclick = () => act("cf-error", () => api("/api/cloudflare", { enabled: false }));
 $("ffmpeg-install").onclick = () => act("ffmpeg-error", () => api("/api/ffmpeg", {}));
 $("restart").onclick = () => act("options-error", () => api("/api/restart", {}));
 $("autostart").onchange = e => act("options-error", () => api("/api/autostart", { enabled: e.target.checked }));

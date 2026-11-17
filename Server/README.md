@@ -160,6 +160,28 @@ The away address goes through Erhu Server, so opened in a browser it shows the E
 too. An away address set up with an earlier version of Erhu Server (which published Navidrome
 directly) is switched over by itself the next time the page is open; the address stays the same.
 
+### Faster away from home: Cloudflare (free)
+
+Tailscale Funnel's public servers can be far from you (in India they're often in Europe), which
+adds a noticeable delay to every song. Cloudflare Tunnel serves your music from Cloudflare's
+servers nearest the phone instead, at a permanent address on your own domain. It's free, needs
+nothing on the phone, and works behind any router, including carrier-grade NAT. You need a domain
+in a free Cloudflare account; a free domain works:
+
+1. Get a free domain, for example from DigitalPlat (names like `yourname.dpdns.org`).
+2. In a free account at [dash.cloudflare.com](https://dash.cloudflare.com), **Add a domain**, choose
+   the **Free** plan, and copy the two nameservers it gives you into your domain's DNS settings at
+   the registrar. Wait until Cloudflare shows the domain as **Active**.
+3. On the Erhu Server page, under **Faster away from home**, type an address on that domain (for
+   example `music.yourname.dpdns.org`) and click **Set up with Cloudflare**. Erhu Server installs
+   Cloudflare's `cloudflared`, opens a Cloudflare page once to sign in and choose your domain,
+   creates the tunnel and the address, and then runs it whenever Erhu Server runs.
+4. Scan the QR code again in Erhu (it now carries the Cloudflare address), or type the address as
+   the away address in Erhu's Music Server page.
+
+Don't put Cloudflare Access (a login page) in front of the address: it would stop the app. Your
+Erhu Server account's password protects the server, as with Funnel.
+
 ### On a NAS or Linux box (Docker or a package)
 
 Install Tailscale on the machine itself ([Linux](https://tailscale.com/download/linux), or the

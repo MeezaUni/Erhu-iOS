@@ -17,6 +17,9 @@ type Config struct {
 	Port           int    `json:"port"`
 	Username       string `json:"username"`
 	AccountCreated bool   `json:"accountCreated"`
+	// Cloudflare Tunnel: the address on the listener's domain, and the tunnel's id.
+	CloudflareHost   string `json:"cloudflareHost,omitempty"`
+	CloudflareTunnel string `json:"cloudflareTunnel,omitempty"`
 }
 
 const defaultPort = 4533

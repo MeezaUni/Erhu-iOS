@@ -59,6 +59,7 @@ func main() {
 	if store.Get().MusicFolder != "" {
 		_ = server.Start()
 	}
+	control.cloudflare.Start() // a Cloudflare tunnel set up earlier runs with the server
 	if !*background {
 		openBrowser(control.URL())
 	}
@@ -67,7 +68,7 @@ func main() {
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 	go func() { <-signals; quit() }()
 
-	shutdown := func() { server.Stop() }
+	shutdown := func() { control.cloudflare.Stop(); server.Stop() }
 	if *noTray {
 		fmt.Println("Erhu Server page:", control.URL())
 		<-quitRequested
