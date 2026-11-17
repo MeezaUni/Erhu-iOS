@@ -702,9 +702,9 @@ func TestRemoteFollowsTheWebAppsPortAndUndoesAFailedMove(t *testing.T) {
 
 func TestCloudflareAddressIsANormalHostName(t *testing.T) {
 	for in, want := range map[string]string{
-		"music.erhu.dpdns.org":          "music.erhu.dpdns.org",
+		"music.erhu.dpdns.org":           "music.erhu.dpdns.org",
 		" https://Music.Erhu.dpdns.org/": "music.erhu.dpdns.org",
-		"erhu.dpdns.org.":               "erhu.dpdns.org",
+		"erhu.dpdns.org.":                "erhu.dpdns.org",
 	} {
 		if got, err := normalizeHost(in); err != nil || got != want {
 			t.Errorf("%q: got %q %v", in, got, err)
