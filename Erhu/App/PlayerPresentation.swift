@@ -66,15 +66,25 @@ struct PlayerPresentation: View {
     let frames: PlayerArtworkFrames
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var startedEntrance = false
+    /// The cover's place was never measured: the player opens without the flying cover rather
+    /// than staying invisible (and every later tap on the mini player doing nothing).
+    @State private var opensWithoutFrame = false
 
     var body: some View {
         NowPlayingView(drag: drag)
             .environment(\.playerInMotion, drag.isMoving)
             .environment(\.playerArtworkFrames, frames)
-            .opacity(frames.expanded.width > 0 ? 1 : 0)
+            .opacity(frames.expanded.width > 0 || opensWithoutFrame ? 1 : 0)
             .onChange(of: frames.expanded, initial: true) { _, frame in
                 guard frame.width > 0, !startedEntrance else { return }
                 startedEntrance = true
+                drag.finishEntrance(reduceMotion: reduceMotion)
+            }
+            .task {
+                try? await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled, !startedEntrance else { return }
+                startedEntrance = true
+                opensWithoutFrame = true
                 drag.finishEntrance(reduceMotion: reduceMotion)
             }
     }
