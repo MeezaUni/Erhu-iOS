@@ -117,6 +117,11 @@ final class ServerStore {
         }
         // Mixes, stations and VYBE results that include server songs play them as streams.
         ServerMusicFeed.resolve = { [weak self] ids in self?.streamSongs(ids: ids) ?? [:] }
+        // Hearts show the favourite as it is now, not as it was when the song was listed or queued.
+        FavoriteStatus.stream = { [weak self] song in
+            guard let self, let found = ServerStream.shared.remote(for: song), let account = self.account(found.accountId) else { return nil }
+            return self.isFavourite(found.song, account: account)
+        }
         ServerStream.shared.albumCoverArt = { [weak self] id, remote in
             remote.albumId.flatMap { self?.catalogs[id]?.albumEntry($0)?.coverArt }
         }

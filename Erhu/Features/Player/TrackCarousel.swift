@@ -285,14 +285,14 @@ private struct CarouselCard: View, Equatable {
                 Spacer(minLength: 0)
                 if isCurrent {
                     Button { actions.toggleFavorite(song) } label: {
-                        Image(systemName: song.isFavorite ? "heart.fill" : "heart").font(.title3)
-                            .foregroundStyle(song.isFavorite ? palette.primary : colors.content)
-                            .symbolEffect(.bounce, value: song.isFavorite)
+                        Image(systemName: song.isFavoriteNow ? "heart.fill" : "heart").font(.title3)
+                            .foregroundStyle(song.isFavoriteNow ? palette.primary : colors.content)
+                            .symbolEffect(.bounce, value: song.isFavoriteNow)
                             .frame(width: 48, height: 48)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(song.isFavorite ? "Remove from favorites" : "Add to favorites")
+                    .accessibilityLabel(song.isFavoriteNow ? "Remove from favorites" : "Add to favorites")
                 }
             }
             .modifier(PlayerChromeFade())
