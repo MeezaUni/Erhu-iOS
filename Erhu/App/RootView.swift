@@ -178,7 +178,8 @@ struct RootView: View {
             case .playlist(let id): PlaylistDetailView(playlistId: id)
             case .smartPlaylist(let key): SmartPlaylistDetailView(mixKey: key)
             case .radio(let seed): RadioStationView(seed: seed)
-            case .shelf(let shelf): LibraryShelfView(shelf: shelf)
+            case .shelf(let shelf):
+                if shelf == .favorites { FavoriteSongsView() } else { LibraryShelfView(shelf: shelf) }
             case .allSongs: AllSongsView()
             case .tool(let tool): ToolView(tool: tool).tracksLibraryScrolling(usesUIKit: true)
             case .settingsPage(let page): SettingsDestinationView(page: page).tracksLibraryScrolling(usesUIKit: true)
