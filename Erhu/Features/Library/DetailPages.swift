@@ -166,7 +166,8 @@ struct ArtistDetailView: View {
                     albumRow(String(localized: "Singles"), albums.filter { (1...2).contains($0.songCount) })
                     songSection(String(localized: "Features"), featured)
                     songSection(String(localized: "Credited"), unverified)
-                    songSection("Tracks", primary, numbers: true)
+                    // Each with its cover; track numbers belong to album pages.
+                    songSection("Tracks", primary)
                     if primary.isEmpty && featured.isEmpty {
                         EmptyState(message: "No tracks found for this artist.")
                     }
