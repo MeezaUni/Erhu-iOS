@@ -28,10 +28,11 @@ var logoPNG []byte
 // change anything must carry the page's token, and the Host header must be local, so other web
 // pages open in the browser can't drive the launcher.
 type Control struct {
-	store  *Store
-	server *Server
-	remote *Remote
-	ffmpeg *FFmpeg
+	store      *Store
+	server     *Server
+	remote     *Remote
+	ffmpeg     *FFmpeg
+	cloudflare *Cloudflare
 	// The Erhu web player's port (0: not running).
 	playerPort int
 	token      string
@@ -58,7 +59,9 @@ func newControl(store *Store, server *Server, quit func()) (*Control, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Control{store: store, server: server, remote: newRemote(), ffmpeg: newFFmpeg(store.DataDir()), token: hex.EncodeToString(raw), listener: listener, quit: quit, chooseFolder: pickFolder}, nil
+	c := &Control{store: store, server: server, remote: newRemote(), ffmpeg: newFFmpeg(store.DataDir()), token: hex.EncodeToString(raw), listener: listener, quit: quit, chooseFolder: pickFolder}
+	c.cloudflare = newCloudflare(store, c.publishPort)
+	return c, nil
 }
 
 func (c *Control) Port() int { return c.listener.Addr().(*net.TCPAddr).Port }
@@ -176,6 +179,24 @@ func (c *Control) handler() http.Handler {
 		}
 		return c.state(), nil
 	}))
+	mux.HandleFunc("POST /api/cloudflare", c.api(func(r *http.Request) (any, error) {
+		// Host set: run the setup for that address; Enabled false: turn it off.
+		var in struct {
+			Host    string
+			Enabled bool
+		}
+		if err := json.NewDecoder(http.MaxBytesReader(nil, r.Body, 1<<16)).Decode(&in); err != nil {
+			return nil, errors.New("bad request")
+		}
+		if in.Enabled {
+			if err := c.cloudflare.Setup(in.Host); err != nil {
+				return nil, err
+			}
+		} else if err := c.cloudflare.Disable(); err != nil {
+			return nil, err
+		}
+		return c.state(), nil
+	}))
 	mux.HandleFunc("POST /api/ffmpeg", c.api(func(r *http.Request) (any, error) {
 		if err := c.ffmpeg.Install(func() { _ = c.server.Start() }); err != nil {
 			return nil, err
@@ -255,13 +276,14 @@ type PageState struct {
 	Invite         string   `json:"invite"`
 	WebPlayer      string   `json:"webPlayer"`
 	// The web player's addresses for other devices on the network.
-	WebPlayerOthers []string    `json:"webPlayerOthers,omitempty"`
-	Autostart       bool        `json:"autostart"`
-	AutostartKnown  bool        `json:"autostartSupported"`
-	Remote          RemoteState `json:"remote"`
-	FFmpeg          FFmpegState `json:"ffmpeg"`
-	Version         string      `json:"version"`
-	Name            string      `json:"name"`
+	WebPlayerOthers []string        `json:"webPlayerOthers,omitempty"`
+	Autostart       bool            `json:"autostart"`
+	AutostartKnown  bool            `json:"autostartSupported"`
+	Remote          RemoteState     `json:"remote"`
+	Cloudflare      CloudflareState `json:"cloudflare"`
+	FFmpeg          FFmpegState     `json:"ffmpeg"`
+	Version         string          `json:"version"`
+	Name            string          `json:"name"`
 }
 
 func (c *Control) state() PageState {
@@ -298,8 +320,14 @@ func (c *Control) state() PageState {
 	if problem != "" {
 		out.Remote.Problem = problem
 	}
+	out.Cloudflare = c.cloudflare.State()
 	if len(out.Addresses) > 0 && state == StateRunning {
-		out.Invite = inviteURL(out.Addresses[0], out.Remote.Address, cfg.Username, out.Name)
+		// The Cloudflare address, when it works, is the faster away address.
+		away := out.Remote.Address
+		if out.Cloudflare.Status == "on" {
+			away = out.Cloudflare.Address
+		}
+		out.Invite = inviteURL(out.Addresses[0], away, cfg.Username, out.Name)
 	}
 	out.Autostart, out.AutostartKnown = autostartEnabled()
 	return out

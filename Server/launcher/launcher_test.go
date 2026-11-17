@@ -699,3 +699,115 @@ func TestRemoteFollowsTheWebAppsPortAndUndoesAFailedMove(t *testing.T) {
 		t.Fatalf("a failed move should put 4535 back: %v", got)
 	}
 }
+
+func TestCloudflareAddressIsANormalHostName(t *testing.T) {
+	for in, want := range map[string]string{
+		"music.erhu.dpdns.org":          "music.erhu.dpdns.org",
+		" https://Music.Erhu.dpdns.org/": "music.erhu.dpdns.org",
+		"erhu.dpdns.org.":               "erhu.dpdns.org",
+	} {
+		if got, err := normalizeHost(in); err != nil || got != want {
+			t.Errorf("%q: got %q %v", in, got, err)
+		}
+	}
+	for _, bad := range []string{"", "music", "http://", "a b.org", "music.erhu.dpdns.org:8443x"} {
+		if _, err := normalizeHost(bad); err == nil {
+			t.Errorf("%q should be refused", bad)
+		}
+	}
+	list := []byte("2026-11-17 INF something\n" + `[{"id":"old","name":"erhu-server","deleted_at":"2026-01-01T00:00:00Z"},{"id":"abc-123","name":"erhu-server","deleted_at":"0001-01-01T00:00:00Z"},{"id":"x","name":"other"}]`)
+	if got := findTunnel(list, "erhu-server"); got != "abc-123" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+// The one-button Cloudflare setup with a stand-in cloudflared: sign in once (the page opens),
+// create the tunnel, point the address at it, then run it pointing at the web app.
+func TestCloudflareSetupSignsInCreatesRoutesAndRuns(t *testing.T) {
+	t.Setenv("ERHU_SERVER_HOME", t.TempDir())
+	store, err := openStore()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var mu sync.Mutex
+	var ran []string
+	var opened []string
+	signedIn, created := false, false
+	c := newCloudflare(store, func() int { return 4535 })
+	c.lookPath = func(name string) (string, error) {
+		if name == "cloudflared" {
+			return "/bin/cloudflared", nil
+		}
+		return "", errors.New("missing")
+	}
+	c.exists = func(path string) bool { mu.Lock(); defer mu.Unlock(); return path == certPath() && signedIn }
+	c.open = func(url string) { mu.Lock(); opened = append(opened, url); mu.Unlock() }
+	c.stream = func(ctx context.Context, line func(string), name string, args ...string) error {
+		line("Please open the following URL and log in with your Cloudflare account:")
+		line("https://dash.cloudflare.com/argotunnel?aud=&callback=https%3A%2F%2Flogin.cloudflareaccess.org%2Fabc")
+		mu.Lock()
+		signedIn = true
+		mu.Unlock()
+		return nil
+	}
+	c.run = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		mu.Lock()
+		defer mu.Unlock()
+		ran = append(ran, strings.Join(args, " "))
+		switch {
+		case args[1] == "list" && created:
+			return []byte(`[{"id":"t-1","name":"erhu-server"}]`), nil
+		case args[1] == "list":
+			return []byte(`[]`), nil
+		case args[1] == "create":
+			created = true
+			return []byte("Created tunnel erhu-server with id t-1"), nil
+		case args[1] == "route":
+			return []byte("Added CNAME"), nil
+		}
+		return nil, errors.New("unexpected")
+	}
+	started := make(chan []string, 1)
+	c.start = func(bin string, args []string, log string) (func(), <-chan struct{}, error) {
+		started <- args
+		return func() {}, make(chan struct{}), nil
+	}
+	c.probe = func(string) bool { return true }
+
+	if err := c.Setup("https://Music.erhu.dpdns.org"); err != nil {
+		t.Fatal(err)
+	}
+	var args []string
+	select {
+	case args = <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatalf("the tunnel didn't start; problem %q, ran %v", c.State().Problem, ran)
+	}
+	if strings.Join(args, " ") != "tunnel --no-autoupdate run --url http://127.0.0.1:4535 t-1" {
+		t.Fatalf("ran the tunnel with %v", args)
+	}
+	mu.Lock()
+	if len(opened) != 1 || !strings.HasPrefix(opened[0], "https://dash.cloudflare.com/argotunnel") {
+		t.Fatalf("opened %v", opened)
+	}
+	want := []string{"tunnel list --output json", "tunnel create erhu-server", "tunnel list --output json",
+		"tunnel route dns --overwrite-dns t-1 music.erhu.dpdns.org"}
+	if strings.Join(ran, "|") != strings.Join(want, "|") {
+		t.Fatalf("ran %v", ran)
+	}
+	mu.Unlock()
+	if cfg := store.Get(); cfg.CloudflareHost != "music.erhu.dpdns.org" || cfg.CloudflareTunnel != "t-1" {
+		t.Fatalf("saved %+v", cfg)
+	}
+	deadline := time.Now().Add(6 * time.Second)
+	for c.State().Status != "on" && time.Now().Before(deadline) {
+		time.Sleep(100 * time.Millisecond)
+	}
+	if got := c.State(); got.Status != "on" || got.Address != "https://music.erhu.dpdns.org" {
+		t.Fatalf("%+v", got)
+	}
+	c.Stop()
+	if err := c.Disable(); err != nil || store.Get().CloudflareHost != "" {
+		t.Fatalf("turning off: %v %+v", err, store.Get())
+	}
+}
