@@ -1,6 +1,6 @@
 import Foundation
 
-/// Everything on a music server, kept on this device (Caches/Erhu/server-catalog), so search finds
+/// Everything on a music server, kept on this device (Application Support/Erhu/server-catalog), so search finds
 /// server music instantly, with the same forgiving matching as the library (partial words, accents,
 /// "title artist"), instead of asking the server on every keystroke. Refreshed in the background.
 struct ServerCatalog: Codable, Sendable {
@@ -30,13 +30,21 @@ struct ServerCatalog: Codable, Sendable {
     /// A catalog this old is refreshed when search opens or the app starts.
     static let maxAge: TimeInterval = 30 * 60
 
+    /// Kept with the app's data, not in Caches: iOS empties Caches when storage runs low, and
+    /// without a catalog the server's music leaves Albums and Songs until it is fetched again.
     static func file(for accountId: UUID) -> URL {
+        URL.applicationSupportDirectory.appendingPathComponent("Erhu/server-catalog", isDirectory: true)
+            .appendingPathComponent(accountId.uuidString + ".json")
+    }
+
+    /// Where earlier versions kept it.
+    private static func oldFile(for accountId: UUID) -> URL {
         LibraryPaths.cachesFolder.appendingPathComponent("server-catalog", isDirectory: true)
             .appendingPathComponent(accountId.uuidString + ".json")
     }
 
     static func load(_ accountId: UUID) -> ServerCatalog? {
-        guard let data = try? Data(contentsOf: file(for: accountId)) else { return nil }
+        guard let data = (try? Data(contentsOf: file(for: accountId))) ?? (try? Data(contentsOf: oldFile(for: accountId))) else { return nil }
         return try? JSONDecoder().decode(ServerCatalog.self, from: data)
     }
 
@@ -47,13 +55,13 @@ struct ServerCatalog: Codable, Sendable {
     }
 
     /// Downloads the whole catalog, a page of each kind at a time.
-    static func fetch(_ client: SubsonicClient) async throws -> ServerCatalog {
+    static func fetch(_ client: SubsonicClient, background: Bool = true) async throws -> ServerCatalog {
         var catalog = ServerCatalog()
         var artistOffset = 0, albumOffset = 0, songOffset = 0
         while artistOffset >= 0 || albumOffset >= 0 || songOffset >= 0 {
             try Task.checkCancellation()
             let page = try await client.catalogPage(artistOffset: artistOffset, albumOffset: albumOffset,
-                                                    songOffset: songOffset, size: pageSize)
+                                                    songOffset: songOffset, size: pageSize, background: background)
             let artists = page?.artist ?? [], albums = page?.album ?? [], songs = page?.song ?? []
             catalog.artists += artists.map { Artist(id: $0.id, name: $0.name, coverArt: $0.coverArt, albumCount: $0.albumCount) }
             catalog.albums += albums.map { Album(id: $0.id, name: $0.name, artist: $0.artist, coverArt: $0.coverArt, year: $0.year, artistId: $0.artistId) }

@@ -91,7 +91,12 @@ final class ServerStore {
         // A song that couldn't load because its server is off: its music leaves the library's
         // pages until the server answers again (checked when the app returns or the network changes).
         ServerStream.shared.onServerUnreachable = { [weak self] id in self?.reachable.remove(id) }
-        ServerStream.shared.onServerReachable = { [weak self] id in self?.reachable.insert(id) }
+        ServerStream.shared.onServerReachable = { [weak self] id in
+            guard let self else { return }
+            self.reachable.insert(id)
+            // Answering but no catalog yet (it failed or was never fetched): get it now.
+            if self.catalogs[id] == nil { self.refreshCatalogs() }
+        }
         ServerStream.shared.albumCoverArt = { [weak self] id, remote in
             remote.albumId.flatMap { self?.catalogs[id]?.albumEntry($0)?.coverArt }
         }
@@ -237,12 +242,14 @@ final class ServerStore {
                 }
                 guard let self else { return }
                 let stale = saved.map { Date().timeIntervalSince($0.fetchedAt) > ServerCatalog.maxAge } ?? true
-                // A refresh is large: only at home on Wi-Fi (away or on mobile data only when there
-                // is no catalog yet), and never while a song streams.
+                // A refresh is large: only at home on Wi-Fi and not while a song streams. Without
+                // any catalog the server's music can't show in Albums and Songs, so the first one
+                // is fetched anywhere, at once and not as low-priority traffic.
                 let atHome = !self.usingAway.contains(id) && !self.networkIsExpensive
-                guard force || stale, saved == nil || atHome, !self.player.isStreamingDirectly,
+                let first = saved == nil
+                guard first || ((force || stale) && atHome && !self.player.isStreamingDirectly),
                       let client = self.client(for: id) else { return }
-                guard let fresh = try? await ServerCatalog.fetch(client) else { return }
+                guard let fresh = try? await ServerCatalog.fetch(client, background: !first) else { return }
                 let index = await Task.detached(priority: .utility) { () -> ServerCatalogIndex in
                     fresh.save(id)
                     return ServerCatalogIndex(fresh)
@@ -300,6 +307,7 @@ final class ServerStore {
                 }
                 self.reachable.insert(account.id)
                 if account.remoteURL != nil { self.setRoute(account.id, away: away) }
+                if self.catalogs[account.id] == nil { self.refreshCatalogs() }
             }
             guard let self else { return }
             self.routeTask = nil
