@@ -80,6 +80,26 @@ struct ServerCatalog: Codable, Sendable {
 /// partial words, accents, small typos, "title artist"). Songs, albums and artists are ranked on
 /// their own, so every matching song shows (two songs of the same name by different artists).
 extension ServerCatalog {
+    /// Albums the server keeps as several (one per album-artist tag): split album id -> the id
+    /// of the one kept (the one with the most songs, by [songCount]).
+    static func splitAlbums(_ albums: [Album], songCount: (String) -> Int) -> [String: String] {
+        var groups: [String: [Album]] = [:]
+        for album in albums {
+            groups[SearchNormalizer.normalize(album.name) + "|\(album.year ?? 0)", default: []].append(album)
+        }
+        var aliases: [String: String] = [:]
+        for group in groups.values where group.count > 1 {
+            var remaining = group.sorted { songCount($0.id) > songCount($1.id) }
+            while let kept = remaining.first {
+                remaining.removeFirst()
+                let parts = remaining.filter { ServerLibraryMerge.sameArtist($0.artist ?? "", kept.artist ?? "") }
+                for part in parts { aliases[part.id] = kept.id }
+                remaining.removeAll { aliases[$0.id] != nil }
+            }
+        }
+        return aliases
+    }
+
     /// [songs] without copies: the same title, artist and album, within two seconds of the same
     /// length (a server with the same file twice). The first of each stays.
     static func uniqueSongs(_ songs: [ServerSong]) -> [ServerSong] {
@@ -113,11 +133,22 @@ final class ServerCatalogIndex: @unchecked Sendable {
     init(_ catalog: ServerCatalog) {
         var catalog = catalog
         catalog.songs = ServerCatalog.uniqueSongs(catalog.songs)
-        self.catalog = catalog
         var byAlbum: [String: [Int]] = [:]
         for (index, song) in catalog.songs.enumerated() { if let album = song.albumId { byAlbum[album, default: []].append(index) } }
+        // One album the server split in several (one per album-artist tag, e.g. "Doja Cat" and
+        // "Doja Cat, The Weeknd" for tracks of Planet Her): the same name and year, sharing an
+        // artist. They become one album, the one with the most songs, holding all their songs;
+        // asking for any of their ids finds it.
+        let aliases = ServerCatalog.splitAlbums(catalog.albums) { byAlbum[$0]?.count ?? 0 }
+        for (alias, canonical) in aliases {
+            byAlbum[canonical, default: []] += byAlbum.removeValue(forKey: alias) ?? []
+        }
+        catalog.albums.removeAll { aliases[$0.id] != nil }
+        self.catalog = catalog
         songsByAlbum = byAlbum
-        albumsById = Dictionary(catalog.albums.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var albumIndex = Dictionary(catalog.albums.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
+        for (alias, canonical) in aliases { albumIndex[alias] = albumIndex[canonical] }
+        albumsById = albumIndex
         artistsById = Dictionary(catalog.artists.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
         songsById = Dictionary(catalog.songs.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
         songTitles = catalog.songs.map { SearchNormalizer.normalizeWords($0.title) }
@@ -166,12 +197,15 @@ final class ServerCatalogIndex: @unchecked Sendable {
     /// The catalog's entry for album [id].
     func albumEntry(_ id: String) -> ServerCatalog.Album? { albumsById[id].map { catalog.albums[$0] } }
 
-    func songCount(ofAlbum id: String) -> Int { songsByAlbum[id]?.count ?? 0 }
+    func songCount(ofAlbum id: String) -> Int {
+        guard let index = albumsById[id] else { return songsByAlbum[id]?.count ?? 0 }
+        return songsByAlbum[catalog.albums[index].id]?.count ?? 0
+    }
 
     func album(_ id: String) -> ServerAlbum? {
         guard let index = albumsById[id] else { return nil }
         let album = catalog.albums[index]
-        let songs = (songsByAlbum[id] ?? []).map { catalog.songs[$0] }.sorted {
+        let songs = (songsByAlbum[album.id] ?? []).map { catalog.songs[$0] }.sorted {
             ($0.discNumber ?? 1, $0.track ?? 0, $0.title) < ($1.discNumber ?? 1, $1.track ?? 0, $1.title)
         }
         return ServerAlbum(id: album.id, name: album.name, artist: album.artist, artistId: album.artistId,

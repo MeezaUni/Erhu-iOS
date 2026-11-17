@@ -375,6 +375,26 @@ final class SubsonicTests: XCTestCase {
         XCTAssertNil(StreamMedia.totalLength(try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 206, httpVersion: nil, headerFields: [:])), offset: 0))
     }
 
+    func testAnAlbumTheServerSplitByAlbumArtistIsOne() throws {
+        func remote(_ id: String, _ title: String, albumId: String, track: Int) throws -> ServerSong {
+            let json = #"{"id":"\#(id)","title":"\#(title)","artist":"Doja Cat","album":"Planet Her","albumId":"\#(albumId)","track":\#(track)}"#
+            return try JSONDecoder().decode(ServerSong.self, from: Data(json.utf8))
+        }
+        var catalog = ServerCatalog()
+        catalog.albums = [.init(id: "a", name: "Planet Her", artist: "Doja Cat", coverArt: "ca", year: 2021),
+                          .init(id: "b", name: "Planet Her", artist: "Doja Cat, The Weeknd", coverArt: "cb", year: 2021),
+                          .init(id: "c", name: "Planet Her", artist: "Doja Cat, SZA", coverArt: "cc", year: 2021),
+                          .init(id: "d", name: "Planet Her", artist: "Someone Else", coverArt: "cd", year: 2021)]
+        catalog.songs = [try remote("1", "Need to Know", albumId: "a", track: 2), try remote("2", "Woman", albumId: "a", track: 1),
+                         try remote("3", "You Right", albumId: "b", track: 3), try remote("4", "Kiss Me More", albumId: "c", track: 4)]
+        let index = ServerCatalogIndex(catalog)
+        // One album with all four songs; another artist's album of the same name stays apart.
+        XCTAssertEqual(["a", "d"], index.catalog.albums.map(\.id).sorted())
+        XCTAssertEqual(["Woman", "Need to Know", "You Right", "Kiss Me More"], index.album("b")?.song.map(\.title))
+        XCTAssertEqual("a", index.album("c")?.id)
+        XCTAssertEqual(4, index.songCount(ofAlbum: "b"))
+    }
+
     func testServerCatalogSearchMatchesLikeTheLibraryAndSurvivesSaving() throws {
         func song(_ id: String, _ title: String, artist: String, album: String, albumId: String, artistId: String) throws -> ServerSong {
             let json = #"{"id":"\#(id)","title":"\#(title)","artist":"\#(artist)","album":"\#(album)","albumId":"\#(albumId)","artistId":"\#(artistId)","track":1}"#

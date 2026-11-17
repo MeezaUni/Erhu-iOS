@@ -101,6 +101,7 @@ struct AlbumDetailView: View {
                 }
             } else {
                 EmptyState(message: "This album is no longer in your library.", systemImage: "square.stack")
+                    .containerRelativeFrame(.vertical)
             }
         }
         .tracksLibraryScrolling()
@@ -190,6 +191,9 @@ struct ArtistDetailView: View {
     /// and its songs of theirs the library lacks, streamed and marked.
     @State private var serverAlbums: [(album: ServerCatalog.Album, songs: Int)] = []
     @State private var streamed: [Song] = []
+    /// The artist's name while they were in the library: if their last song on this phone goes,
+    /// the page carries on as their page on the server.
+    @State private var lastName: String?
     @State private var primary: [Song] = []
     @State private var featured: [Song] = []
     @State private var unverified: [Song] = []
@@ -219,8 +223,15 @@ struct ArtistDetailView: View {
                         EmptyState(message: "No tracks found for this artist.")
                     }
                 }
-            } else {
+            } else if serverFallback == nil {
                 EmptyState(message: "This artist is no longer in your library.", systemImage: "person")
+                    .containerRelativeFrame(.vertical)
+            }
+        }
+        .overlay {
+            // No longer on this phone but on the connected server: their server page, in place.
+            if library.artist(artistId) == nil, let ref = serverFallback {
+                NamedServerArtistPage(ref: ref)
             }
         }
         .tracksLibraryScrolling()
@@ -247,11 +258,17 @@ struct ArtistDetailView: View {
         }
         .sheet(item: $artworkTarget) { ArtworkPickerSheet(target: $0) }
         .task(id: library.songs) { load() }
+        .onChange(of: library.artist(artistId)?.name, initial: true) { _, name in if let name { lastName = name } }
         .task(id: "\(primary.count)|\(albums.count)|\(servers.catalogVersion)|\(servers.connectedAccount?.id.uuidString ?? "")") {
             await loadServer()
         }
         .background { CollectionPageBackground() }
         .collectionArtworkTheme(.image(library.artist(artistId)?.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) }))
+    }
+
+    private var serverFallback: ServerRef? {
+        guard let name = lastName, let account = servers.connectedAccount else { return nil }
+        return ServerRef(accountId: account.id, id: ServerLibraryMerge.artistKey(name), title: name)
     }
 
     private func load() {

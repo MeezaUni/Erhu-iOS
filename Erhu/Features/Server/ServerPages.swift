@@ -109,12 +109,15 @@ private struct ServerCollectionPage: View {
     let numbered: Bool
     let source: PlaybackSource
     @Environment(ServerStore.self) private var servers
+    @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
     @Environment(PlayerController.self) private var player
     @State private var coverRevision = 0
 
     var body: some View {
         let tracks = ServerCatalog.uniqueSongs(remote.filter { $0.isVideo != true })
+        // Read so the page redraws when the library changes (a song saved or deleted).
+        let _ = library.songs.count
         let songs = servers.streamSongs(tracks, account: account)
         let songActions = servers.songActions(source: source)
         let currentId = player.state.currentSong?.id
@@ -223,6 +226,7 @@ struct ServerArtistPage: View {
 struct NamedServerArtistPage: View {
     let ref: ServerRef
     @Environment(ServerStore.self) private var servers
+    @Environment(LibraryStore.self) private var library
     @Environment(AppRouter.self) private var router
     @Environment(PlayerController.self) private var player
     @State private var artist: NamedServerArtist?
@@ -233,6 +237,9 @@ struct NamedServerArtistPage: View {
             let albums = (artist?.albumIds ?? []).compactMap { index.albumEntry($0) }
                 .sorted { ($0.year ?? 0) == ($1.year ?? 0) ? $0.name < $1.name : ($0.year ?? 0) > ($1.year ?? 0) }
             let remote = index.songs(artist?.songIds ?? [])
+            // Read so the page redraws when the library changes: a song saved to or deleted from
+            // the phone switches between the library's copy and the streamed one.
+            let _ = library.songs.count
             let songs = servers.streamSongs(remote, account: account)
             let source = PlaybackSource.server(account: account.id, album: nil, title: ref.title)
             let rowActions = servers.songActions(source: source)

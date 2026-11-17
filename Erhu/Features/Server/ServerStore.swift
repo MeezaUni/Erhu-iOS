@@ -158,7 +158,17 @@ final class ServerStore {
 
     /// An album from the server, remembered for this session so opening it again is instant.
     func album(_ id: String, account: ServerAccount) async throws -> ServerAlbum {
-        let album = try await requireClient(self, account).album(id)
+        var album = try await requireClient(self, account).album(id)
+        // An album the server split in parts (see ServerCatalogIndex): the server sends one part;
+        // the other parts' songs, from the catalog, join it.
+        if let merged = catalogs[account.id]?.album(id), merged.song.count > album.song.count {
+            let have = Set(album.song.map(\.id))
+            let songs = (album.song + merged.song.filter { !have.contains($0.id) }).sorted {
+                ($0.discNumber ?? 1, $0.track ?? 0, $0.title) < ($1.discNumber ?? 1, $1.track ?? 0, $1.title)
+            }
+            album = ServerAlbum(id: album.id, name: album.name, artist: album.artist, artistId: album.artistId,
+                                coverArt: album.coverArt, year: album.year, song: songs)
+        }
         albumCache["\(account.id.uuidString)/\(id)"] = album
         return album
     }
