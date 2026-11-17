@@ -30,7 +30,7 @@ struct SongActionItems: View {
         if vybeEnabled { Button { actions.startRadio(song) } label: { Label("Browse radio", systemImage: "dot.radiowaves.left.and.right") } }
         Button { actions.addToPlaylist(song) } label: { Label("Add to playlist", systemImage: "music.note.list") }
         Button { actions.toggleFavorite(song) } label: {
-            Label(song.isFavorite ? "Remove from favorites" : "Add to favorites", systemImage: song.isFavorite ? "heart.slash" : "heart")
+            Label(song.isFavoriteNow ? "Remove from favorites" : "Add to favorites", systemImage: song.isFavoriteNow ? "heart.slash" : "heart")
         }
         if let view = actions.viewDetails {
             Button { view(song) } label: { Label("View metadata", systemImage: "info.circle") }
@@ -117,12 +117,12 @@ struct TrackRow: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onTap() }
             Button { actions.toggleFavorite(song) } label: {
-                Image(systemName: song.isFavorite ? "heart.fill" : "heart")
-                    .foregroundStyle(song.isFavorite ? palette.primary : palette.onSurfaceVariant)
+                Image(systemName: song.isFavoriteNow ? "heart.fill" : "heart")
+                    .foregroundStyle(song.isFavoriteNow ? palette.primary : palette.onSurfaceVariant)
                     .frame(width: 32, height: 44)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(song.isFavorite ? "Remove from favorites" : "Add to favorites")
+            .accessibilityLabel(song.isFavoriteNow ? "Remove from favorites" : "Add to favorites")
             Menu {
                 SongActionItems(song: song, actions: actions)
             } label: {
@@ -138,7 +138,7 @@ struct TrackRow: View {
         .offset(x: swipe)
         .background(alignment: swipe >= 0 ? .leading : .trailing) {
             if swipe != 0 {
-                Image(systemName: swipe > 0 ? "text.badge.plus" : (song.isFavorite ? "heart.slash" : "heart.fill"))
+                Image(systemName: swipe > 0 ? "text.badge.plus" : (song.isFavoriteNow ? "heart.slash" : "heart.fill"))
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(palette.primary)
                     .frame(width: 64)
@@ -151,7 +151,7 @@ struct TrackRow: View {
         }
         .onDisappear { swipe = 0 }
         .accessibilityAction(named: "Add to queue") { actions.addToQueue(song) }
-        .accessibilityAction(named: song.isFavorite ? "Remove from Liked Songs" : "Add to Liked Songs") { actions.toggleFavorite(song) }
+        .accessibilityAction(named: song.isFavoriteNow ? "Remove from Liked Songs" : "Add to Liked Songs") { actions.toggleFavorite(song) }
         .contextMenu { SongActionItems(song: song, actions: actions) }
     }
 
