@@ -154,7 +154,7 @@ private struct RadioCover: View {
     @Environment(LibraryStore.self) private var library
 
     var body: some View {
-        let source: ArtworkPaletteSource = portraits.first.map { lead in
+        let source: ArtworkPaletteSource = portraits.first.map { lead -> ArtworkPaletteSource in
             if let path = library.artist(lead.artistId)?.artworkPath?.nonBlank {
                 return .image(URL(fileURLWithPath: LibraryPaths.resolveImage(path)))
             }
