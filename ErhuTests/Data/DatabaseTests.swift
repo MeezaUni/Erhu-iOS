@@ -162,6 +162,32 @@ final class ScannerTests: XCTestCase {
     }
 }
 
+final class DuplicateScanTests: XCTestCase {
+    private func scanned(_ id: Int64, _ title: String, _ artist: String, _ album: String, ms: Int64, favorite: Bool = false) -> ScannedSong {
+        var song = Song(id: id, title: title, artist: artist, album: album, artistId: 0, albumId: 0, durationMs: ms,
+                        path: "/music/\(id).mp3", trackNumber: 0, year: 0, dateModified: 0)
+        song.isFavorite = favorite
+        return ScannedSong(song: song, raw: RawTrack(songId: id, title: title, rawArtist: artist, rawAlbumArtist: nil, album: album,
+                                                                 trackNumber: 0, discNumber: 1, folder: "/music", isCompilation: false),
+                           lyrics: nil)
+    }
+
+    func testTheSameTrackIsListedOnceKeepingTheLikedOrLibraryCopy() {
+        let songs = [
+            scanned(1, "Kill Bill", "SZA", "SOS", ms: 153_000),
+            scanned(2, "Kill Bill", "SZA", "SOS", ms: 154_500, favorite: true),
+            scanned(3, "Kill Bill", "SZA", "SOS", ms: 200_000),
+            scanned(4, "Kill Bill", "SZA", "SOS", ms: 0),
+            scanned(5, "", "SZA", "SOS", ms: 153_000),
+        ]
+        let kept = LibraryScanner.withoutDuplicates(songs, stored: [:]).map(\.song.id)
+        XCTAssertEqual(kept, [2, 3, 4, 5], "the liked copy stays; another version, an unknown length and an untitled file stay")
+        let stored = [Int64(1): songs[0]]
+        XCTAssertEqual(LibraryScanner.withoutDuplicates(Array(songs.prefix(1)) + [scanned(6, "Kill Bill", "SZA", "SOS", ms: 153_500)], stored: stored)
+            .map(\.song.id), [1], "the copy already in the library stays")
+    }
+}
+
 private extension Artist {
     var key: String { artistKey }
 }
