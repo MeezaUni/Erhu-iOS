@@ -18,6 +18,8 @@ final class AppSettings {
         /// An imported theme in use instead of [theme], by id.
         var customThemeId: String?
         var importedThemes: [ImportedTheme] = []
+        /// The tab bar's shortcuts after Home, in order (up to three).
+        var navigationShortcuts: [String] = AppSettings.defaultShortcuts.map(\.rawValue)
         /// What sits behind Now Playing.
         var playerBackdrop: PlayerBackdropStyle = .artworkColours
 
@@ -36,6 +38,7 @@ final class AppSettings {
             customThemeId = try? c.decodeIfPresent(String.self, forKey: .customThemeId)
             importedThemes = (try? c.decodeIfPresent([ImportedTheme].self, forKey: .importedThemes)) ?? []
             playerBackdrop = (try? c.decodeIfPresent(PlayerBackdropStyle.self, forKey: .playerBackdrop)) ?? .artworkColours
+            navigationShortcuts = (try? c.decodeIfPresent([String].self, forKey: .navigationShortcuts)) ?? AppSettings.defaultShortcuts.map(\.rawValue)
         }
     }
 
@@ -79,7 +82,37 @@ final class AppSettings {
         set { update { $0.typeface = newValue } }
     }
 
-    var visibleSections: [LibrarySection] { LibrarySection.allCases.filter { vybeEnabled || $0 != .vybe } }
+    static let defaultShortcuts: [LibrarySection] = [.albums, .library, .vybe]
+    /// Shortcuts after Home in the tab bar.
+    static let shortcutLimit = 3
+
+    /// What can be a tab bar shortcut.
+    var shortcutChoices: [LibrarySection] { [.albums, .library, .vybe, .artists].filter { vybeEnabled || $0 != .vybe } }
+
+    /// The tab bar: Home first, then the chosen shortcuts in their order.
+    var visibleSections: [LibrarySection] {
+        var seen = Set<LibrarySection>()
+        let chosen = stored.navigationShortcuts.compactMap(LibrarySection.init(rawValue:))
+            .filter { $0 != .home && (vybeEnabled || $0 != .vybe) && seen.insert($0).inserted }
+        return [.home] + chosen.prefix(Self.shortcutLimit)
+    }
+
+    /// The tab bar's shortcuts after Home.
+    var navigationShortcuts: [LibrarySection] {
+        get { Array(visibleSections.dropFirst()) }
+        set { update { $0.navigationShortcuts = newValue.filter { $0 != .home }.prefix(Self.shortcutLimit).map(\.rawValue) } }
+    }
+
+    /// Adds [section] at the end of the shortcuts, or removes it if it is there (at most three).
+    func toggleShortcut(_ section: LibrarySection) {
+        var list = navigationShortcuts
+        if let index = list.firstIndex(of: section) { list.remove(at: index) }
+        else if list.count < Self.shortcutLimit { list.append(section) }
+        navigationShortcuts = list
+    }
+
+    /// Every section that can be shown, in or out of the tab bar (reached from the side menu).
+    var availableSections: [LibrarySection] { LibrarySection.allCases.filter { vybeEnabled || $0 != .vybe } }
     func visibleSection(_ section: LibrarySection) -> LibrarySection { !vybeEnabled && section == .vybe ? .home : section }
 
     var visualizer: VisualizerSettings {

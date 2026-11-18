@@ -34,7 +34,7 @@ struct RootView: View {
         @Bindable var library = library
         ZStack(alignment: .bottom) {
             palette.background.ignoresSafeArea()
-            ForEach(settings.visibleSections) { section in
+            ForEach(settings.availableSections) { section in
                 sectionStack(section)
                     .environment(\.motionCoverVisible, router.section == section && (!playerMotion.isPresented || playerMotion.isCollapsing))
                     .opacity(router.section == section ? 1 : 0)
@@ -142,7 +142,7 @@ struct RootView: View {
     private func sectionStack(_ section: LibrarySection) -> some View {
         NavigationStack(path: router.binding(for: section)) {
             sectionRoot(section)
-                .navigationTitle(section == .albums ? "" : section == .home ? "Erhu" : section.label)
+                .navigationTitle(section == .albums || section == .artists ? "" : section == .home ? "Erhu" : section.label)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button { router.showsDrawer = true } label: { Image(systemName: "line.3.horizontal") }
@@ -166,6 +166,7 @@ struct RootView: View {
         case .albums: AlbumsView()
         case .library: LibraryOverviewView()
         case .vybe: VybeView()
+        case .artists: LibraryShelfView(shelf: .artists)
         }
     }
 
@@ -239,6 +240,10 @@ struct RootView: View {
                 drawerItem(String(localized: "Library"), icon: "books.vertical") {
                     router.showsDrawer = false
                     router.paths[router.section] = NavigationPath()
+                }
+                // Sections left out of the tab bar stay one tap away.
+                ForEach(settings.availableSections.filter { !settings.visibleSections.contains($0) }) { section in
+                    drawerItem(section.label, icon: section.icon) { router.select(section) }
                 }
                 ForEach(Tool.available) { tool in
                     drawerItem(tool.label, icon: tool.icon) { router.open(tool) }

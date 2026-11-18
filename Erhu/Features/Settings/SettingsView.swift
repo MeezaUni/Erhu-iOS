@@ -29,7 +29,7 @@ struct SettingsView: View {
                 LanguageSettingsRow()
             }
             SettingsGroup("Sound") {
-                SettingsLink("Audio & Equalizer", subtitle: "8-band equalizer, presets and audio effects", icon: "chart.bar.fill", tool: .equalizer)
+                SettingsLink("Audio & Equalizer", subtitle: "Graphic and parametric equalizer, presets and audio effects", icon: "chart.bar.fill", tool: .equalizer)
                 SettingsLink("Visualizer", subtitle: "Style and feel of the Now Playing visualizer", icon: "waveform", page: .visualizer)
             }
             SettingsGroup("Library") {
@@ -290,6 +290,14 @@ private struct AppearanceSettingsView: View {
                     .buttonStyle(.plain)
                 }
                 if let themeMessage { Text(themeMessage).font(.footnote).foregroundStyle(.secondary).padding(Spacing.lg) }
+            }
+            SettingsGroup("Tab bar") {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    Text("Home stays first. Tap up to three other shortcuts in the order you want them. Tap again to remove a shortcut.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    NavigationShortcutsPicker()
+                }
+                .padding(Spacing.lg)
             }
             SettingsGroup("Now Playing background") {
                 Picker("Background", selection: Binding(get: { settings.playerBackdrop }, set: { settings.playerBackdrop = $0 })) {
