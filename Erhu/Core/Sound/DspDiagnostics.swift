@@ -74,8 +74,8 @@ enum DspDiagnostics {
 
     static func eqStage(_ runtime: EqRuntimeState, settings: SoundSettings) -> EqStage {
         let rate = runtime.sampleRateHz ?? defaultSampleRate
-        let bands = settings.bands.prefix(settings.activeBandCount).map {
-            BandDescription(frequencyHz: $0.frequencyHz, gainDb: $0.gainDb, q: $0.q, type: $0.filterType,
+        let bands = settings.effectiveBands().filter(\.enabled).map {
+            BandDescription(frequencyHz: $0.frequencyHz, gainDb: $0.gainDb, q: $0.q, type: $0.type,
                             skippedAtThisSampleRate: $0.frequencyHz >= Float(rate) * Equalizer.maxBandToSampleRateRatio)
         }
         let status: StageStatus
