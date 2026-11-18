@@ -351,6 +351,24 @@ final class RadioEngineTests: XCTestCase {
         XCTAssertTrue(plan.basedOn.contains(.listening))
     }
 
+    func testAMostPlayedArtistDoesNotOutrankCloserSongsInAnUnrelatedStation() {
+        // Artist 1 is played a lot but sounds furthest from the untagged seed artist 6; artists 2-3 are a bit closer.
+        let p = profile(plays: (Int64(1)...10).map { played($0, 40, daysAgo: 2) })
+        var sound: [Int64: Float] = [:]
+        for t in library {
+            switch artistOf(t.songId) {
+            case 4, 5: sound[t.songId] = 0.9
+            case 2, 3: sound[t.songId] = 0.3
+            case 1: sound[t.songId] = 0.2
+            default: sound[t.songId] = 0
+            }
+        }
+        let plan = radio(.artist(6), p, similarity: sound)
+        let firstPlayed = plan.songIds.firstIndex { artistOf($0) == 1 } ?? plan.songIds.count
+        let closerBefore = plan.songIds.prefix(firstPlayed).filter { (2...3).contains(artistOf($0)) }.count
+        XCTAssertGreaterThanOrEqual(closerBefore, 6, "\(plan.songIds.map(artistOf))")
+    }
+
     func testTheSameInputsGiveTheSameRadio() {
         XCTAssertEqual(radio(.song(5)), radio(.song(5)))
     }
@@ -358,5 +376,30 @@ final class RadioEngineTests: XCTestCase {
     func testAnUnknownSeedGivesNoRadio() {
         XCTAssertNil(RadioEngine.build(profile(), seed: .song(999), similarity: nil))
         XCTAssertNil(RadioEngine.build(profile(), seed: .artist(999), similarity: nil))
+    }
+}
+
+final class RadioRotationTests: XCTestCase {
+    private func album(_ id: Int64, artist: Int64, songs: Int = 8, name: String? = nil) -> Album {
+        Album(id: id, title: "Album \(id)", artist: name ?? "Artist \(artist)", artistId: artist, songCount: songs, year: 2020)
+    }
+
+    func testThePoolLeadsWithTheMostPlayedArtistsOneAlbumEach() {
+        let albums = [album(1, artist: 1), album(2, artist: 1, songs: 12), album(3, artist: 2), album(4, artist: 3, name: "Unknown Artist")]
+        let tracks = [track(10, artist: 1, album: 1), track(20, artist: 1, album: 2), track(30, artist: 2, album: 3)]
+        let pool = RadioRotation.pool(albums: albums, tracks: tracks, plays: [played(30, 9, daysAgo: 1), played(10, 2, daysAgo: 1)])
+        XCTAssertEqual(pool.map(\.id), [3, 1], "artist 2 is played most; artist 1 by its most played album; no unknown artist")
+    }
+
+    func testEachWindowDrawsFiveStationsAndRecommendationsSkipTheStationsArtist() {
+        let pool = (Int64(1)...20).map { album($0, artist: $0) }
+        let first = RadioRotation.stations(pool, slot: 100)
+        XCTAssertEqual(first.count, 5)
+        XCTAssertEqual(first, RadioRotation.stations(pool, slot: 100), "the same within a window")
+        XCTAssertNotEqual(first, RadioRotation.stations(pool, slot: 101))
+        let more = RadioRotation.recommendations(pool, current: pool[0], stationArtistIds: [1, 7, 9], slot: 100)
+        XCTAssertEqual(more.count, 5)
+        XCTAssertEqual(Array(more.prefix(2).map(\.artistId)), [7, 9], "the station's other artists come first")
+        XCTAssertFalse(more.contains { $0.artistId == 1 })
     }
 }

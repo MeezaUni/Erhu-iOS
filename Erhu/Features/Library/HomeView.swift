@@ -139,7 +139,8 @@ struct SmartMixHero: View {
     @State private var width: CGFloat = 360
 
     var body: some View {
-        let featured = HomeSession.feature(mixes, limit: Self.maxBanners)
+        // The banners change every few hours (the same on every visit within that window).
+        let featured = HomeSession.feature(mixes, limit: Self.maxBanners, sessionSeed: RadioRotation.slot(hours: RadioRotation.bannerHours))
         let count = featured.count + (needsMoreListening ? 1 : 0)
         let rotation = Rotation(active: isActive && visible && scenePhase == .active && !reduceMotion && !dragging,
                                 count: count, page: page, interaction: interaction)

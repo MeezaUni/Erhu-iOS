@@ -98,7 +98,7 @@ final class SearchStore {
     var recents: [RecentSearchItem] {
         savedRecents.compactMap { saved in
             switch saved {
-            case .song(let id): library.songs.first { $0.id == id }.map(RecentSearchItem.song)
+            case .song(let id): library.song(id).map(RecentSearchItem.song)
             case .album(let id): library.album(id).map(RecentSearchItem.album)
             case .artist(let id): library.artist(id).map(RecentSearchItem.artist)
             case .playlist(let id): library.playlist(id).map(RecentSearchItem.playlist)

@@ -20,6 +20,8 @@ final class LibraryStore {
     private(set) var recentAlbums: [Album] = []
     private(set) var recentPlaylists: [Playlist] = []
     private(set) var featuredAlbums: [Album] = []
+    /// One album per artist that can lead a radio station, most played first ([RadioRotation.pool]).
+    private(set) var radioPool: [Album] = []
     /// Each album's cover comes from its first song's embedded art.
     private(set) var albumCoverSong: [Int64: Song] = [:]
     private(set) var scanProgress: ScanProgress?
@@ -77,6 +79,7 @@ final class LibraryStore {
             let epochDay = Int64(floor(Date().timeIntervalSince1970 / 86_400))
             let tracks = try database.trackFacts()
             let plays = try database.monthlyPlays()
+            radioPool = RadioRotation.pool(albums: albums, tracks: tracks, plays: plays)
             featuredAlbums = FeaturedAlbums.select(albums: albums, tracks: tracks, plays: plays, exclude: Set(recentAlbums.map(\.id)),
                                                    epochDay: epochDay)
         } catch {

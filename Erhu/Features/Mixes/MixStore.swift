@@ -27,6 +27,9 @@ final class MixStore {
     @ObservationIgnored private var pending: Task<Void, Never>?
     @ObservationIgnored private var building: Task<Void, Never>?
     @ObservationIgnored private var started = false
+    /// Stations already built for a tile's cover, by album (cleared when the library changes).
+    @ObservationIgnored private var stationCovers: [Int64: RadioPlan] = [:]
+    @ObservationIgnored private var stationCoversSignature = 0
 
     init(database: LibraryDatabase, vybe: VybeEngine) {
         self.database = database
@@ -61,6 +64,18 @@ final class MixStore {
 
     /// A radio from [seed]: built when asked, never in the background. [exclude]: earlier picks
     /// (when refreshing), which come back only if too few other songs are left.
+    /// The station of album [albumId], for drawing its tile; built once per library state.
+    func stationCover(_ albumId: Int64, librarySignature: Int) async -> RadioPlan? {
+        if librarySignature != stationCoversSignature {
+            stationCovers = [:]
+            stationCoversSignature = librarySignature
+        }
+        if let built = stationCovers[albumId] { return built }
+        let plan = await radio(.album(albumId))
+        if let plan, librarySignature == stationCoversSignature { stationCovers[albumId] = plan }
+        return plan
+    }
+
     func radio(_ seed: RadioSeed, exclude: Set<Int64> = [], startSongId: Int64? = nil) async -> RadioPlan? {
         let database = database
         let vybe = vybe
