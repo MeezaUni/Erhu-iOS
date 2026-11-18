@@ -68,10 +68,52 @@ final class LibraryScanner: @unchecked Sendable {
                 progress(ScanProgress(scanned: index + 1, total: files.count, currentTitle: scanned.last?.song.title))
             }
         }
+        scanned = Self.withoutDuplicates(scanned, stored: stored)
         let model = LibraryModelBuilder.build(scanned.map(\.raw), aliases: try database.aliases())
-        let summary = try write(model: model, scanned: scanned, previousIds: Set(stored.keys))
+        let summary = try write(model: model, scanned: scanned, stored: stored)
         progress(ScanProgress(scanned: files.count, total: files.count, isComplete: true))
         return summary
+    }
+
+    /// [songs] with each track once: the same title, artist and album within two seconds of the
+    /// same length is one song. The copy kept is a liked one, else one already in the library, else
+    /// the first found. Songs without a title, an artist or a known length, and other versions
+    /// (other lengths), all stay. Files are never touched.
+    static func withoutDuplicates(_ songs: [ScannedSong], stored: [Int64: ScannedSong]) -> [ScannedSong] {
+        let preferred = songs.indices.sorted { a, b in
+            let fa = songs[a].song.isFavorite, fb = songs[b].song.isFavorite
+            if fa != fb { return fa }
+            let sa = stored[songs[a].song.id] != nil, sb = stored[songs[b].song.id] != nil
+            if sa != sb { return sa }
+            return a < b
+        }
+        var lengths: [String: [Int64]] = [:]
+        var dropped = Set<Int64>()
+        for index in preferred {
+            let song = songs[index].song
+            let title = SearchNormalizer.normalize(song.title), artist = SearchNormalizer.normalize(song.artist)
+            guard !title.isEmpty, !artist.isEmpty, artist != "unknown artist", song.durationMs > 0 else { continue }
+            let key = title + "|" + artist + "|" + SearchNormalizer.normalize(song.album)
+            if lengths[key]?.contains(where: { abs($0 - song.durationMs) <= 2_000 }) == true {
+                dropped.insert(song.id)
+            } else {
+                lengths[key, default: []].append(song.durationMs)
+            }
+        }
+        return dropped.isEmpty ? songs : songs.filter { !dropped.contains($0.song.id) }
+    }
+
+    /// A fingerprint of the albums, artists and credits a scan builds, so an unchanged library
+    /// isn't written again.
+    static func digest(_ model: LibraryModel, artwork: [String: String]) -> String {
+        var parts: [String] = []
+        parts += model.albums.map { String(describing: $0) }.sorted()
+        parts += model.artists.map { String(describing: $0) }.sorted()
+        parts += model.credits.map { String(describing: $0) }.sorted()
+        parts += model.albumArtists.map { String(describing: $0) }.sorted()
+        parts += model.unverifiedSegments.map { String(describing: $0) }.sorted()
+        parts += artwork.map { $0.key + "=" + $0.value }.sorted()
+        return String(IdentityHash.of(parts.joined(separator: "\n"))) + ":" + String(parts.count)
     }
 
     /// Every playable file under [folder] (subfolders included, hidden files skipped), by path.
@@ -147,22 +189,38 @@ final class LibraryScanner: @unchecked Sendable {
 
     /// Writes one scan atomically: derived tables are replaced; favorites, playlists, statistics,
     /// bookmarks, artwork and aliases are kept.
-    private func write(model: LibraryModel, scanned: [ScannedSong], previousIds: Set<Int64>) throws -> WriteSummary {
+    /// Only what changed is written: song rows that came out different (or moved album or
+    /// artist), removed songs, and the albums, artists and credits when they changed. A scan that
+    /// changes nothing writes nothing, so the app doesn't reload its screens for it.
+    private func write(model: LibraryModel, scanned: [ScannedSong], stored: [Int64: ScannedSong]) throws -> WriteSummary {
         let db = database.db
         let scannedIds = Set(scanned.map(\.song.id))
-        let removed = Array(previousIds.subtracting(scannedIds))
+        let removed = Array(Set(stored.keys).subtracting(scannedIds))
         let artwork = try database.artistArtworkByKey()
         let songById = Dictionary(scanned.map { ($0.song.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let changedRows = scanned.filter { item in
+            guard let old = stored[item.song.id], old == item else { return true }
+            let assignment = model.songs[item.song.id]
+            return old.song.albumId != (assignment?.albumId ?? 0) || old.song.artistId != (assignment?.primaryArtistId ?? 0)
+        }
+        try db.execute("CREATE TABLE IF NOT EXISTS library_state (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+        let digest = Self.digest(model, artwork: artwork)
+        let previousDigest = try db.query("SELECT value FROM library_state WHERE key = 'model'") { $0.string("value") }.first
+        let modelChanged = previousDigest != digest
+        guard !changedRows.isEmpty || !removed.isEmpty || modelChanged else {
+            return WriteSummary(upserted: scanned.count, removed: 0, albums: model.albums.count)
+        }
         try db.transaction {
             for chunk in removed.chunked(into: 500) {
                 try db.execute("DELETE FROM library_imports WHERE song_id IN (\(placeholders(chunk.count)))", chunk)
                 try db.execute("DELETE FROM songs WHERE id IN (\(placeholders(chunk.count)))", chunk)
             }
             let importedAt = LibraryDatabase.now()
-            for item in scanned {
+            for item in changedRows {
                 try db.execute("INSERT OR IGNORE INTO library_imports (song_id, added_at) VALUES (?, ?)", [item.song.id, importedAt])
                 try insert(item, assignment: model.songs[item.song.id], into: db)
             }
+            guard modelChanged else { return }
             for table in ["song_artist_cross_ref", "albums", "artists", "album_artist_cross_ref", "unverified_credit_segment"] {
                 try db.execute("DELETE FROM \(table)")
             }
@@ -199,6 +257,7 @@ final class LibraryScanner: @unchecked Sendable {
                     VALUES (?, ?, ?, ?)
                     """, [row.songId, row.artistId, row.segmentKey, row.segmentIndex])
             }
+            try db.execute("INSERT OR REPLACE INTO library_state (key, value) VALUES ('model', ?)", [digest])
         }
         return WriteSummary(upserted: scanned.count, removed: removed.count, albums: model.albums.count)
     }

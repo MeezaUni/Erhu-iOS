@@ -63,6 +63,8 @@ struct RepairItem: Identifiable, Codable, Sendable {
 @MainActor
 @Observable
 final class FixTagsStore {
+    /// A file was changed during the current run (the library is rescanned at its end).
+    @ObservationIgnored private var wroteDuringRun = false
     struct Settings: Codable, Equatable {
         var fields: [String] = MetadataField.allCases.filter { $0 != .filename }.map(\.rawValue)
         var source = MetadataSources.all
@@ -378,7 +380,14 @@ final class FixTagsStore {
 
     private func run(selection: FieldSelection, source: String, acceptAt: Float, scope: Set<Int64>? = nil) async {
         if scope == nil, followsLibrary { await appendNewLibrarySongs() }
-        var wroteAny = false
+        wroteDuringRun = false
+        // A file is written while the next track is looked up: rewriting a large file no longer
+        // holds up the lookups. One write at a time, in order.
+        var writing: Task<Void, Never>?
+        func finishWriting() async {
+            await writing?.value
+            writing = nil
+        }
         for index in queue.indices where queue[index].status.toProcess && (scope == nil || scope!.contains(queue[index].id)) {
             if pauseRequested {
                 pauseReason = pauseReason ?? String(localized: "Paused")
@@ -393,21 +402,32 @@ final class FixTagsStore {
                 // The track wasn't checked: it goes back as it was, and the batch waits for the connection.
                 queue[index].status = .pending
                 pauseReason = String(localized: "\(reason). Nothing more was looked up; resume when you're back online.")
+                await finishWriting()
                 isRunning = false
-                if wroteAny { library.scan() }
+                if wroteDuringRun { library.scan() }
                 return
-            case .concluded(var updated, let plan):
-                if let request = plan?.request {
-                    updated = await write(request, plan: plan!, item: updated)
-                    wroteAny = wroteAny || updated.status == .done
+            case .concluded(let updated, let plan):
+                if let request = plan?.request, let plan {
+                    await finishWriting()
+                    queue[index] = updated
+                    queue[index].status = .fixing
+                    writing = Task { [weak self] in
+                        guard let self else { return }
+                        let written = await self.write(request, plan: plan, item: updated)
+                        if written.status == .done { self.wroteDuringRun = true }
+                        if self.queue.indices.contains(index), self.queue[index].id == written.id { self.queue[index] = written }
+                        self.saveProgress(written, manifest: false)
+                    }
+                } else {
+                    queue[index] = updated
+                    saveProgress(updated, manifest: false)
                 }
-                queue[index] = updated
-                saveProgress(updated, manifest: false)
             }
             try? await Task.sleep(nanoseconds: 600_000_000)
         }
+        await finishWriting()
         isRunning = false
-        if wroteAny { library.scan() }
+        if wroteDuringRun { library.scan() }
     }
 
     private enum Lookup {
