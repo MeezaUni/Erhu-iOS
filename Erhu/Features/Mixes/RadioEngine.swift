@@ -150,36 +150,47 @@ enum RadioEngine {
         let signals: Set<RadioSignal>
     }
 
+    /// Relatedness at which listening history counts in full; less related songs get a share of it.
+    static let relevanceForFullBoost: Float = 0.5
+
     private static func score(_ profile: ListeningProfile, _ reference: Reference, _ sound: [Int64: Float], _ track: TrackFacts) -> Scored {
         var signals = Set<RadioSignal>()
-        var total: Float = 0
+        // How related the song is to the seed: sound, genre, the seed's own artists and albums.
+        var relevance: Float = 0
         if let similarity = sound[track.songId] {
-            total += wSound * similarity
+            // Squared: only songs that really sound close count for much, not the middle of the library.
+            relevance += wSound * similarity * similarity
             if similarity > 0 { signals.insert(.sound) }
         }
         if let match = genreMatch(track, reference) {
-            total += wGenre * match
+            relevance += wGenre * match
             signals.insert(.genre)
         }
+        if reference.artists.contains(track.artistId) {
+            relevance += reference.artistWeight
+            signals.insert(.sameArtist)
+        }
+        if reference.albums.contains(track.albumId) { relevance += sameAlbum }
+
+        var total = relevance
+        // Tempo orders songs but, being a weak hint, doesn't make one related enough for the history boost.
         if let match = tempoMatch(track, reference) {
             total += wTempo * match
             signals.insert(.tempo)
         }
-        if reference.artists.contains(track.artistId) {
-            total += reference.artistWeight
-            signals.insert(.sameArtist)
-        }
-        if reference.albums.contains(track.albumId) { total += sameAlbum }
-
+        // Listening history only orders songs that already fit the seed. As a flat bonus, the most
+        // played artist leaked into unrelated stations whenever sound or genre said little;
+        // unrelated songs now only fill a station left short.
+        let fit = (relevance / relevanceForFullBoost).clamped(0, 1)
         let history = profile.history(track.songId)
         let favourite: Float = track.isFavorite ? favouriteFamiliarity : 0
         let familiar = min(history.lasting / reference.maxLasting + favourite, 1)
         let liked = profile.artist(track)
-        if familiar > 0 || liked > 0 {
-            total += wFamiliar * familiar + wLikedArtist * liked
+        if fit > 0, familiar > 0 || liked > 0 {
+            total += fit * (wFamiliar * familiar + wLikedArtist * liked)
             signals.insert(.listening)
         }
-        if history.plays == 0 { total += wUnheard }
+        if history.plays == 0 { total += fit * wUnheard }
         return Scored(track: track, score: total, signals: signals)
     }
 
