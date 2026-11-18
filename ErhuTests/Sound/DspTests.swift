@@ -170,6 +170,36 @@ final class EqTests: XCTestCase {
         XCTAssertEqual(input, process(kernel, input, sampleRate: 48_000))
     }
 
+    func testSteepHighPassCutsTheBassAndKeepsTheMids() {
+        var settings = SoundSettings()
+        settings.bands[0] = BandConfig(frequencyHz: 100, gainDb: 0, q: 0.707, filterType: .highPass, slope: 48)
+        let response = EqKernel.response(of: settings, at: [25, 1_000])
+        XCTAssertLessThan(response[0], -40, "48 dB/octave two octaves down")
+        XCTAssertEqual(0, response[1], accuracy: 0.5)
+        settings.bands[0].enabled = false
+        XCTAssertEqual(0, EqKernel.response(of: settings, at: [25])[0], accuracy: 0.01)
+    }
+
+    func testGraphicAndParametricModesKeepTheirOwnBands() {
+        var settings = SoundSettings()
+        settings.bands[3].gainDb = 6
+        settings.graphicGains[0] = -6
+        settings.mode = .graphic
+        let graphic = EqKernel.response(of: settings, at: [60, 1_000])
+        XCTAssertEqual(-6, graphic[0], accuracy: 0.5)
+        XCTAssertEqual(0, graphic[1], accuracy: 0.5)
+        settings.mode = .parametric
+        XCTAssertEqual(6, EqKernel.response(of: settings, at: [1_000])[0], accuracy: 0.3)
+    }
+
+    func testOlderSettingsFilesStillLoad() throws {
+        let json = #"{"isEqEnabled":true,"bands":[{"frequencyHz":60,"gainDb":3,"q":1.4,"filterType":"PEAKING"}],"activeBandCount":8,"selectedBandIndex":0,"activePresetId":"preset_rock","customPresets":[]}"#
+        let settings = try JSONDecoder().decode(SoundSettings.self, from: Data(json.utf8))
+        XCTAssertEqual(.parametric, settings.mode)
+        XCTAssertEqual(true, settings.bands.first?.enabled)
+        XCTAssertEqual(12, settings.bands.first?.slope)
+    }
+
     func testRepairedSettings() {
         var broken = SoundSettings()
         broken.bands = [BandConfig(frequencyHz: 60, gainDb: 3)]
