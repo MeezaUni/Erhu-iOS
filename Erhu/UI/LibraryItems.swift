@@ -10,6 +10,8 @@ struct SongActions {
     var viewDetails: ((Song) -> Void)?
     var editTags: ((Song) -> Void)?
     var fixTags: ((Song) -> Void)?
+    /// Choose this one song's cover from Photos.
+    var changeCover: ((Song) -> Void)?
     /// Smart playlist pages only: hide the song from (or return it to) the smart mixes.
     var hideFromMixes: ((Song) -> Void)?
     /// Playlist pages only.
@@ -55,6 +57,9 @@ struct SongActionItems: View {
         }
         if let view = actions.viewDetails {
             Button { view(song) } label: { Label("View metadata", systemImage: "info.circle") }
+        }
+        if let change = actions.changeCover {
+            Button { change(song) } label: { Label("Change cover…", systemImage: "photo") }
         }
         if let edit = actions.editTags {
             Button { edit(song) } label: { Label("Edit tags", systemImage: "pencil") }

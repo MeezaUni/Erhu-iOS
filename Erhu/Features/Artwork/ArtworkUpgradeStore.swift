@@ -133,8 +133,10 @@ final class ArtworkUpgradeStore {
                             guard !Task.isCancelled else { return }
                             if same { best = candidate; break }
                         } catch is CancellationError { return }
-                        catch { skipped += 1; failedRequest = true }
+                        catch { failedRequest = true }
                     }
+                    // Failed downloads count once per album, and only when no candidate worked.
+                    if best == nil && failedRequest { skipped += 1 }
                     if let best { results.append(ArtworkUpgrade(target: target, thumbnail: ArtworkImageFacts.thumbnail(original, maxPixels: 96), originalFacts: facts, candidate: best)) }
                 } else { skipped += 1 }
                 guard !Task.isCancelled else { return }
@@ -193,9 +195,22 @@ final class ArtworkUpgradeStore {
     func cancel() { task?.cancel() }
 
     static func currentArtwork(_ target: ArtworkTarget, library: LibraryStore) async -> Data? {
+        if case .album(let album) = target {
+            // The album's first track, or a later one when its picture is missing or unreadable.
+            let first = library.albumCoverSong[album.id]
+            let others = library.songs.filter { $0.albumId == album.id && $0.id != first?.id }
+                .sorted { ($0.discNumber, $0.trackNumber, $0.id) < ($1.discNumber, $1.trackNumber, $1.id) }
+            let urls = ([first].compactMap { $0 } + others).prefix(6).map(\.url)
+            return await Task.detached(priority: .utility) {
+                for url in urls {
+                    if let data = TagReader.artwork(url), ArtworkImageFacts.inspect(data) != nil { return data }
+                }
+                return nil as Data?
+            }.value
+        }
         let source: URL?
         switch target {
-        case .album(let album): source = library.albumCoverSong[album.id]?.url
+        case .album: source = nil
         case .artist(let artist): source = library.artist(artist.id)?.artworkPath.map { URL(fileURLWithPath: LibraryPaths.resolveImage($0)) }
         }
         return await Task.detached(priority: .utility) {

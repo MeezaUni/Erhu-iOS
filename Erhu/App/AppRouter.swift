@@ -117,6 +117,8 @@ final class AppRouter {
     var songForDetails: Song?
     /// The song whose tags are being edited by hand.
     var songForTagEdit: Song?
+    /// The song whose own cover is being chosen from Photos.
+    var songForCover: Song?
     /// The song waiting for "Delete from device" to be confirmed.
     var songForDeletion: Song?
     var showsNewPlaylist = false
@@ -213,6 +215,7 @@ final class AppRouter {
             viewDetails: { [weak self] song in self?.songForDetails = song },
             editTags: { [weak self] song in self?.songForTagEdit = song },
             fixTags: { song in actions.fixTags([song]) },
+            changeCover: { [weak self] song in self?.songForCover = song },
             hideFromMixes: hideFromMixes,
             deleteFromDevice: { [weak self] song in self?.songForDeletion = song }
         )

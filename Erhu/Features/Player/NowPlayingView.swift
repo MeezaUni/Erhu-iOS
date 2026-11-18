@@ -274,6 +274,9 @@ struct NowPlayingView: View {
                 if let album = song.flatMap({ library.album($0.albumId) }) {
                     Button { artworkTarget = .album(album) } label: { Label("Find a better cover", systemImage: "photo.badge.magnifyingglass") }
                 }
+                if let song, !song.isStream {
+                    Button { router.songForCover = song } label: { Label("Change cover…", systemImage: "photo") }
+                }
             }
             Section("Library") {
                 Button { addBookmark() } label: { Label("Bookmark this moment", systemImage: "bookmark") }
