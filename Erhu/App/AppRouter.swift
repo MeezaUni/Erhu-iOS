@@ -3,7 +3,7 @@ import Observation
 
 /// The primary destinations, switched by the bottom bar (Search is the separate button beside it).
 enum LibrarySection: String, CaseIterable, Identifiable {
-    case home, albums, library, vybe
+    case home, albums, library, vybe, artists
     var id: String { rawValue }
 
     var label: String {
@@ -12,6 +12,7 @@ enum LibrarySection: String, CaseIterable, Identifiable {
         case .albums: String(localized: "Albums")
         case .library: String(localized: "Library")
         case .vybe: String(localized: "VYBE")
+        case .artists: String(localized: "Artists")
         }
     }
 
@@ -21,6 +22,7 @@ enum LibrarySection: String, CaseIterable, Identifiable {
         case .albums: "square.stack"
         case .library: "music.note.house"
         case .vybe: "recordingtape"
+        case .artists: "person"
         }
     }
 
@@ -30,6 +32,7 @@ enum LibrarySection: String, CaseIterable, Identifiable {
         case .albums: "square.stack.fill"
         case .library: "music.note.house.fill"
         case .vybe: "recordingtape"
+        case .artists: "person.fill"
         }
     }
 }

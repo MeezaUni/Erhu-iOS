@@ -54,7 +54,25 @@ final class ReleaseAndDiscoveryTests: XCTestCase {
         XCTAssertFalse(value.introductionCompleted)
         XCTAssertEqual(value.theme, .dark)
         XCTAssertEqual(value.typeface, .system)
-        XCTAssertFalse(IntroductionPage.pages(vybe: false).contains { $0.id == "vybe" })
+        XCTAssertFalse(IntroductionPage.pages(vybe: false, firstLaunch: false).contains { $0.id == "vybe" })
+        XCTAssertTrue(IntroductionPage.pages(vybe: false, firstLaunch: true).contains(.shortcuts))
+        XCTAssertEqual(value.navigationShortcuts, ["albums", "library", "vybe"])
+    }
+
+    @MainActor func testTabBarKeepsHomeFirstAndUpToThreeShortcutsInOrder() {
+        let settings = AppSettings()
+        let saved = settings.navigationShortcuts
+        defer { settings.navigationShortcuts = saved }
+        settings.navigationShortcuts = []
+        XCTAssertEqual(settings.visibleSections, [.home])
+        settings.toggleShortcut(.artists)
+        settings.toggleShortcut(.albums)
+        settings.toggleShortcut(.library)
+        settings.toggleShortcut(.vybe)
+        XCTAssertEqual(settings.visibleSections, [.home, .artists, .albums, .library], "a fourth shortcut is refused")
+        settings.toggleShortcut(.albums)
+        XCTAssertEqual(settings.visibleSections, [.home, .artists, .library])
+        XCTAssertTrue(settings.availableSections.contains(.albums), "a section out of the tab bar can still be shown")
     }
 
     func testLoopingPagesWrapInBothDirectionsWithoutExtraDots() {
