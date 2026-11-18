@@ -169,7 +169,7 @@ struct EqualizerView: View {
             // Steeper pass filters are fixed Butterworth cascades: Q only shapes the 12 dB/octave slope.
             if !band.filterType.isPass || band.slope == 12 {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    labeledSlider("Q-factor (sharpness)", value: String(format: "%.2f", band.q),
+                    labeledSlider(String(localized: "Q-factor (sharpness)"), value: String(format: "%.2f", band.q),
                                   binding: Binding(get: { qToNormalized(band.q) }, set: { sound.setBandQ(index, normalizedToQ($0)) }), range: 0...1)
                     Text(band.filterType.isPass ? "Higher Q adds a resonant peak at the cutoff" : "Lower Q = wider band, higher Q = narrower band")
                         .font(.caption).foregroundStyle(.secondary)
