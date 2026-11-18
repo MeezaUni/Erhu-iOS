@@ -48,9 +48,10 @@ final class PlayerController {
     @ObservationIgnored private var loopTarget: (positionMs: Int64, onReached: () -> Void)?
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var ticks = 0
-    enum VisualMotion: Hashable { case carousel, presentation }
+    enum VisualMotion: Hashable { case carousel, presentation, trackChange }
     @ObservationIgnored private var visualMotion: Set<VisualMotion> = []
     @ObservationIgnored private var nowPlayingUpdate: Task<Void, Never>?
+    @ObservationIgnored private var trackChangeMotion: Task<Void, Never>?
     @ObservationIgnored private let albumHistoryQueue = DispatchQueue(label: "erhu.album-history", qos: .utility)
     @ObservationIgnored private var artworkWarmup: Task<Void, Never>?
     @ObservationIgnored private var fileWarmup: Task<Void, Never>?
@@ -666,6 +667,7 @@ final class PlayerController {
     }
 
     private func moveTo(_ index: Int, playing: Bool, sameEntryRepeated: Bool) {
+        noteTrackChangeMotion()
         engine.cancelCrossfade()
         state.currentIndex = index
         startCurrent(at: 0, playing: playing)
@@ -1126,6 +1128,18 @@ final class PlayerController {
     private func recordAlbumPlayed(_ songID: Int64) {
         let database = database
         albumHistoryQueue.async { try? database.recordAlbumOfSongPlayed(songID) }
+    }
+
+    /// A skip (any button, swipe or the lock screen) starts the cards' motion in Now Playing; the
+    /// lock screen and widget updates wait until it has settled instead of sharing its first frames.
+    private func noteTrackChangeMotion() {
+        guard UIApplication.shared.applicationState == .active else { return }
+        visualMotion.insert(.trackChange)
+        trackChangeMotion?.cancel()
+        trackChangeMotion = Task { @MainActor [weak self] in
+            do { try await Task.sleep(for: .seconds(CarouselSettlementTiming.trackSettleDuration)) } catch { return }
+            self?.setVisualMotion(.trackChange, active: false)
+        }
     }
 
     func setVisualMotion(_ reason: VisualMotion, active: Bool) {

@@ -48,7 +48,12 @@ final class CarouselMotion {
         let targetStack: CGFloat = stacked ? 1 : 0
         let timing = CarouselSettlementTiming(delta: CGFloat(center) - focus, layoutDelta: targetStack - stack,
                                              velocity: velocity, reduceMotion: reduceMotion, depth: stacked)
-        withAnimation(timing.animation) {
+        // A track change settles with a critically damped spring (about 0.45 s from rest) that
+        // keeps a running motion's velocity when the next skip retargets it.
+        let moves = abs(CGFloat(center) - focus) > 0.001 && !reduceMotion
+        let animation = moves ? CarouselSettlementTiming.trackSpring(delta: CGFloat(center) - focus, velocity: velocity) : timing.animation
+        let duration = moves ? CarouselSettlementTiming.trackSettleDuration : timing.duration
+        withAnimation(animation) {
             moving = true
             focus = CGFloat(center)
             stack = targetStack
@@ -56,7 +61,7 @@ final class CarouselMotion {
         // Cleanup is bounded independently of SwiftUI's render/visibility completion callbacks.
         // Native interpolation still draws every frame; this task only releases interaction state.
         settlement = Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .seconds(timing.duration)) } catch { return }
+            do { try await Task.sleep(for: .seconds(duration)) } catch { return }
             guard let self, self.generation == token, !Task.isCancelled else { return }
             self.settlement = nil
             self.meter.record(self.focus, stack: self.stack)
@@ -112,6 +117,23 @@ struct CarouselSettlementTiming {
     }
 
     var animation: Animation { .timingCurve(firstX, firstY, secondX, 1, duration: duration) }
+
+    /// Stiffness of the track-change spring (critically damped, unit mass).
+    static let trackStiffness: Double = 240
+    /// About how long that spring takes to settle.
+    static let trackSettleDuration: TimeInterval = 0.5
+
+    /// The track-change spring. [velocity] is the finger's speed in pages per second; only motion
+    /// towards the destination is kept, capped at sqrt(stiffness) x distance so the card never
+    /// overshoots, and at four pages a second against batched-input spikes.
+    static func trackSpring(delta: CGFloat, velocity: CGFloat?) -> Animation {
+        let distance = Double(abs(delta))
+        let toward = velocity.map { Double($0) * (delta < 0 ? -1 : 1) } ?? 0
+        let limit = min(distance * trackStiffness.squareRoot(), 4)
+        let speed = toward.isFinite ? toward.clamped(0, limit) : 0
+        return .interpolatingSpring(mass: 1, stiffness: trackStiffness, damping: 2 * trackStiffness.squareRoot(),
+                                    initialVelocity: distance > 0.001 ? speed / distance : 0)
+    }
 }
 
 enum CarouselSwipeIntent {

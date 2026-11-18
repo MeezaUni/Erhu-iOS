@@ -13,6 +13,8 @@ final class LibraryStore {
     private(set) var browseFacts: [Int64: LibraryBrowseFact] = [:]
     private(set) var albumLastPlayed: [Int64: Int64] = [:]
     private(set) var favorites: [Song] = []
+    /// Where each song is in [songs], by id.
+    @ObservationIgnored private var songIndex: [Int64: Int] = [:]
     /// The ids of [favorites], to tell at once whether a song is liked now.
     private(set) var favoriteIds: Set<Int64> = []
     private(set) var recentAlbums: [Album] = []
@@ -47,9 +49,16 @@ final class LibraryStore {
         }
     }
 
+    /// The library's song with [id] (nil if it has none), without searching the whole list.
+    func song(_ id: Int64) -> Song? {
+        _ = songs.count  // observed, so views redraw when the songs change
+        return songIndex[id].flatMap { songs.indices.contains($0) && songs[$0].id == id ? songs[$0] : nil }
+    }
+
     func reload() {
         do {
             songs = try database.allSongs()
+            songIndex = Dictionary(songs.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { first, _ in first })
             albums = try database.allAlbums()
             artists = try database.allArtists()
             playlists = try database.playlists()

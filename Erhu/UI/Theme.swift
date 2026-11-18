@@ -122,10 +122,16 @@ struct ThemedRoot<Content: View>: View {
     @ViewBuilder let content: Content
     @State private var artworkPalette = ArtworkPaletteState()
     @State private var artworkRevision = 0
+    /// The song whose colours the app shows. It follows the playing song once a skip's card
+    /// motion has settled: changing the whole app's colours redraws every screen, and doing it
+    /// on the first frame of a skip made the cards stutter (rapid skips move it along).
+    @State private var coloursSong: URL?
+    @State private var coloursShown = false
 
     var body: some View {
         let followsArtwork = settings.customTheme == nil && settings.theme == .artwork
-        let source = ArtworkPaletteSource.track(followsArtwork ? player.state.currentSong?.url : nil)
+        let playing = followsArtwork ? player.state.currentSong?.url : nil
+        let source = ArtworkPaletteSource.track(coloursShown ? coloursSong : playing)
         let artworkURL = source.url
         let palette = settings.customTheme?.palette
             ?? (followsArtwork ? .artwork(artworkPalette.palette(for: source), scheme: scheme) : (scheme == .dark ? .dark : .light))
@@ -144,6 +150,16 @@ struct ThemedRoot<Content: View>: View {
                 let sampled = await LyricsPaletteCache.shared.palette(for: source)
                 guard !Task.isCancelled else { return }
                 artworkPalette.set(sampled, for: source, revision: revision)
+            }
+            .task(id: playing) {
+                if coloursShown, playing != nil, coloursSong != nil, coloursSong != playing {
+                    // Meanwhile the new song's colours are worked out, so the change is one step.
+                    if let playing { _ = await LyricsPaletteCache.shared.palette(for: .track(playing)) }
+                    try? await Task.sleep(for: .seconds(CarouselSettlementTiming.trackSettleDuration))
+                    guard !Task.isCancelled else { return }
+                }
+                coloursSong = playing
+                coloursShown = true
             }
     }
 }
