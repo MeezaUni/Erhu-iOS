@@ -248,6 +248,27 @@ final class ArtworkFetcherStore {
         }
     }
 
+    /// Embeds image bytes the user picked into one song's file (only that song changes).
+    @discardableResult
+    func applyCover(_ image: Data, toSong song: Song) async -> Bool {
+        guard ArtworkImageFacts.inspect(image) != nil else {
+            message = String(localized: "That picture couldn't be read.")
+            return false
+        }
+        var request = TagWriteRequest()
+        request.artwork = ArtworkEncoder.prepare(image)
+        let url = song.url
+        do {
+            try await Task.detached(priority: .utility) { try TagWriter.write(request, to: url) }.value
+            ArtworkLoader.shared.forget(path: url.path)
+            library.scan()
+            return true
+        } catch {
+            message = String(localized: "Couldn't save the cover: \(error.localizedDescription)")
+            return false
+        }
+    }
+
     private func embed(_ image: Data, in album: Album) async throws {
         let songs = try library.database.songsOfAlbum(album.id)
         guard !songs.isEmpty else { throw ProviderError(status: .failed, message: String(localized: "The album has no songs")) }

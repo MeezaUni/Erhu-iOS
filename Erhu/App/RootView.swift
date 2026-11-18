@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -301,6 +302,8 @@ private struct RouterSheets: ViewModifier {
     let active: Bool
     @Environment(AppRouter.self) private var router
     @Environment(LibraryActions.self) private var actions
+    @Environment(ArtworkFetcherStore.self) private var artwork
+    @State private var coverItem: PhotosPickerItem?
 
     func body(content: Content) -> some View {
         content
@@ -312,6 +315,21 @@ private struct RouterSheets: ViewModifier {
             }
             .sheet(item: Binding(get: { active ? router.songForTagEdit : nil }, set: { router.songForTagEdit = $0 })) { song in
                 EditTagsSheet(song: song)
+            }
+            .photosPicker(isPresented: Binding(get: { active && router.songForCover != nil }, set: { if !$0, coverItem == nil { router.songForCover = nil } }),
+                          selection: $coverItem, matching: .images)
+            .onChange(of: coverItem) { _, item in
+                guard let item, let song = router.songForCover else { return }
+                coverItem = nil
+                router.songForCover = nil
+                Task {
+                    guard let data = try? await item.loadTransferable(type: Data.self) else {
+                        actions.show(String(localized: "That picture couldn't be read."))
+                        return
+                    }
+                    if await artwork.applyCover(data, toSong: song) { actions.show(String(localized: "Cover saved to “\(song.title)”")) }
+                    else if let problem = artwork.message { actions.show(problem) }
+                }
             }
             .confirmationDialog(
                 router.songForDeletion.map { String(localized: "Delete “\($0.title)” from this device?") } ?? "",

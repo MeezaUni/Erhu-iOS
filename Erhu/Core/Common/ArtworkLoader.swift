@@ -18,7 +18,10 @@ final class ArtworkLoader: @unchecked Sendable {
     }
 
     private let cache = NSCache<NSString, UIImage>()
-    private let misses = NSCache<NSString, NSNumber>()
+    /// Files found without a cover, with when: asked again after a while, since a cover can arrive
+    /// later (a streamed song's file or its server's cover).
+    private let misses = NSCache<NSString, NSDate>()
+    private static let missRetry: TimeInterval = 60
     private let queue = DispatchQueue(label: "erhu.artwork", qos: .userInitiated, attributes: .concurrent)
 
     private init() {
@@ -32,14 +35,14 @@ final class ArtworkLoader: @unchecked Sendable {
         let key = key(for: url, maxPixels: maxPixels)
         let missKey = "\(url.path)|\(revision(for: url.path))" as NSString
         if let cached = cache.object(forKey: key) { return cached }
-        if misses.object(forKey: missKey) != nil { return nil }
+        if let missed = misses.object(forKey: missKey), -missed.timeIntervalSinceNow < Self.missRetry { return nil }
         return await withCheckedContinuation { continuation in
             queue.async {
                 // A streamed song of an album in the library shows the library's cover. Otherwise,
                 // if it isn't fetched yet or has no embedded picture, the cover from its server.
                 let library = ServerCovers.librarySong(forStreamFile: url).flatMap { TagReader.artwork($0) }
                 guard let data = library ?? TagReader.artwork(url) ?? ServerCovers.data(forStreamFile: url) else {
-                    self.misses.setObject(1, forKey: missKey)
+                    self.misses.setObject(NSDate(), forKey: missKey)
                     continuation.resume(returning: nil)
                     return
                 }
