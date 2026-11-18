@@ -47,7 +47,7 @@ struct SongLyrics: Equatable {
     var hasFileLyrics = false
     var search: ManualLyricsSearch = .idle
 
-    var parsed: Lyrics? { LyricsParser.parse(text) }
+    var parsed: Lyrics? { LyricsParser.parseCached(text) }
     var syncedServiceNotice: String? {
         let reason: String
         switch lookup {

@@ -58,6 +58,22 @@ private func lastStarted(_ times: [Int64], _ positionMs: Int64) -> Int {
 /// enhanced-LRC word timestamps (`<mm:ss.xx>`) and an `[offset:±ms]` tag; other `[tag:value]` lines
 /// are dropped. Text without any valid line timestamp is plain lyrics. Malformed stamps are ignored.
 enum LyricsParser {
+    private static let recentLock = NSLock()
+    private static var recent: [(text: String, lyrics: Lyrics?)] = []
+
+    /// [parse], remembering the last few texts: the lyrics page asks for the same song's lines
+    /// many times while it plays, and reading them again each time cost a frame on a skip.
+    static func parseCached(_ text: String?) -> Lyrics? {
+        guard let text, !text.isBlank else { return nil }
+        if let hit = recentLock.withLock({ recent.first(where: { $0.text == text }) }) { return hit.lyrics }
+        let lyrics = parse(text)
+        recentLock.withLock {
+            recent.insert((text, lyrics), at: 0)
+            if recent.count > 4 { recent.removeLast() }
+        }
+        return lyrics
+    }
+
     private static let lineTime = Regex16(#"^\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?]"#)
     private static let wordTime = Regex16(#"<(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?>"#)
     private static let offsetTag = Regex16(#"\[offset:\s*([+-]?\d+)\s*]"#, ignoreCase: true)

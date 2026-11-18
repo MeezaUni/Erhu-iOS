@@ -18,6 +18,8 @@ final class AppSettings {
         /// An imported theme in use instead of [theme], by id.
         var customThemeId: String?
         var importedThemes: [ImportedTheme] = []
+        /// What sits behind Now Playing.
+        var playerBackdrop: PlayerBackdropStyle = .artworkColours
 
         init() {}
 
@@ -33,6 +35,7 @@ final class AppSettings {
             visualizer = (try? c.decodeIfPresent(VisualizerSettings.self, forKey: .visualizer)) ?? VisualizerSettings()
             customThemeId = try? c.decodeIfPresent(String.self, forKey: .customThemeId)
             importedThemes = (try? c.decodeIfPresent([ImportedTheme].self, forKey: .importedThemes)) ?? []
+            playerBackdrop = (try? c.decodeIfPresent(PlayerBackdropStyle.self, forKey: .playerBackdrop)) ?? .artworkColours
         }
     }
 
@@ -64,6 +67,11 @@ final class AppSettings {
     var introductionCompleted: Bool {
         get { stored.introductionCompleted }
         set { update { $0.introductionCompleted = newValue }; store.saveNow(stored) }
+    }
+
+    var playerBackdrop: PlayerBackdropStyle {
+        get { stored.playerBackdrop }
+        set { update { $0.playerBackdrop = newValue } }
     }
 
     var typeface: AppTypeface {

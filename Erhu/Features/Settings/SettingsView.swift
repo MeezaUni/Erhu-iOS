@@ -291,6 +291,13 @@ private struct AppearanceSettingsView: View {
                 }
                 if let themeMessage { Text(themeMessage).font(.footnote).foregroundStyle(.secondary).padding(Spacing.lg) }
             }
+            SettingsGroup("Now Playing background") {
+                Picker("Background", selection: Binding(get: { settings.playerBackdrop }, set: { settings.playerBackdrop = $0 })) {
+                    ForEach(PlayerBackdropStyle.allCases) { style in Text(style.label).tag(style) }
+                }
+                .pickerStyle(.segmented)
+                .padding(Spacing.lg)
+            }
             SettingsGroup("Typeface") {
                 Picker("App font", selection: Binding(get: { settings.typeface }, set: { settings.typeface = $0 })) {
                     ForEach(AppTypeface.allCases) { font in Text(font.label).fontDesign(font.design).tag(font) }

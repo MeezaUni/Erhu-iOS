@@ -12,6 +12,7 @@ struct NowPlayingView: View {
     @Environment(AppRouter.self) private var router
     @Environment(LibraryStore.self) private var library
     @Environment(ServerStore.self) private var servers
+    @Environment(AppSettings.self) private var settings
     @Environment(\.palette) private var palette
     private var videoSession: MotionVideoSession? { player.coverVideos.currentSession }
     @Environment(\.playerArtworkFrames) private var artworkFrames
@@ -27,6 +28,10 @@ struct NowPlayingView: View {
     /// The neighbour cards side by side (the default each time) or stacked behind the current one.
     @State private var stacked = false
     @GestureState private var headerPullActive = false
+    /// Asks the page to scroll back to the top (before the close button closes the player).
+    @State private var scrollToTop = 0
+    /// Whether the page is scrolled down (to the lyrics).
+    @State private var scrolledDown = false
 
     /// How much of the lyrics card shows at the bottom of the first screen.
     private static let lyricsPeek: CGFloat = 64
@@ -39,9 +44,10 @@ struct NowPlayingView: View {
             if let current = state.currentSong {
                 // Queue snapshots keep playback stable; favorite/tag changes come from the
                 // current library so a swipe-to-like is reflected on the playing card too.
-                let song = library.songs.first(where: { $0.id == current.id }) ?? current
+                let song = library.song(current.id) ?? current
                 GeometryReader { geometry in
                     let viewport = geometry.size.height
+                    ScrollViewReader { proxy in
                     ScrollView {
                         VStack(spacing: 0) {
                             VStack(spacing: Spacing.md) {
@@ -66,6 +72,12 @@ struct NowPlayingView: View {
                             .padding(.top, Spacing.sm)
                             .padding(.bottom, Spacing.md)
                             .frame(height: max(viewport - Self.lyricsPeek, 420))
+                            .id(Self.topID)
+                            .background {
+                                GeometryReader { top in
+                                    Color.clear.preference(key: PlayerPageOffsetKey.self, value: top.frame(in: .named(Self.pageSpace)).minY)
+                                }
+                            }
                             LyricsPanel(song: song) { showsLyrics = true }
                                 .modifier(PlayerChromeFade())
                                 .frame(height: min(max(viewport * 0.62, 300), 560))
@@ -74,6 +86,13 @@ struct NowPlayingView: View {
                         }
                     }
                     .scrollIndicators(.hidden)
+                    .coordinateSpace(name: Self.pageSpace)
+                    .onPreferenceChange(PlayerPageOffsetKey.self) { offset in
+                        let down = offset < -8
+                        if down != scrolledDown { scrolledDown = down }
+                    }
+                    .onChange(of: scrollToTop) { _, _ in proxy.scrollTo(Self.topID, anchor: .top) }
+                    }
                 }
             } else {
                 Spacer()
@@ -101,7 +120,9 @@ struct NowPlayingView: View {
             player.setVisualMotion(.carousel, active: false)
             player.coverVideos.retainCurrent(pause: false)
         }
-        .background(backdrop(state.currentSong).ignoresSafeArea().modifier(PlayerBackdropFade(drag: drag)))
+        .background(PlayerBackdrop(song: state.currentSong, upcoming: [nextEntry(state), previousEntry(state)].compactMap { $0?.song.url },
+                                   style: settings.playerBackdrop)
+            .ignoresSafeArea().modifier(PlayerBackdropFade(drag: drag)))
         .contentShape(Rectangle())
         .overlay(alignment: .bottom) { toast }
         .animation(.easeInOut(duration: 0.2), value: actions.message)
@@ -134,6 +155,20 @@ struct NowPlayingView: View {
             close(velocity: (predicted - distance) * 4)
         } else {
             drag.restore(reduceMotion: reduceMotion)
+        }
+    }
+
+    private static let topID = "now-playing-top"
+    private static let pageSpace = "now-playing-page"
+
+    /// The close button, scrolled down to the lyrics: the page goes back to the top first, so the
+    /// cover flies from the card in view to the mini player instead of from off screen.
+    private func closeFromButton() {
+        guard scrolledDown else { close(); return }
+        scrollToTop += 1
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(60))
+            close()
         }
     }
 
@@ -183,7 +218,7 @@ struct NowPlayingView: View {
 
     private var header: some View {
         HStack(spacing: Spacing.xs) {
-            Button { close() } label: {
+            Button { closeFromButton() } label: {
                 Image(systemName: "chevron.down").font(.title3.weight(.semibold)).frame(width: 48, height: 48).contentShape(Rectangle())
             }
             .accessibilityLabel("Close")
@@ -370,17 +405,6 @@ struct NowPlayingView: View {
     }
 
     /// Keep the sampled hues dominant; heavily blending the entire cover invents muddy colours.
-    private func backdrop(_ song: Song?) -> some View {
-        ZStack {
-            LinearGradient(colors: [palette.surface, palette.background], startPoint: .topLeading, endPoint: .bottomTrailing)
-            if let song {
-                SongArtworkView(song: song, maxPixels: 200)
-                    .blur(radius: 40)
-                    .scaleEffect(1.5)
-                    .opacity(0.14)
-            }
-        }
-    }
 }
 
 /// A toggle in the controls (shuffle, repeat): its icon dimmed when off, on a soft disc when on.
@@ -638,4 +662,10 @@ struct QueueSheet: View {
         }
         .contentShape(Rectangle())
     }
+}
+
+/// How far Now Playing's page is scrolled (its top's position; negative when scrolled down).
+private struct PlayerPageOffsetKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }

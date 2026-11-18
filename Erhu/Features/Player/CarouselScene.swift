@@ -94,6 +94,10 @@ struct CarouselPose {
     let turn: Double
     let opacity: Double
 
+    /// Extra turn (degrees) and shrink half way between two places.
+    static let transitTurn: Double = 28
+    static let transitSink: CGFloat = 0.05
+
     static func page(width: CGFloat) -> CGFloat {
         position(distance: 1, width: width, stack: 0, reduceMotion: false)
     }
@@ -102,7 +106,11 @@ struct CarouselPose {
     init(distance: CGFloat, width: CGFloat, stack: CGFloat, reduceMotion: Bool) {
         let away = abs(distance), near = min(abs(distance), 1)
         let sideScale: CGFloat = reduceMotion ? 0.86 : 0.78
-        scale = (1 - (1 - sideScale) * near) * (1 - stack) + (1 - 0.12 * near) * stack
+        // In flight between two places the cards turn further than at rest and sink back a
+        // little, so a track change reads as two cards rotating past each other about the
+        // vertical axis (the outgoing one turning away, the incoming one turning in). Zero at rest.
+        let transit = reduceMotion ? 0 : 4 * near * (1 - near) * (1 - stack)
+        scale = ((1 - (1 - sideScale) * near) * (1 - stack) + (1 - 0.12 * near) * stack) * (1 - Self.transitSink * transit)
         // A stacked card starts directly behind the centre, peeks out along the appropriate
         // side halfway through the turnover, then returns to the centre as the front card.
         // Its short arc is distinct from the spread layout's full sideways page travel.
@@ -110,7 +118,9 @@ struct CarouselPose {
         x = stack == 1 ? deckX : Self.position(distance: distance, width: width, stack: stack, reduceMotion: reduceMotion) * (1 - stack) + deckX * stack
         y = -34 * near * stack
         let deckTurn = away < 1 ? -sin(Double(distance) * .pi) * 55 : 0
-        turn = reduceMotion ? 0 : -Double(distance.clamped(-1, 1)) * 32 * Double(1 - stack) + deckTurn * Double(stack)
+        let side: Double = distance < 0 ? -1 : 1
+        turn = reduceMotion ? 0 : -Double(distance.clamped(-1, 1)) * 32 * Double(1 - stack) - side * Self.transitTurn * Double(transit)
+            + deckTurn * Double(stack)
         let vanish = (1 - max(away - 1, 0) / 0.6).clamped(0, 1)
         // The two exchanging cards remain opaque. Their edges separate at the depth
         // crossover, so handing front-to-back order over cannot expose a crossfade.
@@ -127,8 +137,10 @@ struct CarouselPose {
 
     private static func edge(_ distance: CGFloat, width: CGFloat, stack: CGFloat, reduceMotion: Bool, inward: Bool) -> CGFloat {
         let near = min(abs(distance), 1)
-        let scale = (1 - (reduceMotion ? 0.14 : 0.22) * near) * (1 - stack) + (1 - 0.12 * near) * stack
-        let angle = reduceMotion ? 0 : near * 32 * (1 - stack) * .pi / 180
+        // The in-flight turn and sink are part of the measured pose, so cards keep their gap mid-swipe.
+        let transit = reduceMotion ? 0 : 4 * near * (1 - near) * (1 - stack)
+        let scale = ((1 - (reduceMotion ? 0.14 : 0.22) * near) * (1 - stack) + (1 - 0.12 * near) * stack) * (1 - transitSink * transit)
+        let angle = reduceMotion ? 0 : (near * 32 * (1 - stack) + CGFloat(transitTurn) * transit) * .pi / 180
         // Measure the same projection used to paint a right-hand card. Perspective makes
         // its inward and outward edges different; assuming a symmetric box hides the peeks.
         let projection = CarouselProjection.transform(size: CGSize(width: 1, height: 1), scale: scale,
@@ -161,7 +173,8 @@ enum CarouselProjection {
                 tx: size.width * (1 - scale) / 2 + x, ty: size.height * (1 - scale) / 2 + y))
         }
         var rotation = CATransform3DIdentity
-        rotation.m34 = -0.45 / max(size.width, 1)
+        // Strong perspective, so the turning cards read as rotating in depth.
+        rotation.m34 = -0.57 / max(size.width, 1)
         rotation = CATransform3DRotate(rotation, CGFloat(turn * .pi / 180), 0, 1, 0)
         return ProjectionTransform(CGAffineTransform(translationX: -size.width / 2, y: -size.height / 2))
             .concatenating(ProjectionTransform(rotation))
