@@ -153,8 +153,38 @@ struct SoundCapsule: Equatable, Sendable {
     let topSongs: [RankedSong]
     let topAlbums: [RankedAlbum]
     let topArtists: [RankedArtist]
+    /// How many different tracks were played.
+    var uniqueTracks: Int = 0
 
     var isEmpty: Bool { totalPlays == 0 }
+}
+
+/// The spans a shared stats card can cover.
+enum StatsPeriod: String, CaseIterable, Identifiable, Sendable {
+    case last7Days, last30Days, thisMonth, thisYear
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .last7Days: String(localized: "Last 7 days")
+        case .last30Days: String(localized: "Last 30 days")
+        case .thisMonth: String(localized: "This month")
+        case .thisYear: String(localized: "This year")
+        }
+    }
+}
+
+/// Listening over a [StatsPeriod]: totals and the top songs, albums and artists.
+struct PeriodStats: Equatable, Sendable {
+    let period: StatsPeriod
+    var topSongs: [RankedSong] = []
+    var topAlbums: [RankedAlbum] = []
+    var topArtists: [RankedArtist] = []
+    var totalPlays = 0
+    var listenedMs: Int64 = 0
+    var uniqueTracks = 0
+
+    var isEmpty: Bool { totalPlays == 0 && topSongs.isEmpty && topArtists.isEmpty }
 }
 
 /// A playlist the app builds from the library itself (never stored as a user playlist).

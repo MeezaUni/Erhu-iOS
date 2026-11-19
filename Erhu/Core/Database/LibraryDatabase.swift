@@ -6,7 +6,7 @@ import Foundation
 final class LibraryDatabase: @unchecked Sendable {
     let db: SQLiteDatabase
 
-    static let schemaVersion = 3
+    static let schemaVersion = 4
 
     init(db: SQLiteDatabase) throws {
         self.db = db
@@ -55,6 +55,21 @@ final class LibraryDatabase: @unchecked Sendable {
                         """)
                 }
                 try db.execute("PRAGMA user_version = 3")
+            }
+        }
+        if db.userVersion < 4 {
+            // Listening by day (alongside the monthly table), for the last 7 and 30 days in shared
+            // stats cards. Earlier listening was only kept by month, so those periods start here.
+            try db.transaction {
+                try db.executeScript("""
+                    CREATE TABLE IF NOT EXISTS listening_daily (
+                        day_key TEXT NOT NULL, song_id INTEGER NOT NULL, play_count INTEGER NOT NULL DEFAULT 0,
+                        listened_ms INTEGER NOT NULL DEFAULT 0, last_played_at INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY (day_key, song_id)
+                    );
+                    CREATE INDEX IF NOT EXISTS index_listening_daily_song_id ON listening_daily (song_id);
+                    """)
+                try db.execute("PRAGMA user_version = 4")
             }
         }
     }

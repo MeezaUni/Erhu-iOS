@@ -104,6 +104,35 @@ final class DatabaseTests: XCTestCase {
         XCTAssertTrue(try db.smartPlaylistSongs(.neverPlayed).isEmpty)
     }
 
+    func testPeriodStatsCoverDaysMonthsAndTheYear() throws {
+        let db = try LibraryDatabase.inMemory()
+        try insertSong(db, 1, title: "A")
+        try insertSong(db, 2, title: "B")
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        func date(_ month: Int, _ day: Int) -> Date { calendar.date(from: DateComponents(year: 2026, month: month, day: day, hour: 12))! }
+        try db.recordPlay(songId: 2, at: date(3, 5), calendar: calendar)     // this year only
+        try db.recordPlay(songId: 2, at: date(10, 20), calendar: calendar)   // this month, 30 days
+        try db.recordPlay(songId: 1, at: date(10, 28), calendar: calendar)   // every period
+        try db.recordPlay(songId: 1, at: date(10, 29), calendar: calendar)
+        try db.addListened(songId: 1, ms: 120_000, at: date(10, 29), calendar: calendar)
+        let now = date(10, 30)
+        let week = try db.periodStats(.last7Days, now: now, calendar: calendar)
+        XCTAssertEqual(2, week.totalPlays)
+        XCTAssertEqual(1, week.uniqueTracks)
+        XCTAssertEqual(120_000, week.listenedMs)
+        XCTAssertEqual(["A"], week.topSongs.map(\.song.title))
+        let month = try db.periodStats(.thisMonth, now: now, calendar: calendar)
+        XCTAssertEqual(3, month.totalPlays)
+        XCTAssertEqual(["A", "B"], month.topSongs.map(\.song.title))
+        XCTAssertEqual(3, try db.periodStats(.last30Days, now: now, calendar: calendar).totalPlays)
+        let year = try db.periodStats(.thisYear, now: now, calendar: calendar)
+        XCTAssertEqual(4, year.totalPlays)
+        XCTAssertEqual(2, year.uniqueTracks)
+        XCTAssertEqual(2, try db.capsule(month: "2026-10").uniqueTracks)
+        XCTAssertTrue(try db.periodStats(.last7Days, now: date(12, 30), calendar: calendar).isEmpty)
+    }
+
     func testStreakMayStartBeforeTheMonthButNotAfter() {
         let days = ["2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-11-01"]
         XCTAssertEqual(4, LibraryDatabase.longestStreakTouching(days: days, month: "2026-10"))
