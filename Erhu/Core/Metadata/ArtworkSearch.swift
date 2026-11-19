@@ -100,28 +100,10 @@ struct ArtworkSearch: Sendable {
         return results
     }
 
-    /// [work]'s result, or [fallback] if it takes longer than [seconds].
-    private static func within<T: Sendable>(_ seconds: Double, fallback: T, _ work: @escaping @Sendable () async -> T) async -> T {
-        await withTaskGroup(of: T?.self) { group in
-            group.addTask { await work() }
-            group.addTask {
-                do { try await Task.sleep(for: .seconds(seconds)) } catch { return nil }
-                return nil
-            }
-            let first = await group.next() ?? nil
-            group.cancelAll()
-            return first ?? fallback
-        }
-    }
-
-    /// How long each provider may take. MusicBrainz (one request a second, several lookups) can
-    /// run out of time on its own without taking the other providers' covers with it.
-    private static let providerBudget: Double = 20
-
     private func albumResults(_ query: AlbumArtworkQuery) async -> [ArtworkCandidate] {
-        async let apple = Self.within(Self.providerBudget, fallback: []) { await self.iTunesAlbumCovers(query) }
-        async let archive = Self.within(Self.providerBudget, fallback: []) { await self.musicBrainzCovers(query) }
-        async let deezer = Self.within(Self.providerBudget, fallback: []) { await self.deezerAlbumCovers(query) }
+        async let apple = iTunesAlbumCovers(query)
+        async let archive = musicBrainzCovers(query)
+        async let deezer = deezerAlbumCovers(query)
         var all = await archive + deezer + apple
         if all.isEmpty && !Task.isCancelled {
             all = await commons.search([query.artist, query.album, "album cover"].joined(separator: " "))

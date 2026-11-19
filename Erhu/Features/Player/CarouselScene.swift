@@ -173,8 +173,7 @@ enum CarouselProjection {
                 tx: size.width * (1 - scale) / 2 + x, ty: size.height * (1 - scale) / 2 + y))
         }
         var rotation = CATransform3DIdentity
-        // Strong perspective, so the turning cards read as rotating in depth.
-        rotation.m34 = -0.57 / max(size.width, 1)
+        rotation.m34 = -0.45 / max(size.width, 1)
         rotation = CATransform3DRotate(rotation, CGFloat(turn * .pi / 180), 0, 1, 0)
         return ProjectionTransform(CGAffineTransform(translationX: -size.width / 2, y: -size.height / 2))
             .concatenating(ProjectionTransform(rotation))
