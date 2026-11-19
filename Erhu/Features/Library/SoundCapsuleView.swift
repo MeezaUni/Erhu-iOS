@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Sound Capsule: one month of listening (the current month first): the top song, plays, minutes,
-/// the longest listening streak, and the top songs, albums and artists.
+/// Sound Capsule (Android's redesigned screen): a month of listening. The month and year with
+/// previous / next, then minutes listened, plays and tracks in three columns, the top artists as
+/// ranked rows, and the top songs and albums as shelves. The share button makes a stats card.
 struct SoundCapsuleView: View {
     @Environment(LibraryStore.self) private var library
     @Environment(LibraryActions.self) private var actions
@@ -10,48 +11,37 @@ struct SoundCapsuleView: View {
     @State private var month = ListeningMonth.current
     @State private var months: [String] = []
     @State private var capsule: SoundCapsule?
+    @State private var sharing = false
+
+    private static let top = 5
 
     var body: some View {
-        let all = Array(Set(months + [ListeningMonth.current])).sorted()
-        let previous = all.last { $0 < month }
-        let next = all.first { $0 > month }
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Button { if let previous { month = previous } } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
-                        .disabled(previous == nil)
-                        .accessibilityLabel("Previous month")
-                    Spacer()
-                    VStack(spacing: 2) {
-                        Text("YOUR MONTH").font(.caption.weight(.semibold)).foregroundStyle(palette.onSurfaceVariant)
-                        Text(ListeningMonth.title(month)).font(.title2.weight(.bold))
-                    }
-                    Spacer()
-                    Button { if let next { month = next } } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
-                        .disabled(next == nil)
-                        .accessibilityLabel("Next month")
-                }
-                .padding(.horizontal, Spacing.sm)
+            LazyVStack(alignment: .leading, spacing: Spacing.xl) {
+                monthHeader
                 if let capsule {
                     if capsule.isEmpty {
-                        VStack(spacing: Spacing.sm) {
-                            Image(systemName: "chart.bar.xaxis").font(.system(size: 40)).foregroundStyle(palette.primary)
-                            Text("Nothing played in \(ListeningMonth.name(month)) yet").font(.headline).multilineTextAlignment(.center)
-                            Text("Songs you play this month show up here: your top songs, albums and artists.")
-                                .font(.subheadline).foregroundStyle(palette.onSurfaceVariant).multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, Spacing.xl)
-                        .padding(.vertical, Spacing.xxl)
+                        emptyMonth
                     } else {
-                        content(capsule)
+                        summary(capsule)
+                        if !capsule.topArtists.isEmpty { topArtists(capsule.topArtists) }
+                        if !capsule.topSongs.isEmpty { topSongs(capsule.topSongs) }
+                        if !capsule.topAlbums.isEmpty { topAlbums(capsule.topAlbums) }
                     }
                 }
             }
-            .padding(.bottom, Spacing.lg)
+            .padding(.top, Spacing.sm)
+            .padding(.bottom, Spacing.xl)
         }
         .navigationTitle("Sound Capsule")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { sharing = true } label: { Image(systemName: "square.and.arrow.up") }
+                    .accessibilityLabel("Share stats")
+            }
+        }
+        .sheet(isPresented: $sharing) { StatsShareSheet() }
         .task(id: "\(month)|\(library.songs.count)|\(library.recentAlbums.map(\.id))") { load() }
     }
 
@@ -60,53 +50,73 @@ struct SoundCapsuleView: View {
         capsule = try? library.database.capsule(month: month)
     }
 
-    @ViewBuilder
-    private func content(_ capsule: SoundCapsule) -> some View {
-        let songs = capsule.topSongs.map(\.song)
-        if let top = capsule.topSongs.first {
-            Button { actions.play(songs, startIndex: 0) } label: {
-                ZStack(alignment: .bottomLeading) {
-                    SongArtworkView(song: top.song, maxPixels: 900)
-                    LinearGradient(stops: [.init(color: .clear, location: 0.35), .init(color: .black.opacity(0.7), location: 1)],
-                                   startPoint: .top, endPoint: .bottom)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Your top song").font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.8))
-                        Text(top.song.title).font(.title2.weight(.bold)).foregroundStyle(.white).lineLimit(2)
-                        Text("\(top.song.artist) · \(playsLabel(top.plays))").font(.subheadline).foregroundStyle(.white.opacity(0.8)).lineLimit(1)
-                    }
-                    .padding(Spacing.lg)
-                }
-                .aspectRatio(1.4, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.large, style: .continuous))
+    /// Month and year on the left, previous / next on the right.
+    private var monthHeader: some View {
+        let all = Array(Set(months + [ListeningMonth.current])).sorted()
+        let previous = all.last { $0 < month }
+        let next = all.first { $0 > month }
+        return HStack(spacing: 0) {
+            Text(ListeningMonth.title(month)).font(.title2.weight(.bold)).lineLimit(1)
+            Spacer(minLength: Spacing.sm)
+            Button { if let previous { month = previous } } label: {
+                Image(systemName: "chevron.backward").font(.body.weight(.semibold)).frame(width: 44, height: 44)
             }
-            .buttonStyle(PressScaleStyle(scale: 0.98))
-            .accessibilityHint("Plays the month's top songs")
-            .padding(.horizontal, Spacing.gutter)
-            .padding(.vertical, Spacing.sm)
+            .disabled(previous == nil)
+            .accessibilityLabel("Previous month")
+            Button { if let next { month = next } } label: {
+                Image(systemName: "chevron.forward").font(.body.weight(.semibold)).frame(width: 44, height: 44)
+            }
+            .disabled(next == nil)
+            .accessibilityLabel("Next month")
         }
-        let minutes = capsule.listenedMs / 60_000
-        HStack(spacing: Spacing.sm) {
-            summary("\(capsule.totalPlays)", capsule.totalPlays == 1 ? "play" : "plays")
-            summary("\(minutes)", minutes == 1 ? "minute" : "minutes")
-            summary("\(capsule.longestStreakDays)", String(localized: "day streak"))
+        .padding(.leading, Spacing.gutter)
+        .padding(.trailing, Spacing.xs)
+    }
+
+    /// Minutes listened, plays and tracks: three equal columns straight on the page.
+    private func summary(_ capsule: SoundCapsule) -> some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            figure(StatsText.number(capsule.listenedMs / 60_000), String(localized: "Minutes listened"))
+            figure(StatsText.number(Int64(capsule.totalPlays)), StatsText.playsUnit(capsule.totalPlays))
+            figure(StatsText.number(Int64(capsule.uniqueTracks)), StatsText.tracksUnit(capsule.uniqueTracks))
         }
         .padding(.horizontal, Spacing.gutter)
-        .padding(.vertical, Spacing.sm)
-        if !capsule.topSongs.isEmpty {
-            title(String(localized: "Top songs"))
-            ForEach(Array(capsule.topSongs.enumerated()), id: \.element.song.id) { index, ranked in
-                Button { actions.play(songs, startIndex: index) } label: {
-                    HStack(spacing: Spacing.sm) {
-                        Text("\(index + 1)").font(.title3.weight(.bold)).foregroundStyle(palette.primary).frame(width: 28)
-                        SongArtworkView(song: ranked.song, maxPixels: 168)
-                            .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+    }
+
+    private func figure(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value).font(.title.weight(.bold)).lineLimit(1).minimumScaleFactor(0.6)
+            Text(label).font(.subheadline).foregroundStyle(palette.onSurfaceVariant).lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func heading(_ text: String) -> some View {
+        Text(text.uppercased(with: .current)).font(.footnote.weight(.bold)).tracking(0.8)
+            .foregroundStyle(palette.onSurface)
+            .padding(.horizontal, Spacing.gutter)
+    }
+
+    /// Top artists as library rows: rank, round photo, name over play count.
+    private func topArtists(_ artists: [RankedArtist]) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            heading(String(localized: "Top artists")).padding(.bottom, Spacing.xs)
+            ForEach(Array(artists.prefix(Self.top).enumerated()), id: \.element.artist.id) { index, ranked in
+                Button { router.open(.artist(ranked.artist.id)) } label: {
+                    HStack(spacing: 0) {
+                        Text(StatsText.number(Int64(index + 1))).font(.body.weight(.bold))
+                            .foregroundStyle(palette.onSurfaceVariant).frame(width: 24)
+                        ArtistArtworkView(artist: ranked.artist, fontSize: 18, maxPixels: 144)
+                            .frame(width: ArtworkSize.list, height: ArtworkSize.list)
+                            .clipShape(Circle())
+                            .padding(.leading, Spacing.sm)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(ranked.song.title).font(.body.weight(.bold)).lineLimit(1)
-                            Text(ranked.song.artist).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
+                            Text(ranked.artist.name).font(.body).lineLimit(1)
+                            Text(StatsText.plays(ranked.plays)).font(.subheadline).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
                         }
-                        Spacer(minLength: Spacing.sm)
-                        Text(playsLabel(ranked.plays)).font(.caption).foregroundStyle(palette.onSurfaceVariant)
+                        .padding(.leading, Spacing.md)
+                        Spacer(minLength: 0)
                     }
                     .padding(.horizontal, Spacing.gutter)
                     .padding(.vertical, Spacing.sm)
@@ -115,77 +125,101 @@ struct SoundCapsuleView: View {
                 .buttonStyle(.plain)
             }
         }
-        if !capsule.topAlbums.isEmpty {
-            title(String(localized: "Top albums"))
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: Spacing.md) {
-                    ForEach(Array(capsule.topAlbums.enumerated()), id: \.element.album.id) { index, ranked in
-                        Button { router.open(.album(ranked.album.id)) } label: {
-                            VStack(alignment: .leading, spacing: 2) {
-                                AlbumArtworkView(albumId: ranked.album.id)
-                                    .frame(width: 148, height: 148)
-                                    .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
-                                    .overlay(alignment: .topLeading) { badge(index + 1).padding(Spacing.sm) }
-                                Text(ranked.album.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                                Text(ranked.album.artist).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
-                                Text(playsLabel(ranked.plays)).font(.caption2).foregroundStyle(palette.onSurfaceVariant)
-                            }
-                            .frame(width: 148)
-                        }
-                        .buttonStyle(.plain)
+    }
+
+    private func topSongs(_ songs: [RankedSong]) -> some View {
+        let shown = Array(songs.prefix(Self.top))
+        return shelf(String(localized: "Top songs")) {
+            ForEach(Array(shown.enumerated()), id: \.element.song.id) { index, ranked in
+                Button { actions.play(shown.map(\.song), startIndex: index) } label: {
+                    tile(rank: index + 1, title: ranked.song.title, subtitle: ranked.song.artist, plays: ranked.plays) {
+                        SongArtworkView(song: ranked.song, maxPixels: 432)
                     }
                 }
-                .padding(.horizontal, Spacing.gutter)
-            }
-        }
-        if !capsule.topArtists.isEmpty {
-            title(String(localized: "Top artists"))
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: Spacing.md) {
-                    ForEach(Array(capsule.topArtists.enumerated()), id: \.element.artist.id) { index, ranked in
-                        Button { router.open(.artist(ranked.artist.id)) } label: {
-                            VStack(spacing: 2) {
-                                ArtistArtworkView(artist: ranked.artist, fontSize: 36)
-                                    .frame(width: 112, height: 112)
-                                    .clipShape(Circle())
-                                    .overlay(alignment: .topLeading) { badge(index + 1) }
-                                Text(ranked.artist.name).font(.subheadline.weight(.semibold)).lineLimit(1)
-                                Text(playsLabel(ranked.plays)).font(.caption2).foregroundStyle(palette.onSurfaceVariant)
-                            }
-                            .frame(width: 112)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, Spacing.gutter)
+                .buttonStyle(PressScaleStyle())
+                .accessibilityHint("Plays the month's top songs")
             }
         }
     }
 
-    private func summary(_ value: String, _ label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(value).font(.title2.weight(.bold)).lineLimit(1).minimumScaleFactor(0.6)
-            Text(label).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
+    private func topAlbums(_ albums: [RankedAlbum]) -> some View {
+        shelf(String(localized: "Top albums")) {
+            ForEach(Array(albums.prefix(Self.top).enumerated()), id: \.element.album.id) { index, ranked in
+                Button { router.open(.album(ranked.album.id)) } label: {
+                    tile(rank: index + 1, title: ranked.album.title, subtitle: ranked.album.artist, plays: ranked.plays) {
+                        AlbumArtworkView(albumId: ranked.album.id, maxPixels: 432)
+                    }
+                }
+                .buttonStyle(PressScaleStyle())
+            }
+        }
+    }
+
+    /// A headed horizontal shelf; the gutter is content padding, so cards scroll to the edge.
+    private func shelf<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            heading(title)
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(alignment: .top, spacing: Spacing.md) { content() }
+                    .padding(.horizontal, Spacing.gutter)
+            }
+        }
+    }
+
+    /// A shelf card: square artwork with its rank, then title, subtitle and play count. Only the
+    /// artwork is rounded, as in the album grid.
+    private func tile<Artwork: View>(rank: Int, title: String, subtitle: String, plays: Int,
+                                     @ViewBuilder artwork: () -> Artwork) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            artwork()
+                .frame(width: ArtworkSize.shelf, height: ArtworkSize.shelf)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
+                .overlay(alignment: .topLeading) {
+                    Text(StatsText.number(Int64(rank))).font(.caption.weight(.bold)).foregroundStyle(.white)
+                        .frame(width: 24, height: 24)
+                        .background(Circle().fill(.black.opacity(0.7)))
+                        .padding(Spacing.sm)
+                }
+                .padding(.bottom, Spacing.xs)
+            Text(title).font(.subheadline.weight(.semibold)).lineLimit(1)
+            Text(subtitle).font(.caption).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
+            Text(StatsText.plays(plays)).font(.caption2).foregroundStyle(palette.onSurfaceVariant).lineLimit(1)
+        }
+        .frame(width: ArtworkSize.shelf, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private var emptyMonth: some View {
+        VStack(spacing: Spacing.sm) {
+            Image(systemName: "chart.bar.xaxis").font(.system(size: 48)).foregroundStyle(palette.onSurfaceVariant.opacity(0.5))
+            Text("Nothing played in \(ListeningMonth.name(month)) yet").font(.headline).multilineTextAlignment(.center)
+            Text("Songs you play this month show up here: your top songs, albums and artists.")
+                .font(.subheadline).foregroundStyle(palette.onSurfaceVariant).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.md)
-        .background(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous).fill(palette.surfaceVariant.opacity(0.5)))
+        .padding(.horizontal, Spacing.xl)
+        .padding(.vertical, Spacing.xxl)
+    }
+}
+
+/// Counts in the app's language, shared by the Sound Capsule and its stats cards.
+enum StatsText {
+    static func number(_ value: Int64) -> String { value.formatted(.number) }
+
+    /// "1 play" / "12 plays".
+    static func plays(_ plays: Int) -> String {
+        plays == 1 ? String(localized: "1 play") : String(localized: "\(plays.formatted(.number)) plays")
     }
 
-    private func title(_ text: String) -> some View {
-        Text(text).font(.title3.weight(.bold))
-            .padding(.horizontal, Spacing.gutter)
-            .padding(.top, Spacing.xl)
-            .padding(.bottom, Spacing.sm)
+    /// "Play" / "Plays" as the label under a count.
+    static func playsUnit(_ count: Int) -> String {
+        count == 1 ? String(localized: "stats.unit.play", defaultValue: "Play") : String(localized: "stats.unit.plays", defaultValue: "Plays")
     }
 
-    private func badge(_ rank: Int) -> some View {
-        Text("\(rank)").font(.subheadline.weight(.bold)).foregroundStyle(palette.onPrimary)
-            .frame(width: 28, height: 28)
-            .background(Circle().fill(palette.primary))
+    /// "Track" / "Tracks" as the label under a count.
+    static func tracksUnit(_ count: Int) -> String {
+        count == 1 ? String(localized: "stats.unit.track", defaultValue: "Track") : String(localized: "stats.unit.tracks", defaultValue: "Tracks")
     }
-
-    private func playsLabel(_ plays: Int) -> String { plays == 1 ? "1 play" : "\(plays) plays" }
 }
 
 /// Listening months as stored ("YYYY-MM", local calendar).

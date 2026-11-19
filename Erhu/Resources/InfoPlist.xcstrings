@@ -155,6 +155,160 @@
         }
       }
     },
+    "NSPhotoLibraryAddUsageDescription" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحفظ Erhu بطاقات الإحصاءات التي تصنعها في صورك."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "আপনার তৈরি পরিসংখ্যান কার্ড Erhu আপনার ফটোতে সংরক্ষণ করে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu sichert die Statistikkarten, die du erstellst, in deinen Fotos."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu guarda en tus fotos las tarjetas de estadísticas que creas."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu کارت‌های آماری را که می‌سازید در عکس‌هایتان ذخیره می‌کند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sine-save ng Erhu sa iyong mga larawan ang mga stats card na ginagawa mo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu enregistre dans vos photos les cartes de statistiques que vous créez."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu आपके बनाए आँकड़ों के कार्ड आपकी फ़ोटो में सहेजता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu menyimpan kartu statistik yang kamu buat ke foto."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu salva nelle tue foto le schede di statistiche che crei."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu は作成した統計カードを写真に保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu는 만든 통계 카드를 사진에 저장합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu bewaart de statistiekkaarten die je maakt in je foto's."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu zapisuje utworzone karty statystyk w Twoich zdjęciach."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Erhu salva nas suas fotos os cartões de estatísticas que você cria."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu сохраняет созданные вами карточки статистики в Фото."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "நீங்கள் உருவாக்கும் புள்ளிவிவர அட்டைகளை Erhu உங்கள் புகைப்படங்களில் சேமிக்கிறது."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "మీరు చేసే గణాంకాల కార్డ్‌లను Erhu మీ ఫోటోలలో సేవ్ చేస్తుంది."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu จะบันทึกการ์ดสถิติที่คุณสร้างลงในรูปภาพ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu, oluşturduğun istatistik kartlarını fotoğraflarına kaydeder."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu зберігає створені вами картки статистики у Фото."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu آپ کے بنائے ہوئے اعداد و شمار کے کارڈ آپ کی تصاویر میں محفوظ کرتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu lưu các thẻ thống kê bạn tạo vào Ảnh."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu 会将你制作的统计卡片存储到照片中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhu 會將你製作的統計卡片儲存至照片。"
+          }
+        }
+      }
+    },
     "Ogg Vorbis or Opus audio" : {
       "localizations" : {
         "ar" : {
