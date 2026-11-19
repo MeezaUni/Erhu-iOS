@@ -72,6 +72,7 @@ struct PlayerPresentation: View {
 
     var body: some View {
         NowPlayingView(drag: drag)
+            .modifier(NowPlayingPalette())
             .environment(\.playerInMotion, drag.isMoving)
             .environment(\.playerArtworkFrames, frames)
             .opacity(frames.expanded.width > 0 || opensWithoutFrame ? 1 : 0)
@@ -360,8 +361,10 @@ final class PlayerDragState {
         }
         var instant = Transaction(); instant.disablesAnimations = true
         withTransaction(instant) {
-            isMoving = true
-            isCollapsing = distance > 0
+            // Observation notifies on every assignment, even of the same value: setting these on
+            // each touch event redrew everything that reads them (all of Now Playing) mid-pull.
+            if !isMoving { isMoving = true }
+            if isCollapsing != (distance > 0) { isCollapsing = distance > 0 }
             translation = max(distance, 0)
             progress = ((dragOrigin ?? 1) - translation / max(travel, 1)).clamped(0, 1)
             collapseFraction = ((collapseOrigin ?? 0) + translation / Self.chromeFadeDistance).clamped(0, 1)

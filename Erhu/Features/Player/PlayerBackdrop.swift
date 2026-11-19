@@ -59,8 +59,8 @@ enum BlurredArtwork {
     }
 }
 
-/// Now Playing's background. The picture changes once a skip has settled, cross-fading from the
-/// previous one (kept until the new one is ready), and the neighbouring songs' pictures are made
+/// Now Playing's background. The picture cross-fades as soon as a skip starts, from the previous
+/// one (kept until the new one is ready), and the neighbouring songs' pictures are made
 /// ahead so a skip never waits for one.
 struct PlayerBackdrop: View {
     let song: Song?
@@ -73,7 +73,9 @@ struct PlayerBackdrop: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [palette.surface, palette.background], startPoint: .topLeading, endPoint: .bottomTrailing)
+            // Solid colours rather than one gradient, so a change of song fades smoothly.
+            palette.background
+            LinearGradient(colors: [palette.surface, palette.surface.opacity(0)], startPoint: .topLeading, endPoint: .bottomTrailing)
             if let shown {
                 Image(uiImage: shown)
                     .resizable()
@@ -89,16 +91,14 @@ struct PlayerBackdrop: View {
             }
         }
         .clipped()
-        .animation(.easeInOut(duration: 0.4), value: shown.map(ObjectIdentifier.init))
+        .animation(.easeInOut(duration: NowPlayingPalette.fade), value: shown.map(ObjectIdentifier.init))
         .task(id: song?.url) {
             guard let url = song?.url else { shown = nil; shownURL = nil; return }
             if shownURL == nil, let ready = BlurredArtwork.cached(url) {
                 shown = ready; shownURL = url
             } else {
+                // Usually ready already (made ahead), so it fades across with the cards and colours.
                 let made = await BlurredArtwork.image(for: url)
-                guard !Task.isCancelled else { return }
-                // Wait for a skip's card motion to settle before the background changes.
-                if shownURL != nil { try? await Task.sleep(for: .seconds(CarouselSettlementTiming.trackSettleDuration)) }
                 guard !Task.isCancelled else { return }
                 shown = made; shownURL = url
             }
@@ -107,5 +107,55 @@ struct PlayerBackdrop: View {
                 _ = await BlurredArtwork.image(for: next)
             }
         }
+    }
+}
+
+/// Now Playing's own colours: they follow the playing song at once, fading across as the cards
+/// turn, instead of waiting for the whole app's colours (which change once the skip has settled,
+/// since repainting every screen mid-skip made the cards stutter). Only Now Playing redraws here,
+/// and the neighbouring songs' colours are worked out ahead so a skip never waits for them.
+struct NowPlayingPalette: ViewModifier {
+    @Environment(AppSettings.self) private var settings
+    @Environment(PlayerController.self) private var player
+    @Environment(\.palette) private var inherited
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var shown: LyricsPalette?
+    @State private var shownURL: URL?
+
+    /// About as long as the cards take to turn.
+    static let fade: TimeInterval = 0.45
+
+    func body(content: Content) -> some View {
+        let follows = settings.customTheme == nil && settings.theme == .artwork
+        let state = player.state
+        let url = follows ? state.currentSong?.url : nil
+        let palette = follows ? (shown.map { AppPalette.artwork($0, scheme: scheme) } ?? inherited) : inherited
+        content
+            .environment(\.palette, palette)
+            .environment(\.playbackPalette, palette)
+            .tint(palette.primary)
+            .task(id: url) {
+                guard let url else { shown = nil; shownURL = nil; return }
+                let next: LyricsPalette
+                if let ready = LyricsPaletteCache.shared.cachedPalette(for: url) {
+                    next = ready
+                } else {
+                    next = await LyricsPaletteCache.shared.palette(for: url)
+                    guard !Task.isCancelled else { return }
+                }
+                if shownURL == nil || reduceMotion {
+                    shown = next
+                } else {
+                    withAnimation(.easeInOut(duration: Self.fade)) { shown = next }
+                }
+                shownURL = url
+                // The songs either side, so the next skip finds its colours ready.
+                let queue = player.state.queue, index = player.state.currentIndex
+                for offset in [1, -1, 2] where queue.indices.contains(index + offset) {
+                    guard !Task.isCancelled else { return }
+                    _ = await LyricsPaletteCache.shared.palette(for: queue[index + offset].song.url)
+                }
+            }
     }
 }

@@ -31,6 +31,9 @@ struct NowPlayingView: View {
     @State private var scrollToTop = 0
     /// Whether the page is scrolled down (to the lyrics).
     @State private var scrolledDown = false
+    /// A pull-down is under way: the page doesn't scroll (or rubber-band) under the finger
+    /// meanwhile, which made the player shake as it was pulled.
+    @State private var pulling = false
 
     /// How much of the lyrics card shows at the bottom of the first screen.
     private static let lyricsPeek: CGFloat = 64
@@ -59,7 +62,7 @@ struct NowPlayingView: View {
                                               },
                                               setBusy: { player.setVisualMotion(.carousel, active: $0) },
                                               onPull: pulled, onPullEnd: pullEnded,
-                                              onPullCancel: { drag.cancelGesture(reduceMotion: reduceMotion) })
+                                              onPullCancel: { pulling = false; drag.cancelGesture(reduceMotion: reduceMotion) })
                                     .frame(maxHeight: .infinity)
                                 VStack(spacing: Spacing.sm) {
                                     ProgressSection(song: song)
@@ -85,12 +88,15 @@ struct NowPlayingView: View {
                         }
                     }
                     .scrollIndicators(.hidden)
+                    .scrollDisabled(pulling)
                     .coordinateSpace(name: Self.pageSpace)
                     .onPreferenceChange(PlayerPageOffsetKey.self) { offset in
                         let down = offset < -8
                         if down != scrolledDown { scrolledDown = down }
                     }
-                    .onChange(of: scrollToTop) { _, _ in proxy.scrollTo(Self.topID, anchor: .top) }
+                    .onChange(of: scrollToTop) { _, _ in
+                        withAnimation(.smooth(duration: Self.scrollBackDuration)) { proxy.scrollTo(Self.topID, anchor: .top) }
+                    }
                     }
                 }
             } else {
@@ -111,7 +117,7 @@ struct NowPlayingView: View {
             }
         }
         .onChange(of: headerPullActive) { _, active in
-            if !active { drag.cancelGesture(reduceMotion: reduceMotion) }
+            if !active { pulling = false; drag.cancelGesture(reduceMotion: reduceMotion) }
         }
         .onChange(of: drag.isMoving, initial: true) { _, active in player.setVisualMotion(.presentation, active: active) }
         .onDisappear {
@@ -146,9 +152,13 @@ struct NowPlayingView: View {
             .onEnded { pullEnded($0.translation.height, $0.predictedEndTranslation.height) }
     }
 
-    private func pulled(_ distance: CGFloat) { drag.update(distance) }
+    private func pulled(_ distance: CGFloat) {
+        if !pulling && distance > 0 { pulling = true }
+        drag.update(distance)
+    }
 
     private func pullEnded(_ distance: CGFloat, _ predicted: CGFloat) {
+        pulling = false
         if distance > 140 || predicted > 420 {
             close(velocity: (predicted - distance) * 4)
         } else {
@@ -159,13 +169,16 @@ struct NowPlayingView: View {
     private static let topID = "now-playing-top"
     private static let pageSpace = "now-playing-page"
 
-    /// The close button, scrolled down to the lyrics: the page goes back to the top first, so the
-    /// cover flies from the card in view to the mini player instead of from off screen.
+    /// How long the page takes to glide back up from the lyrics before closing.
+    private static let scrollBackDuration: TimeInterval = 0.32
+
+    /// The close button, scrolled down to the lyrics: the page glides back to the top first (you
+    /// see it go), then the cover flies from its card to the mini player instead of from off screen.
     private func closeFromButton() {
         guard scrolledDown else { close(); return }
         scrollToTop += 1
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(60))
+            try? await Task.sleep(for: .seconds(Self.scrollBackDuration))
             close()
         }
     }
