@@ -2,23 +2,18 @@ import SwiftUI
 
 /// One page of the introduction (Android's IntroductionPage), in order.
 enum IntroductionPage: String, CaseIterable, Identifiable {
-    case language, welcome, library, artwork, tags, listening, lyrics, sound, transitions, vybe, shortcuts, widgets, ready
+    case language, welcome, artwork, lyrics, sound, vybe, quickAccess, ready
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .language: String(localized: "Choose your language")
-        case .welcome: String(localized: "Your music. Your space.")
-        case .library: String(localized: "Your music library.")
-        case .artwork: String(localized: "Give every album its cover.")
-        case .tags: String(localized: "Put the right names to your music.")
-        case .listening: String(localized: "Your listening experience.")
-        case .lyrics: String(localized: "Stay with the words.")
-        case .sound: String(localized: "Make sound yours.")
-        case .transitions: String(localized: "Make the next track flow.")
+        case .welcome: String(localized: "Welcome to Erhu")
+        case .artwork: String(localized: "Tools to refine and repair")
+        case .lyrics: String(localized: "Lyrics and queue")
+        case .sound: String(localized: "Equalizer and Transition Studio")
         case .vybe: String(localized: "Discover VYBE.")
-        case .shortcuts: String(localized: "Navigation quick access")
-        case .widgets: String(localized: "Music on your Home Screen.")
+        case .quickAccess: String(localized: "Navigation quick access")
         case .ready: String(localized: "Everything is in place.")
         }
     }
@@ -26,76 +21,51 @@ enum IntroductionPage: String, CaseIterable, Identifiable {
     var text: String {
         switch self {
         case .language: String(localized: "Erhu follows the language you choose for it in the Settings app. You can change it there at any time.")
-        case .welcome: String(localized: "A home for the music you own. Your collection and listening history stay on this iPhone.")
-        case .library: String(localized: "Use + to choose files, or start Wi-Fi Transfer to send music from a computer. Browse albums, artists and tracks, and search everything you have.")
-        case .artwork: String(localized: "Find album covers and artist photos with Artwork Fetcher, or choose a cover from your own photos.")
-        case .tags: String(localized: "Use Auto Fix Tags to complete missing details and bring order to your collection. You review every match before it is applied.")
-        case .listening: String(localized: "Tap the mini player to open Now Playing. Swipe the artwork to change tracks, and open Queue to reorder what plays next.")
-        case .lyrics: String(localized: "Follow synchronized lyrics on supported tracks. Availability depends on the file and online providers.")
-        case .sound: String(localized: "Use the graphic equalizer and its presets, or shape every band with the parametric equalizer.")
-        case .transitions: String(localized: "Use Transition Studio to shape the handover between tracks, with defaults and individual transitions.")
+        case .welcome: String(localized: "Explore Now Playing and Home. Swipe through your music and discover the gestures that keep it close.")
+        case .artwork: String(localized: "Find them in the app sidebar.")
+        case .lyrics: String(localized: "Follow the lyrics while you listen, and arrange what plays next in your queue.")
+        case .sound: String(localized: "Shape your sound with the equalizer. Use Transition Studio to fine-tune how playlist tracks flow into one another.")
         case .vybe: String(localized: "Search your own collection and browse generated radio stations. Playback starts when you choose.")
-        case .shortcuts: String(localized: "Home stays first. Tap up to three other shortcuts in the order you want them. Tap again to remove a shortcut.")
-        case .widgets: String(localized: "Touch and hold your Home Screen, tap Edit, then Add Widget, and choose Erhu.")
+        case .quickAccess: String(localized: "Home stays first. Tap up to three other shortcuts in the order you want them. Tap again to remove a shortcut.")
         case .ready: String(localized: "Your music is ready. Make yourself at home.")
         }
     }
 
-    /// Screens of the app shown on the page (a choice of them when there are several).
-    var previews: [(label: String, image: String)] {
-        switch self {
-        case .welcome: [(String(localized: "Now Playing"), "OnboardingNowPlaying")]
-        case .library: [(String(localized: "Library"), "OnboardingLibrary"), (String(localized: "Albums"), "OnboardingAlbum"), (String(localized: "Home"), "OnboardingHome")]
-        case .listening: [(String(localized: "Now Playing"), "OnboardingNowPlaying"), (String(localized: "Menu"), "OnboardingTrackMenu")]
-        case .lyrics: [(String(localized: "Lyrics"), "OnboardingLyrics")]
-        case .sound: [(String(localized: "Equalizer"), "OnboardingEqualizer")]
-        case .transitions: [(String(localized: "Studio"), "OnboardingTransitions")]
-        case .vybe: [(String(localized: "VYBE"), "OnboardingVybe")]
-        default: []
-        }
+    static func pages(vybe: Bool) -> [Self] {
+        allCases.filter { $0 != .vybe || vybe }
     }
 
-    /// Pages without a screen of the app show a symbol instead.
-    var symbol: String? {
-        switch self {
-        case .language: "globe"
-        case .artwork: "photo.on.rectangle.angled"
-        case .tags: "wand.and.stars"
-        case .widgets: "square.grid.2x2"
-        case .ready: "checkmark.circle"
-        default: nil
-        }
-    }
-
-    static func pages(vybe: Bool, firstLaunch: Bool) -> [Self] {
-        allCases.filter { page in
-            switch page {
-            case .vybe: vybe || firstLaunch
-            case .shortcuts, .language: firstLaunch
-            default: true
-            }
+    static func restored(_ saved: String, vybe: Bool) -> Self {
+        switch saved.lowercased() {
+        case "welcome", "library", "listening": .welcome
+        case "artwork", "tags", "builder": .artwork
+        case "lyrics": .lyrics
+        case "sound", "transitions": .sound
+        case "vybe": vybe ? .vybe : .quickAccess
+        case "quickaccess", "quick_access", "shortcuts", "widgets": .quickAccess
+        case "ready": .ready
+        default: .language
         }
     }
 }
 
-/// The introduction (Android's onboarding): a page per part of the app, with its screens, the
-/// tab bar's shortcuts on first launch, and the Glass and VYBE choices before you start.
 struct IntroductionView: View {
     var firstLaunch = false
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var selected = IntroductionPage.welcome.rawValue
-    private var pages: [IntroductionPage] { IntroductionPage.pages(vybe: settings.vybeEnabled, firstLaunch: firstLaunch) }
-    private var index: Int { pages.firstIndex { $0.rawValue == selected } ?? 0 }
+    @AppStorage("introductionPage") private var savedPage = ""
+    private var pages: [IntroductionPage] { IntroductionPage.pages(vybe: settings.vybeEnabled) }
+    private var selected: IntroductionPage { IntroductionPage.restored(savedPage, vybe: settings.vybeEnabled) }
+    private var index: Int { pages.firstIndex(of: selected) ?? 0 }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: Spacing.md) {
-                TabView(selection: $selected) {
+                TabView(selection: Binding<IntroductionPage>(get: { selected }, set: { savedPage = $0.rawValue })) {
                     ForEach(pages) { page in
-                        IntroductionPageView(page: page).tag(page.rawValue)
+                        IntroductionPageView(page: page, isActive: page == selected).tag(page)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
@@ -119,9 +89,8 @@ struct IntroductionView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(firstLaunch ? "Skip" : "Done", action: finish) } }
         }
-        .onAppear { selected = pages.first?.rawValue ?? IntroductionPage.welcome.rawValue }
         .onChange(of: settings.vybeEnabled) { _, _ in
-            if !pages.contains(where: { $0.rawValue == selected }) { selected = IntroductionPage.ready.rawValue }
+            savedPage = selected.rawValue
         }
     }
 
@@ -140,10 +109,15 @@ struct IntroductionView: View {
 
     private func move(to position: Int) {
         guard pages.indices.contains(position) else { return }
-        if reduceMotion { selected = pages[position].rawValue } else { withAnimation { selected = pages[position].rawValue } }
+        if reduceMotion {
+            savedPage = pages[position].rawValue
+        } else {
+            withAnimation { savedPage = pages[position].rawValue }
+        }
     }
 
     private func finish() {
+        savedPage = ""
         if firstLaunch { settings.introductionCompleted = true }
         dismiss()
     }
@@ -152,9 +126,9 @@ struct IntroductionView: View {
 /// One page: a large title, its explanation, then the page's own content.
 private struct IntroductionPageView: View {
     let page: IntroductionPage
+    let isActive: Bool
     @Environment(AppSettings.self) private var settings
     @Environment(\.palette) private var palette
-    @State private var preview = 0
 
     var body: some View {
         @Bindable var settings = settings
@@ -193,10 +167,40 @@ private struct IntroductionPageView: View {
                     .buttonStyle(.bordered)
                     .accessibilityHint("Opens the Settings app, where you can choose Erhu's language")
             }
-        case .shortcuts:
+        case .welcome:
+            pairedPreviews(
+                IntroductionPreview("Now Playing", image: "OnboardingNowPlaying", video: "now_playing"),
+                IntroductionPreview("Home", image: "OnboardingHome", video: "home")
+            )
+        case .artwork:
+            IntroductionToolsCarousel()
+        case .lyrics:
+            pairedPreviews(
+                IntroductionPreview("Lyrics", image: "OnboardingLyrics", video: "lyrics"),
+                IntroductionPreview("Queue", image: "OnboardingQueue", video: "queue")
+            )
+        case .sound:
+            pairedPreviews(
+                IntroductionPreview("Equalizer", image: "OnboardingEqualizer"),
+                IntroductionPreview("Transitions", image: "OnboardingTransitions")
+            )
+        case .quickAccess:
             NavigationShortcutsPicker()
+            Text("Touch and hold your Home Screen, tap Edit, then Add Widget, and choose Erhu.")
+                .font(.subheadline)
+                .foregroundStyle(palette.onSurfaceVariant)
+                .fixedSize(horizontal: false, vertical: true)
+            pairedPreviews(
+                IntroductionPreview("Medium widget", image: "OnboardingWidgetMedium", aspectRatio: 2.1),
+                IntroductionPreview("Large widget", image: "OnboardingWidgetLarge", aspectRatio: 1.05)
+            )
         case .ready:
-            symbolVisual
+            Image(systemName: "checkmark.circle")
+                .font(.system(size: 72, weight: .regular))
+                .foregroundStyle(palette.primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.xl)
+                .accessibilityHidden(true)
             card {
                 Toggle(isOn: settings.glassEnabled) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -205,6 +209,7 @@ private struct IntroductionPageView: View {
                             .font(.subheadline).foregroundStyle(palette.onSurfaceVariant)
                     }
                 }
+                glassPreview(enabled: settings.glassEnabled.wrappedValue)
             }
             card {
                 Toggle(isOn: settings.vybeEnabled) {
@@ -225,54 +230,44 @@ private struct IntroductionPageView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         case .vybe:
-            gallery
+            IntroductionPreviewView(
+                preview: IntroductionPreview("VYBE", image: "OnboardingVybe"),
+                isActive: isActive
+            )
+            .frame(maxWidth: 216)
+            .frame(maxWidth: .infinity)
+            Text("Preview from an existing Erhu library.").font(.caption).foregroundStyle(palette.onSurfaceVariant)
             Toggle("Enable VYBE", isOn: settings.vybeEnabled)
                 .padding(Spacing.lg)
                 .background(RoundedRectangle(cornerRadius: Radius.large, style: .continuous).fill(palette.surface))
-        default:
-            if page.previews.isEmpty { symbolVisual } else { gallery }
         }
     }
 
-    private var symbolVisual: some View {
-        Image(systemName: page.symbol ?? "music.note")
-            .font(.system(size: 72, weight: .regular))
-            .foregroundStyle(palette.primary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.xl)
-            .accessibilityHidden(true)
+    private func pairedPreviews(_ first: IntroductionPreview, _ second: IntroductionPreview) -> some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            IntroductionPreviewView(preview: first, isActive: isActive)
+            IntroductionPreviewView(preview: second, isActive: isActive)
+        }
+        .frame(maxWidth: 420)
+        .frame(maxWidth: .infinity)
     }
 
-    /// The page's screens, with chips to switch between several.
-    @ViewBuilder
-    private var gallery: some View {
-        let previews = page.previews
-        let shown = previews[min(preview, previews.count - 1)]
-        if previews.count > 1 {
-            HStack(spacing: Spacing.sm) {
-                ForEach(Array(previews.enumerated()), id: \.offset) { position, item in
-                    Button(item.label) { withAnimation(.smooth(duration: 0.2)) { preview = position } }
-                        .font(.subheadline.weight(.medium))
-                        .padding(.horizontal, Spacing.md).padding(.vertical, Spacing.xs + 2)
-                        .foregroundStyle(position == preview ? palette.onPrimary : palette.onSurface)
-                        .background(Capsule().fill(position == preview ? palette.primary : palette.onSurface.opacity(0.08)))
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(position == preview ? .isSelected : [])
-                }
-            }
+    private func glassPreview(enabled: Bool) -> some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "music.note")
+            Image(systemName: "play.fill")
+            Image(systemName: "ellipsis")
         }
-        Image(shown.image)
-            .resizable()
-            .scaledToFit()
-            .frame(maxHeight: 440)
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).strokeBorder(palette.onSurface.opacity(0.12)))
-            .shadow(color: .black.opacity(0.25), radius: 18, y: 10)
-            .frame(maxWidth: .infinity)
-            .id(shown.image)
-            .transition(.opacity)
-            .accessibilityLabel(shown.label)
-        Text("Preview from an existing Erhu library.").font(.caption).foregroundStyle(palette.onSurfaceVariant)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.sm)
+        .glassSurface(cornerRadius: Radius.large, enabled: enabled)
+        .frame(maxWidth: .infinity, minHeight: 60)
+        .background(
+            LinearGradient(colors: [palette.primary.opacity(0.35), palette.surfaceVariant],
+                           startPoint: .leading, endPoint: .trailing),
+            in: RoundedRectangle(cornerRadius: Radius.large)
+        )
+        .accessibilityHidden(true)
     }
 
     private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {

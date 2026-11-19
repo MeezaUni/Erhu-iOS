@@ -54,9 +54,27 @@ final class ReleaseAndDiscoveryTests: XCTestCase {
         XCTAssertFalse(value.introductionCompleted)
         XCTAssertEqual(value.theme, .dark)
         XCTAssertEqual(value.typeface, .system)
-        XCTAssertFalse(IntroductionPage.pages(vybe: false, firstLaunch: false).contains { $0.id == "vybe" })
-        XCTAssertTrue(IntroductionPage.pages(vybe: false, firstLaunch: true).contains(.shortcuts))
         XCTAssertEqual(value.navigationShortcuts, ["albums", "library", "vybe"])
+    }
+
+    func testIntroductionPageOrderAndRestoration() {
+        XCTAssertEqual(IntroductionPage.pages(vybe: true),
+                       [.language, .welcome, .artwork, .lyrics, .sound, .vybe, .quickAccess, .ready])
+        XCTAssertEqual(IntroductionPage.pages(vybe: false),
+                       [.language, .welcome, .artwork, .lyrics, .sound, .quickAccess, .ready])
+
+        let legacyPages: [(String, IntroductionPage)] = [
+            ("LIBRARY", .welcome), ("LISTENING", .welcome), ("TAGS", .artwork), ("BUILDER", .artwork),
+            ("TRANSITIONS", .sound), ("WIDGETS", .quickAccess), ("shortcuts", .quickAccess)
+        ]
+        for (saved, expected) in legacyPages {
+            XCTAssertEqual(IntroductionPage.restored(saved, vybe: true), expected, saved)
+        }
+        for page in IntroductionPage.allCases {
+            XCTAssertEqual(IntroductionPage.restored(page.rawValue, vybe: true), page)
+        }
+        XCTAssertEqual(IntroductionPage.restored("VYBE", vybe: false), .quickAccess)
+        XCTAssertEqual(IntroductionPage.restored("", vybe: false), .language)
     }
 
     @MainActor func testTabBarKeepsHomeFirstAndUpToThreeShortcutsInOrder() {
