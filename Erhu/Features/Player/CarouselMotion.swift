@@ -48,11 +48,11 @@ final class CarouselMotion {
         let targetStack: CGFloat = stacked ? 1 : 0
         let timing = CarouselSettlementTiming(delta: CGFloat(center) - focus, layoutDelta: targetStack - stack,
                                              velocity: velocity, reduceMotion: reduceMotion, depth: stacked)
-        // A track change settles with a critically damped spring (about 0.45 s from rest) that
+        // A track change settles with a critically damped spring (about 0.3 s from rest) that
         // keeps a running motion's velocity when the next skip retargets it.
         let moves = abs(CGFloat(center) - focus) > 0.001 && !reduceMotion
         let animation = moves ? CarouselSettlementTiming.trackSpring(delta: CGFloat(center) - focus, velocity: velocity) : timing.animation
-        let duration = moves ? CarouselSettlementTiming.trackSettleDuration : timing.duration
+        let duration = moves ? CarouselSettlementTiming.trackCleanupDuration : timing.duration
         withAnimation(animation) {
             moving = true
             focus = CGFloat(center)
@@ -119,8 +119,11 @@ struct CarouselSettlementTiming {
     var animation: Animation { .timingCurve(firstX, firstY, secondX, 1, duration: duration) }
 
     /// Stiffness of the track-change spring (critically damped, unit mass).
-    static let trackStiffness: Double = 240
-    /// About how long that spring takes to settle.
+    static let trackStiffness: Double = 400
+    /// When a track change releases interaction state (the spring is within 2% of rest).
+    static let trackCleanupDuration: TimeInterval = 0.3
+    /// How long after a skip the background and colours wait before changing, so they don't
+    /// repaint while the cards are still moving.
     static let trackSettleDuration: TimeInterval = 0.5
 
     /// The track-change spring. [velocity] is the finger's speed in pages per second; only motion
