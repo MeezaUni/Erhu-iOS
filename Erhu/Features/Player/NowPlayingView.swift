@@ -91,12 +91,12 @@ struct NowPlayingView: View {
                         .environment(\.playerPageScrolling, pageScrolling)
                         .scrollIndicators(.hidden)
                         .scrollDisabled(pulling)
-                        .coordinateSpace(name: PlayerArtworkSpace.viewport)
                         .onChange(of: scrollToTop) { _, _ in
                             withAnimation(.smooth(duration: Self.scrollBackDuration)) { proxy.scrollTo(Self.topID, anchor: .top) }
                         }
                     }
                 }
+                .coordinateSpace(name: PlayerArtworkSpace.viewport)
             } else {
                 Spacer()
                 EmptyState(message: "Nothing is playing. Pick a song from your library.", systemImage: "music.note")
