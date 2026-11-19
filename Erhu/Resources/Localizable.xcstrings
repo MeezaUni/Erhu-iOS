@@ -55443,6 +55443,160 @@
         }
       }
     },
+    "Covers and artist photos" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أغلفة الألبومات وصور الفنانين"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অ্যালবামের প্রচ্ছদ ও শিল্পীর ছবি"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumcover und Künstlerfotos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portadas y fotos de artistas"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جلد آلبوم‌ها و عکس هنرمندان"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga cover at larawan ng mga artist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pochettes et photos d’artistes"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एल्बम कवर और कलाकारों की फ़ोटो"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sampul album dan foto artis"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copertine e foto degli artisti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アルバムカバーとアーティスト写真"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앨범 표지 및 아티스트 사진"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albumhoezen en artiestenfoto’s"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okładki albumów i zdjęcia wykonawców"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capas e fotos de artistas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обложки и фотографии исполнителей"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஆல்பம் அட்டைகளும் கலைஞர் படங்களும்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఆల్బమ్ కవర్లు, కళాకారుల ఫోటోలు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปกอัลบั้มและรูปศิลปิน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albüm kapakları ve sanatçı fotoğrafları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обкладинки та фото виконавців"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "البم کے سرورق اور فنکاروں کی تصاویر"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ảnh bìa và ảnh nghệ sĩ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专辑封面和艺人照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "專輯封面與藝人照片"
+          }
+        }
+      }
+    },
     "Create" : {
       "localizations" : {
         "ar" : {
@@ -69303,6 +69457,160 @@
         }
       }
     },
+    "Equalizer and Transition Studio" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "معادل الصوت واستوديو الانتقالات"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ইকুয়ালাইজার ও ট্রানজিশন স্টুডিও"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer und Übergangsstudio"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ecualizador y Estudio de transiciones"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اکولایزر و استودیوی گذار"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer at Transition Studio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Égaliseur et studio de transitions"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इक्वलाइज़र और ट्रांज़िशन स्टूडियो"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer dan Studio Transisi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizzatore e Studio transizioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "イコライザとトランジションスタジオ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이퀄라이저 및 트랜지션 스튜디오"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer en Overgangsstudio"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Korektor i Studio przejść"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizador e Estúdio de Transições"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эквалайзер и студия переходов"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஈக்வலைசரும் மாற்ற ஸ்டுடியோவும்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈక్వలైజర్, ట్రాన్సిషన్ స్టూడియో"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อีควอไลเซอร์และสตูดิโอการเปลี่ยนผ่าน"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekolayzer ve Geçiş Stüdyosu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Еквалайзер і студія переходів"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایکولائزر اور ٹرانزیشن اسٹوڈیو"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ chỉnh âm và Studio chuyển tiếp"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "均衡器与过渡工作室"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "均衡器與過渡工作室"
+          }
+        }
+      }
+    },
     "Equalizer curve" : {
       "localizations" : {
         "ar" : {
@@ -71311,6 +71619,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "展開歌詞"
+          }
+        }
+      }
+    },
+    "Explore Now Playing and Home. Swipe through your music and discover the gestures that keep it close." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استكشف قسمي «قيد التشغيل» و«الرئيسية». اسحب للتنقل بين مقطوعاتك وتعرّف على الإيماءات التي تسهّل الوصول إليها."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এখন বাজছে ও হোম ঘুরে দেখুন। সোয়াইপ করে আপনার গানগুলো দেখুন এবং সহজে সেগুলোতে পৌঁছানোর অঙ্গভঙ্গিগুলো শিখুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entdecke „Aktuelle Wiedergabe“ und „Start“. Wische durch deine Musik und lerne die Gesten kennen, mit denen du sie schnell erreichst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explora «Reproduciendo» e «Inicio». Desliza para recorrer tu música y descubre los gestos que te permiten tenerla a mano."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بخش‌های «در حال پخش» و «خانه» را بگردید. با کشیدن انگشت میان آهنگ‌ها جابه‌جا شوید و حرکت‌هایی را یاد بگیرید که دسترسی به آن‌ها را آسان می‌کنند."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I-explore ang Tumutugtog Ngayon at Home. Mag-swipe para maglibot sa iyong musika at alamin ang mga galaw para madali mo itong ma-access."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorez « À l’écoute » et « Accueil ». Balayez pour parcourir votre musique et découvrez les gestes qui la gardent à portée de main."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“अभी बज रहा है” और “होम” देखें। अपने संगीत में आगे-पीछे जाने के लिए स्वाइप करें और उस तक आसानी से पहुँचने वाले जेस्चर सीखें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jelajahi Sedang Diputar dan Beranda. Geser untuk menjelajahi musikmu dan pelajari gestur agar musik selalu mudah dijangkau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esplora «In riproduzione» e «Home». Scorri la tua musica e scopri i gesti che la tengono a portata di mano."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「再生中」と「ホーム」を見てみましょう。スワイプで曲を切り替え、音楽にすばやくアクセスできるジェスチャーを覚えましょう。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 재생 중과 홈을 둘러보세요. 스와이프하여 음악을 탐색하고 손쉽게 음악에 접근하는 제스처를 알아보세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verken ‘Speelt nu’ en ‘Start’. Veeg door je muziek en ontdek de gebaren waarmee je die snel bij de hand hebt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poznaj ekrany „Teraz odtwarzane” i „Start”. Przesuwaj palcem, aby przeglądać muzykę, i odkryj gesty, które ułatwiają do niej dostęp."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explore as telas Tocando agora e Início. Deslize para navegar pelas suas músicas e descubra os gestos que as deixam sempre à mão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загляните в разделы «Сейчас играет» и «Главная». Листайте музыку и знакомьтесь с жестами, которые помогают быстро к ней вернуться."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இப்போது இயங்குகிறது மற்றும் முகப்புப் பக்கங்களைப் பாருங்கள். உங்கள் இசையை உலாவ ஸ்வைப் செய்யுங்கள், அதை எளிதாக அணுக உதவும் சைகைகளை அறிந்துகொள்ளுங்கள்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఇప్పుడు ప్లే అవుతోంది, హోమ్ స్క్రీన్‌లను చూడండి. మీ సంగీతాన్ని బ్రౌజ్ చేయడానికి స్వైప్ చేయండి, సంగీతాన్ని సులభంగా చేరుకునే సంజ్ఞలను తెలుసుకోండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "สำรวจหน้ากำลังเล่นและหน้าหลัก ปัดเพื่อเรียกดูเพลงและเรียนรู้ท่าทางที่ช่วยให้เข้าถึงเพลงได้สะดวก"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şimdi Çalıyor ve Ana sayfa ekranlarını keşfedin. Müziğinize göz atmak için kaydırın ve müziğinize kolayca ulaşmanızı sağlayan hareketleri öğrenin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перегляньте екрани «Зараз грає» та «Головна». Гортайте музику й дізнавайтеся, які жести допомагають швидко до неї дістатися."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "”ابھی چل رہا ہے“ اور ”ہوم“ دیکھیں۔ اپنی موسیقی میں آگے پیچھے جانے کے لیے سوائپ کریں اور ان اشاروں کو جانیں جو موسیقی تک رسائی آسان بناتے ہیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khám phá mục Đang phát và Trang chủ. Vuốt để duyệt nhạc và tìm hiểu các cử chỉ giúp bạn truy cập nhạc dễ dàng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "探索“正在播放”和“主页”。滑动浏览你的音乐，了解如何用手势快速访问音乐。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "探索「正在播放」和「主頁」。滑動瀏覽音樂，瞭解如何用手勢快速存取音樂。"
           }
         }
       }
@@ -76551,6 +77013,160 @@
         }
       }
     },
+    "Find album covers and artist photos, then review and apply your choices." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اعثر على أغلفة الألبومات وصور الفنانين، ثم راجع اختياراتك وطبّقها."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অ্যালবামের প্রচ্ছদ ও শিল্পীর ছবি খুঁজুন, তারপর আপনার পছন্দগুলো যাচাই করে প্রয়োগ করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche nach Albumcovern und Künstlerfotos. Prüfe deine Auswahl und übernimm sie anschließend."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca portadas de álbumes y fotos de artistas. Luego revisa y aplica tus selecciones."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جلد آلبوم‌ها و عکس هنرمندان را پیدا کنید، سپس انتخاب‌هایتان را بررسی و اعمال کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maghanap ng mga cover ng album at larawan ng mga artist. Suriin at ilapat ang iyong mga napili."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherchez des pochettes d’album et des photos d’artistes, puis vérifiez et appliquez vos choix."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एल्बम कवर और कलाकारों की फ़ोटो ढूँढें, फिर अपनी पसंद की समीक्षा करके उसे लागू करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cari sampul album dan foto artis, lalu tinjau dan terapkan pilihanmu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerca copertine degli album e foto degli artisti, poi controlla e applica le tue scelte."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アルバムカバーとアーティスト写真を探し、選んだ画像を確認して適用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앨범 표지와 아티스트 사진을 찾고, 선택한 항목을 확인한 뒤 적용하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoek albumhoezen en artiestenfoto’s, controleer je keuzes en pas ze toe."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdź okładki albumów i zdjęcia wykonawców, a następnie sprawdź i zastosuj wybrane propozycje."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontre capas de álbuns e fotos de artistas, depois revise e aplique suas escolhas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Найдите обложки альбомов и фотографии исполнителей, затем проверьте и примените свой выбор."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஆல்பம் அட்டைகளையும் கலைஞர் படங்களையும் தேடி, உங்கள் தேர்வுகளைச் சரிபார்த்துப் பயன்படுத்துங்கள்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఆల్బమ్ కవర్లు, కళాకారుల ఫోటోలను కనుగొని, మీ ఎంపికలను సమీక్షించి వర్తింపజేయండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ค้นหาปกอัลบั้มและรูปศิลปิน จากนั้นตรวจสอบและใช้รายการที่คุณเลือก"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albüm kapaklarını ve sanatçı fotoğraflarını bulun, ardından seçimlerinizi gözden geçirip uygulayın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Знайдіть обкладинки альбомів і фото виконавців, а потім перевірте й застосуйте вибрані варіанти."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "البم کے سرورق اور فنکاروں کی تصاویر تلاش کریں، پھر اپنے انتخاب کا جائزہ لے کر اسے لاگو کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm ảnh bìa album và ảnh nghệ sĩ, sau đó xem lại và áp dụng lựa chọn của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查找专辑封面和艺人照片，检查所选图片后再应用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尋找專輯封面與藝人照片，檢查所選圖片後再套用。"
+          }
+        }
+      }
+    },
     "Find album covers or change artist photos" : {
       "localizations" : {
         "ar" : {
@@ -77317,6 +77933,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查詢同一圖片的更高解析度版本"
+          }
+        }
+      }
+    },
+    "Find them in the app sidebar." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجدها في الشريط الجانبي للتطبيق."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অ্যাপের সাইডবারে এগুলো পাবেন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du findest sie in der Seitenleiste der App."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Están en la barra lateral de la app."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آن‌ها را در نوار کناری برنامه پیدا می‌کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Makikita ang mga ito sa sidebar ng app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ils se trouvent dans la barre latérale de l’app."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ये ऐप के साइडबार में मिलेंगे।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temukan alat ini di bilah samping aplikasi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Li trovi nella barra laterale dell’app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリのサイドバーから利用できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱의 사이드바에서 찾을 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vindt ze in de navigatiekolom van de app."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Znajdziesz je na pasku bocznym aplikacji."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontre essas ferramentas na barra lateral do app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Их можно найти в боковом меню приложения."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இவற்றைச் செயலியின் பக்கப்பட்டியில் காணலாம்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "వీటిని యాప్ సైడ్‌బార్‌లో చూడవచ్చు."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เครื่องมือเหล่านี้อยู่ในแถบด้านข้างของแอป"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu araçları uygulamanın kenar çubuğunda bulabilirsiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ви знайдете їх на бічній панелі програми."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "یہ ایپ کی سائیڈ بار میں ملیں گے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các công cụ này nằm trong thanh bên của ứng dụng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以在应用的侧边栏找到这些工具。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你可以在 App 的側邊欄找到這些工具。"
           }
         }
       }
@@ -79165,6 +79935,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在支援的歌曲上跟隨同步歌詞。能否顯示取決於檔案和線上提供者。"
+          }
+        }
+      }
+    },
+    "Follow the lyrics while you listen, and arrange what plays next in your queue." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تابع كلمات الأغاني أثناء الاستماع ورتّب ما سيُشغّل بعد ذلك في قائمة الانتظار."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "শোনার সময় গানের কথা অনুসরণ করুন এবং কিউতে এরপর কী বাজবে তা সাজান।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lies beim Hören die Songtexte mit und lege in der Warteschlange fest, was als Nächstes läuft."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue la letra mientras escuchas y ordena en la cola lo que sonará después."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هم‌زمان با گوش دادن، متن ترانه را دنبال کنید و ترتیب پخش آهنگ‌های بعدی را در صف بچینید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sundan ang liriko habang nakikinig at ayusin sa pila ang mga susunod na tutugtog."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivez les paroles pendant l’écoute et organisez la suite de la lecture dans votre file d’attente."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सुनते समय गीत के बोल पढ़ें और कतार में तय करें कि आगे क्या बजेगा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ikuti lirik sambil mendengarkan dan atur lagu yang akan diputar berikutnya dalam antrean."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segui i testi mentre ascolti e riordina nella coda i brani da riprodurre."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽を聴きながら歌詞を追い、再生キューで次に流れる曲を並べ替えましょう。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "들으면서 가사를 따라 읽고 재생 대기열에서 다음에 재생할 곡의 순서를 정하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lees de songteksten mee tijdens het luisteren en bepaal in de wachtrij wat er hierna speelt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Śledź tekst podczas słuchania i ustaw w kolejce kolejność następnych utworów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acompanhe a letra enquanto escuta e organize na fila o que vai tocar a seguir."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Следите за текстом во время прослушивания и меняйте порядок следующих треков в очереди."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "கேட்கும்போதே பாடல் வரிகளைப் பின்தொடருங்கள். அடுத்து ஒலிக்க வேண்டிய பாடல்களை வரிசையில் ஒழுங்குபடுத்துங்கள்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "వింటూనే పాట సాహిత్యాన్ని చదవండి. తర్వాత ఏ పాట ప్లే కావాలో వరుసలో అమర్చండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ติดตามเนื้อเพลงขณะฟัง แล้วจัดลำดับเพลงที่จะเล่นต่อในคิว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinlerken şarkı sözlerini takip edin ve sırada neyin çalacağını düzenleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стежте за текстом під час прослуховування та визначайте в черзі, що гратиме далі."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سنتے ہوئے گیت کے بول پڑھیں اور قطار میں ترتیب دیں کہ آگے کیا چلے گا۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theo dõi lời bài hát trong khi nghe và sắp xếp các bài tiếp theo trong hàng đợi."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "边听边看歌词，在播放队列中安排接下来要播放的歌曲。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一邊聆聽，一邊跟著歌詞，在播放佇列中安排接下來要播放的歌曲。"
           }
         }
       }
@@ -93337,6 +94261,160 @@
         }
       }
     },
+    "Large widget" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أداة كبيرة"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বড় উইজেট"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Großes Widget"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget grande"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ویجت بزرگ"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Malaking widget"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grand widget"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बड़ा विजेट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget besar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget grande"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大サイズのウィジェット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "큰 위젯"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grote widget"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duży widżet"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget grande"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Большой виджет"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "பெரிய விட்ஜெட்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "పెద్ద విడ్జెట్"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "วิดเจ็ตขนาดใหญ่"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyük araç takımı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Великий віджет"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بڑے سائز کا ویجٹ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiện ích cỡ lớn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大号小组件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大型小工具"
+          }
+        }
+      }
+    },
     "Last 30 days" : {
       "localizations" : {
         "ar" : {
@@ -101345,6 +102423,160 @@
         }
       }
     },
+    "Lyrics and queue" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كلمات الأغاني وقائمة الانتظار"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "গানের কথা ও কিউ"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songtexte und Warteschlange"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letras y cola"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متن ترانه و صف پخش"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liriko at pila"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paroles et file d’attente"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "गीत के बोल और कतार"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lirik dan antrean"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testi e coda"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌詞と再生キュー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가사 및 재생 대기열"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songteksten en wachtrij"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teksty utworów i kolejka"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letras e fila"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тексты песен и очередь"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "பாடல் வரிகளும் வரிசையும்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "పాట సాహిత్యం, ప్లే వరుస"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เนื้อเพลงและคิว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkı sözleri ve sıra"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тексти пісень і черга"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گیت کے بول اور قطار"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lời bài hát và hàng đợi"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌词和播放队列"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌詞與播放佇列"
+          }
+        }
+      }
+    },
     "Lyrics could not be saved. Check available storage and retry." : {
       "localizations" : {
         "ar" : {
@@ -104421,6 +105653,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在此螢幕開啟且播放音樂時測量"
+          }
+        }
+      }
+    },
+    "Medium widget" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أداة متوسطة"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "মাঝারি উইজেট"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mittleres Widget"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget mediano"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ویجت متوسط"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katamtamang widget"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget moyen"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मध्यम विजेट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget sedang"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget medio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中サイズのウィジェット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "중간 크기 위젯"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Middelgrote widget"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Średni widżet"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget médio"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Средний виджет"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "நடுத்தர விட்ஜெட்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "మధ్యస్థ విడ్జెట్"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "วิดเจ็ตขนาดกลาง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orta boy araç takımı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Середній віджет"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "درمیانے سائز کا ویجٹ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiện ích cỡ vừa"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中号小组件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中型小工具"
           }
         }
       }
@@ -134301,6 +135687,160 @@
         }
       }
     },
+    "Organize your music into folders using its tags. Review proposed moves before applying them." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نظّم موسيقاك في مجلدات حسب وسومها. راجع عمليات النقل المقترحة قبل تنفيذها."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ট্যাগ অনুযায়ী আপনার গান ফোল্ডারে সাজান। ফাইল সরানোর প্রস্তাবগুলো কার্যকর করার আগে যাচাই করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortiere deine Musik anhand ihrer Tags in Ordner. Prüfe die vorgeschlagenen Verschiebungen, bevor du sie ausführst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organiza tu música en carpetas según sus etiquetas. Revisa los movimientos sugeridos antes de aplicarlos."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "موسیقی‌تان را بر اساس برچسب‌ها در پوشه‌ها مرتب کنید. جابه‌جایی‌های پیشنهادی را پیش از انجام بررسی کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayusin ang iyong musika sa mga folder ayon sa mga tag nito. Suriin ang mga mungkahing paglilipat bago isagawa ang mga ito."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classez votre musique dans des dossiers d’après ses tags. Vérifiez les déplacements proposés avant de les effectuer."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "टैग के आधार पर अपना संगीत फ़ोल्डरों में व्यवस्थित करें। फ़ाइलें स्थानांतरित करने से पहले सुझाए गए बदलावों की समीक्षा करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kelompokkan musikmu ke dalam folder berdasarkan tag. Tinjau usulan pemindahan sebelum menerapkannya."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organizza la musica in cartelle in base ai tag. Controlla gli spostamenti proposti prima di eseguirli."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽ファイルをタグに基づいてフォルダに整理します。提案された移動先を確認してから実行します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "태그를 기준으로 음악을 폴더에 정리하세요. 제안된 이동 경로를 확인한 뒤 적용하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orden je muziek op basis van tags in mappen. Controleer de voorgestelde verplaatsingen voordat je ze uitvoert."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uporządkuj muzykę w folderach według tagów. Sprawdź proponowane przeniesienia, zanim je wykonasz."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organize suas músicas em pastas com base nas tags. Revise as movimentações sugeridas antes de efetuá-las."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разложите музыку по папкам на основе тегов. Проверьте предложенные перемещения, прежде чем их выполнять."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "குறிச்சொற்களின் அடிப்படையில் இசையைக் கோப்புறைகளில் ஒழுங்குபடுத்துங்கள். பரிந்துரைக்கப்பட்ட கோப்பு இடமாற்றங்களைச் செயல்படுத்தும் முன் சரிபாருங்கள்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ట్యాగ్‌ల ఆధారంగా మీ సంగీతాన్ని ఫోల్డర్‌లలో అమర్చండి. ఫైళ్లను తరలించే ముందు సూచించిన మార్పులను సమీక్షించండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "จัดเพลงลงในโฟลเดอร์ตามแท็ก ตรวจสอบรายการย้ายไฟล์ที่แนะนำก่อนดำเนินการ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Müziğinizi etiketlere göre klasörlere ayırın. Önerilen taşıma işlemlerini uygulamadan önce inceleyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розкладіть музику по папках за тегами. Перевірте запропоновані переміщення, перш ніж їх виконувати."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اپنی موسیقی کو ٹیگز کے مطابق فولڈرز میں ترتیب دیں۔ فائلیں منتقل کرنے سے پہلے تجویز کردہ تبدیلیوں کا جائزہ لیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sắp xếp nhạc vào các thư mục dựa theo thẻ. Xem lại các đề xuất di chuyển tệp trước khi áp dụng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按标签将音乐整理到不同文件夹。执行前先检查建议的移动操作。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依標籤將音樂整理到不同的檔案夾。執行前先檢查建議的移動操作。"
+          }
+        }
+      }
+    },
     "Original file" : {
       "localizations" : {
         "ar" : {
@@ -156939,6 +158479,160 @@
         }
       }
     },
+    "Repair incomplete tags and review matches before updating your music files." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أصلح الوسوم الناقصة وراجع النتائج المطابقة قبل تحديث ملفات الموسيقى."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অসম্পূর্ণ ট্যাগ ঠিক করুন এবং মিউজিক ফাইল আপডেট করার আগে মিলগুলো যাচাই করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ergänze unvollständige Tags und prüfe die Treffer, bevor du deine Musikdateien aktualisierst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completa las etiquetas incompletas y revisa las coincidencias antes de actualizar tus archivos de música."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "برچسب‌های ناقص را کامل کنید و پیش از به‌روزرسانی فایل‌های موسیقی، موارد منطبق را بررسی کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayusin ang mga tag na kulang at suriin ang mga tugma bago i-update ang iyong mga file ng musika."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complétez les tags manquants et vérifiez les correspondances avant de mettre à jour vos fichiers musicaux."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अधूरे टैग ठीक करें और संगीत फ़ाइलें अपडेट करने से पहले मिले नतीजों की समीक्षा करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lengkapi tag yang belum lengkap dan periksa hasil yang cocok sebelum memperbarui berkas musik."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completa i tag mancanti e controlla le corrispondenze prima di aggiornare i file musicali."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不完全なタグを修正し、候補を確認してから音楽ファイルを更新します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "누락된 태그를 채우고 검색 결과를 확인한 뒤 음악 파일을 업데이트하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vul onvolledige tags aan en controleer de gevonden overeenkomsten voordat je je muziekbestanden bijwerkt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uzupełnij brakujące tagi i sprawdź dopasowania przed aktualizacją plików muzycznych."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete as tags incompletas e revise as correspondências antes de atualizar seus arquivos de música."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заполните недостающие теги и проверьте совпадения, прежде чем обновлять музыкальные файлы."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "முழுமையற்ற குறிச்சொற்களைச் சரிசெய்து, இசைக் கோப்புகளைப் புதுப்பிக்கும் முன் பொருத்தங்களைச் சரிபாருங்கள்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "అసంపూర్ణ ట్యాగ్‌లను సరిచేసి, సంగీత ఫైళ్లను నవీకరించే ముందు సరిపోలిన ఫలితాలను సమీక్షించండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แก้ไขแท็กที่ไม่สมบูรณ์และตรวจสอบรายการที่ตรงกันก่อนอัปเดตไฟล์เพลง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksik etiketleri tamamlayın ve müzik dosyalarınızı güncellemeden önce eşleşmeleri gözden geçirin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доповніть теги й перевірте збіги, перш ніж оновлювати музичні файли."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نامکمل ٹیگز درست کریں اور موسیقی کی فائلیں اپ ڈیٹ کرنے سے پہلے ملنے والے نتائج کا جائزہ لیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bổ sung các thẻ còn thiếu và xem lại những kết quả khớp trước khi cập nhật tệp nhạc."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "补全缺失的标签，在更新音乐文件前检查匹配结果。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "補齊缺漏的標籤，並在更新音樂檔案前檢查比對結果。"
+          }
+        }
+      }
+    },
     "Repeat %@" : {
       "localizations" : {
         "ar" : {
@@ -170799,6 +172493,160 @@
         }
       }
     },
+    "Shape your sound with the equalizer. Use Transition Studio to fine-tune how playlist tracks flow into one another." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اضبط الصوت بالمعادل. استخدم استوديو الانتقالات لضبط الانتقال بين المقاطع في قائمة التشغيل بدقة."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ইকুয়ালাইজার দিয়ে আপনার পছন্দমতো সাউন্ড ঠিক করুন। প্লেলিস্টে এক গান থেকে পরের গানে যাওয়ার ধরন ট্রানজিশন স্টুডিও দিয়ে সূক্ষ্মভাবে সামঞ্জস্য করুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passe den Klang mit dem Equalizer an. Stelle im Übergangsstudio fein ein, wie die Titel einer Playlist ineinander übergehen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personaliza el sonido con el ecualizador. Usa el Estudio de transiciones para ajustar cómo se enlazan las canciones de la lista de reproducción."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صدا را با اکولایزر تنظیم کنید. با استودیوی گذار، نحوهٔ رفتن از هر آهنگ به آهنگ بعدی را در فهرست پخش دقیق تنظیم کنید."
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iangkop ang tunog gamit ang equalizer. Sa Transition Studio, puwede mong pinuhin ang paglipat sa pagitan ng mga kanta sa playlist."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisez le son avec l’égaliseur. Utilisez le studio de transitions pour affiner l’enchaînement des titres d’une playlist."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इक्वलाइज़र से आवाज़ अपनी पसंद के अनुसार ढालें। प्लेलिस्ट में गानों के बीच के बदलाव को बारीकी से समायोजित करने के लिए ट्रांज़िशन स्टूडियो का इस्तेमाल करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesuaikan suara dengan equalizer. Gunakan Studio Transisi untuk menyetel perpindahan antarlagu di daftar putar."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modella il suono con l’equalizzatore. Usa Studio transizioni per perfezionare il passaggio tra i brani di una playlist."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "イコライザで好みの音に調整できます。トランジションスタジオでは、プレイリスト内の曲のつながりを細かく調整できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이퀄라이저로 원하는 소리를 만들어 보세요. 트랜지션 스튜디오에서 재생목록의 곡 사이 전환을 세밀하게 조정하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas het geluid aan met de equalizer. Stel in de Overgangsstudio nauwkeurig af hoe nummers in een afspeellijst in elkaar overgaan."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dostosuj brzmienie za pomocą korektora. W Studiu przejść dopracuj przejścia między utworami na playliście."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajuste o som com o equalizador. Use o Estúdio de Transições para ajustar com precisão como as faixas de uma playlist se encadeiam."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройте звучание с помощью эквалайзера. В студии переходов можно точно настроить переходы между треками плейлиста."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ஈக்வலைசர் மூலம் ஒலியை உங்கள் விருப்பப்படி மாற்றுங்கள். பிளேலிஸ்ட்டில் ஒரு பாடலிலிருந்து அடுத்த பாடலுக்கு எப்படி மாறுகிறது என்பதை மாற்ற ஸ்டுடியோவில் நுணுக்கமாகச் சீரமைக்கலாம்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఈక్వలైజర్‌తో మీకు నచ్చినట్లు ధ్వనిని మార్చుకోండి. ప్లేలిస్ట్‌లో పాటల మధ్య మార్పును ట్రాన్సిషన్ స్టూడియోతో సూక్ష్మంగా సర్దుబాటు చేయండి."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปรับเสียงด้วยอีควอไลเซอร์ แล้วใช้สตูดิโอการเปลี่ยนผ่านปรับการเชื่อมต่อระหว่างเพลงในเพลย์ลิสต์อย่างละเอียด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekolayzerle sesi istediğiniz gibi ayarlayın. Çalma listesindeki parçalar arasındaki geçişlere ince ayar yapmak için Geçiş Stüdyosu’nu kullanın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Налаштуйте звук за допомогою еквалайзера. У студії переходів можна точно налаштувати переходи між композиціями в списку відтворення."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایکولائزر سے آواز اپنی پسند کے مطابق بنائیں۔ پلے لسٹ میں ایک گانے سے دوسرے پر منتقلی کو باریکی سے ترتیب دینے کے لیے ٹرانزیشن اسٹوڈیو استعمال کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điều chỉnh âm thanh bằng bộ chỉnh âm. Dùng Studio chuyển tiếp để tinh chỉnh cách các bài hát trong danh sách phát nối tiếp nhau."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用均衡器调出自己喜欢的声音。使用过渡工作室微调播放列表中曲目之间的衔接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用均衡器調整出你喜歡的聲音。使用過渡工作室微調播放列表中曲目之間的銜接。"
+          }
+        }
+      }
+    },
     "Share" : {
       "localizations" : {
         "ar" : {
@@ -172643,6 +174491,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新在智慧播放列表中顯示"
+          }
+        }
+      }
+    },
+    "Show preview %lld of %lld" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إظهار المعاينة %lld من %lld"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld নম্বর প্রিভিউ দেখান (মোট %lldটি)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau %lld von %lld anzeigen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar vista previa %lld de %lld"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نمایش پیش‌نمایش %lld از %lld"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ipakita ang preview %lld sa %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher l’aperçu %lld sur %lld"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पूर्वावलोकन %lld दिखाएँ (कुल %lld)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tampilkan pratinjau %lld dari %lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra anteprima %lld di %lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレビューの %lld 番目を表示（全 %lld 件）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld번째 미리 보기 표시(총 %lld개)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon voorbeeld %lld van %lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokaż podgląd %lld z %lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar prévia %lld de %lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать предпросмотр %lld из %lld"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "முன்னோட்டம் %lld ஐக் காட்டு (மொத்தம் %lld)"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ప్రివ్యూ %lld చూపించు (మొత్తం %lld)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แสดงตัวอย่างที่ %lld จาก %lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önizlemeyi göster (%lld / %lld)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показати попередній перегляд %lld з %lld"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld واں پیش منظر دکھائیں (کل %lld)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị bản xem trước %lld trên %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示第 %lld 项预览（共 %lld 项）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示第 %lld 個預覽（共 %lld 個）"
           }
         }
       }
@@ -203597,6 +205599,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錯誤程式碼次數過多。請掃描QR 碼，或在手機上停止並重新開始傳輸。"
+          }
+        }
+      }
+    },
+    "Tools to refine and repair" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدوات للتحسين والإصلاح"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "উন্নত ও মেরামত করার টুল"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Werkzeuge zum Verbessern und Reparieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herramientas para mejorar y reparar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابزارهای بهبود و تعمیر"
+          }
+        },
+        "fil" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mga tool sa pagpapahusay at pag-aayos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Des outils pour améliorer et réparer"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सुधारने और ठीक करने के टूल"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alat untuk menyempurnakan dan memperbaiki"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strumenti per migliorare e riparare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽ライブラリを整えるツール"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브러리를 정리하고 복구하는 도구"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hulpmiddelen om te verbeteren en te herstellen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Narzędzia do ulepszania i naprawy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferramentas para aprimorar e corrigir"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструменты для улучшения и исправления"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "மேம்படுத்தவும் சரிசெய்யவும் உதவும் கருவிகள்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "మెరుగుపరచడానికి, సరిచేయడానికి సాధనాలు"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เครื่องมือปรับปรุงและแก้ไข"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İyileştirme ve onarım araçları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інструменти для вдосконалення й виправлення"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بہتری اور مرمت کے ٹولز"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Công cụ tinh chỉnh và sửa lỗi"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整理和修复工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整理與修復工具"
           }
         }
       }

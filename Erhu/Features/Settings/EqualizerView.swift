@@ -5,6 +5,7 @@ import SwiftUI
 /// 8 gains, or Parametric's 4 to 8 bands with each band's type, frequency, gain, slope and Q.
 struct EqualizerView: View {
     @Environment(SoundStore.self) private var sound
+    @Environment(\.palette) private var palette
     @State private var savingPreset = false
     @State private var presetName = ""
     @State private var renaming: EqPreset?
@@ -17,52 +18,58 @@ struct EqualizerView: View {
         let graphic = settings.mode == .graphic
         let selected = settings.selectedBandIndex.clamped(0, settings.activeBandCount - 1)
         let band = settings.bands.indices.contains(selected) ? settings.bands[selected] : SoundSettings.defaultBands()[selected]
-        Form {
-            Section {
-                Toggle("Equalizer", isOn: Binding(get: { settings.isEqEnabled }, set: { sound.setEqEnabled($0) }))
-            }.toolSectionAppearance()
-            Section("Preset & curve") {
-                Picker("Mode", selection: Binding(get: { settings.mode }, set: { sound.setMode($0) })) {
-                    Text("Graphic").tag(EqMode.graphic)
-                    Text("Parametric").tag(EqMode.parametric)
-                }
-                .pickerStyle(.segmented)
-                presetRow(settings)
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
                 EqCurve(settings: settings, selected: graphic ? -1 : selected,
                         onSelect: { if !graphic { sound.setSelectedBandIndex($0) } },
                         onDrag: { index, hz, gain in
                             if graphic { sound.setGraphicGain(index, gain) } else { sound.setBandFrequencyAndGain(index, hz, gain) }
                         })
-                    .frame(height: 200)
-                    .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.sm, bottom: Spacing.sm, trailing: Spacing.sm))
-            }.toolSectionAppearance()
-            .disabled(!settings.isEqEnabled)
-            if graphic {
-                Section("Bands") {
-                    ForEach(0..<Equalizer.bandCount, id: \.self) { index in
-                        let gain = settings.graphicGains.indices.contains(index) ? settings.graphicGains[index] : 0
-                        labeledSlider(formatFrequency(Equalizer.bandFrequencies[index]), value: formatGain(gain),
-                                      binding: Binding(get: { gain }, set: { sound.setGraphicGain(index, ($0 * 2).rounded() / 2) }),
-                                      range: Equalizer.minGainDb...Equalizer.maxGainDb)
+                    .frame(height: min(220, geometry.size.height * 0.42))
+                    .padding(.horizontal, Spacing.sm)
+                    .background(palette.background)
+                Form {
+                    Section {
+                        Toggle("Equalizer", isOn: Binding(get: { settings.isEqEnabled }, set: { sound.setEqEnabled($0) }))
+                    }.toolSectionAppearance()
+                    Section("Presets") {
+                        Picker("Mode", selection: Binding(get: { settings.mode }, set: { sound.setMode($0) })) {
+                            Text("Graphic").tag(EqMode.graphic)
+                            Text("Parametric").tag(EqMode.parametric)
+                        }
+                        .pickerStyle(.segmented)
+                        presetRow(settings)
+                    }.toolSectionAppearance()
+                    .disabled(!settings.isEqEnabled)
+                    if graphic {
+                        Section("Bands") {
+                            ForEach(0..<Equalizer.bandCount, id: \.self) { index in
+                                let gain = settings.graphicGains.indices.contains(index) ? settings.graphicGains[index] : 0
+                                labeledSlider(formatFrequency(Equalizer.bandFrequencies[index]), value: formatGain(gain),
+                                              binding: Binding(get: { gain }, set: { sound.setGraphicGain(index, ($0 * 2).rounded() / 2) }),
+                                              range: Equalizer.minGainDb...Equalizer.maxGainDb)
+                            }
+                        }.toolSectionAppearance()
+                        .disabled(!settings.isEqEnabled)
+                    } else {
+                        Section("Bands") {
+                            Stepper("Active bands: \(settings.activeBandCount)", value: Binding(get: { settings.activeBandCount }, set: { sound.setActiveBandCount($0) }),
+                                    in: Equalizer.minBandCount...Equalizer.bandCount)
+                            Picker("Band", selection: Binding(get: { selected }, set: { sound.setSelectedBandIndex($0) })) {
+                                ForEach(0..<settings.activeBandCount, id: \.self) { Text("\($0 + 1)").tag($0) }
+                            }
+                            .pickerStyle(.segmented)
+                        }.toolSectionAppearance()
+                        .disabled(!settings.isEqEnabled)
+                        Section("Band \(selected + 1)") {
+                            bandControls(band, index: selected)
+                        }.toolSectionAppearance()
+                        .disabled(!settings.isEqEnabled)
                     }
-                }.toolSectionAppearance()
-                .disabled(!settings.isEqEnabled)
-            } else {
-                Section("Bands") {
-                    Stepper("Active bands: \(settings.activeBandCount)", value: Binding(get: { settings.activeBandCount }, set: { sound.setActiveBandCount($0) }),
-                            in: Equalizer.minBandCount...Equalizer.bandCount)
-                    Picker("Band", selection: Binding(get: { selected }, set: { sound.setSelectedBandIndex($0) })) {
-                        ForEach(0..<settings.activeBandCount, id: \.self) { Text("\($0 + 1)").tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                }.toolSectionAppearance()
-                .disabled(!settings.isEqEnabled)
-                Section("Band \(selected + 1)") {
-                    bandControls(band, index: selected)
-                }.toolSectionAppearance()
-                .disabled(!settings.isEqEnabled)
+                }
             }
-        }.modifier(ToolPageAppearance())
+        }
+        .modifier(ToolPageAppearance())
         .navigationTitle("Equalizer")
         .alert("Save custom preset", isPresented: $savingPreset) {
             TextField("Preset name", text: $presetName)
