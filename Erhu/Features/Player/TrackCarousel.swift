@@ -15,6 +15,8 @@ struct TrackCarousel: View {
     var nextTwo: QueueEntry? = nil
     /// The playing song as the player has it now (its favourite state may be newer than the entry's).
     let currentSong: Song
+    let artworkOrigin: CGPoint
+    let canPull: Bool
     /// +1 next, -1 previous: always a change of song, never a restart.
     let skip: (Int) -> CarouselSelection
     let videos: CarouselVideoDeck
@@ -27,14 +29,17 @@ struct TrackCarousel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.playerInMotion) private var playerInMotion
+    @Environment(\.playerPageScrolling) private var pageScrolling
     @Environment(AnimatedArtworkStore.self) private var artwork
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.visualWorkBudget) private var budget
     @State private var scene = CarouselScene()
     @State private var motion = CarouselMotion()
-    @State private var horizontal: Bool?
+    private enum DragMode { case swipe, pull, scroll }
+    @State private var dragMode: DragMode?
     @GestureState private var gestureActive = false
     @State private var videoWarmup: Task<Void, Never>?
+    @State private var coverVisible = true
 
     private var selection: CarouselSelection { CarouselSelection(previous: previous, current: current, next: next, previousTwo: previousTwo, nextTwo: nextTwo) }
     private func videoRequests() -> [CarouselVideoDeck.Request] {
@@ -50,14 +55,22 @@ struct TrackCarousel: View {
         // construction waits until the final cover frame has painted and input is idle.
         guard let key = scene.currentKey else { return }
         let requests = videoRequests()
+        if !coverVisible {
+            // Keep the current decoded frame for a scroll back and release hidden neighbours.
+            videos.configure(requests.filter { $0.key == key }, current: key,
+                             prepareNeighbours: false, allowNewSessions: false)
+            videos.retainCurrent()
+            return
+        }
         // Rekey an already prepared mini-player surface even during entrance, so the inline
         // card owns it on the exact frame the flight finishes. No native player is built here.
         videos.configure(requests, current: key, prepareNeighbours: !motion.moving && !playerInMotion,
                          allowNewSessions: false)
-        guard scenePhase == .active, !playerInMotion, !motion.moving, !requests.isEmpty else { return }
+        guard scenePhase == .active, !pageScrolling, !playerInMotion, !motion.moving, !requests.isEmpty else { return }
         videoWarmup = Task { @MainActor in
             do { try await Task.sleep(for: .milliseconds(60)) } catch { return }
-            guard !Task.isCancelled, scenePhase == .active, !motion.moving, !playerInMotion, scene.currentKey == key else { return }
+            guard !Task.isCancelled, scenePhase == .active, coverVisible, !pageScrolling,
+                  !motion.moving, !playerInMotion, scene.currentKey == key else { return }
             videos.configure(requests, current: key)
             videoWarmup = nil
         }
@@ -79,9 +92,12 @@ struct TrackCarousel: View {
             .environment(\.layoutDirection, .leftToRight)
             .modifier(PlayerCollapseVisibility())
             .contentShape(Rectangle())
-            .highPriorityGesture(swipe(page: page))
+            .simultaneousGesture(swipe(page: page))
         }
+        .reportsPlayerScrollVisibility { coverVisible = $0 }
         .onAppear { refreshVideos() }
+        .onChange(of: coverVisible) { _, _ in refreshVideos() }
+        .onChange(of: pageScrolling) { _, _ in refreshVideos() }
         .onChange(of: motion.moving, initial: true) { _, active in
             setBusy(active)
             if active { videoWarmup?.cancel(); videoWarmup = nil }
@@ -94,7 +110,8 @@ struct TrackCarousel: View {
         // without waiting for the next song or a quiet moment to build its video.
         .onChange(of: artwork.saved) { _, _ in
             refreshVideos()
-            guard scenePhase == .active, !motion.moving, let key = scene.currentKey else { return }
+            guard scenePhase == .active, coverVisible, !pageScrolling, !playerInMotion,
+                  !motion.moving, let key = scene.currentKey else { return }
             videos.configure(videoRequests(), current: key)
         }
         .onChange(of: scenePhase) { _, _ in refreshVideos() }
@@ -109,12 +126,22 @@ struct TrackCarousel: View {
         }
         .onChange(of: gestureActive) { _, active in
             // GestureState also resets on cancellation, when onEnded is never called.
-            guard !active, let axis = horizontal else { return }
-            horizontal = nil
-            motion.endGesture()
-            if axis { settle() } else { onPullCancel() }
+            guard !active, let mode = dragMode else { return }
+            dragMode = nil
+            switch mode {
+            case .swipe: motion.endGesture(); settle()
+            case .pull: onPullCancel()
+            case .scroll: break
+            }
         }
-        .onDisappear { horizontal = nil; videoWarmup?.cancel(); videoWarmup = nil; motion.cancel(); setBusy(false) }
+        .onDisappear {
+            if dragMode == .pull { onPullCancel() }
+            dragMode = nil
+            videoWarmup?.cancel()
+            videoWarmup = nil
+            motion.cancel()
+            setBusy(false)
+        }
     }
 
     private func card(_ item: CarouselScene.Item, metrics: CardMetrics) -> some View {
@@ -122,11 +149,12 @@ struct TrackCarousel: View {
         let isCurrent = item.id == scene.currentKey
         let song = isCurrent && currentSong.id == item.entry.song.id ? currentSong : item.entry.song
         let session = videos.slots[item.id]?.session
+        let animates = coverVisible && !pageScrolling && CarouselVideoDeck.shouldAnimate(distance: distance, current: isCurrent)
         return CarouselCard(song: song, isCurrent: isCurrent,
                             showsMetadata: true,
-                            animatesMotion: CarouselVideoDeck.shouldAnimate(distance: distance, current: isCurrent),
+                            animatesMotion: animates,
                             reportsArtworkFrame: isCurrent && !motion.moving,
-                            videoSession: session, metrics: metrics)
+                            artworkOrigin: artworkOrigin, videoSession: session, metrics: metrics)
             .equatable()
             .modifier(PlayerNeighbourFade(isCurrent: isCurrent))
             .onTapGesture {
@@ -140,19 +168,32 @@ struct TrackCarousel: View {
         DragGesture(minimumDistance: 12, coordinateSpace: .global)
             .updating($gestureActive) { _, active, _ in active = true }
             .onChanged { value in
-                if horizontal == nil { horizontal = abs(value.translation.width) > abs(value.translation.height) }
-                guard horizontal == true else { onPull(value.translation.height); return }
-                motion.drag(translation: value.translation.width, page: page, center: scene.center,
-                            canPrevious: selection.canMove(-1), canNext: selection.canMove(1))
+                if dragMode == nil {
+                    if HorizontalGestureIntent.accepts(value.translation) {
+                        dragMode = .swipe
+                    } else {
+                        dragMode = canPull && value.translation.height > abs(value.translation.width) ? .pull : .scroll
+                    }
+                }
+                if dragMode == .swipe {
+                    motion.drag(translation: value.translation.width, page: page, center: scene.center,
+                                canPrevious: selection.canMove(-1), canNext: selection.canMove(1))
+                } else if dragMode == .pull {
+                    onPull(value.translation.height)
+                }
             }
             .onEnded { value in
-                defer { horizontal = nil; motion.endGesture() }
-                guard horizontal == true else { onPullEnd(value.translation.height, value.predictedEndTranslation.height); return }
-                let wanted = CarouselSwipeIntent.direction(translation: value.translation.width,
-                                                           predicted: value.predictedEndTranslation.width, page: page)
-                let velocity = -value.velocity.width / page
-                if selection.canMove(wanted) { commitSwipe(wanted, velocity: velocity) }
-                else { settle(velocity: velocity) }
+                defer { dragMode = nil }
+                if dragMode == .pull {
+                    onPullEnd(value.translation.height, value.predictedEndTranslation.height)
+                } else if dragMode == .swipe {
+                    defer { motion.endGesture() }
+                    let wanted = CarouselSwipeIntent.direction(translation: value.translation.width,
+                                                               predicted: value.predictedEndTranslation.width, page: page)
+                    let velocity = -value.velocity.width / page
+                    if selection.canMove(wanted) { commitSwipe(wanted, velocity: velocity) }
+                    else { settle(velocity: velocity) }
+                }
             }
     }
 
@@ -236,6 +277,7 @@ private struct CarouselCard: View, Equatable {
     let showsMetadata: Bool
     let animatesMotion: Bool
     let reportsArtworkFrame: Bool
+    let artworkOrigin: CGPoint
     let videoSession: MotionVideoSession?
     let metrics: CardMetrics
     @Environment(LibraryActions.self) private var actions
@@ -249,7 +291,7 @@ private struct CarouselCard: View, Equatable {
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.song == rhs.song && lhs.isCurrent == rhs.isCurrent && lhs.showsMetadata == rhs.showsMetadata &&
         lhs.animatesMotion == rhs.animatesMotion && lhs.reportsArtworkFrame == rhs.reportsArtworkFrame &&
-        lhs.videoSession === rhs.videoSession && lhs.metrics == rhs.metrics
+        lhs.artworkOrigin == rhs.artworkOrigin && lhs.videoSession === rhs.videoSession && lhs.metrics == rhs.metrics
     }
 
     var body: some View {
@@ -258,7 +300,9 @@ private struct CarouselCard: View, Equatable {
         VStack(spacing: 0) {
             Color.clear
                 .frame(width: metrics.artSide, height: metrics.artSide)
-                .background { if reportsArtworkFrame { Color.clear.playerArtworkFrame(expanded: true) } }
+                .background {
+                    if reportsArtworkFrame { Color.clear.playerArtworkFrame(expanded: true, contentOrigin: artworkOrigin) }
+                }
                 .overlay {
                     MotionCoverView(song: song, playing: animatesMotion, rendersVideo: videoSession != nil && !artworkInFlight,
                                     maxPixels: isCurrent ? 1200 : 600,

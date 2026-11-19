@@ -48,6 +48,62 @@ final class PlayerArtworkLayoutTests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testScrollingKeepsTheArtworkFlightSourceAtItsRestingPosition() async {
+        let source = CGRect(x: 0, y: 72, width: 200, height: 200)
+        let measured = expectation(description: "Resting artwork frame reported")
+        let scrolled = expectation(description: "Artwork moved above the scroll viewport")
+        var scrollToBottom: (() -> Void)?
+        var reported: [CGRect] = []
+        let view = VStack(spacing: 0) {
+            Color.clear.frame(height: 48)
+            GeometryReader { viewport in
+                ScrollViewReader { scroll in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Color.clear.frame(height: 24)
+                            Color.blue.frame(width: source.width, height: source.height)
+                                .playerArtworkFrame(expanded: true,
+                                    contentOrigin: viewport.frame(in: .named(PlayerArtworkSpace.expanded)).origin)
+                                .onGeometryChange(for: Bool.self) { art in
+                                    art.frame(in: .named(PlayerArtworkSpace.viewport)).maxY < 0
+                                } action: { offscreen in
+                                    if offscreen { scrolled.fulfill() }
+                                }
+                            Color.clear.frame(height: 1_000).id("bottom")
+                        }
+                        .coordinateSpace(name: PlayerArtworkSpace.content)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .coordinateSpace(name: PlayerArtworkSpace.viewport)
+                    .onAppear { scrollToBottom = { scroll.scrollTo("bottom", anchor: .bottom) } }
+                }
+            }
+        }
+        .frame(width: 390, height: 600)
+        .coordinateSpace(name: PlayerArtworkSpace.expanded)
+        .onPreferenceChange(PlayerArtworkFrameKey.self) { frames in
+            guard frames.expanded.width > 0 else { return }
+            if reported.isEmpty { measured.fulfill() }
+            reported.append(frames.expanded)
+        }
+        let previous = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows).first(where: \.isKeyWindow)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 600))
+        window.rootViewController = UIHostingController(rootView: view)
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            previous?.makeKeyAndVisible()
+        }
+
+        await fulfillment(of: [measured], timeout: 3)
+        scrollToBottom?()
+        await fulfillment(of: [scrolled], timeout: 3)
+        for frame in reported { assertRect(frame, source) }
+    }
+
     private func assertRect(_ actual: CGRect, _ expected: CGRect, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(actual.minX, expected.minX, accuracy: 0.5, file: file, line: line)
         XCTAssertEqual(actual.minY, expected.minY, accuracy: 0.5, file: file, line: line)

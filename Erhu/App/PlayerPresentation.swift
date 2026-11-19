@@ -5,6 +5,7 @@ import SwiftUI
 private struct PlayerCoverProgressKey: EnvironmentKey { static let defaultValue: CGFloat = 1 }
 private struct PlayerArtworkInFlightKey: EnvironmentKey { static let defaultValue = false }
 private struct PlayerMotionKey: EnvironmentKey { static let defaultValue = false }
+private struct PlayerPageScrollingKey: EnvironmentKey { static let defaultValue = false }
 extension EnvironmentValues {
     var playerArtworkInFlight: Bool {
         get { self[PlayerArtworkInFlightKey.self] }
@@ -18,11 +19,17 @@ extension EnvironmentValues {
         get { self[PlayerMotionKey.self] }
         set { self[PlayerMotionKey.self] = newValue }
     }
+    var playerPageScrolling: Bool {
+        get { self[PlayerPageScrollingKey.self] }
+        set { self[PlayerPageScrollingKey.self] = newValue }
+    }
 }
 
 enum PlayerArtworkSpace {
     static let root = "player.root"
     static let expanded = "player.expanded"
+    static let viewport = "player.viewport"
+    static let content = "player.content"
 }
 
 struct PlayerArtworkFrames: Equatable {
@@ -47,15 +54,28 @@ struct PlayerArtworkFrameKey: PreferenceKey {
 }
 
 extension View {
-    func playerArtworkFrame(expanded: Bool) -> some View {
+    func playerArtworkFrame(expanded: Bool, contentOrigin: CGPoint? = nil) -> some View {
         background {
             GeometryReader { geometry in
                 Color.clear.preference(key: PlayerArtworkFrameKey.self,
                     value: expanded
-                        ? PlayerArtworkFrames(expanded: geometry.frame(in: .named(PlayerArtworkSpace.expanded)))
+                        ? PlayerArtworkFrames(expanded: contentOrigin.map { origin in
+                            // Measure in content coordinates so scrolling cannot move the flight endpoint.
+                            geometry.frame(in: .named(PlayerArtworkSpace.content)).offsetBy(dx: origin.x, dy: origin.y)
+                        } ?? geometry.frame(in: .named(PlayerArtworkSpace.expanded)))
                         : PlayerArtworkFrames(mini: geometry.frame(in: .named(PlayerArtworkSpace.root))))
             }
         }
+    }
+
+    /// Only report visibility changes, even though the scroll position moves each frame.
+    func reportsPlayerScrollVisibility(_ action: @escaping (Bool) -> Void) -> some View {
+        onGeometryChange(for: Bool.self) { geometry in
+            guard let viewport = geometry.bounds(of: .named(PlayerArtworkSpace.viewport)) else { return true }
+            let frame = geometry.frame(in: .local)
+            let intersection = frame.intersection(viewport)
+            return !intersection.isNull && intersection.height > frame.height * 0.15
+        } action: { action($0) }
     }
 }
 

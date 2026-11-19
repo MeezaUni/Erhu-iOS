@@ -224,8 +224,9 @@ private struct LyricsPanelContent: View {
 
     private func plain(_ lines: [String]) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+            LazyVStack(alignment: .leading, spacing: Spacing.sm) {
+                ForEach(lines.indices, id: \.self) { index in
+                    let line = lines[index]
                     Text(line.isEmpty ? " " : line).font(compact ? .headline : .title3.weight(.semibold)).foregroundStyle(palette.onSurface)
                 }
             }
@@ -333,6 +334,7 @@ struct SyncedLyricsView: View {
     @Environment(\.lyricsCompact) private var compact
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.playerInMotion) private var playerInMotion
+    @Environment(\.playerPageScrolling) private var pageScrolling
     @Environment(\.visualWorkBudget) private var budget
     @State private var visible = false
 
@@ -340,13 +342,14 @@ struct SyncedLyricsView: View {
         let wordTimed = lines.contains { !($0.words?.isEmpty ?? true) }
         let interval = wordTimed && budget.allowsDecorativeMotion ? 0.1 : 0.25
         TimelineView(.animation(minimumInterval: interval,
-                                paused: !player.state.isPlaying || !visible || scenePhase != .active || playerInMotion)) { _ in
+                                paused: !player.state.isPlaying || !visible || scenePhase != .active || playerInMotion || pageScrolling)) { _ in
             let position = LyricsTimingPreferences.lyricsPosition(playbackMs: player.currentPositionMs(), offsetMs: offsetMs)
             let currentLine = lyrics.lineAt(position)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: compact ? Spacing.md : Spacing.lg) {
-                        ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+                        ForEach(lines.indices, id: \.self) { index in
+                            let line = lines[index]
                             Button { player.seek(to: LyricsTimingPreferences.playbackPosition(lyricMs: line.timeMs, offsetMs: offsetMs)) } label: {
                                 lineText(line, index: index, current: currentLine, position: position)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -367,7 +370,7 @@ struct SyncedLyricsView: View {
         }
         .onAppear { visible = true }
         .onDisappear { visible = false }
-        .reportsScrollVisibility { visible = $0 }
+        .reportsPlayerScrollVisibility { visible = $0 }
     }
 
     /// In the card the current line sits nearer the top, leaving most of it for what comes next.
