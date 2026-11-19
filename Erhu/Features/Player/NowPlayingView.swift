@@ -31,6 +31,7 @@ struct NowPlayingView: View {
     @State private var scrollToTop = 0
     /// Whether the page is scrolled down (to the lyrics).
     @State private var scrolledDown = false
+    @State private var pageScrolling = false
     /// A pull-down is under way: the page doesn't scroll (or rubber-band) under the finger
     /// meanwhile, which made the player shake as it was pulled.
     @State private var pulling = false
@@ -49,54 +50,51 @@ struct NowPlayingView: View {
                 let song = library.song(current.id) ?? current
                 GeometryReader { geometry in
                     let viewport = geometry.size.height
+                    let artworkOrigin = geometry.frame(in: .named(PlayerArtworkSpace.expanded)).origin
                     ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            VStack(spacing: Spacing.md) {
-                                TrackCarousel(stacked: stacked, previous: previousEntry(state), current: state.currentEntry,
-                                              next: nextEntry(state), previousTwo: neighborhood.previousTwo, nextTwo: neighborhood.nextTwo,
-                                              currentSong: song,
-                                              skip: { direction in
-                                                  if direction > 0 { player.skipNext() } else { player.skipToPreviousItem() }
-                                                  return carouselSelection(player.state)
-                                              },
-                                              setBusy: { player.setVisualMotion(.carousel, active: $0) },
-                                              onPull: pulled, onPullEnd: pullEnded,
-                                              onPullCancel: { pulling = false; drag.cancelGesture(reduceMotion: reduceMotion) })
-                                    .frame(maxHeight: .infinity)
-                                VStack(spacing: Spacing.sm) {
-                                    ProgressSection(song: song)
-                                    controls(state)
+                        trackPageScrolling(ScrollView {
+                            VStack(spacing: 0) {
+                                VStack(spacing: Spacing.md) {
+                                    TrackCarousel(stacked: stacked, previous: previousEntry(state), current: state.currentEntry,
+                                                  next: nextEntry(state), previousTwo: neighborhood.previousTwo, nextTwo: neighborhood.nextTwo,
+                                                  currentSong: song, artworkOrigin: artworkOrigin, canPull: !scrolledDown,
+                                                  skip: { direction in
+                                                      if direction > 0 { player.skipNext() } else { player.skipToPreviousItem() }
+                                                      return carouselSelection(player.state)
+                                                  },
+                                                  setBusy: { player.setVisualMotion(.carousel, active: $0) },
+                                                  onPull: pulled, onPullEnd: pullEnded,
+                                                  onPullCancel: cancelPull)
+                                        .frame(maxHeight: .infinity)
+                                    VStack(spacing: Spacing.sm) {
+                                        ProgressSection(song: song)
+                                        controls(state)
+                                    }
+                                    .modifier(PlayerChromeFade())
+                                    .padding(.horizontal, Spacing.heroGutter)
                                 }
-                                .modifier(PlayerChromeFade())
-                                .padding(.horizontal, Spacing.heroGutter)
+                                .padding(.top, Spacing.sm)
+                                .padding(.bottom, Spacing.md)
+                                .frame(height: max(viewport - Self.lyricsPeek, 420))
+                                .id(Self.topID)
+                                .onGeometryChange(for: Bool.self) { top in
+                                    top.frame(in: .named(PlayerArtworkSpace.viewport)).minY < -8
+                                } action: { scrolledDown = $0 }
+                                LyricsPanel(song: song) { showsLyrics = true }
+                                    .modifier(PlayerChromeFade())
+                                    .frame(height: min(max(viewport * 0.62, 300), 560))
+                                    .padding(.horizontal, Spacing.heroGutter)
+                                Spacer().frame(height: Spacing.xl)
                             }
-                            .padding(.top, Spacing.sm)
-                            .padding(.bottom, Spacing.md)
-                            .frame(height: max(viewport - Self.lyricsPeek, 420))
-                            .id(Self.topID)
-                            .background {
-                                GeometryReader { top in
-                                    Color.clear.preference(key: PlayerPageOffsetKey.self, value: top.frame(in: .named(Self.pageSpace)).minY)
-                                }
-                            }
-                            LyricsPanel(song: song) { showsLyrics = true }
-                                .modifier(PlayerChromeFade())
-                                .frame(height: min(max(viewport * 0.62, 300), 560))
-                                .padding(.horizontal, Spacing.heroGutter)
-                            Spacer().frame(height: Spacing.xl)
+                            .coordinateSpace(name: PlayerArtworkSpace.content)
+                        })
+                        .environment(\.playerPageScrolling, pageScrolling)
+                        .scrollIndicators(.hidden)
+                        .scrollDisabled(pulling)
+                        .coordinateSpace(name: PlayerArtworkSpace.viewport)
+                        .onChange(of: scrollToTop) { _, _ in
+                            withAnimation(.smooth(duration: Self.scrollBackDuration)) { proxy.scrollTo(Self.topID, anchor: .top) }
                         }
-                    }
-                    .scrollIndicators(.hidden)
-                    .scrollDisabled(pulling)
-                    .coordinateSpace(name: Self.pageSpace)
-                    .onPreferenceChange(PlayerPageOffsetKey.self) { offset in
-                        let down = offset < -8
-                        if down != scrolledDown { scrolledDown = down }
-                    }
-                    .onChange(of: scrollToTop) { _, _ in
-                        withAnimation(.smooth(duration: Self.scrollBackDuration)) { proxy.scrollTo(Self.topID, anchor: .top) }
-                    }
                     }
                 }
             } else {
@@ -117,7 +115,7 @@ struct NowPlayingView: View {
             }
         }
         .onChange(of: headerPullActive) { _, active in
-            if !active { pulling = false; drag.cancelGesture(reduceMotion: reduceMotion) }
+            if !active { cancelPull() }
         }
         .onChange(of: drag.isMoving, initial: true) { _, active in player.setVisualMotion(.presentation, active: active) }
         .onDisappear {
@@ -144,30 +142,67 @@ struct NowPlayingView: View {
         }
     }
 
+    @ViewBuilder
+    private func trackPageScrolling<Content: View>(_ scrollView: ScrollView<Content>) -> some View {
+        if #available(iOS 18.0, *) {
+            scrollView.onScrollPhaseChange { _, phase in
+                let active = phase == .interacting || phase == .decelerating || phase == .animating
+                if active != pageScrolling { pageScrolling = active }
+            }
+        } else {
+            scrollView
+        }
+    }
+
     /// The header and the cover carousel pull the player down (Android's collapse drag).
     private var pullGesture: some Gesture {
         DragGesture(minimumDistance: 8, coordinateSpace: .global)
             .updating($headerPullActive) { _, active, _ in active = true }
-            .onChanged { pulled($0.translation.height) }
-            .onEnded { pullEnded($0.translation.height, $0.predictedEndTranslation.height) }
+            .onChanged { value in
+                if pulling || value.translation.height > abs(value.translation.width) {
+                    pulled(value.translation.height)
+                }
+            }
+            .onEnded { value in
+                let distance = value.translation.height
+                let predicted = value.predictedEndTranslation.height
+                if pulling {
+                    pullEnded(distance, predicted)
+                } else if scrolledDown, distance > abs(value.translation.width), shouldClose(distance, predicted) {
+                    closeFromButton()
+                }
+            }
     }
 
     private func pulled(_ distance: CGFloat) {
-        if !pulling && distance > 0 { pulling = true }
+        if !pulling {
+            guard !scrolledDown, distance > 0 else { return }
+            pulling = true
+        }
         drag.update(distance)
     }
 
     private func pullEnded(_ distance: CGFloat, _ predicted: CGFloat) {
+        guard pulling else { return }
         pulling = false
-        if distance > 140 || predicted > 420 {
+        if shouldClose(distance, predicted) {
             close(velocity: (predicted - distance) * 4)
         } else {
             drag.restore(reduceMotion: reduceMotion)
         }
     }
 
+    private func shouldClose(_ distance: CGFloat, _ predicted: CGFloat) -> Bool {
+        distance > 140 || predicted > 420
+    }
+
+    private func cancelPull() {
+        guard pulling else { return }
+        pulling = false
+        drag.cancelGesture(reduceMotion: reduceMotion)
+    }
+
     private static let topID = "now-playing-top"
-    private static let pageSpace = "now-playing-page"
 
     /// How long the page takes to glide back up from the lyrics before closing.
     private static let scrollBackDuration: TimeInterval = 0.32
@@ -676,10 +711,4 @@ struct QueueSheet: View {
         }
         .contentShape(Rectangle())
     }
-}
-
-/// How far Now Playing's page is scrolled (its top's position; negative when scrolled down).
-private struct PlayerPageOffsetKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }

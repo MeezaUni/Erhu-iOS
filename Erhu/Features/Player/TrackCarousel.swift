@@ -15,6 +15,8 @@ struct TrackCarousel: View {
     var nextTwo: QueueEntry? = nil
     /// The playing song as the player has it now (its favourite state may be newer than the entry's).
     let currentSong: Song
+    let artworkOrigin: CGPoint
+    let canPull: Bool
     /// +1 next, -1 previous: always a change of song, never a restart.
     let skip: (Int) -> CarouselSelection
     var setBusy: (Bool) -> Void = { _ in }
@@ -28,7 +30,8 @@ struct TrackCarousel: View {
     @Environment(\.playerInMotion) private var playerInMotion
     @State private var scene = CarouselScene()
     @State private var motion = CarouselMotion()
-    @State private var horizontal: Bool?
+    private enum DragMode { case swipe, pull, scroll }
+    @State private var dragMode: DragMode?
     @GestureState private var gestureActive = false
 
     private var selection: CarouselSelection { CarouselSelection(previous: previous, current: current, next: next, previousTwo: previousTwo, nextTwo: nextTwo) }
@@ -48,7 +51,7 @@ struct TrackCarousel: View {
             .environment(\.layoutDirection, .leftToRight)
             .modifier(PlayerCollapseVisibility())
             .contentShape(Rectangle())
-            .highPriorityGesture(swipe(page: page))
+            .simultaneousGesture(swipe(page: page))
         }
         .onChange(of: motion.moving, initial: true) { _, active in setBusy(active) }
         .onChange(of: selection, initial: true) { _, next in selectionChanged(next) }
@@ -60,12 +63,20 @@ struct TrackCarousel: View {
         }
         .onChange(of: gestureActive) { _, active in
             // GestureState also resets on cancellation, when onEnded is never called.
-            guard !active, let axis = horizontal else { return }
-            horizontal = nil
-            motion.endGesture()
-            if axis { settle() } else { onPullCancel() }
+            guard !active, let mode = dragMode else { return }
+            dragMode = nil
+            switch mode {
+            case .swipe: motion.endGesture(); settle()
+            case .pull: onPullCancel()
+            case .scroll: break
+            }
         }
-        .onDisappear { horizontal = nil; motion.cancel(); setBusy(false) }
+        .onDisappear {
+            if dragMode == .pull { onPullCancel() }
+            dragMode = nil
+            motion.cancel()
+            setBusy(false)
+        }
     }
 
     private func card(_ item: CarouselScene.Item, metrics: CardMetrics) -> some View {
@@ -75,7 +86,7 @@ struct TrackCarousel: View {
         return CarouselCard(song: song, isCurrent: isCurrent,
                             showsMetadata: true,
                             reportsArtworkFrame: isCurrent && !motion.moving,
-                            metrics: metrics)
+                            artworkOrigin: artworkOrigin, metrics: metrics)
             .equatable()
             .modifier(PlayerNeighbourFade(isCurrent: isCurrent))
             .onTapGesture {
@@ -89,19 +100,32 @@ struct TrackCarousel: View {
         DragGesture(minimumDistance: 12, coordinateSpace: .global)
             .updating($gestureActive) { _, active, _ in active = true }
             .onChanged { value in
-                if horizontal == nil { horizontal = abs(value.translation.width) > abs(value.translation.height) }
-                guard horizontal == true else { onPull(value.translation.height); return }
-                motion.drag(translation: value.translation.width, page: page, center: scene.center,
-                            canPrevious: selection.canMove(-1), canNext: selection.canMove(1))
+                if dragMode == nil {
+                    if HorizontalGestureIntent.accepts(value.translation) {
+                        dragMode = .swipe
+                    } else {
+                        dragMode = canPull && value.translation.height > abs(value.translation.width) ? .pull : .scroll
+                    }
+                }
+                if dragMode == .swipe {
+                    motion.drag(translation: value.translation.width, page: page, center: scene.center,
+                                canPrevious: selection.canMove(-1), canNext: selection.canMove(1))
+                } else if dragMode == .pull {
+                    onPull(value.translation.height)
+                }
             }
             .onEnded { value in
-                defer { horizontal = nil; motion.endGesture() }
-                guard horizontal == true else { onPullEnd(value.translation.height, value.predictedEndTranslation.height); return }
-                let wanted = CarouselSwipeIntent.direction(translation: value.translation.width,
-                                                           predicted: value.predictedEndTranslation.width, page: page)
-                let velocity = -value.velocity.width / page
-                if selection.canMove(wanted) { commitSwipe(wanted, velocity: velocity) }
-                else { settle(velocity: velocity) }
+                defer { dragMode = nil }
+                if dragMode == .pull {
+                    onPullEnd(value.translation.height, value.predictedEndTranslation.height)
+                } else if dragMode == .swipe {
+                    defer { motion.endGesture() }
+                    let wanted = CarouselSwipeIntent.direction(translation: value.translation.width,
+                                                               predicted: value.predictedEndTranslation.width, page: page)
+                    let velocity = -value.velocity.width / page
+                    if selection.canMove(wanted) { commitSwipe(wanted, velocity: velocity) }
+                    else { settle(velocity: velocity) }
+                }
             }
     }
 
@@ -183,6 +207,7 @@ private struct CarouselCard: View, Equatable {
     let isCurrent: Bool
     let showsMetadata: Bool
     let reportsArtworkFrame: Bool
+    let artworkOrigin: CGPoint
     let metrics: CardMetrics
     @Environment(LibraryActions.self) private var actions
     @Environment(AppRouter.self) private var router
@@ -194,7 +219,7 @@ private struct CarouselCard: View, Equatable {
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.song == rhs.song && lhs.isCurrent == rhs.isCurrent && lhs.showsMetadata == rhs.showsMetadata &&
-        lhs.reportsArtworkFrame == rhs.reportsArtworkFrame && lhs.metrics == rhs.metrics
+        lhs.reportsArtworkFrame == rhs.reportsArtworkFrame && lhs.artworkOrigin == rhs.artworkOrigin && lhs.metrics == rhs.metrics
     }
 
     var body: some View {
@@ -203,7 +228,9 @@ private struct CarouselCard: View, Equatable {
         VStack(spacing: 0) {
             Color.clear
                 .frame(width: metrics.artSide, height: metrics.artSide)
-                .background { if reportsArtworkFrame { Color.clear.playerArtworkFrame(expanded: true) } }
+                .background {
+                    if reportsArtworkFrame { Color.clear.playerArtworkFrame(expanded: true, contentOrigin: artworkOrigin) }
+                }
                 .overlay {
                     SongArtworkView(song: song, maxPixels: isCurrent ? 1200 : 600)
                         .frame(width: metrics.artSide, height: metrics.artSide)

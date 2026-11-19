@@ -16,6 +16,10 @@ struct LineSeekBar: View {
     @Environment(PlayerController.self) private var player
     @Environment(\.palette) private var palette
     @Environment(\.playerInMotion) private var playerInMotion
+    @Environment(\.playerPageScrolling) private var pageScrolling
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.visualWorkBudget) private var budget
+    @State private var visible = true
 
     private static let touchHeight: CGFloat = 48
     private static let thin: CGFloat = 4
@@ -25,8 +29,10 @@ struct LineSeekBar: View {
     private static let glowRadius: CGFloat = 12
 
     var body: some View {
+        let paused = !isPlaying || previewMs != nil || playerInMotion || pageScrolling || !visible || scenePhase != .active
+        let interval = !budget.lowPower && budget.thermalState == .nominal ? 1.0 / 30 : 1.0 / 12
         GeometryReader { geometry in
-            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isPlaying || previewMs != nil || playerInMotion)) { _ in
+            TimelineView(.animation(minimumInterval: interval, paused: paused)) { _ in
                 let position = previewMs ?? player.currentPositionMs()
                 Canvas { context, size in draw(in: &context, size: size, position: position) }
             }
@@ -37,6 +43,7 @@ struct LineSeekBar: View {
             }
         }
         .frame(height: Self.touchHeight)
+        .reportsPlayerScrollVisibility { visible = $0 }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: previewMs != nil)
         .accessibilityElement()
         .accessibilityLabel("Seek")
